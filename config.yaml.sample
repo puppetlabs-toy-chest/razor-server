@@ -1,0 +1,20 @@
+---
+# This is the configuration file for the Razor server. For each
+# environment, the file contains a hash of configuration values. The
+# special environment 'all' is used to set configuration values for all
+# environments
+#
+# The *database_url* setting must be a connection URL for
+# (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
+
+development:
+  database_url: 'postgres://razor:razor@localhost/razor_dev'
+test:
+  database_url: 'postgres://razor:razor@localhost/razor_test'
+all:
+  image_service_uri:
+    'http://razor.example.com/razor/image'
+  microkernel:
+    debug_level: debug
+    kernel_args:
+  checkin_interval: 15
