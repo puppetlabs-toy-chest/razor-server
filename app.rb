@@ -10,13 +10,20 @@ class Razor::App < Sinatra::Base
   end
 
   # API for MK
-  post '/svc/checkin/:id' do
-    # deserialize body, pass to backend
+  post '/svc/checkin/:hw_id' do
+    return 400 if request.content_type != 'application/json'
+    begin
+      json = JSON::parse(request.body.read)
+    rescue JSON::ParserError
+      return 400
+    end
+    return 400 unless json['facts']
+    Razor::Models::Node.checkin(params[:hw_id], json).to_json
   end
 
-  get '/svc/boot/:mac_id' do
+  get '/svc/boot/:hw_id' do
     content_type "text/plain"
-    node = Razor::Models::Node.lookup(params[:mac_id])
+    node = Razor::Models::Node.lookup(params[:hw_id])
     # look up node
     # respond with next templated response
     Razor::PolicyTemplate::Microkernel.new.ipxe

@@ -2,10 +2,13 @@ require 'sequel'
 require 'logger'
 require_relative 'config'
 
+# Load Sequel extensions
+Sequel.extension :core_extensions, :inflector
+Sequel.extension :pg_array, :pg_array_ops, :pg_json
 module Razor
   class << self
     def env
-      @@env ||= ENV["RACK_ENV"]
+      @@env ||= ENV["RACK_ENV"] || "development"
     end
 
     def root
@@ -27,6 +30,7 @@ module Razor
     end
   end
 
-  # Establish a database connection now
+  # Establish a database connection now and load extensions
   Razor.database
+  Razor.database.extension :pg_array, :pg_json
 end

@@ -3,6 +3,7 @@ Sequel.migration do
     create_table :nodes do
       primary_key :id
       String      :hw_id, :null => false, :unique => true
+      column      :facts, 'json'
     end
   end
 end

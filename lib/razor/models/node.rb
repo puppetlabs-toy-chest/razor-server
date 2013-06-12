@@ -6,10 +6,17 @@ class Razor::Models::Node < Sequel::Model
     ActiveModel.boot(self)
   end
 
-  def self.checkin(id, facts)
-    # create Node[id] if it doesn't exist
-    # update facts
-    # determine next action and return it
+  def self.checkin(hw_id, body)
+    if n = lookup(hw_id)
+      if body['facts'] != n.facts
+        n.facts = body['facts']
+        n.save
+      end
+    else
+      n = create(:hw_id => hw_id, :facts => body['facts'])
+    end
+    # FIXME: determine next action and return it
+    { :action => :none }
   end
 
   def self.lookup(hw_id)
