@@ -1,4 +1,4 @@
-class Razor::Models::Node < Sequel::Model
+class Razor::Data::Node < Sequel::Model
 
   many_to_one :active_model
 

@@ -18,12 +18,12 @@ class Razor::App < Sinatra::Base
       return 400
     end
     return 400 unless json['facts']
-    Razor::Models::Node.checkin(params[:hw_id], json).to_json
+    Razor::Data::Node.checkin(params[:hw_id], json).to_json
   end
 
   get '/svc/boot/:hw_id' do
     content_type "text/plain"
-    node = Razor::Models::Node.lookup(params[:hw_id])
+    node = Razor::Data::Node.lookup(params[:hw_id])
     # look up node
     # respond with next templated response
     Razor::PolicyTemplate::Microkernel.new.ipxe
