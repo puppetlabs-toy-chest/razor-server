@@ -36,7 +36,7 @@ namespace :db do
     env = args[:env] || "development"
     Rake::Task['environment'].invoke(env)
     Razor.database.tables.each do |table|
-      Razor.database.run("DROP TABLE #{table}")
+      Razor.database.run("DROP TABLE #{table} CASCADE")
     end
   end
 
