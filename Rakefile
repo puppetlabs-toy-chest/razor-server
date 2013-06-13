@@ -57,3 +57,9 @@ namespace :spec do
     t.pattern = 'spec/**/*_spec.rb'
   end
 end
+
+desc "Open a preloaded irb session"
+task :console do
+  libdir = File::expand_path(File::join(File::dirname(__FILE__), "lib"))
+  sh "irb -I #{libdir} -r razor/initialize -r razor"
+end
