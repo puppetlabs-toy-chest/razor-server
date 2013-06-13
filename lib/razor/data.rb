@@ -6,3 +6,4 @@ module Razor::Data; end
 
 require_relative 'data/active_model'
 require_relative 'data/node'
+require_relative 'data/tag'
