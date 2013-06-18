@@ -1,4 +1,6 @@
 class Razor::Data::Tag < Sequel::Model
+  plugin :serialization, :json, :rule
+
   many_to_many :policies, :left_key => :tag_id, :right_key => :policy_id,
     :join_table => :policy_tag_mappings
 

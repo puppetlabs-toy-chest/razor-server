@@ -3,7 +3,7 @@ Sequel.migration do
     create_table :nodes do
       primary_key :id
       String      :hw_id, :null => false, :unique => true
-      column      :facts, 'json'
+      String      :facts
     end
 
     create_table :images do
@@ -35,7 +35,7 @@ Sequel.migration do
     create_table :tags do
       primary_key :id
       String      :name, :null => false, :unique => true
-      column      :rule, 'json'
+      String      :rule
     end
 
     create_join_table( :tag_id => :tags, :policy_id => :policies)

@@ -4,7 +4,9 @@ require_relative 'config'
 
 # Load Sequel extensions
 Sequel.extension :core_extensions, :inflector
-Sequel.extension :pg_array, :pg_array_ops, :pg_json
+Sequel.extension :pg_array, :pg_array_ops
+require 'sequel/plugins/serialization'
+
 module Razor
   class << self
     def env
@@ -32,5 +34,5 @@ module Razor
 
   # Establish a database connection now and load extensions
   Razor.database
-  Razor.database.extension :pg_array, :pg_json
+  Razor.database.extension :pg_array
 end

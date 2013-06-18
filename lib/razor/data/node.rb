@@ -1,4 +1,5 @@
 class Razor::Data::Node < Sequel::Model
+  plugin :serialization, :json, :facts
 
   many_to_one :active_model
 
