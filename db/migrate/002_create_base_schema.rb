@@ -1,5 +1,7 @@
 Sequel.migration do
-  change do
+  up do
+    extension(:constraint_validations)
+
     create_table :nodes do
       primary_key :id
       String      :hw_id, :null => false, :unique => true
@@ -14,7 +16,10 @@ Sequel.migration do
       String      :status
       String      :os_name
       String      :os_version
-      constraint(:images_type_ck, :type => %w[mk os esxi])
+
+      validate do
+        includes %w[mk os esxi], :type, :name => 'valid_image_types'
+      end
     end
 
     create_table :models do
@@ -39,5 +44,20 @@ Sequel.migration do
     end
 
     create_join_table( :tag_id => :tags, :policy_id => :policies)
+  end
+
+  down do
+    extension(:constraint_validations)
+
+    drop_table :policies_tags
+    drop_table :tags
+    drop_table :policies
+
+    drop_table :models
+
+    drop_constraint_validations_for :table => :images
+    drop_table :images
+
+    drop_table :nodes
   end
 end
