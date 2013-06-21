@@ -4,7 +4,6 @@
 # the term to mean something else.
 module Razor::Data; end
 
-
 # Configure global model plugins; these require a database connection, so
 # much be established now that we have one.
 #
@@ -15,6 +14,5 @@ module Razor::Data; end
 Sequel::Model.plugin :constraint_validations
 Sequel::Model.plugin :auto_validations
 
-require_relative 'data/active_model'
 require_relative 'data/node'
 require_relative 'data/tag'

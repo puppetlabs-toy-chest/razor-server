@@ -1,12 +1,6 @@
 class Razor::Data::Node < Sequel::Model
   plugin :serialization, :json, :facts
 
-  many_to_one :active_model
-
-  def boot
-    ActiveModel.boot(self)
-  end
-
   # This is a hack around the fact that the auto_validates plugin does
   # not play nice with the JSON serialization plugin (the serializaton
   # happens in the before_save hook, which runs after validation)
