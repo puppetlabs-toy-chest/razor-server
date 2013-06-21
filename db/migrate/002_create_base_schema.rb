@@ -22,17 +22,9 @@ Sequel.migration do
       end
     end
 
-    create_table :models do
-      primary_key :id
-      String      :name, :null => false, :unique => true
-      foreign_key :image_id, :null => false
-      String      :hostname_pattern
-    end
-
     create_table :policies do
       primary_key :id
       String      :name, :null => false, :unique => true
-      foreign_key :model_id, :models, :null => false
       TrueClass   :enabled
       Integer     :max_count
     end
