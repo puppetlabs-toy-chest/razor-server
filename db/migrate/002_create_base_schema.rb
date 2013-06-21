@@ -2,12 +2,6 @@ Sequel.migration do
   up do
     extension(:constraint_validations)
 
-    create_table :nodes do
-      primary_key :id
-      String      :hw_id, :null => false, :unique => true
-      String      :facts
-    end
-
     create_table :images do
       primary_key :id
       String      :name, :null => false, :unique => true
@@ -25,14 +19,24 @@ Sequel.migration do
     create_table :policies do
       primary_key :id
       String      :name, :null => false, :unique => true
+      foreign_key :image_id, :images, :null => false
+      String      :hostname_pattern
       TrueClass   :enabled
       Integer     :max_count
+      Integer     :sort_order
     end
 
     create_table :tags do
       primary_key :id
       String      :name, :null => false, :unique => true
       String      :rule
+    end
+
+    create_table :nodes do
+      primary_key :id
+      String      :hw_id, :null => false, :unique => true
+      foreign_key :policy_id, :policies
+      String      :facts
     end
 
     create_join_table( :tag_id => :tags, :policy_id => :policies)

@@ -30,3 +30,15 @@ end
 # Conveniences for dealing with model objects
 Node = Razor::Data::Node
 Tag = Razor::Data::Tag
+Image = Razor::Data::Image
+Policy = Razor::Data::Policy
+
+def make_image(attr = {})
+  h = {
+    :name => "dummy",
+    :type => "os",
+    :path => "/dev/null"
+  }
+  h.merge!(attr)
+  Image.create(h)
+end

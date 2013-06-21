@@ -14,5 +14,7 @@ module Razor::Data; end
 Sequel::Model.plugin :constraint_validations
 Sequel::Model.plugin :auto_validations
 
-require_relative 'data/node'
+require_relative 'data/image'
+require_relative 'data/policy'
 require_relative 'data/tag'
+require_relative 'data/node'
