@@ -1,0 +1,3 @@
+<% if node.dhcp_mac %>ksdevice=bootif BOOTIF=<%= node.dhcp_mac %>  ks=<%= file_url("kickstart") %>
+<% else %>ks=<%= file_url("kickstart") %>
+<% end %>

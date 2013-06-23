@@ -1,0 +1,9 @@
+#!ipxe
+kernel <%= image_url("/vmlinuz") %> maxcpus=1 <%= config["microkernel.debug_level"] %> <%= config["microkernel.kernel_args"] %> || goto error
+initrd <%= image_url("/initrd") %> || goto error
+boot || goto error
+
+:error
+
+# timeout = <%= timeout = config["checkin_interval"] * 1000 %>
+prompt --key s --timeout <%= timeout %> ERROR, hit 's' for the iPXE shell; reboot in <%= timeout %> seconds && shell || reboot

@@ -21,6 +21,40 @@ class Rack::MockResponse
   end
 end
 
+# Tests are allowed to changed config on the fly
+class Razor::Config
+  def []=(key, value)
+    path = key.to_s.split(".")
+    last = path.pop
+    path.inject(@values) { |v, k| v[k] ||= {}; v[k] if v }[last] = value
+  end
+
+  def values
+    @values
+  end
+
+  def values=(v)
+    @values = v
+  end
+end
+
+FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
+INST_PATH = File::join(FIXTURES_PATH, "installers")
+
+def use_installer_fixtures
+  Razor::Config.config["installer_path"] = INST_PATH
+end
+
+# Restore the config after each test
+RSpec.configure do |c|
+  c.around(:each) do |example|
+    config_values = Razor::Config.config.values.dup
+    example.run
+    Razor::Config.config.values = config_values
+  end
+end
+
+# Roll DB back after each test
 RSpec.configure do |c|
   c.around(:each) do |example|
     Razor.database.transaction(:rollback=>:always){example.run}

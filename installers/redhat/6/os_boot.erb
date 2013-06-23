@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Wait for network to come up when using NetworkManager.
+if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
+    nm-online -q --timeout=10 || nm-online -q -x --timeout=30
+    [ "$?" -eq 0 ] || exit 1
+fi
+
+# Configure hostname.
+hostname <%= node.hostname %>
+echo <%= node.hostname %> > /etc/hostname
+
+# This set of commands should convert the first local (but non-loopback) IP
+# address in the /etc/hosts file to an entry that has the fully-qualified
+# hostname and local hostname as part of the entry (so that tehse names can
+# be resolved properly). A backup of the original file will be left in place
+# in the /etc/hosts- file
+cp -p /etc/hosts /etc/hosts-
+grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
+grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= node.hostname %>.<%= node.domainname %>'\2'<%= node.hostname %>'/' >> /etc/hosts
+grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | tail -n +2 >> /etc/hosts
+grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
+
+[ "$?" -eq 0 ] && curl <%= log_url("set_hostname_ok") %> || curl <%= log_url("set_hostname_fail", :error) %>
+
+# Need to add the Puppetlabs repo
+rpm -i http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+[ "$?" -eq 0 ] && curl <%= log_url("repo_install_ok") %> || curl <%= log_url("repo_install_fail", :error) %>
+
+# Install requirements
+yum -y --enablerepo=base install rubygems facter
+[ "$?" -eq 0 ] && curl <%= log_url("yum_install_ok") %> || curl <%= log_url("yum_install_fail", :error) %>
+
+# Get current IP
+node_ip=`facter ipaddress`
+# Send IP up
+curl <%= set_url("ip" => "$node_ip") %>
+# get final script
+curl <%= file_url("os_complete") %> | sh
+# Send final state
+curl <%= log_url("os_boot_done") %> &
