@@ -17,7 +17,7 @@ module Razor::Data
         p.tags.size > 0 && p.tags.all? { |t| node_tags.include?(t) }
       end
       if match
-        node.policy = match
+        node.bind(match)
         node.save
       end
     end

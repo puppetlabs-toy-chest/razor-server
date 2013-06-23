@@ -11,6 +11,11 @@ module Razor
       @os_version = metadata["os_version"].to_s
       @label = metadata["label"] || "#{@name} #{@os_version}"
       @description = metadata["description"] || ""
+      @boot_seq = metadata["boot_sequence"]
+    end
+
+    def boot_template(node)
+      @boot_seq[node.boot_count] || @boot_seq["default"]
     end
 
     def view_path(template)

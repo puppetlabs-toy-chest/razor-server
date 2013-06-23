@@ -16,6 +16,12 @@ module Razor::Data
       self.log << hash
     end
 
+    def bind(policy)
+      self.policy = policy
+      self.boot_count = 0
+      # FIXME: Populate hostname, domainname etc.
+    end
+
     # This is a hack around the fact that the auto_validates plugin does
     # not play nice with the JSON serialization plugin (the serializaton
     # happens in the before_save hook, which runs after validation)
