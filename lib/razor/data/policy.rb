@@ -5,6 +5,10 @@ module Razor::Data
     many_to_one :image
     many_to_many :tags
 
+    def installer
+      Razor::Installer.find(installer_name)
+    end
+
     def self.bind(node)
       # FIXME: Do this without loading all policies from the DB
       node_tags = node.tags
