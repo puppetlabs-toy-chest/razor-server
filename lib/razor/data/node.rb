@@ -1,11 +1,19 @@
 module Razor::Data
   class Node < Sequel::Model
     plugin :serialization, :json, :facts
+    plugin :serialization, :json, :log
 
     many_to_one :policy
 
     def tags
       Tag.match(self)
+    end
+
+    def log_append(hash)
+      self.log ||= []
+      hash[:timestamp] ||= Time.now.to_i
+      hash[:severity] ||= 'info'
+      self.log << hash
     end
 
     # This is a hack around the fact that the auto_validates plugin does

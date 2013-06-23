@@ -29,6 +29,15 @@ class Razor::App < Sinatra::Base
     Razor::PolicyTemplate::Microkernel.new.ipxe
   end
 
+  get '/svc/log/:node_id' do
+    node = Razor::Data::Node[params[:node_id]]
+    halt 404 unless node
+
+    node.log_append(:msg=> params[:msg], :severity => params[:severity])
+    node.save
+    [204, {}]
+  end
+
   # General purpose API
   get '/api' do
     { :missing => "global entry point" }.to_json

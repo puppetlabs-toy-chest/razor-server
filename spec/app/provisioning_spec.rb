@@ -18,6 +18,24 @@ describe "provisioning API" do
     lines[2].should =~ /^initrd/
   end
 
+  describe "logging" do
+    it "should return 404 logging against nonexisting node" do
+      get "/svc/log/432?msg=message&severity=warn"
+      last_response.status.should == 404
+    end
+
+    it "should store the log message for an existing node" do
+      node = Node.create(:hw_id => "00:11:22:33:44:55")
+
+      get "/svc/log/#{node.id}?msg=message&severity=warn"
+      last_response.status.should == 204
+      log = Node[node.id].log
+      log.size.should == 1
+      log[0]["msg"].should == "message"
+      log[0]["severity"].should == "warn"
+    end
+  end
+
   describe "node checkin" do
     hw_id = "00:11:22:33:44:55"
 
