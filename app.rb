@@ -129,6 +129,18 @@ class Razor::App < Sinatra::Base
     [204, {}]
   end
 
+  get '/svc/store/:node_id' do
+    node = Razor::Data::Node[params[:node_id]]
+    halt 404 unless node
+    halt 400 unless params[:ip]
+
+    # We only allow setting the ip address for now
+    node.ip_address = params[:ip]
+    node.log_append(:msg => "received IP address #{node.ip_address}")
+    node.save
+    [204, {}]
+  end
+
   # General purpose API
   get '/api' do
     { :missing => "global entry point" }.to_json

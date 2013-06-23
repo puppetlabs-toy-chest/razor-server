@@ -43,6 +43,10 @@ Sequel.migration do
       String      :log
       String      :facts
 
+      # FIXME: Determine if we even need to store this (it only seems to be
+      # used to log into the node via ssh to setup the broker; and we
+      # should do that by pulling a broker install script from the node)
+      String      :ip_address
       Integer     :boot_count, :default => 0
     end
 

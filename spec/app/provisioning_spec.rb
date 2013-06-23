@@ -118,6 +118,30 @@ describe "provisioning API" do
     end
   end
 
+  describe "storing node IP" do
+    before(:each) do
+      @node = Node.create(:hw_id => "00:11:22:33:44:55")
+    end
+
+    it "should store an IP" do
+      get "/svc/store/#{@node.id}?ip=8.8.8.8"
+      last_response.status.should == 204
+
+      node = Node[@node.id]
+      node.ip_address.should == "8.8.8.8"
+    end
+
+    it "should return 404 for nonexistent nodes" do
+      get "/svc/store/#{@node.id+1}?ip=8.8.8.8"
+      last_response.status.should == 404
+    end
+
+    it "should return 400 when ip not provided" do
+      get "/svc/store/#{@node.id}"
+      last_response.status.should == 400
+    end
+  end
+
   describe "node checkin" do
     hw_id = "00:11:22:33:44:55"
 
