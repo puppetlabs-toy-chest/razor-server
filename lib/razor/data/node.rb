@@ -5,6 +5,10 @@ module Razor::Data
 
     many_to_one :policy
 
+    def installer
+      policy ? policy.installer : Razor::Installer.mk_installer
+    end
+
     def tags
       Tag.match(self)
     end
@@ -57,6 +61,14 @@ module Razor::Data
 
     def self.lookup(hw_id)
       self[:hw_id => hw_id]
+    end
+
+    def self.boot(hw_id)
+      unless node = lookup(hw_id)
+        node = Node.create(:hw_id => hw_id)
+      end
+      node.boot_count += 1
+      node.save
     end
   end
 end
