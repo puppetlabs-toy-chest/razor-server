@@ -7,6 +7,23 @@ class Razor::Data::Node < Sequel::Model
     ActiveModel.boot(self)
   end
 
+  # This is a hack around the fact that the auto_validates plugin does
+  # not play nice with the JSON serialization plugin (the serializaton
+  # happens in the before_save hook, which runs after validation)
+  #
+  # To avoid spurious error messages, we tell the validation machinery to
+  # expect a Hash resp. an Array
+  # FIXME: Figure out a way to address this issue upstream
+  def schema_type_class(k)
+    if k == :facts
+      Hash
+    elsif k == :log
+      Array
+    else
+      super
+    end
+  end
+
   def self.checkin(hw_id, body)
     if n = lookup(hw_id)
       if body['facts'] != n.facts
