@@ -1,8 +1,6 @@
 require_relative "../spec_helper"
 
 describe Razor::Data::Node do
-  Node = Razor::Data::Node
-
   it "lookup should find node by HW id" do
     mac = "00:11:22:33:44:55"
     nc = Node.create(:hw_id => mac)

@@ -26,3 +26,7 @@ RSpec.configure do |c|
     Razor.database.transaction(:rollback=>:always){example.run}
   end
 end
+
+# Conveniences for dealing with model objects
+Node = Razor::Data::Node
+Tag = Razor::Data::Tag

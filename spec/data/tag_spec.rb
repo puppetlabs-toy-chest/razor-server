@@ -1,6 +1,6 @@
-describe Razor::Data::Tag do
-  Tag = Razor::Data::Tag
+require_relative '../spec_helper'
 
+describe Razor::Data::Tag do
   class MockNode
     attr_reader :facts
 

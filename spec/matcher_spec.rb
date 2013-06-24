@@ -1,3 +1,5 @@
+require_relative 'spec_helper'
+
 describe Razor::Matcher do
   Matcher = Razor::Matcher
 
