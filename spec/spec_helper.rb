@@ -1,6 +1,8 @@
 require 'rack/test'
 require 'json'
 
+ENV["RACK_ENV"] ||= "test"
+
 require_relative '../lib/razor/initialize'
 require_relative '../lib/razor'
 
