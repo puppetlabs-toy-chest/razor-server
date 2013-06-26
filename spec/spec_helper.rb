@@ -42,15 +42,15 @@ FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
 INST_PATH = File::join(FIXTURES_PATH, "installers")
 
 def use_installer_fixtures
-  Razor::Config.config["installer_path"] = INST_PATH
+  Razor.config["installer_path"] = INST_PATH
 end
 
 # Restore the config after each test
 RSpec.configure do |c|
   c.around(:each) do |example|
-    config_values = Razor::Config.config.values.dup
+    config_values = Razor.config.values.dup
     example.run
-    Razor::Config.config.values = config_values
+    Razor.config.values = config_values
   end
 end
 

@@ -15,7 +15,7 @@ describe Razor::Installer do
     end
 
     it "searches multiple paths in order" do
-      Razor::Config.config["installer_path"] +=
+      Razor.config["installer_path"] +=
         ":" + File::join(FIXTURES_PATH, "other_installers")
       inst = Installer.find("shadowed")
       inst.should_not be_nil

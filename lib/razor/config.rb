@@ -33,13 +33,5 @@ module Razor
         end
       }
     end
-
-    def self.[](key)
-      config[key]
-    end
-
-    def self.config
-      self.instance
-    end
   end
 end
