@@ -14,13 +14,35 @@ class Razor::App < Sinatra::Base
   end
 
   before do
+    # Set our content type: like many people, we simply don't negotiate.
     content_type 'application/json'
+  end
+
+  before %r'/api($|/)'i do
+    # Ensure that we can happily talk application/json with the client.
+    # At least this way we tell you when we are going to be mean.
+    #
+    # This should read `request.accept?(application/json)`, but
+    # unfortunately for us, https://github.com/sinatra/sinatra/issues/731
+    # --daniel 2013-06-26
+    request.preferred_type('application/json') or
+      halt [406, {"error" => "only application/json content is available"}.to_json]
   end
 
   #
   # Server/node API
   #
   helpers do
+    def json_body
+      if request.content_type =~ %r'application/json'i
+        return JSON.parse(request.body.read)
+      else
+        halt 415, {"error" => "only application/json is accepted here"}.to_json
+      end
+    rescue => e
+      halt 415, {"error" => "unable to parse JSON", "detail" => e.to_s}.to_json
+    end
+
     def compose_url(*parts)
       escaped = '/' + parts.compact.map{|x|URI::escape(x.to_s)}.join('/')
       url escaped.gsub(%r'//+', '/')
@@ -145,8 +167,29 @@ class Razor::App < Sinatra::Base
     [204, {}]
   end
 
-  # General purpose API
+  # Command handling and query API: this provides navigation data to allow
+  # clients to discover which URL namespace content is available, and access
+  # the query and command operations they desire.
+  #
+  # @todo danielp 2013-06-26: this should be some sort of discovery, not a
+  # hand-coded list, but ... it will do, for now.
   get '/api' do
-    { :missing => "global entry point" }.to_json
+    {
+      "commands" => [
+        # `rel` is the relationship; by the standard, this is the closest we
+        # can get to a conformant identifier for a custom relationship type,
+        # and since we expect to consume one per command to avoid clients just
+        # knowing the URL, we get this nastiness.  At least we can turn it
+        # into something useful by putting documentation about how to use the
+        # command or query interface behind it, I guess. --daniel 2013-06-26
+        #
+        # @todo danielp 2013-06-26: we should actually link to the canonical
+        # puppetlabs.com URL for the spec in production, not to something
+        # internal to this deployment -- since we expect client applications
+        # to use a case-folded match on the URL to identify their
+        # desired command.
+        {"rel" => url('/spec/create_new_image'), "url" => url('/api/create_new_image')}
+      ]
+    }.to_json
   end
 end
