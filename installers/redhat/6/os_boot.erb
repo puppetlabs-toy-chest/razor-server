@@ -34,7 +34,7 @@ yum -y --enablerepo=base install rubygems facter
 # Get current IP
 node_ip=`facter ipaddress`
 # Send IP up
-curl <%= set_url("ip" => "$node_ip") %>
+curl <%= store_url("ip" => "$node_ip") %>
 # get final script
 curl <%= file_url("os_complete") %> | sh
 # Send final state
