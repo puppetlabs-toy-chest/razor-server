@@ -1,3 +1,4 @@
 config.yaml
 log/*
 /.yardoc
+/Gemfile.local*
