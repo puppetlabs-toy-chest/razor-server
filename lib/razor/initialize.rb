@@ -19,7 +19,7 @@ module Razor
     end
 
     def database
-      @@database ||= Sequel.connect(Config["database_url"],
+      @@database ||= Sequel.connect(Razor.config["database_url"],
                                 :loggers => [Razor.logger])
     end
 

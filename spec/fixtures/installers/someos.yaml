@@ -1,0 +1,10 @@
+---
+
+name: some_os
+os_version: 3
+label: Some OS, version 3
+description: Some OS Generic Model
+boot_sequence:
+  1: boot_install
+  2: boot_again
+  default: boot_local

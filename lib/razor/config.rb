@@ -5,6 +5,10 @@ module Razor
   class Config
     include Singleton
 
+    # The config paths that templates have access to
+    TEMPLATE_PATHS = [ "microkernel.debug_level", "microkernel.kernel_args",
+                       "checkin_interval" ]
+
     def initialize
       fname = ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
@@ -20,12 +24,14 @@ module Razor
       key.to_s.split(".").inject(@values) { |v, k| v[k] if v }
     end
 
-    def self.[](key)
-      config[key]
-    end
-
-    def self.config
-      self.instance
+    def installer_paths
+      self["installer_path"].split(":").map { |path|
+        if path.start_with?("/")
+          path
+        else
+          File::expand_path(File::join(Razor.root, path))
+        end
+      }
     end
   end
 end
