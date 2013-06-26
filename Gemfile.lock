@@ -3,7 +3,11 @@ GEM
   specs:
     diff-lcs (1.2.4)
     github-markup (0.7.5)
+    multi_json (1.7.7)
     pg (0.15.1)
+    queue_classic (2.1.4)
+      multi_json (~> 1.7.2)
+      pg (~> 0.15.1)
     rack (1.5.2)
     rack-protection (1.5.0)
       rack
@@ -32,6 +36,7 @@ PLATFORMS
 DEPENDENCIES
   github-markup
   pg
+  queue_classic (= 2.1.4)
   rack-test
   redcarpet
   rspec
