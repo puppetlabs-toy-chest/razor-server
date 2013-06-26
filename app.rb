@@ -4,6 +4,10 @@ require_relative './lib/razor/initialize'
 require_relative './lib/razor'
 
 class Razor::App < Sinatra::Base
+  # Wire up our QC database integration, which establishes the connection to
+  # the database correctly around each request: part of our ambient
+  # environment for running requests.
+  use Razor::Middleware::QueueClassic
 
   configure do
     # FIXME: This turns off template caching alltogether since I am not

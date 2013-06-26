@@ -1,5 +1,6 @@
 require 'sequel'
 require 'logger'
+require_relative 'queue_classic'
 require_relative 'config'
 
 # Load Sequel extensions
