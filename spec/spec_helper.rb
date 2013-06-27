@@ -83,6 +83,7 @@ def make_policy(attr = {})
     :enabled => true,
     :installer_name => "some_os",
     :hostname_pattern => "host%n",
+    :domainname => "example.org",
     :root_password => "secret"
   }
   h.merge!(attr)

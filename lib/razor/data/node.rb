@@ -25,6 +25,15 @@ module Razor::Data
       policy.root_password
     end
 
+    def domainname
+      raise NodeNotBoundError, "root_password" unless policy
+      policy.domainname
+    end
+
+    def fqdn
+      "#{hostname}.#{domainname}"
+    end
+
     def log_append(hash)
       self.log ||= []
       hash[:timestamp] ||= Time.now.to_i

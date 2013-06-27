@@ -54,4 +54,17 @@ describe Razor::Data::Node do
       node.root_password.should == policy.root_password
     end
   end
+
+  describe "domainname" do
+    it "raises NodeNotBoundError when no policy is bound" do
+      expect {
+        node.domainname
+      }.to raise_error(Razor::Data::NodeNotBoundError)
+    end
+
+    it "returns the policy's root_password when bound" do
+      node.bind(policy)
+      node.domainname.should == policy.domainname
+    end
+  end
 end
