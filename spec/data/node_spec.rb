@@ -41,4 +41,17 @@ describe Razor::Data::Node do
       node.hostname.should == policy.hostname_pattern.gsub(/%n/, node.id.to_s)
     end
   end
+
+  describe "root_password" do
+    it "raises NodeNotBoundError when no policy is bound" do
+      expect {
+        node.root_password
+      }.to raise_error(Razor::Data::NodeNotBoundError)
+    end
+
+    it "returns the policy's root_password when bound" do
+      node.bind(policy)
+      node.root_password.should == policy.root_password
+    end
+  end
 end

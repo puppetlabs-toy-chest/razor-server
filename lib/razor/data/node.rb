@@ -20,6 +20,11 @@ module Razor::Data
       policy.hostname_pattern.gsub(/%n/, id.to_s)
     end
 
+    def root_password
+      raise NodeNotBoundError, "root_password" unless policy
+      policy.root_password
+    end
+
     def log_append(hash)
       self.log ||= []
       hash[:timestamp] ||= Time.now.to_i

@@ -82,7 +82,8 @@ def make_policy(attr = {})
     :name => "p1",
     :enabled => true,
     :installer_name => "some_os",
-    :hostname_pattern => "host%n"
+    :hostname_pattern => "host%n",
+    :root_password => "secret"
   }
   h.merge!(attr)
   h[:image] ||= make_image
