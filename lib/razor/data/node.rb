@@ -1,4 +1,6 @@
 module Razor::Data
+  class NodeNotBoundError < RuntimeError; end
+
   class Node < Sequel::Model
     plugin :serialization, :json, :facts
     plugin :serialization, :json, :log
@@ -11,6 +13,11 @@ module Razor::Data
 
     def tags
       Tag.match(self)
+    end
+
+    def hostname
+      raise NodeNotBoundError, "hostname" unless policy
+      policy.hostname_pattern.gsub(/%n/, id.to_s)
     end
 
     def log_append(hash)
