@@ -42,6 +42,41 @@ describe "provisioning API" do
       get "/svc/boot/#{@node.hw_id}"
       assert_booting("Boot local")
     end
+
+
+    describe "dhcp_mac" do
+      dhcp_mac = "11:22:33:44:55:66"
+
+      it "should be nil when not provided" do
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should be_nil
+      end
+
+      it "should be stored when given in the checkin data" do
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}?dhcp_mac=#{dhcp_mac}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should == dhcp_mac
+      end
+
+      it "should stick around when booting again without dhcp_mac" do
+        @node.dhcp_mac = dhcp_mac
+        @node.save
+
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should == dhcp_mac
+      end
+    end
   end
 
   describe "fetching a template" do

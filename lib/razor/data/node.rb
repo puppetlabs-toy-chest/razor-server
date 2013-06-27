@@ -75,10 +75,11 @@ module Razor::Data
       self[:hw_id => hw_id]
     end
 
-    def self.boot(hw_id)
+    def self.boot(hw_id, dhcp_mac = nil)
       unless node = lookup(hw_id)
         node = Node.create(:hw_id => hw_id)
       end
+      node.dhcp_mac = dhcp_mac if dhcp_mac && dhcp_mac != ""
       node.boot_count += 1
       node.save
     end
