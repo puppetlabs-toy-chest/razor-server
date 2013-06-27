@@ -39,6 +39,12 @@ describe Razor::Installer do
       # so we get to see the base label
       inst.label.should == "Some OS, version 3"
     end
+
+    it "raises InstallerInvalidError if os_version is missing" do
+      expect {
+        Installer.find("no_os_version")
+      }.to raise_error(Razor::InstallerInvalidError)
+    end
   end
 
   describe "view_path" do

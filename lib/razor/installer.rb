@@ -2,6 +2,7 @@ module Razor
 
   class InstallerNotFoundError < RuntimeError; end
   class TemplateNotFoundError < RuntimeError; end
+  class InstallerInvalidError < RuntimeError; end
 
   # An installer is a collection of templates, plus some metadata. The
   # metadata lives in a YAML file, the templates in a subdirectory with the
@@ -40,6 +41,9 @@ module Razor
       end
       @metadata = metadata
       @name = name
+      unless metadata["os_version"]
+        raise InstallerInvalidError, "#{name} does not have an os_version"
+      end
       @os_version = metadata["os_version"].to_s
       @label = metadata["label"] || "#{@name} #{@os_version}"
       @description = metadata["description"] || ""
