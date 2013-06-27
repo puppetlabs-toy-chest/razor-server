@@ -31,10 +31,19 @@ describe Razor::Installer do
         Installer.find("no such installer")
       }.to raise_error(Razor::InstallerNotFoundError)
     end
+
+    it "supports installer inheritance" do
+      inst = Installer.find("some_os_derived")
+      inst.description.should == "Derived Some OS Installer"
+      # We leave the label in the derived installer unset on purpose
+      # so we get to see the base label
+      inst.label.should == "Some OS, version 3"
+    end
   end
 
   describe "view_path" do
     let(:inst) { Installer.find("some_os") }
+    let(:derived) { Installer.find("some_os_derived") }
 
     it "finds version-specific template" do
       inst.view_path("specific").should == File::join(INST_PATH, "some_os/3")
@@ -52,6 +61,16 @@ describe Razor::Installer do
 
     it "work when the template name ends in .erb" do
       inst.view_path("specific.erb").should ==
+        File::join(INST_PATH, "some_os/3")
+    end
+
+    it "prefers templates for the derived installer" do
+      derived.view_path("specific.erb").should ==
+        File::join(INST_PATH, "some_os_derived")
+    end
+
+    it "uses templates for the base installer if the derived one doesn't match" do
+      derived.view_path("template.erb").should ==
         File::join(INST_PATH, "some_os/3")
     end
   end
