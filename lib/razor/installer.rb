@@ -3,6 +3,32 @@ module Razor
   class InstallerNotFoundError < RuntimeError; end
   class TemplateNotFoundError < RuntimeError; end
 
+  # An installer is a collection of templates, plus some metadata. The
+  # metadata lives in a YAML file, the templates in a subdirectory with the
+  # same base name as the YAML file.
+  #
+  # Templates are looked up from the directories listed in
+  # +Razor.config["installer_path"]+, first in a subdirectory
+  # +name/os_version+, then +name+ and finally in the fixed directory
+  # +common+.
+  #
+  # The following entries from the YAML file are used:
+  # +name+: the name of the installer
+  # +os_version+: the OS version this installer supports
+  # +label+, +description+: human-readable information
+  # +boot_sequence+: a hash mapping integers or the string +"default"+ to
+  # template names. When booting a node, the installer will respond with
+  # the numered entries in +boot_sequence+ in order; if the number of boots
+  # that a node has done under this installer is not in +boot_sequence+,
+  # the template marked as +"default"+ will be used
+  #
+  # Installers can be derived from/based on other installers, by mentioning
+  # their name in the +base+ metadata attribute. The metadata of the base
+  # installer is used as default values for the derived installer. Having a
+  # base installer also changes how templates are looked up: they are first
+  # searched in the derived installer's template directories, then in those
+  # of the base installer (and then its base installers), and finally in
+  # the +common+ directory
   class Installer
     attr_reader :name, :os_version, :label, :description
 
