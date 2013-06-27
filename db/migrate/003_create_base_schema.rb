@@ -22,7 +22,7 @@ Sequel.migration do
       foreign_key :image_id, :images, :null => false
       # FIXME: this needs to become an FK as soon as we have an installers table
       String      :installer_name, :null => false
-      String      :hostname_pattern
+      String      :hostname_pattern, :null => false
       TrueClass   :enabled
       Integer     :max_count
       Integer     :sort_order

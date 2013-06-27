@@ -30,7 +30,8 @@ describe "provisioning API" do
 
     it "with policy repeatedly should boot the installer kernels" do
       pl = Policy.create(:name => "p1", :enabled => true,
-                         :image => make_image, :installer_name => "some_os")
+                         :image => make_image, :installer_name => "some_os",
+                         :hostname_pattern => "host%n")
       @node.bind(pl)
       @node.save
       get "/svc/boot/#{@node.hw_id}"
@@ -48,7 +49,8 @@ describe "provisioning API" do
     before(:each) do
       @node = Node.create(:hw_id => "00:11:22:33:44:55")
       @policy = Policy.create(:name => "p1", :enabled => true,
-                              :image => make_image, :installer_name => "some_os")
+                              :image => make_image, :installer_name => "some_os",
+                              :hostname_pattern => "host%n")
       @node.bind(@policy)
       @node.save
     end
