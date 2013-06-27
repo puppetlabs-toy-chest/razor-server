@@ -21,6 +21,11 @@ class Razor::App < Sinatra::Base
   # Server/node API
   #
   helpers do
+    def compose_url(*parts)
+      escaped = '/' + parts.compact.map{|x|URI::escape(x.to_s)}.join('/')
+      url escaped.gsub(%r'//+', '/')
+    end
+
     def file_url(template)
       url "/svc/file/#{@node.id}/#{URI::escape(template)}"
     end
