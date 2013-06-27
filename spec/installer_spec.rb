@@ -9,7 +9,7 @@ describe Razor::Installer do
 
   describe "find" do
     it "finds an existing installer" do
-      inst = Installer.find("someos")
+      inst = Installer.find("some_os")
       inst.should_not be_nil
       inst.name.should == "some_os"
     end
@@ -34,7 +34,7 @@ describe Razor::Installer do
   end
 
   describe "view_path" do
-    let(:inst) { Installer.find("someos") }
+    let(:inst) { Installer.find("some_os") }
 
     it "finds version-specific template" do
       inst.view_path("specific").should == File::join(INST_PATH, "some_os/3")
@@ -58,7 +58,7 @@ describe Razor::Installer do
 
   describe "boot_template" do
     it "uses the boot template with the right seq" do
-      inst = Installer.find("someos")
+      inst = Installer.find("some_os")
       node = Razor::Data::Node.new(:hw_id => "deadbeef", :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|
         node.boot_count += 1

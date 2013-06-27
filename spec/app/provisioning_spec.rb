@@ -30,7 +30,7 @@ describe "provisioning API" do
 
     it "with policy repeatedly should boot the installer kernels" do
       pl = Policy.create(:name => "p1", :enabled => true,
-                         :image => make_image, :installer_name => "someos")
+                         :image => make_image, :installer_name => "some_os")
       @node.bind(pl)
       @node.save
       get "/svc/boot/#{@node.hw_id}"
@@ -48,7 +48,7 @@ describe "provisioning API" do
     before(:each) do
       @node = Node.create(:hw_id => "00:11:22:33:44:55")
       @policy = Policy.create(:name => "p1", :enabled => true,
-                              :image => make_image, :installer_name => "someos")
+                              :image => make_image, :installer_name => "some_os")
       @node.bind(@policy)
       @node.save
     end
@@ -91,7 +91,7 @@ describe "provisioning API" do
 
     it "should provide access to node and installer" do
       get "/svc/file/#{@node.id}/node_installer_vars"
-      assert_template_body("some_os/someos")
+      assert_template_body("some_os/some_os")
     end
 
     it "should return 404 for nonexistent template" do
