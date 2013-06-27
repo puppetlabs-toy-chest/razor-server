@@ -68,7 +68,7 @@ describe "command and query API" do
 
       data = JSON.parse(last_response.body)
       data.keys.should =~ ['url']
-      data["url"].should == ".../api/images/magicos"
+      data["url"].should =~ %r'/api/images/magicos\Z'
     end
 
     it "should create an image record in the database" do

@@ -4,15 +4,41 @@ Sequel.migration do
 
     create_table :images do
       primary_key :id
-      String      :name, :null => false, :unique => true
-      String      :type, :null => false
-      String      :path, :null => false
-      String      :status
-      String      :os_name
-      String      :os_version
+
+      # We want case-folded uniqueness for name, since that avoids challenges
+      # that we might meet with, eg, case preserving but insensitive platforms
+      # in the future.  Like, say, URL comparison in the mind of many people,
+      # even if the standard claims otherwise.
+      #
+      # @todo danielp 2013-06-26: what is a reasonable limit here?  I feel
+      # like it should be in the 40-60 character region at absolute most,
+      # since this is a human label and, honestly, not a novella.
+      column :name, :varchar, :size => 250, :null => false
+      index  Sequel.function(:lower, :name), :unique => true, :name => 'images_name_index'
+
+      column :image_url, :varchar, :size => 1000, :null => false
 
       validate do
-        includes %w[mk os esxi], :type, :name => 'valid_image_types'
+        # No control characters anywhere, spaces except at start or end
+        # of line.  Welcome to complexity: Ruby treats `\Z` as end of string,
+        # unless you have a newline, but PostgreSQL doesn't understand `\z`
+        # at all.
+        #
+        # This, with the final look-ahead assertion, works correctly in both
+        # environments, ensuring consistent validation on both sides of
+        # the wire.
+        format %r'\A[^\u0000-\u0020/\u0085\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000](?:[^\u0000-\u001f/]*[^\u0000-\u0020/\u0085\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000])?\Z(?!\n)'i, :name, :name => 'image_name_is_simple'
+
+        # * an absolute URL
+        # * one of the `http`, `https`, or `file` schemes
+        #   - does permit the quasi-legal `file:/example/path`
+        # * that there is at least one character of hostname present for HTTP(S)
+        # * that there is no hostname present for the file protocol
+        # * that nothing in the control character range is present in the path
+        #   - that includes checking no CR or LF characters exist
+        #
+        # This does not permit FTP; perhaps we should add that?
+        format %r'\A(?:https?://[^/]+/?|file:(?://)?/)(?:[^/][^\u0000-\u0020]*)?\Z(?!\n)'i, :image_url, :name => 'image_url_is_simple'
       end
     end
 

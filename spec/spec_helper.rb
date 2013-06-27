@@ -75,9 +75,8 @@ Policy = Razor::Data::Policy
 
 def make_image(attr = {})
   h = {
-    :name => "dummy",
-    :type => "os",
-    :path => "/dev/null"
+    :name      => "dummy",
+    :image_url => 'file:///dev/null'
   }
   h.merge!(attr)
   Image.create(h)
