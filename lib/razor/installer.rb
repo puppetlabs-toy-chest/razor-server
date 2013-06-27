@@ -5,7 +5,9 @@ module Razor
 
   # An installer is a collection of templates, plus some metadata. The
   # metadata lives in a YAML file, the templates in a subdirectory with the
-  # same base name as the YAML file.
+  # same base name as the YAML file. For an installer with name +name+, the
+  # YAML data must be in +name.yaml+ somewhere on
+  # +Razor.config["installer_path"]+.
   #
   # Templates are looked up from the directories listed in
   # +Razor.config["installer_path"]+, first in a subdirectory
@@ -13,7 +15,6 @@ module Razor
   # +common+.
   #
   # The following entries from the YAML file are used:
-  # +name+: the name of the installer
   # +os_version+: the OS version this installer supports
   # +label+, +description+: human-readable information
   # +boot_sequence+: a hash mapping integers or the string +"default"+ to
@@ -32,13 +33,13 @@ module Razor
   class Installer
     attr_reader :name, :os_version, :label, :description
 
-    def initialize(metadata)
+    def initialize(name, metadata)
       if metadata["base"]
         @base = self.class.find(metadata["base"])
         metadata = @base.metadata.merge(metadata)
       end
       @metadata = metadata
-      @name = metadata["name"]
+      @name = name
       @os_version = metadata["os_version"].to_s
       @label = metadata["label"] || "#{@name} #{@os_version}"
       @description = metadata["description"] || ""
@@ -73,8 +74,8 @@ module Razor
     def self.find(name)
       yaml = find_on_installer_paths("#{name}.yaml")
       raise InstallerNotFoundError, "No installer #{name}.yaml on search path" unless yaml
-      metadata = YAML::load(File::read(yaml))
-      new(metadata)
+      metadata = YAML::load(File::read(yaml)) || {}
+      new(name, metadata)
     end
 
     def self.mk_installer

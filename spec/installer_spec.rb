@@ -19,7 +19,7 @@ describe Razor::Installer do
         ":" + File::join(FIXTURES_PATH, "other_installers")
       inst = Installer.find("shadowed")
       inst.should_not be_nil
-      inst.name.should == "shadow"
+      inst.name.should == "shadowed"
 
       inst = Installer.find("other")
       inst.should_not be_nil

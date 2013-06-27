@@ -1,6 +1,5 @@
 ---
 
-name: some_os
 os_version: 3
 label: Some OS, version 3
 description: Some OS Generic Model

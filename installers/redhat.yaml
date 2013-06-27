@@ -1,6 +1,5 @@
 ---
 
-name: redhat
 os_version: 6
 label: Red Hat Enterprise Linux 6
 description: Red Hat Generic Model
