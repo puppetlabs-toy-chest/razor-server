@@ -26,5 +26,22 @@ describe "command and query API" do
       data.keys.should =~ %w[commands]
       data["commands"].all? {|x| x.keys.should =~ %w[rel url]}
     end
+
+    it "should contain all valid URLs" do
+      get '/api'
+      data = JSON.parse(last_response.body)
+      data["commands"].all? do |row|
+        # An invariant of our command support is that they reject anything
+        # other than application/json in the body, which we can take advantage
+        # of here: by knowing the failure mode, we can tell "missing" from
+        # "exists but refuses us service" safely.
+        header 'content-type', 'text/x-unknown-binary-blob'
+        post row["url"]
+        # The positive assertion captures cases where we incorrectly accept
+        # the unknown content type; they shouldn't happen, but it beats out a
+        # false positive.
+        last_response.status.should == 415
+      end
+    end
   end
 end

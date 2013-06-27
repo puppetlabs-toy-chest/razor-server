@@ -192,4 +192,23 @@ class Razor::App < Sinatra::Base
       ]
     }.to_json
   end
+
+  post '/api/create_new_image' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    # Create our shiny new image.  This will implicitly, thanks to saving
+    # changes, trigger our loading saga to begin.  (Which takes place in the
+    # same transactional context, ensuring we don't send a message to our
+    # background workers without also committing this data to our database.)
+    image = begin
+              Razor::Data::Image.new(data).save.freeze
+            rescue => e
+              halt 400, e.to_s
+            end
+
+    # Finally, return the state (started, not complete) and the URL for the
+    # final image to our poor caller, so they can watch progress happen.
+    [202, {"url" => compose_url('api', 'images', image.name)}.to_json]
+  end
 end
