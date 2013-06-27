@@ -9,9 +9,7 @@ describe Razor::Data::Policy do
   end
 
   it "binds to a matching node" do
-    pl = Policy.create(:name => "p1", :enabled => true, :image => @image,
-                       :installer_name => "dummy",
-                       :hostname_pattern => "host%n")
+    pl = make_policy(:image => @image, :installer_name => "dummy")
     pl.add_tag(@tag)
     pl.save
     Policy.bind(@node)
@@ -19,9 +17,8 @@ describe Razor::Data::Policy do
   end
 
   it "does not bind disabled policy" do
-    pl = Policy.create(:name => "p1", :enabled => false, :image => @image,
-                       :installer_name => "dummy",
-                       :hostname_pattern => "host%n")
+    pl = make_policy(:image => @image, :installer_name => "dummy",
+                     :enabled => false)
     pl.add_tag(@tag)
     pl.save
     Policy.bind(@node)

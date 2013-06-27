@@ -2,11 +2,7 @@ require_relative "../spec_helper"
 
 describe Razor::Data::Node do
 
-  let (:policy) do
-    Policy.create(:name => "p1", :enabled => true,
-                  :image => make_image, :installer_name => "some_os",
-                  :hostname_pattern => "host%n")
-  end
+  let (:policy) { make_policy }
 
   let (:node) { Node.create(:hw_id => "deadbeef") }
 

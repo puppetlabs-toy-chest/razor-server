@@ -76,3 +76,15 @@ def make_image(attr = {})
   h.merge!(attr)
   Image.create(h)
 end
+
+def make_policy(attr = {})
+  h = {
+    :name => "p1",
+    :enabled => true,
+    :installer_name => "some_os",
+    :hostname_pattern => "host%n"
+  }
+  h.merge!(attr)
+  h[:image] ||= make_image
+  Policy.create(h.merge(attr))
+end

@@ -12,6 +12,8 @@ describe "provisioning API" do
     use_installer_fixtures
   end
 
+  let (:policy) { make_policy }
+
   it "should boot new nodes into the MK" do
     hw_id = "00:11:22:33:44:55"
     get "/svc/boot/#{hw_id}"
@@ -29,10 +31,7 @@ describe "provisioning API" do
     end
 
     it "with policy repeatedly should boot the installer kernels" do
-      pl = Policy.create(:name => "p1", :enabled => true,
-                         :image => make_image, :installer_name => "some_os",
-                         :hostname_pattern => "host%n")
-      @node.bind(pl)
+      @node.bind(policy)
       @node.save
       get "/svc/boot/#{@node.hw_id}"
       assert_booting("Boot SomeOS 3")
@@ -48,10 +47,7 @@ describe "provisioning API" do
   describe "fetching a template" do
     before(:each) do
       @node = Node.create(:hw_id => "00:11:22:33:44:55")
-      @policy = Policy.create(:name => "p1", :enabled => true,
-                              :image => make_image, :installer_name => "some_os",
-                              :hostname_pattern => "host%n")
-      @node.bind(@policy)
+      @node.bind(policy)
       @node.save
     end
 
