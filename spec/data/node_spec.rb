@@ -67,4 +67,66 @@ describe Razor::Data::Node do
       node.domainname.should == policy.domainname
     end
   end
+
+
+  describe "binding on checkin" do
+    hw_id = "00:11:22:33:44:55"
+
+    let (:tag) {
+      Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
+    }
+    let (:node) {
+      Node.create(:hw_id => hw_id, :facts => { "f1" => "a" })
+    }
+
+    it "should bind to a policy when there is a match" do
+      policy = make_policy(:sort_order => 20)
+      policy.add_tag(tag)
+      policy.save
+
+      Node.checkin(hw_id, { "facts" => { "f1" => "a" }})
+
+      node = Node.lookup(hw_id)
+      node.policy.should == policy
+    end
+
+    describe "of a bound node" do
+      let (:image) { make_image }
+
+      def make_tagged_policy(sort_order)
+        policy = make_policy(:name => "p#{sort_order}",
+                             :image => image,
+                             :sort_order => sort_order)
+        policy.add_tag(tag)
+        policy.save
+        policy
+      end
+
+      it "should not change when policies change" do
+        # Setup
+        policy20 = make_tagged_policy(20)
+        Policy.bind(node)
+        node.policy.should == policy20
+
+        # Change the policies
+        policy10 = make_tagged_policy(10)
+        Node.checkin(node.hw_id, "facts" => node.facts)
+        node.reload
+        node.policy.should == policy20
+      end
+
+      it "should not change when node facts change" do
+        node.facts = { "f2" => "a" }
+        random_policy = make_policy(:name => "random", :image => image)
+        node.bind(random_policy)
+        node.save
+
+        policy20 = make_tagged_policy(20)
+        Node.checkin(node.hw_id, "facts" => { "f1" => "a" })
+        node.reload
+        node.tags.should == [ tag ]
+        node.policy.should == random_policy
+      end
+    end
+  end
 end
