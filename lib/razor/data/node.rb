@@ -1,4 +1,6 @@
 module Razor::Data
+  class NodeNotBoundError < RuntimeError; end
+
   class Node < Sequel::Model
     plugin :serialization, :json, :facts
     plugin :serialization, :json, :log
@@ -11,6 +13,25 @@ module Razor::Data
 
     def tags
       Tag.match(self)
+    end
+
+    def hostname
+      raise NodeNotBoundError, "hostname" unless policy
+      policy.hostname_pattern.gsub(/%n/, id.to_s)
+    end
+
+    def root_password
+      raise NodeNotBoundError, "root_password" unless policy
+      policy.root_password
+    end
+
+    def domainname
+      raise NodeNotBoundError, "root_password" unless policy
+      policy.domainname
+    end
+
+    def fqdn
+      "#{hostname}.#{domainname}"
     end
 
     def log_append(hash)
@@ -63,10 +84,11 @@ module Razor::Data
       self[:hw_id => hw_id]
     end
 
-    def self.boot(hw_id)
+    def self.boot(hw_id, dhcp_mac = nil)
       unless node = lookup(hw_id)
         node = Node.create(:hw_id => hw_id)
       end
+      node.dhcp_mac = dhcp_mac if dhcp_mac && dhcp_mac != ""
       node.boot_count += 1
       node.save
     end

@@ -1,6 +1,6 @@
 ---
 
-name: microkernel
 label: The Discovery Microkernel
+os_version: default
 boot_sequence:
   default: boot

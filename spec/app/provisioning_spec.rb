@@ -12,6 +12,8 @@ describe "provisioning API" do
     use_installer_fixtures
   end
 
+  let (:policy) { make_policy }
+
   it "should boot new nodes into the MK" do
     hw_id = "00:11:22:33:44:55"
     get "/svc/boot/#{hw_id}"
@@ -29,9 +31,7 @@ describe "provisioning API" do
     end
 
     it "with policy repeatedly should boot the installer kernels" do
-      pl = Policy.create(:name => "p1", :enabled => true,
-                         :image => make_image, :installer_name => "someos")
-      @node.bind(pl)
+      @node.bind(policy)
       @node.save
       get "/svc/boot/#{@node.hw_id}"
       assert_booting("Boot SomeOS 3")
@@ -42,14 +42,47 @@ describe "provisioning API" do
       get "/svc/boot/#{@node.hw_id}"
       assert_booting("Boot local")
     end
+
+
+    describe "dhcp_mac" do
+      dhcp_mac = "11:22:33:44:55:66"
+
+      it "should be nil when not provided" do
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should be_nil
+      end
+
+      it "should be stored when given in the checkin data" do
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}?dhcp_mac=#{dhcp_mac}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should == dhcp_mac
+      end
+
+      it "should stick around when booting again without dhcp_mac" do
+        @node.dhcp_mac = dhcp_mac
+        @node.save
+
+        header 'Content-Type', 'application/json'
+        get "/svc/boot/#{@node.hw_id}"
+
+        last_response.status.should == 200
+        node = Node.lookup(@node.hw_id)
+        node.dhcp_mac.should == dhcp_mac
+      end
+    end
   end
 
   describe "fetching a template" do
     before(:each) do
       @node = Node.create(:hw_id => "00:11:22:33:44:55")
-      @policy = Policy.create(:name => "p1", :enabled => true,
-                              :image => make_image, :installer_name => "someos")
-      @node.bind(@policy)
+      @node.bind(policy)
       @node.save
     end
 
@@ -91,7 +124,7 @@ describe "provisioning API" do
 
     it "should provide access to node and installer" do
       get "/svc/file/#{@node.id}/node_installer_vars"
-      assert_template_body("some_os/someos")
+      assert_template_body("some_os/some_os")
     end
 
     it "should return 404 for nonexistent template" do

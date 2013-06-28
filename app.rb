@@ -102,7 +102,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/boot/:hw_id' do
-    @node = Razor::Data::Node.boot(params[:hw_id])
+    @node = Razor::Data::Node.boot(params[:hw_id], params[:dhcp_mac])
 
     @installer = @node.installer
     @image = @node.policy.image if @node.policy

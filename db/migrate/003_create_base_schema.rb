@@ -22,7 +22,10 @@ Sequel.migration do
       foreign_key :image_id, :images, :null => false
       # FIXME: this needs to become an FK as soon as we have an installers table
       String      :installer_name, :null => false
-      String      :hostname_pattern
+      String      :hostname_pattern, :null => false
+      String      :domainname, :null => false
+      String      :root_password, :null => false
+
       TrueClass   :enabled
       Integer     :max_count
       Integer     :sort_order
@@ -41,6 +44,10 @@ Sequel.migration do
       String      :hw_id, :null => false
       index  Sequel.function(:lower, :hw_id), :unique => true,
                                               :name => 'nodes_hw_id_index'
+
+      String      :dhcp_mac
+      index  Sequel.function(:lower, :hw_id), :unique => true,
+                                              :name => 'nodes_dhcp_mac_index'
 
       foreign_key :policy_id, :policies
       # FIXME: the log should go into its own table, with a timestamp
