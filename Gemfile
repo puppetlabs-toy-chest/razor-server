@@ -1,23 +1,56 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
+# Unfortunately, the `torquebox-server` gem is too large for rubygems.org to
+# host, so we use the upstream repository.  They also don't offer an HTTPS
+# backed source of gems.  Until that is fixed...
+source 'http://torquebox.org/rubygems'
+
+
+# For the sake of RVM, this overrides the engine line below, which is too
+# complicated for the simple shell parser to handle.  This ensures that RVM
+# users get something at least vaguely sane out of the box.  (Which is really
+# in the realm of 'developer courtesy settings', not production support.)
+#
+# If you prefer to override these choices with something more explicit, you
+# can use the `.ruby-version` and `.ruby-gemset` files in your local checkout
+# to take precedence over what is defined here.
+#
+# You should aim for jruby-1.7.4, since that is what is bundled into TorqueBox
+# at the present time, so better to learn about bugs early, no?
+#
+# Note that the lack of whitespace matters in those two lines:
+#ruby=jruby-1.7.4
+#ruby-gemset=razor-server
+ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.4'
+
+gem 'torquebox', '2.3.2'
 gem 'sinatra'
-gem 'pg'
 gem 'sequel'
-# Because we are monkey-patching the queue_classic code, we depend on the
-# exact version.  This should go away, along with the monkey patch, when
-# upstream finishes resolving this ticket:
-# https://github.com/ryandotsmith/queue_classic/issues/161
-gem 'queue_classic', '= 2.1.4'
+gem 'jdbc-postgres'
 
 group :doc do
   gem 'yard'
-  gem 'redcarpet'
-  gem 'github-markup'
+  gem 'kramdown'
 end
 
+# This group will be excluded by default in `torquebox archive`
 group :test do
   gem 'rack-test'
-  gem 'rspec'
+  gem 'rspec', '~> 2.13.0'
+  gem 'rspec-core', '~> 2.13.1'
+  gem 'rspec-expectations', '~> 2.13.0'
+  gem 'rspec-mocks', '~> 2.13.1'
+end
+
+# This group, also, will be excluded by default in `torquebox archive`
+group :development do
+  # The `torquebox-server` gem is only required for development: it brings in
+  # the full TorqueBox stack, and is used to enable the `torquebox` command
+  # for running a local dev instance stand-alone.
+  #
+  # For production you can use this, or deploy to a distinct installation of
+  # TorqueBox, as you prefer.
+  gem 'torquebox-server', '2.3.2'
 end
 
 # This allows you to create `Gemfile.local` and have it loaded automatically;
