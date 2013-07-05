@@ -13,4 +13,13 @@ TorqueBox.configure do
     context  '/'
     rackup   'config.ru'
   end
+
+  # Deploy the queue for our internal sequel instance messaging.
+  queue '/queues/razor/sequel-instance-messages' do
+    processor Razor::Messaging::Sequel do
+      concurrency  4
+      # For the moment, no XA support in these handlers.
+      xa           false
+    end
+  end
 end
