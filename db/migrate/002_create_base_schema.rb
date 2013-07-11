@@ -18,6 +18,10 @@ Sequel.migration do
 
       column :image_url, :varchar, :size => 1000, :null => false
 
+      # Our temporary working directory, used while actively downloading and
+      # unpacking content.
+      column :tmpdir, :varchar, :size => 4096, :null => true
+
       validate do
         # No control characters anywhere, spaces except at start or end
         # of line.  Welcome to complexity: Ruby treats `\Z` as end of string,

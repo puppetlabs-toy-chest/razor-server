@@ -1,7 +1,13 @@
 # coding: utf-8
 require_relative "../spec_helper"
+require 'tempfile'
+require 'tmpdir'
+require 'webrick'
 
 describe Razor::Data::Image do
+  include TorqueBox::Injectors
+  let :queue do fetch('/queues/razor/sequel-instance-messages') end
+
   context "name" do
     (0..31).map {|n| n.chr(Encoding::UTF_8) }.map(&:to_s).each do |char|
       it "should reject control characters (testing: #{char.inspect})" do
@@ -223,6 +229,132 @@ describe Razor::Data::Image do
           Image.dataset.insert(:name => 'foo', :image_url => url)
         }.to raise_error Sequel::CheckConstraintViolation
       end
+    end
+  end
+
+  context "after creation" do
+    it "should automatically 'make_the_image_accessible'" do
+      image = Image.new(:name => 'foo', :image_url => 'file:///').save
+      queue.count_messages.should == 1
+      queue.receive.should include(
+        'class'    => image.class.name,
+        'instance' => image.pk_hash,
+        'message'  => 'make_the_image_accessible'
+      )
+    end
+  end
+
+  context "make_the_image_accessible" do
+    context "with file URLs" do
+      let :tmpfile do Tempfile.new(['make_the_image_accessible', '.iso']) end
+      let :path    do tmpfile.path end
+      let :image   do Image.new(:name => 'test', :image_url => "file://#{path}") end
+
+      it "should raise (to trigger a retry) if the image is not readable" do
+        File.chmod(00000, path) # yes, *no* permissions, thanks
+        expect {
+          image.make_the_image_accessible
+        }.to raise_error RuntimeError, /unable to read local file/
+      end
+
+      it "should publish 'unpack_image' if the image is readable" do
+        image.make_the_image_accessible
+        queue.count_messages.should == 1
+        queue.receive.should include(
+          'class'     => image.class.name,
+          'instance'  => image.pk_hash,
+          'message'   => 'unpack_image',
+          'arguments' => [path]
+        )
+      end
+
+      it "should work with uppercase file scheme" do
+        image.image_url = "FILE://#{path}"
+
+        image.make_the_image_accessible
+        queue.count_messages.should == 1
+        queue.receive.should include(
+          'class'     => image.class.name,
+          'instance'  => image.pk_hash,
+          'message'   => 'unpack_image',
+          'arguments' => [path]
+        )
+      end
+    end
+
+    context "with HTTP URLs" do
+      FileContent = "This is the file content.\n"
+      LongFileSize = (Razor::Data::Image::BufferSize * 2.5).ceil
+
+      # around hooks don't allow us to use :all, and we only want to do
+      # setup/teardown of this fixture once; since the server is stateless we
+      # don't risk much doing so.
+      before :all do
+        null    = WEBrick::Log.new('/dev/null')
+        @server = WEBrick::HTTPServer.new(
+          :Port      => 8000,
+          :Logger    => null,
+          :AccessLog => null,
+        )
+
+        @server.mount_proc '/short.iso' do |req, res|
+          res.status = 200
+          res.body   = FileContent
+        end
+
+        @server.mount_proc '/long.iso' do |req, res|
+          res.status = 200
+          res.body   = ' ' * LongFileSize
+        end
+
+        Thread.new { @server.start }
+      end
+
+      after :all do
+        @server and @server.shutdown
+      end
+
+      let :image do
+        Image.new(:name => 'test', :image_url => 'http://localhost:8000/')
+      end
+
+      it "should raise (for retry) if the requested URL does not exist" do
+        expect {
+          image.download_file_to_tempdir(URI.parse('http://localhost:8000/no-such-file'))
+        }.to raise_error OpenURI::HTTPError, /404/
+      end
+
+      it "should copy short content down on success" do
+        url  = URI.parse('http://localhost:8000/short.iso')
+        file = image.download_file_to_tempdir(url)
+        File.read(file).should == FileContent
+      end
+
+      it "Should copy long content down on success" do
+        url  = URI.parse('http://localhost:8000/long.iso')
+        file = image.download_file_to_tempdir(url)
+        File.size?(file).should == LongFileSize
+      end
+    end
+  end
+
+  context "on destroy" do
+    it "should remove the temporary directory, if there is one" do
+      tmpdir = Dir.mktmpdir('razor-image-download')
+
+      image = Image.new(:name => 'foo', :image_url => 'file:///')
+      image.tmpdir = tmpdir
+      image.save
+      image.destroy
+
+      File.should_not be_exist tmpdir
+    end
+
+    it "should not fail if there is no temporary directory" do
+      image = Image.new(:name => 'foo', :image_url => 'file:///')
+      image.tmpdir = nil
+      image.save
+      image.destroy
     end
   end
 end
