@@ -41,6 +41,16 @@ reloading is not enabled.
 
 * Run `rake spec:all` or `rspec spec`
 
+As of now, coverage generation through SimpleCov is automatically enabled for
+all spec test runs.  This doesn't substantially change the runtime of the
+tests.
+
+You should set `JRUBY_OPTS='--debug'` in your environment to avoid the warning
+about reduced coverage accuracy -- or simply ignore the warning, which does
+not change the accuracy of the tests themselves.
+
+(The same option is required if you intend to use a debugger with JRuby.)
+
 
 ## JRuby, TorqueBox?  Madness!
 
