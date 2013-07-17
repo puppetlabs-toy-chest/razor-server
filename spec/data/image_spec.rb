@@ -234,13 +234,17 @@ describe Razor::Data::Image do
 
   context "after creation" do
     it "should automatically 'make_the_image_accessible'" do
-      image = Image.new(:name => 'foo', :image_url => 'file:///').save
-      queue.count_messages.should == 1
-      queue.receive.should include(
+      image = Image.new(:name => 'foo', :image_url => 'file:///')
+      expect {
+        image.save
+      }.to have_published(
         'class'    => image.class.name,
-        'instance' => image.pk_hash,
+        # Because we can't look into the future and see what that the PK will
+        # be without saving, but we can't save without publishing the message
+        # and spoiling the test, we have to check this more liberally...
+        'instance' => include(:id => be),
         'message'  => 'make_the_image_accessible'
-      )
+      ).on(queue)
     end
   end
 
@@ -258,27 +262,27 @@ describe Razor::Data::Image do
       end
 
       it "should publish 'unpack_image' if the image is readable" do
-        image.make_the_image_accessible
-        queue.count_messages.should == 1
-        queue.receive.should include(
-          'class'     => image.class.name,
-          'instance'  => image.pk_hash,
-          'message'   => 'unpack_image',
-          'arguments' => [path]
-        )
+        expect {
+          image.make_the_image_accessible
+        }.to have_published(
+           'class'     => image.class.name,
+           'instance'  => image.pk_hash,
+           'message'   => 'unpack_image',
+           'arguments' => [path]
+        ).on(queue)
       end
 
       it "should work with uppercase file scheme" do
         image.image_url = "FILE://#{path}"
 
-        image.make_the_image_accessible
-        queue.count_messages.should == 1
-        queue.receive.should include(
+        expect {
+          image.make_the_image_accessible
+        }.to have_published(
           'class'     => image.class.name,
           'instance'  => image.pk_hash,
           'message'   => 'unpack_image',
           'arguments' => [path]
-        )
+        ).on(queue)
       end
     end
 
@@ -318,22 +322,38 @@ describe Razor::Data::Image do
         Image.new(:name => 'test', :image_url => 'http://localhost:8000/')
       end
 
-      it "should raise (for retry) if the requested URL does not exist" do
+      context "download_file_to_tempdir" do
+        it "should raise (for retry) if the requested URL does not exist" do
+          expect {
+            image.download_file_to_tempdir(URI.parse('http://localhost:8000/no-such-file'))
+          }.to raise_error OpenURI::HTTPError, /404/
+        end
+
+        it "should copy short content down on success" do
+          url  = URI.parse('http://localhost:8000/short.iso')
+          file = image.download_file_to_tempdir(url)
+          File.read(file).should == FileContent
+        end
+
+        it "should copy long content down on success" do
+          url  = URI.parse('http://localhost:8000/long.iso')
+          file = image.download_file_to_tempdir(url)
+          File.size?(file).should == LongFileSize
+        end
+      end
+
+      it "should publish 'unpack_image' if the image is readable" do
+        image.image_url = 'http://localhost:8000/short.iso'
+        image.save              # make sure our primary key is set!
+
         expect {
-          image.download_file_to_tempdir(URI.parse('http://localhost:8000/no-such-file'))
-        }.to raise_error OpenURI::HTTPError, /404/
-      end
-
-      it "should copy short content down on success" do
-        url  = URI.parse('http://localhost:8000/short.iso')
-        file = image.download_file_to_tempdir(url)
-        File.read(file).should == FileContent
-      end
-
-      it "Should copy long content down on success" do
-        url  = URI.parse('http://localhost:8000/long.iso')
-        file = image.download_file_to_tempdir(url)
-        File.size?(file).should == LongFileSize
+          image.make_the_image_accessible
+        }.to have_published(
+          'class'     => image.class.name,
+          'instance'  => image.pk_hash,
+          'message'   => 'unpack_image',
+          'arguments' => [end_with('/short.iso')]
+        ).on(queue)
       end
     end
   end
@@ -355,6 +375,131 @@ describe Razor::Data::Image do
       image.tmpdir = nil
       image.save
       image.destroy
+    end
+  end
+
+  context "filesystem_safe_name" do
+    '/\\?*:|"<>$\''.each_char do |char|
+      it "should escape #{char.inspect}" do
+        image = Image.new(:name => "foo#{char}bar", :image_url => 'file:///')
+        image.filesystem_safe_name.should_not include char
+        image.filesystem_safe_name.should =~ /%0{0,6}#{char.ord.to_s(16)}/i
+      end
+    end
+  end
+
+  context "image_store_root" do
+    it "should raise if no image store root is configured" do
+      Razor.config.stub(:[]).with('image_store_root').and_return(nil)
+
+      expect {
+        Image.new(:name => "foo", :image_url => 'file:///').image_store_root
+      }.to raise_error RuntimeError, /image_store_root/
+    end
+
+    it "should raise if the path is not absolute" do
+      Razor.config.stub(:[]).with('image_store_root').and_return('hoobly-goobly')
+      expect {
+        Image.new(:name => "foo", :image_url => 'file:///').image_store_root
+      }.to raise_error RuntimeError, /image_store_root/
+    end
+
+    it "should return a Pathname if the path is valid" do
+      path = '/no/such/image-store'
+      Razor.config.stub(:[]).with('image_store_root').and_return(path)
+
+      root = Image.new(:name => "foo", :image_url => 'file:///').image_store_root
+      root.should be_an_instance_of Pathname
+      root.should == Pathname(path)
+    end
+  end
+
+  context "unpack_image" do
+    let :tiny_iso do
+      (Pathname(__FILE__).dirname.parent + 'fixtures' + 'iso' + 'tiny.iso').to_s
+    end
+
+    let :image do
+      Image.new(:name => 'unpack', :image_url => "file://#{tiny_iso}").save
+    end
+
+    it "should create the image store root directory if absent" do
+      Dir.mktmpdir do |tmpdir|
+        root = Pathname(tmpdir) + 'image-store'
+        Razor.config['image_store_root'] = root.to_s
+
+        root.should_not exist
+
+        image.unpack_image(tiny_iso)
+
+        root.should exist
+      end
+    end
+
+    it "should unpack the image into the filesystem_safe_name under root" do
+      Dir.mktmpdir do |root|
+        root = Pathname(root)
+        Razor.config['image_store_root'] = root
+        image.unpack_image(tiny_iso)
+
+        (root + image.filesystem_safe_name).should exist
+        (root + image.filesystem_safe_name + 'content.txt').should exist
+      end
+    end
+
+    it "should publish 'release_temporary_image' when unpacking completes" do
+      expect {
+        Dir.mktmpdir do |root|
+          root = Pathname(root)
+          Razor.config['image_store_root'] = root
+          image.unpack_image(tiny_iso)
+        end
+      }.to have_published(
+        'class'    => image.class.name,
+        'instance' => image.pk_hash,
+        'message'  => 'release_temporary_image'
+      ).on(queue)
+    end
+  end
+
+  context "release_temporary_image" do
+    let :image do
+      Image.new(:name => 'unpack', :image_url => 'file:///dev/empty').save
+    end
+
+    it "should do nothing, successfully, if tmpdir is nil" do
+      image.tmpdir.should be_nil
+      image.release_temporary_image
+    end
+
+    it "should remove the temporary directory" do
+      Dir.mktmpdir do |tmpdir|
+        root = Pathname(tmpdir) + 'image-root'
+        root.mkpath
+        root.should exist
+
+        image.tmpdir = root
+        image.save
+
+        image.release_temporary_image
+
+        root.should_not exist
+      end
+    end
+
+    it "should raise an exception if removing the temporary directory fails" do
+      # Testing with a scratch directory means that we can't, eg, discover
+      # that someone ran the tests as root and was able to delete the
+      # wrong thing.  Much, much better safe than sorry in this case!
+      Dir.mktmpdir do |tmpdir|
+        tmpdir = Pathname(tmpdir)
+        image.tmpdir = tmpdir + 'no-such-directory'
+        image.save
+
+        expect {
+          image.release_temporary_image
+        }.to raise_error Errno::ENOENT, /no-such-directory/
+      end
     end
   end
 end

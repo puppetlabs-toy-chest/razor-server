@@ -70,7 +70,7 @@ module Razor::Data
     # directories as we go, to ensure that we can later clean up
     # after ourselves.
     def download_file_to_tempdir(url)
-      tmpdir   = Pathname(Dir.mktmpdir("razor-image-#{self.id}-download"))
+      tmpdir   = Pathname(Dir.mktmpdir("razor-image-#{filesystem_safe_name}-download"))
       filename = tmpdir + Pathname(url.path).basename
 
       File.open(filename, CreateFileForWrite, 0600) do |dest|
@@ -109,7 +109,7 @@ module Razor::Data
       self.tmpdir = tmpdir
       self.save
 
-      return filename
+      return filename.to_s
 
     rescue Exception => e
       # Try our best to remove the directory, but don't let that stop the rest
@@ -120,11 +120,45 @@ module Razor::Data
       raise e
     end
 
+    # Return the path on disk for our image store root; each image is unpacked
+    # into a directory immediately below this root.
+    def image_store_root
+      # @todo danielp 2013-07-24: this should be lifted into some more global
+      # validation of our configuration file.  When we figure that out, we
+      # should pull it up to there.
+      root = Razor.config['image_store_root'] or
+        raise "`image_store_root` is not set in the configuration file"
+      root = Pathname(root)
+      root.absolute? or raise "`image_store_root` was not an absolute path"
+      root
+    end
+
+    # Return the name of the image, made file-system safe by URL-encoding it
+    # as a single string.
+    def filesystem_safe_name
+      URI.escape(name, '/\\?*:|"<>$\'')
+      # For Windows, we should also eliminate reserved DOS device files (eg:
+      # COM1) that can cause a nasty DOS by, eg, locking up forever if there
+      # is nothing attached to the appropriate communication port.
+    end
+
     # Take a local ISO image file, possible temporary, possibly permanent,
     # that we can read, and unpack it into our working directory.  Once we are
     # done, notify ourselves of that so any cleanup required can be performed.
     def unpack_image(path)
-      raise "@todo danielp 2013-07-12: placeholder for test capability"
+      destination = image_store_root + filesystem_safe_name
+      destination.mkpath        # in case it didn't already exist
+      Razor::ISO.unpack(path, destination)
+      self.publish('release_temporary_image')
+    end
+
+    # Release any temporary image previously downloaded.
+    def release_temporary_image
+      if self.tmpdir
+        FileUtils.remove_entry_secure(self.tmpdir)
+        self.tmpdir = nil
+        self.save
+      end
     end
   end
 end
