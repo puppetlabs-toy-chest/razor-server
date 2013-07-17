@@ -8,9 +8,9 @@
 # (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
 
 development:
-  database_url: 'jdbc:postgres:razor_dev'
+  database_url: 'jdbc:postgresql:razor_dev'
 test:
-  database_url: 'jdbc:postgres:razor?user=razor&password=mypass'
+  database_url: 'jdbc:postgresql:razor?user=razor&password=mypass'
 all:
   image_service_uri:
     'http://razor.example.com/razor/image'
