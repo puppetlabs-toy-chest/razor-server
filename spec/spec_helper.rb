@@ -67,6 +67,23 @@ RSpec.configure do |c|
   end
 end
 
+# Provide some common infrastructure emulation for use across our test
+# framework.  This provides enough messaging emulation that we can send
+# messages in tests and capture the fact they were sent without worrying
+# over-much.
+require_relative 'lib/razor/fake_queue'
+RSpec.configure do |c|
+  c.before(:each) do
+    TorqueBox::Registry.merge!(
+      '/queues/razor/sequel-instance-messages' => Razor::FakeQueue.new
+    )
+  end
+
+  c.after(:each) do
+    TorqueBox::Registry.registry.clear
+  end
+end
+
 # Conveniences for dealing with model objects
 Node = Razor::Data::Node
 Tag = Razor::Data::Tag
@@ -75,9 +92,8 @@ Policy = Razor::Data::Policy
 
 def make_image(attr = {})
   h = {
-    :name => "dummy",
-    :type => "os",
-    :path => "/dev/null"
+    :name      => "dummy",
+    :image_url => 'file:///dev/null'
   }
   h.merge!(attr)
   Image.create(h)

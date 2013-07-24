@@ -18,3 +18,4 @@ all:
     debug_level: debug
     kernel_args:
   checkin_interval: 15
+  image_store_root: /var/lib/razor/image-store
