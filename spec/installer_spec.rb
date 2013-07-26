@@ -47,37 +47,39 @@ describe Razor::Installer do
     end
   end
 
-  describe "view_path" do
+  describe "find_template" do
     let(:inst) { Installer.find("some_os") }
     let(:derived) { Installer.find("some_os_derived") }
 
     it "finds version-specific template" do
-      inst.view_path("specific").should == File::join(INST_PATH, "some_os/3")
+      inst.find_template("specific").should ==
+        [:specific, { :views => File::join(INST_PATH, "some_os/3")}]
     end
 
     it "finds common template" do
-      inst.view_path("example").should == File::join(INST_PATH, "common")
+      inst.find_template("example").should ==
+        [:example, { :views => File::join(INST_PATH, "common")}]
     end
 
     it "raises TemplateNotFoundError for unknown template" do
       expect {
-        inst.view_path("nonexistent template")
+        inst.find_template("nonexistent template")
       }.to raise_error(Razor::TemplateNotFoundError)
     end
 
     it "work when the template name ends in .erb" do
-      inst.view_path("specific.erb").should ==
-        File::join(INST_PATH, "some_os/3")
+      inst.find_template("specific.erb").should ==
+        [:specific, { :views => File::join(INST_PATH, "some_os/3") }]
     end
 
     it "prefers templates for the derived installer" do
-      derived.view_path("specific.erb").should ==
-        File::join(INST_PATH, "some_os_derived")
+      derived.find_template("specific.erb").should ==
+        [:specific, { :views => File::join(INST_PATH, "some_os_derived")}]
     end
 
     it "uses templates for the base installer if the derived one doesn't match" do
-      derived.view_path("template.erb").should ==
-        File::join(INST_PATH, "some_os/3")
+      derived.find_template("template.erb").should ==
+        [:template, { :views => File::join(INST_PATH, "some_os/3") }]
     end
   end
 
