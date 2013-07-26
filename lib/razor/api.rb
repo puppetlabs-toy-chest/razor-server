@@ -23,3 +23,5 @@ module Razor::API
   end
 end
 
+
+require_relative 'api/tag.rb'
