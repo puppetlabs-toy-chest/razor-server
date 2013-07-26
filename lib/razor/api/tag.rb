@@ -6,11 +6,16 @@ module Razor::API
   # An API tag follows the following format:
   #
   #     {
-  #       "name": __tag_name__,
+  #       "name": __string__,
   #       "rule": [ ... ]
   #     }
   #
-  # The value for the "rule" field follows the format found in Razor::Matcher.
+  # where
+  # -  `"name"` is the name of the tag
+  # -  `"rule"` follows the format found in Razor::Matcher. Generally, a rule
+  #    is expressed as [ *operator*, *arg1*, *arg2*, ..., *argn* ] where
+  #    *arg1-n* can be nested rules. See the example below for more
+  #    information.
   #
   # Here is an example of the tag format:
   #
