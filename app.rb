@@ -98,12 +98,11 @@ class Razor::App < Sinatra::Base
   end
 
   # Convenience for /svc/boot and /svc/file
-  def render_template(template)
+  def render_template(name)
     locals = { :installer => @installer, :node => @node, :image => @image }
     content_type 'text/plain'
-    erb template.to_sym, :locals => locals,
-        :views => @installer.view_path(template),
-        :layout => false
+    template, opts = @installer.find_template(name)
+    erb template, opts.merge(locals: locals, layout: false)
   end
 
   # FIXME: We report various errors without a body. We need to include both
