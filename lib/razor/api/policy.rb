@@ -74,11 +74,7 @@ module Razor::API
         :tags => tags_array
       }
     end
-
-    def attributes_hash
-      @policy.attributes
-    end
-
+    
     def tags_array
       @policy.tags.map {|tag| tag.name}
     end
