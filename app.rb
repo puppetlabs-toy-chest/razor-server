@@ -112,15 +112,33 @@ class Razor::App < Sinatra::Base
   # http://www.mnot.net/blog/2013/05/15/http_problem
 
   # API for MK
-  post '/svc/checkin/:hw_id' do
+
+  # Receive the current facts from a node running the Microkernel, and update
+  # our internal records. This also returns, synchronously, the next action
+  # that the MK client should perform.
+  #
+  # The request should be POSTed, and contain `application/json` content.
+  # The object MUST be a map, and MUST contain the following fields:
+  #
+  # * `hw_id`: the "hardware" ID value for the machine; this is a
+  #   transformation of Ethernet-ish looking interface MAC values as
+  #   discovered by the Linux MK client.
+  # * `facts`: a map of fact names to fact values.
+  #
+  # @todo danielp 2013-07-29: ...and we don't, yet, actually return anything
+  # meaningful.  In practice, I strongly suspect that we should be splitting
+  # out "do this" from "register me", as this presently forbids multiple
+  # actions being queued for the MK, and so on.  (At least, without inventing
+  # a custom bundling format for them...)
+  post '/svc/checkin' do
     return 400 if request.content_type != 'application/json'
     begin
       json = JSON::parse(request.body.read)
     rescue JSON::ParserError
       return 400
     end
-    return 400 unless json['facts']
-    Razor::Data::Node.checkin(params[:hw_id], json).to_json
+    return 400 unless json['facts'] and json['hw_id']
+    Razor::Data::Node.checkin(json).to_json
   end
 
   get '/svc/boot/:hw_id' do

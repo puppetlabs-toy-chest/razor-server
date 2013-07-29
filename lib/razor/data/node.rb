@@ -64,7 +64,8 @@ module Razor::Data
       end
     end
 
-    def self.checkin(hw_id, body)
+    def self.checkin(body)
+      hw_id = body['hw_id']
       if node = lookup(hw_id)
         if body['facts'] != node.facts
           node.facts = body['facts']

@@ -84,7 +84,7 @@ describe Razor::Data::Node do
       policy.add_tag(tag)
       policy.save
 
-      Node.checkin(hw_id, { "facts" => { "f1" => "a" }})
+      Node.checkin({ "hw_id" => hw_id, "facts" => { "f1" => "a" }})
 
       node = Node.lookup(hw_id)
       node.policy.should == policy
@@ -110,7 +110,7 @@ describe Razor::Data::Node do
 
         # Change the policies
         policy10 = make_tagged_policy(10)
-        Node.checkin(node.hw_id, "facts" => node.facts)
+        Node.checkin("hw_id" => node.hw_id, "facts" => node.facts)
         node.reload
         node.policy.should == policy20
       end
@@ -122,7 +122,7 @@ describe Razor::Data::Node do
         node.save
 
         policy20 = make_tagged_policy(20)
-        Node.checkin(node.hw_id, "facts" => { "f1" => "a" })
+        Node.checkin("hw_id" => node.hw_id, "facts" => { "f1" => "a" })
         node.reload
         node.tags.should == [ tag ]
         node.policy.should == random_policy
