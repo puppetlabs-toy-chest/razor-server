@@ -50,6 +50,31 @@ Sequel.migration do
       end
     end
 
+    create_table :installers do
+      primary_key :id
+
+      # The unique constraint here is redundant with the much stricter
+      # index, but we need it for the FK from base
+      column :name, :varchar, :size => 250, :null => false, :unique => true
+      index  Sequel.function(:lower, :name), :unique => true, :name => 'installers_name_index'
+
+      column :os, :varchar, :size => 1000, :null => false
+      column :os_version, :varchar, :size => 1000
+
+      column :description, :varchar, :size => 1000
+
+      foreign_key :base, :installers, :type => :varchar, :key => :name
+
+      # JSON hash of boot_count => template name
+      String :boot_seq, :null => false, :default => '{}'
+      # JSON hash of template name => template text
+      String :templates, :default => '{}'
+
+      validate do
+        format NAME_RX, :name, :name => 'installer_name_is_simple'
+      end
+    end
+
     create_table :policies do
       primary_key :id
       String      :name, :null => false, :unique => true

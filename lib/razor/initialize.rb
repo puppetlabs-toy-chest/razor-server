@@ -52,4 +52,7 @@ module Razor
   # Require that unknown parameters passed to the model cause a failure,
   # rather than being silently ignored.
   Sequel::Model.strict_param_setting = true
+
+  # Make all model subclass instances set defaults
+  Sequel::Model.plugin :defaults_setter
 end
