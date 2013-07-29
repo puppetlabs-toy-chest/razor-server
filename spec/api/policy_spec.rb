@@ -14,7 +14,7 @@ describe Razor::API::Policy do
   let(:image) { make_image }
 
   let :policy_obj1 do
-   make_policy(:image => image, :installer_name => "dummy",:enabled=>false)
+   make_policy(:image => image, :installer_name => "dummy",:enabled=>false,:max_count=>0)
   end
 
   let :policy_obj2 do
@@ -24,94 +24,92 @@ describe Razor::API::Policy do
 
   subject(:policy) { Razor::API::Policy.new(policy_obj1) }
 
+
   it "can output hashes" do
     should respond_to(:to_hash)
-    policy.to_hash.should be_a(Hash)
   end
 
   it "can output json" do
     should respond_to(:to_json)
-    policy.to_json.should be_a(String)
   end
 
-  it "makes JSON that mirrors the hash value" do
-    policy.to_hash.should == JSON.parse(policy.to_json,:symbolize_names=>true)
-  end
+  describe "#to_hash" do
+    subject(:hash) { policy.to_hash }
 
-  it "has only the specified keys" do
-    expected_keys = [
-      :id, :name, :image_id, :enabled, :max_count,
-      :configuration, :tags
-    ]
-
-    policy.to_hash.should have(expected_keys.size).keys
-    expected_keys.each do |key|
-      policy.to_hash.should have_key(key)
+    it "makes JSON that mirrors the hash value" do
+      should == JSON.parse(policy.to_json,:symbolize_names=>true)
     end
-  end
 
-  describe :id do 
-    subject { policy.to_hash[:id] }
-    
-    it { should be_a Fixnum }
-    it { should == policy_obj1.id }
-  end
+    it "has only the specified keys" do
+      expected_keys = [
+        :id, :name, :image_id, :enabled, :max_count,
+        :configuration, :tags
+      ]
 
-  describe :name do
-    subject { policy.to_hash[:name] }
 
-    it { should be_a String }
-    it { should == policy_obj1.name }
-  end
-
-  describe :image_id do
-    subject { policy.to_hash[:image_id] }
-    it { should be_a Fixnum }
-    it { should == image.id }
-  end
-
-  describe :enabled do
-    subject { policy.to_hash[:enabled] }
-
-    it "should be a boolean" do
-     [TrueClass, FalseClass].should include policy.to_hash[:enabled].class
+      should have(expected_keys.size).keys
+      expected_keys.each do |key|
+        should have_key(key)
+      end
     end
-    it { should == policy_obj1.enabled }
- end
 
-  describe :max_count do
-    subject { policy.to_hash[:max_count] }
+    describe :id do 
+      subject { hash[:id] }
 
-    it "Should be a Fixnum or nil" do
-      [Fixnum, NilClass].should include(policy.to_hash[:max_count].class)
+      it { should be_a Fixnum }
+      it { should == policy_obj1.id }
     end
-    context "With a max_count of 0" do
-      subject { policy.to_hash[:max_count] }
 
-      it { should be_nil } # since @p.max_count is 0
+    describe :name do
+      subject { hash[:name] }
+
+      it { should be_a String }
+      it { should == policy_obj1.name }
     end
-    context "With a max count not 0" do
-      subject { Razor::API::Policy.new(policy_obj2).to_hash[:max_count] }
 
-      it { should_not be_nil } # since @p2.max_count != 0 
-      it { should == policy_obj2.max_count }
+    describe :image_id do
+      subject { hash[:image_id] }
+      it { should be_a Fixnum }
+      it { should == image.id }
     end
-  end
 
-  describe :configuration do
-    subject { policy.to_hash[:configuration] }
+    describe :enabled do
+      subject { hash[:enabled] }
+      it { should be_false }
+   end
 
-    it { should be_a Hash }
-    it { should have_key :hostname_pattern }
-    it { should have_key :domain_name }
-    it { should have_key :root_password }
-  end
+    describe :max_count do
+      
+      context "With a max_count of 0" do
+        subject(:max_count) { policy.to_hash[:max_count] }
+        it { should be_nil }
+      end
 
-  describe :tags do
-    subject { policy.to_hash[:tags] }
-    it { should be_an Array }
-    it "has only string values" do
-      should be_all { |t| t.is_a? String }
+      context "With a max count not 0" do
+        subject { Razor::API::Policy.new(policy_obj2).to_hash[:max_count] }
+        
+        it { should_not be_nil }
+      end
+    end
+
+    describe :configuration do
+      subject { policy.to_hash[:configuration] }
+
+
+      it { should be_a Hash }
+      it { should have_key :hostname_pattern }
+      it { should have_key :domain_name }
+      it { should have_key :root_password }
+    end
+
+    describe :tags do
+      subject { policy.to_hash[:tags] }
+      it { should be_an Array }
+      it "has only string values" do
+
+        should be_all { |t| t.is_a? String }
+
+      end
     end
   end
 end

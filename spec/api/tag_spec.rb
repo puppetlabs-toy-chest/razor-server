@@ -9,41 +9,36 @@ describe Razor::API::Tag do
 
   subject(:tag) { Razor::API::Tag.new(tag_obj) }
 
-  it "can output hashes" do
-    should respond_to(:to_hash)
-    tag.to_hash.should be_a(Hash)
-  end
-
   it "can output json" do
     should respond_to(:to_json)
-    tag.to_json.should be_a(String)
   end
 
-  it "makes JSON that mirrors the hash value" do
-    Hash[ tag.to_hash.map do |k, v|
-      [k.to_s, v]
-    end ].should == JSON.parse(tag.to_json)
+  describe "#to_hash" do
+    subject(:hash) {tag.to_hash}
+
+      it "makes JSON that mirrors the hash value" do 
+        Hash[ hash.map {|k,v| [k.to_s, v] } ].should == JSON.parse(tag.to_json)
+      end 
+
+      it "has only the specified keys" do 
+        expected_keys = [:name, :rule] 
+
+        should have(expected_keys.size).keys 
+        expected_keys.each do |key| 
+          hash.should have_key(key) 
+        end 
+      end 
+
+      describe :name do  
+        subject { tag.to_hash[:name] } 
+
+        it { should be_a String } 
+      end 
+
+      describe :rule do 
+        subject { tag.to_hash[:rule] } 
+
+        it { should be_an Array } 
+      end 
   end
-
-  it "has only the specified keys" do
-    expected_keys = [:name, :rule]
-
-    tag.to_hash.should have(expected_keys.size).keys
-    expected_keys.each do |key|
-      tag.to_hash.should have_key(key)
-    end
-  end
-
-  describe ":name" do 
-    subject { tag.to_hash[:name] }
-    
-    it { should be_a String }
-  end
-
-  describe ":rule" do
-    subject { tag.to_hash[:rule] }
-
-    it { should be_an Array }
-  end
-
 end
