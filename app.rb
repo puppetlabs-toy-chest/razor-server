@@ -205,7 +205,8 @@ class Razor::App < Sinatra::Base
         # internal to this deployment -- since we expect client applications
         # to use a case-folded match on the URL to identify their
         # desired command.
-        {"rel" => url('/spec/create_new_image'), "url" => url('/api/create_new_image')}
+        {"rel" => url('/spec/create_new_image'), "url" => url('/api/create_new_image')},
+        {"rel" => url('/spec/create_installer'), "url" => url('/api/create_installer')}
       ]
     }.to_json
   end
@@ -227,5 +228,26 @@ class Razor::App < Sinatra::Base
     # Finally, return the state (started, not complete) and the URL for the
     # final image to our poor caller, so they can watch progress happen.
     [202, {"url" => compose_url('api', 'images', image.name)}.to_json]
+  end
+
+  post '/api/create_installer' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    # If boot_seq is not a Hash, the model validation for installers
+    # will catch that, and will make saving the installer fail
+    if (boot_seq = data["boot_seq"]).is_a?(Hash)
+      # JSON serializes integers as strings, undo that
+      boot_seq.keys.select { |k| k.is_a?(String) and k =~ /^[0-9]+$/ }.
+        each { |k| boot_seq[k.to_i] = boot_seq.delete(k) }
+    end
+
+    installer = begin
+                  Razor::Data::Installer.new(data).save.freeze
+                rescue => e
+                  halt 400, e.to_s
+                end
+
+    [202, {"url" => compose_url('api', 'installers', installer.name)}.to_json]
   end
 end
