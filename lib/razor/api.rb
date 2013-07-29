@@ -25,3 +25,4 @@ end
 
 
 require_relative 'api/tag.rb'
+require_relative 'api/policy.rb'
