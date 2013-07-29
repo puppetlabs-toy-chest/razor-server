@@ -180,26 +180,32 @@ describe "provisioning API" do
 
     it "should return 400 for non-json requests" do
       header 'Content-Type', 'text/plain'
-      post "/svc/checkin/#{hw_id}", "{}"
+      post "/svc/checkin", "{}"
       last_response.status.should == 400
     end
 
     it "should return 400 for malformed JSON" do
       header 'Content-Type', 'application/json'
-      post "/svc/checkin/#{hw_id}", "{}}"
+      post "/svc/checkin", "{}}"
       last_response.status.should == 400
     end
 
     it "should return 400 for JSON without facts" do
       header 'Content-Type', 'application/json'
-      post "/svc/checkin/#{hw_id}", { :stuff => 1 }.to_json
+      post "/svc/checkin", { :stuff => 1, :hw_id => 1 }.to_json
+      last_response.status.should == 400
+    end
+
+    it "should return 400 for JSON without hw_id" do
+      header 'Content-Type', 'application/json'
+      post "/svc/checkin", { :stuff => 1, :facts => {} }.to_json
       last_response.status.should == 400
     end
 
     it "should return a none action for a new node" do
       header 'Content-Type', 'application/json'
-      body = { :facts => { :hostname => "example" }}.to_json
-      post "/svc/checkin/#{hw_id}", body
+      body = { :facts => { :hostname => "example" }, :hw_id => 'foodbaad' }.to_json
+      post "/svc/checkin", body
       last_response.status.should == 200
       last_response.mime_type.should == 'application/json'
       last_response.json.should == { "action" => "none" }
