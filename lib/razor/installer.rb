@@ -54,16 +54,17 @@ module Razor
       @boot_seq[node.boot_count] || @boot_seq["default"]
     end
 
-    def view_path(template)
-      template += ".erb" unless template =~ /\.erb$/
-      candidates = [ File::join(name, os_version, template),
-                     File::join(name, template) ]
+    def find_template(template)
+      template = template.sub(/\.erb$/, "")
+      erb = template + ".erb"
+      erb += ".erb" unless erb =~ /\.erb$/
+      candidates = [ File::join(name, os_version, erb),
+                     File::join(name, erb) ]
       if file = self.class.find_on_installer_paths(*candidates)
-        File::dirname(file)
-      elsif @base && file = @base.view_path(template)
-        file
-      elsif file = self.class.find_on_installer_paths(File::join("common", template))
-        File::dirname(file)
+        [template.to_sym, { :views => File::dirname(file) }]
+      elsif result = ((@base and @base.find_template(erb)) or
+                      self.class.find_common_template(template, erb))
+        result
       else
         raise TemplateNotFoundError, "Installer #{name}: #{template} not on the search path"
       end
@@ -75,15 +76,30 @@ module Razor
 
     protected :metadata
 
+    # Look up an installer by name. We support file-based installers
+    # (mostly for development) and installers stored in the database. If
+    # there is both a file-based and a DB-backed installer with the same
+    # name, we use the file-based one.
     def self.find(name)
-      yaml = find_on_installer_paths("#{name}.yaml")
-      raise InstallerNotFoundError, "No installer #{name}.yaml on search path" unless yaml
-      metadata = YAML::load(File::read(yaml)) || {}
-      new(name, metadata)
+      if yaml = find_on_installer_paths("#{name}.yaml")
+        metadata = YAML::load(File::read(yaml)) || {}
+        new(name, metadata)
+      elsif inst = Razor::Data::Installer[:name => name]
+        inst
+      else
+        raise InstallerNotFoundError, "No installer #{name}.yaml on search path" unless yaml
+      end
     end
 
     def self.mk_installer
       find('microkernel')
+    end
+
+    def self.find_common_template(template, erb = nil)
+      erb ||= template + ".erb"
+      if path = find_on_installer_paths(File::join("common", erb))
+        [template.to_sym, { :views => File::dirname(path) }]
+      end
     end
 
     private
