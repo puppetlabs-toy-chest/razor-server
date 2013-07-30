@@ -209,7 +209,8 @@ class Razor::App < Sinatra::Base
         # to use a case-folded match on the URL to identify their
         # desired command.
         {"rel" => url('/spec/create_new_image'), "url" => url('/api/commands/create_new_image')},
-        {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')}
+        {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')},
+        {"rel" => url('/spec/create_tag'), "url" => url('/api/commands/create_tag')}
       ],
       "collections" => [
         {"id"=> "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
@@ -256,6 +257,19 @@ class Razor::App < Sinatra::Base
                 end
 
     [202, view_object_reference(installer).to_json]
+  end
+
+  post '/api/commands/create_tag' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    tag = begin
+            Razor::Data::Tag.find_or_create_with_rule(data)
+          rescue => e
+            halt 400, e.to_s
+          end
+
+    [202, view_object_reference(tag).to_json]
   end
 
   #

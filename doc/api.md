@@ -48,6 +48,18 @@ description| Human-readable description
 boot_seq   | A hash mapping the boot counter or 'default' to a template
 templates  | A hash mapping template names to the actual ERB template text
 
+### Create tag
+
+To create a tag, clients post the following to the `/spec/create_tag`
+command:
+
+    {
+      "name": "small",
+      "rule": ["=", ["facts", "f1"], "42"]
+    }
+
+The `name` of the tag must be unique; the `rule` is a match expression.
+
 ## Collections
 
 Along with the list of supported commands, a `GET /api` request returns a list
