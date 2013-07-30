@@ -76,11 +76,19 @@ module Razor
 
     protected :metadata
 
+    # Look up an installer by name. We support file-based installers
+    # (mostly for development) and installers stored in the database. If
+    # there is both a file-based and a DB-backed installer with the same
+    # name, we use the file-based one.
     def self.find(name)
-      yaml = find_on_installer_paths("#{name}.yaml")
-      raise InstallerNotFoundError, "No installer #{name}.yaml on search path" unless yaml
-      metadata = YAML::load(File::read(yaml)) || {}
-      new(name, metadata)
+      if yaml = find_on_installer_paths("#{name}.yaml")
+        metadata = YAML::load(File::read(yaml)) || {}
+        new(name, metadata)
+      elsif inst = Razor::Data::Installer[:name => name]
+        inst
+      else
+        raise InstallerNotFoundError, "No installer #{name}.yaml on search path" unless yaml
+      end
     end
 
     def self.mk_installer
