@@ -47,6 +47,23 @@ describe Razor::Installer do
     end
   end
 
+
+  describe "find for DB and file installers" do
+    it "finds them in the database" do
+      inst = Razor::Data::Installer.create(:name => 'dbinst',
+                                           :os => 'SomeOS',
+                                           :os_version => '6')
+      Razor::Installer.find('dbinst').should == inst
+    end
+
+    it "prefers installers in the file system" do
+      Razor::Data::Installer.create(:name => 'some_os',
+                                    :os => 'SomeOS',
+                                    :os_version => '6')
+      Installer.find("some_os").should be_an_instance_of Razor::Installer
+    end
+  end
+
   describe "find_template" do
     let(:inst) { Installer.find("some_os") }
     let(:derived) { Installer.find("some_os_derived") }
