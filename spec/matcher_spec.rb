@@ -80,6 +80,84 @@ describe Razor::Matcher do
     end
   end
 
+  describe "#valid?" do
+    it "should require String-, Numeric-, Nil-, or Boolean-typed arguments" do
+      Matcher.new(["eq", ["fact","now"], Time.now]).should_not be_valid
+    end
+
+    it "should require booleans for 'and' function" do
+      Matcher.new(["and", true, false]).should be_valid
+      Matcher.new(["and", 1, true]).should_not be_valid
+      Matcher.new(["and", "six", false]).should_not be_valid
+    end
+
+    it "should require booleans for 'or' function" do
+      Matcher.new(["or", false, true]).should be_valid
+      Matcher.new(["or", "version", true]).should_not be_valid
+      Matcher.new(["or", 5.4, 3]).should_not be_valid
+    end
+
+    it "should allow all types for '=' function" do
+      Matcher.new(["=", true, false]).should be_valid
+      Matcher.new(["eq", 1, ["=", 5, "ten"]]).should be_valid
+      Matcher.new(["eq", 6.3, 3]).should be_valid
+    end
+
+    it "should allow all types for '!=' function" do
+      Matcher.new(["=", 3, 10]).should be_valid
+      Matcher.new(["eq", 'one', ["=", 6.7, "t"]]).should be_valid
+      Matcher.new(["eq", 'C', 3, 'P', 'O']).should be_valid
+    end
+
+    it "should allow all types for 'in' function" do
+      Matcher.new(["in",true, ["in", 1, "two"], false]).should be_valid
+      Matcher.new(["in", 0, 1, 3.6, 10e20]).should be_valid
+    end
+
+    it "should require strings for 'fact' function" do
+      Matcher.new(["=",["fact","exists"], true]).should be_valid
+      Matcher.new(["!=", ["fact", "one"], 0]).should be_valid
+      Matcher.new(["=", ["fact", 5], "five"]).should_not be_valid
+      Matcher.new(["and", ["fact", 4.458], true]).should_not be_valid
+    end
+
+    it "should require that top-level functions return booleans" do
+      Matcher.new(["=",true, false]).should be_valid
+      Matcher.new(["!=",true, false]).should be_valid
+      Matcher.new(["or",true, false]).should be_valid
+      Matcher.new(["and",true, false]).should be_valid
+      Matcher.new(["in",true, false]).should be_valid
+      Matcher.new(["fact","three"]).should_not be_valid
+    end
+
+    it "should validate nested functions" do
+      Matcher.new(
+        ["and",
+          ["or",
+            ["in",3, 1, 2, 3, 4, 5, 6],
+            ["=", "five", 5]
+          ],
+          ["=", ["fact", "true"], true]
+        ]).should be_valid
+      Matcher.new(
+        ["in", 3,
+          ["fact", "ten"],
+          ["or",                    # This 'or' should be invalid, since it requires
+            ["fact", "fifteen"],    # boolean arguments, and 'facts' returns multiple
+            ["fact", "seven"]       # types.
+          ]
+        ]).should_not be_valid
+    end
+
+    it "should reject unknown functions" do
+      Matcher.new(["be",true, false]).should_not be_valid
+      Matcher.new(["=",["ten"], 10]).should_not be_valid
+      Matcher.new(["===",true, false]).should_not be_valid
+      Matcher.new(["+",1, 1]).should_not be_valid
+      Matcher.new(["-",true, false]).should_not be_valid
+    end
+  end
+
   it "should handle nested evaluation" do
     match("and", ["=", ["fact", "f1"], 42],
                  ["!=", ["fact", "f2"], 43],

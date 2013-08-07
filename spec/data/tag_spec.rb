@@ -15,4 +15,19 @@ describe Razor::Data::Tag do
     Tag.match(MockNode.new("f1" => "c")).should == [ t ]
     Tag.match(MockNode.new("f1" => "x")).should == []
   end
+
+  context "when rule is nil" do
+    subject(:tag) {Tag.create(:name => "t1")}
+    it { should be_valid }
+  end
+
+  context "when rule is valid" do
+    subject(:tag) {Tag.create(:name=>"t2", :matcher => Razor::Matcher.new(["=",["fact","five"], 5]))}
+    it { should be_valid }
+  end
+
+  context "when rule is not valid" do
+    subject(:tag) {Tag.new(:name=>"t2", :matcher => Razor::Matcher.new(["yes","no"]))}
+    it { should_not be_valid }
+  end
 end

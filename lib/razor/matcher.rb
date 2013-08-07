@@ -19,8 +19,21 @@ require 'json'
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
+
+  Boolean = [TrueClass, FalseClass]
+  Mixed = [String, *Boolean, Numeric, NilClass]
+
   class Functions
     ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
+
+    ATTRS = {
+        "and"  => {:expects => Boolean,  :returns => Boolean },
+        "or"   => {:expects => Boolean,  :returns => Boolean },
+        "fact" => {:expects => [String], :returns => Mixed   },
+        "eq"   => {:expects => Mixed,    :returns => Boolean },
+        "neq"  => {:expects => Mixed,    :returns => Boolean },
+        "in"   => {:expects => Mixed,    :returns => Boolean },
+      }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
     # pretty hard (e.g., truthiness, equality, type conversion from JSON)
@@ -80,6 +93,11 @@ class Razor::Matcher
     evaluate(@rule, fns) ? true : false
   end
 
+  def valid?
+    # Matchers should return boolean expressions
+    validate(@rule, Boolean)
+  end
+
   private
   def evaluate(rule, fns)
     r = rule.map do |arg|
@@ -91,5 +109,26 @@ class Razor::Matcher
     end
     r[0] = Functions::ALIAS[r[0]] || r[0]
     fns.send(*r)
+  end
+
+  def validate(rule, required_returns)
+    return false unless rule.is_a?(Array) && rule.size >= 2 && rule.first.is_a?(String)
+    return false unless rule.flatten.all? {|arg| Mixed.any? {|type| arg.class <= type } }
+
+    attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]] or return false
+
+    # Ensure all returned types are in required_returns, or that they
+    # are subclasses of classes in required_returns
+    return false unless attrs[:returns].all? do |returned_type|
+      required_returns.any? {|allowed_type| returned_type <= allowed_type}
+    end
+
+    return rule.drop(1).all? do |arg|
+      if arg.is_a? Array
+        validate(arg, attrs[:expects])
+      else
+        attrs[:expects].any? {|type| arg.class <= type }
+      end
+    end
   end
 end
