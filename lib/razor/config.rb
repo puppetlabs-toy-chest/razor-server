@@ -33,5 +33,17 @@ module Razor
         end
       }
     end
+
+    def broker_paths
+      if self['broker_path']
+        self['broker_path'].split(':').map do |path|
+          path.empty? and next
+          path.start_with?('/') and path or
+            File::expand_path(File::join(Razor.root, path))
+        end.compact
+      else
+        [File::expand_path(File::join(Razor.root, 'brokers'))]
+      end
+    end
   end
 end
