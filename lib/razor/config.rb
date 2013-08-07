@@ -25,24 +25,25 @@ module Razor
     end
 
     def installer_paths
-      self["installer_path"].split(":").map { |path|
-        if path.start_with?("/")
-          path
-        else
-          File::expand_path(File::join(Razor.root, path))
-        end
-      }
+      expand_paths('installer')
     end
 
     def broker_paths
-      if self['broker_path']
-        self['broker_path'].split(':').map do |path|
+      expand_paths('broker')
+    end
+
+    private
+    def expand_paths(what)
+      option_name  = what + '_path' # eg: broker_path, installer_path
+
+      if self[option_name]
+        self[option_name].split(':').map do |path|
           path.empty? and next
           path.start_with?('/') and path or
             File::expand_path(File::join(Razor.root, path))
         end.compact
       else
-        [File::expand_path(File::join(Razor.root, 'brokers'))]
+        [File::expand_path(File::join(Razor.root, what.pluralize))]
       end
     end
   end
