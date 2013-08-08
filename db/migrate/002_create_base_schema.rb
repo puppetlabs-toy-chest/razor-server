@@ -87,7 +87,7 @@ Sequel.migration do
 
       TrueClass   :enabled
       Integer     :max_count
-      Integer     :sort_order
+      Integer     :line_number, :null => false, :unique => true
     end
 
     create_table :tags do

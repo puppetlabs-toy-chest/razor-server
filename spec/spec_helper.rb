@@ -106,7 +106,8 @@ def make_policy(attr = {})
     :installer_name => "some_os",
     :hostname_pattern => "host%n",
     :domainname => "example.org",
-    :root_password => "secret"
+    :root_password => "secret",
+    :line_number => 100
   }
   h.merge!(attr)
   h[:image] ||= make_image

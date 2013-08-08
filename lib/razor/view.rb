@@ -51,7 +51,7 @@ module Razor
           :domain_name => policy.domainname,
           :root_password => policy.root_password,
         },
-        :sort_order => policy.sort_order,
+        :line_number => policy.line_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
       })
     end

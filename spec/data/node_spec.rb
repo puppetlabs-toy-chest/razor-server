@@ -80,7 +80,7 @@ describe Razor::Data::Node do
     }
 
     it "should bind to a policy when there is a match" do
-      policy = make_policy(:sort_order => 20)
+      policy = make_policy(:line_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -93,10 +93,10 @@ describe Razor::Data::Node do
     describe "of a bound node" do
       let (:image) { make_image }
 
-      def make_tagged_policy(sort_order)
-        policy = make_policy(:name => "p#{sort_order}",
+      def make_tagged_policy(line_number)
+        policy = make_policy(:name => "p#{line_number}",
                              :image => image,
-                             :sort_order => sort_order)
+                             :line_number => line_number)
         policy.add_tag(tag)
         policy.save
         policy

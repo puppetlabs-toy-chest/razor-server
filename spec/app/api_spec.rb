@@ -95,7 +95,7 @@ describe "command and query API" do
       get "/api/collections/policies/#{pl.name}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled sort_order max_count image tags]
+      policy.keys.should =~ %w[name id spec configuration enabled line_number max_count image tags]
       policy["image"].keys.should =~ %w[name obj_id spec url]
       policy["configuration"].keys.should =~ %w[hostname_pattern domain_name root_password]
       policy["tags"].should be_empty
