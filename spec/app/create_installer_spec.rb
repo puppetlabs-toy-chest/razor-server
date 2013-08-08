@@ -6,7 +6,7 @@ describe "create installer command" do
 
   let(:app) { Razor::App }
 
-  context "/api/create_installer" do
+  context "/api/commands/create_installer" do
     before :each do
       header 'content-type', 'application/json'
     end
@@ -20,7 +20,7 @@ describe "create installer command" do
 
     def create_installer(input = nil)
       input ||= installer_hash.to_json
-      post '/api/create_installer', input
+      post '/api/commands/create_installer', input
     end
 
     it "should reject bad JSON" do
