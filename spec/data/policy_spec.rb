@@ -3,22 +3,31 @@ require_relative "../spec_helper"
 describe Razor::Data::Policy do
 
   before(:each) do
+    use_installer_fixtures
     @node = Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
     @tag = Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
     @image = make_image
   end
 
   it "binds to a matching node" do
-    pl = make_policy(:image => @image, :installer_name => "dummy")
+    pl = make_policy(:image => @image, :installer_name => "some_os")
     pl.add_tag(@tag)
     pl.save
     Policy.bind(@node)
     @node.policy.should == pl
   end
 
+  it "does not save a policy if the named installer does not exist" do
+    pl = make_policy(:image => @image, :installer_name => "some_os")
+    expect do
+      pl.installer_name = "no such installer"
+      pl.save
+    end.to raise_error(Sequel::ValidationFailed)
+  end
+
   describe "max_count" do
     it "binds if there is room" do
-      pl = make_policy(:image => @image, :installer_name => "dummy",
+      pl = make_policy(:image => @image, :installer_name => "some_os",
                        :max_count => 1)
       pl.add_tag(@tag)
       pl.save
@@ -27,7 +36,7 @@ describe Razor::Data::Policy do
     end
 
     it "does not bind if there is no room" do
-      pl = make_policy(:image => @image, :installer_name => "dummy",
+      pl = make_policy(:image => @image, :installer_name => "some_os",
                        :max_count => 0)
       pl.add_tag(@tag)
       pl.save
@@ -41,7 +50,7 @@ describe Razor::Data::Policy do
   end
 
   it "does not bind disabled policy" do
-    pl = make_policy(:image => @image, :installer_name => "dummy",
+    pl = make_policy(:image => @image, :installer_name => "some_os",
                      :enabled => false)
     pl.add_tag(@tag)
     pl.save

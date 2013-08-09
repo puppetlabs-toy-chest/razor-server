@@ -9,6 +9,20 @@ module Razor::Data
       Razor::Installer.find(installer_name)
     end
 
+    def validate
+      super
+
+      # Because we allow installers in the file system, we do not have a fk
+      # constraint on +installer_name+; this check only helps spot simple
+      # typos etc.
+      begin
+        self.installer
+      rescue Razor::InstallerNotFoundError
+        errors.add(:installer_name,
+                   "installer '#{installer_name}' does not exist")
+      end
+    end
+
     def self.bind(node)
       node_tags = node.tags
       # The policies that could be bound must

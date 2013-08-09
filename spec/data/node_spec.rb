@@ -2,6 +2,10 @@ require_relative "../spec_helper"
 
 describe Razor::Data::Node do
 
+  before(:each) do
+    use_installer_fixtures
+  end
+
   let (:policy) { make_policy }
 
   let (:node) { Node.create(:hw_id => "deadbeef") }

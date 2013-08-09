@@ -54,6 +54,8 @@ describe "command and query API" do
     # `before` is used instead of `let` since the database gets rolled
     # back after every test
     before(:each) do
+      use_installer_fixtures
+
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
@@ -65,7 +67,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  make_policy(:image => @image, :installer_name => "dummy")
+      pl =  make_policy(:image => @image, :installer_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -79,12 +81,14 @@ describe "command and query API" do
 
   context "/api/collections/policies/ID - get policy" do
     before(:each) do
+      use_installer_fixtures
+
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
     end
 
-    subject(:pl){make_policy(:image => @image, :installer_name => "dummy")}
+    subject(:pl){make_policy(:image => @image, :installer_name => "some_os")}
 
     it "should exist" do
       get "/api/collections/policies/#{pl.name}"
