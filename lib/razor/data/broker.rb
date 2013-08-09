@@ -22,4 +22,16 @@ class Razor::Data::Broker < Sequel::Model
     else                     super
     end
   end
+
+  # Provide access to the install script for this broker.  This is a shorthand
+  # for loading the broker manually, and building the script by passing this
+  # as the instance object.
+  #
+  # @param node [Razor::Data::Node] the node we are producing an install
+  # script for.
+  #
+  # @return [String] the compiled installation script, ready to run.
+  def install_script_for(node)
+    broker_type.install_script(node, self)
+  end
 end
