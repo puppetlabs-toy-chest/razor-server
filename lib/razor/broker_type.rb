@@ -2,6 +2,7 @@ require 'erb'
 require 'pathname'
 require 'tilt'
 require 'yaml'
+require 'ostruct'
 
 # Signal that a broker was not found when requested by name.
 class Razor::BrokerTypeNotFoundError < RuntimeError; end
@@ -46,20 +47,15 @@ class Razor::BrokerType
   #
   # The node is directly exposed to the script, in case any data from it is
   # required, but only the broker metadata is exposed.
-  #
-  # @todo danielp 2013-08-09: this needs to pass the configuration data from
-  # the in-database "instance" of the broker -- what was configured when the
-  # user created the record that could be addressed from policy.
-  def install_script(node)
+  def install_script(node, broker)
     # While this is unlikely, if you could pass an arbitrary object here you
     # could theoretically exploit this to do bad things based on the
     # template actions.  Better safe than sorry...
     node.is_a?(Razor::Data::Node) or
       raise TypeError, "internal error: #{node.class} where Razor::Data::Node expected"
+    broker.is_a?(Razor::Data::Broker) or
+      raise TypeError, "internal error: #{node.class} where Razor::Data::Broker expected"
 
-    # @todo danielp 2013-08-05: should we evaluate in an object context,
-    # rather than a shiny new Object?  I don't imagine so, but...
-    #
     # @todo danielp 2013-08-05: what else do we need to expose to the template
     # to make this all work?
     #
@@ -72,13 +68,25 @@ class Razor::BrokerType
     #
     # This really is about protecting users from their own errors, not
     # protecting Razor from a deliberately malicious user.
+    #
+    # @todo danielp 2013-08-09: this is only a shallow clone, and a shallow
+    # freeze; we can do deeper versions of both, but that is time expensive in
+    # Ruby, which has crappy support for them.  I feel like this is sufficient.
     Tilt.new(install_template_path.to_s).render(
       # The namespace to work in: a new, blank, disconnected, immutable
       # object, to prevent users getting odd expectations or visibility into,
       # eg, our local scope.
       Object.new.freeze,
       # The local values to bind into the template follow, as a hash.
-      :node => node.dup.freeze
+      :node   => node.dup.freeze,
+      # We only need the configuration, which is really what the user
+      # "created" when they created the broker; everything else is just
+      # meta-information used to tie together our object model.
+      #
+      # This is an openstruct instance because that gives a nice "function"
+      # accessor interface rather than a hash interface -- with the
+      # same semantics of "nil if not present".
+      :broker => OpenStruct.new(broker.configuration).freeze
     )
   end
 
