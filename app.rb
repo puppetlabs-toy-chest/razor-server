@@ -88,6 +88,9 @@ class Razor::App < Sinatra::Base
     end
   end
 
+  # Client API helpers
+  helpers Razor::View
+
   # Error handlers for node API
   error Razor::TemplateNotFoundError do
     status 404
@@ -205,13 +208,17 @@ class Razor::App < Sinatra::Base
         # internal to this deployment -- since we expect client applications
         # to use a case-folded match on the URL to identify their
         # desired command.
-        {"rel" => url('/spec/create_new_image'), "url" => url('/api/create_new_image')},
-        {"rel" => url('/spec/create_installer'), "url" => url('/api/create_installer')}
+        {"rel" => url('/spec/create_new_image'), "url" => url('/api/commands/create_new_image')},
+        {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')}
+      ],
+      "collections" => [
+        {"id"=> "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
+        {"id" => "policies", "rel" => url('/spec/list_policies'), "url" => url('/api/collections/policies')},
       ]
     }.to_json
   end
 
-  post '/api/create_new_image' do
+  post '/api/commands/create_new_image' do
     data = json_body
     data.is_a?(Hash) or halt [415, "body must be a JSON object"]
 
@@ -230,7 +237,7 @@ class Razor::App < Sinatra::Base
     [202, {"url" => compose_url('api', 'images', image.name)}.to_json]
   end
 
-  post '/api/create_installer' do
+  post '/api/commands/create_installer' do
     data = json_body
     data.is_a?(Hash) or halt [415, "body must be a JSON object"]
 
@@ -249,5 +256,23 @@ class Razor::App < Sinatra::Base
                 end
 
     [202, {"url" => compose_url('api', 'installers', installer.name)}.to_json]
+  end
+
+  get '/api/collections/tags' do
+    Razor::Data::Tag.all.map {|t| view_object_reference(t)}.to_json
+  end
+
+  get '/api/collections/tags/:id' do
+    tag = Razor::Data::Tag[params[:id]] or halt 404, "no tag matched id=#{params[:id]}"
+    tag_hash(tag).to_json
+  end
+
+  get '/api/collections/policies' do
+    Razor::Data::Policy.all.map {|p| view_object_reference(p)}.to_json
+  end
+
+  get '/api/collections/policies/:id' do
+    policy = Razor::Data::Policy[params[:id]] or halt 404, "no policy matched id=#{params[:id]}"
+    policy_hash(policy).to_json
   end
 end

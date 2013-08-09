@@ -47,3 +47,52 @@ os_version | The version of the operating system
 description| Human-readable description
 boot_seq   | A hash mapping the boot counter or 'default' to a template
 templates  | A hash mapping template names to the actual ERB template text
+
+## Collections
+
+Along with the list of supported commands, a `GET /api` request returns a list
+of supported collections in the `collections` array. Each entry contains at
+minimum `url`, `spec`, and `name` keys, which correspond respectively to the
+endpoint through which the collection can be retrieved (via `GET`), the 'type'
+of collection, and a human-readable name for the collection.
+
+A `GET` request to a collection endpoint will yield a list of JSON objects,
+each of which has at minimum the following fields:
+    
+id   | a URL that uniquely identifies the object
+spec | a URL that identifies the type of the object
+name | a human-readable name for the object
+
+Different types of objects may specify other properties by defining additional
+key-value pairs. For example, here is a sample tag listing:
+
+    [
+      {
+        "spec": "http://localhost:8080/spec/object/tag",
+        "id": "http://localhost:8080/api/collections/objects/14",
+        "name": "virtual",
+        "rule": [ "=", [ "fact", "is_virtual" ], true ]
+      },
+      {
+        "spec": "http://localhost:8080/spec/object/tag",
+        "id": "http://localhost:8080/api/collections/objects/27",
+        "name": "group 4",
+        "rule": [
+          "in", [ "fact", "dhcp_mac" ],
+          "79-A8-C3-39-E4-BA",
+          "6C-35-FE-B7-BD-2D",
+          "F9-92-DF-E0-26-5D"
+        ]
+      }
+    ]
+
+In addition, references to other resources are represented either as an array
+of, in the case of a one- or many-to-many relationship, or single, for a one-
+to-one relationship, JSON objects with the following fields:
+
+url    | a URL that uniquely identifies the object
+obj_id | a short numeric identifier
+name   | a human-readable name for the object
+
+If the reference object is in an array, the `obj_id` field serves as a unique
+identifier within the array.

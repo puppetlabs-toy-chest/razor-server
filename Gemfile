@@ -27,6 +27,8 @@ gem 'torquebox', '2.3.2'
 gem 'sinatra'
 gem 'sequel'
 gem 'jdbc-postgres'
+gem 'rest-client'
+gem 'terminal-table'
 
 group :doc do
   gem 'yard'
