@@ -90,4 +90,29 @@ describe Razor::Data::Broker do
       Razor::Data::Broker[:name => 'hello'].configuration.should == config
     end
   end
+
+  describe "install_script" do
+    let :node do Razor::Data::Node.new end
+
+    it "should build the install script with current broker data" do
+      script = <<EOT
+<%=
+  {
+    'one'   => broker.one,
+    'two'   => broker.two,
+    'three' => broker.three
+  }.to_json
+%>
+EOT
+      set_broker_file('install.erb' => script)
+      config = {"one" => 1, "two" => 2.0, "three" => ['a', {'b'=>'b'}, ['c']]}
+      json = Razor::Data::Broker.new(
+        :name          => 'foo',
+        :broker_type   => broker,
+        :configuration => config
+      ).install_script_for(node)
+
+      JSON.parse(json).should == config
+    end
+  end
 end
