@@ -250,12 +250,19 @@ describe Razor::BrokerType do
   end
 
   context "install_script" do
+    def broker_instance_for(that, configuration = nil)
+      b = Razor::Data::Broker.new(:name => 'hello', :broker_type => that)
+      configuration and b.configuration = configuration
+      b
+    end
+
     it "should raise unless a real node object is given" do
       broker = {'test' => {'install.erb' => "# no real content here\n"}}
       with_brokers_in(paths.first => broker) do
         expect {
-          Razor::BrokerType.find('test').install_script(self)
-          }.to raise_error TypeError, /Razor::Data::Node/
+          b = Razor::BrokerType.find('test')
+          b.install_script(self, broker_instance_for(b))
+        }.to raise_error TypeError, /Razor::Data::Node/
       end
     end
 
@@ -263,7 +270,8 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "# no real content here\n"}}
       with_brokers_in(paths.first => broker) do
         node   = Razor::Data::Node.new
-        script = Razor::BrokerType.find('test').install_script(node)
+        broker = Razor::BrokerType.find('test')
+        script = broker.install_script(node, broker_instance_for(broker))
         script.should be_an_instance_of String
         script.should == "# no real content here\n"
       end
@@ -273,7 +281,8 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "<%= node.hw_id %>"}}
       with_brokers_in(paths.first => broker) do
         node   = Razor::Data::Node.new(:hw_id => '12345678')
-        script = Razor::BrokerType.find('test').install_script(node)
+        broker = Razor::BrokerType.find('test')
+        script = broker.install_script(node, broker_instance_for(broker))
         script.should == node.hw_id
       end
     end
@@ -283,9 +292,41 @@ describe Razor::BrokerType do
       with_brokers_in(paths.first => broker) do
         node = Razor::Data::Node.new(:hw_id => '12345678')
         expect {
-          Razor::BrokerType.find('test').install_script(node)
-        }.to raise_error RuntimeError, /frozen/
+          broker = Razor::BrokerType.find('test')
+          script = broker.install_script(node, broker_instance_for(broker))
+        }.to raise_error /frozen/
         node.hw_id.should == '12345678'
+      end
+    end
+
+    it "should pass an immutable broker configuration to the template" do
+      broker = {'test' =>
+        {'install.erb' => "<%= broker.foo = 'bar' %>"}}
+      with_brokers_in(paths.first => broker) do
+        node     = Razor::Data::Node.new
+        broker   = Razor::BrokerType.find('test')
+        config   = {'1' => 1, '2' => 2.0}
+        instance = broker_instance_for(broker, config)
+        instance.configuration.should == config
+
+        expect {
+          broker.install_script(node, instance)
+        }.to raise_error /frozen/
+
+        instance.configuration.should == config
+      end
+    end
+
+    it "should evaluate in an immutable object context" do
+      broker = {'test' => {'install.erb' => "<%= @foo = 'exploited!' %>"}}
+      with_brokers_in(paths.first => broker) do
+        node     = Razor::Data::Node.new
+        broker   = Razor::BrokerType.find('test')
+        instance = broker_instance_for(broker)
+
+        expect {
+          broker.install_script(node, instance)
+        }.to raise_error RuntimeError, /frozen/
       end
     end
   end
