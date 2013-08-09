@@ -75,6 +75,24 @@ Sequel.migration do
       end
     end
 
+    create_table :brokers do
+      primary_key :id
+      column      :name, :varchar, :size => 250, :null => false
+      index  Sequel.function(:lower, :name), :unique => true, :name => 'brokers_name_index'
+      # JSON hash of configuration key/value pairs supplied by the user.
+      # We don't really need the full weight of JSON, but better compatible
+      # with the rest of the system and less surprising than efficient.
+      column :configuration, :text, :null => false, :default => '{}'
+
+      # Tie our in-database version to the on-disk broker...
+      column :broker_type, :varchar, :size => 250, :null => false
+
+      validate do
+        format NAME_RX, :name,        :name => 'broker_name_is_simple'
+        format NAME_RX, :broker_type, :name => 'broker_type_is_simple'
+      end
+    end
+
     create_table :policies do
       primary_key :id
       String      :name, :null => false, :unique => true
