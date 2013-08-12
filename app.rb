@@ -272,6 +272,37 @@ class Razor::App < Sinatra::Base
     [202, view_object_reference(tag).to_json]
   end
 
+  post '/api/create_policy' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    begin
+      tags = (data.delete("tags") || []).map do |t|
+        Razor::Data::Tag.find_or_create_with_rule(t)
+      end
+
+      if data["image"]
+        name = data["image"]["name"] or
+          halt [400, "The image reference must have a 'name'"]
+        data["image"] = Razor::Data::Image[:name => name] or
+          halt [400, "Image '#{name}' not found"]
+      end
+
+      if data["installer"]
+        data["installer_name"] = data.delete("installer")["name"]
+      end
+      data["hostname_pattern"] = data.delete("hostname")
+
+      policy = Razor::Data::Policy.new(data).save
+      tags.each { |t| policy.add_tag(t) }
+      policy.save
+    rescue => e
+      halt 400, e.to_s
+    end
+
+    [202, view_object_reference(policy).to_json]
+  end
+
   #
   # Query/collections API
   #
