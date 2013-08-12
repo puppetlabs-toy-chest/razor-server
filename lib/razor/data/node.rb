@@ -34,7 +34,7 @@ module Razor::Data
       self.policy = policy
       self.boot_count = 0
       self.root_password = policy.root_password
-      self.hostname = policy.hostname_pattern.gsub(/%n/, id.to_s)
+      self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
     end
 
     # This is a hack around the fact that the auto_validates plugin does
