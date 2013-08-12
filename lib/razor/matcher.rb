@@ -1,3 +1,5 @@
+require 'json'
+
 # This class provides a generic matcher for rules/conditions
 #
 # It is assumed that rules are expressed as JSON arrays, using Lisp-style
@@ -18,7 +20,7 @@
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
   class Functions
-    ALIAS = { "=" => "eq", "!=" => "neq" }
+    ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
     # pretty hard (e.g., truthiness, equality, type conversion from JSON)
@@ -52,9 +54,25 @@ class Razor::Matcher
     end
   end
 
+  def self.unserialize(rule_json)
+    rule_hash = JSON.parse(rule_json)
+
+    unless rule_hash.keys.sort == ["rule"]
+      raise "Invalid matcher; couldn't unserialize #{rule_hash}"
+    end
+
+    self.new(rule_hash["rule"])
+  end
+
+  def serialize
+    { "rule" => @rule }.to_json
+  end
+
+  attr_reader :rule
   # +rule+ must be an Array
   def initialize(rule)
-    @rule = rule
+    raise TypeError.new("rule is not an array") unless rule.is_a? Array
+    @rule = rule.freeze
   end
 
   def match?(values)

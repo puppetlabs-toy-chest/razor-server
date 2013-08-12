@@ -55,7 +55,7 @@ describe "command and query API" do
     # back after every test
     before(:each) do
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
+      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
     end
 
@@ -80,7 +80,7 @@ describe "command and query API" do
   context "/api/collections/policies/ID - get policy" do
     before(:each) do
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
+      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
     end
 
@@ -110,7 +110,7 @@ describe "command and query API" do
     end
 
     it "should list all tags" do
-      t = Razor::Data::Tag.create(:name=>"tag 1", :rule=>["=",["fact","one"],"1"])
+      t = Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
       get '/api/collections/tags'
       data = last_response.json
       data.size.should be 1
@@ -121,7 +121,7 @@ describe "command and query API" do
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag 1", :rule=>["=",["fact","one"],"1"])}
+    subject(:t) {Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
 
     it "should exist" do
       get "/api/collections/tags/#{t.id}"
@@ -131,8 +131,8 @@ describe "command and query API" do
     it "should have the right keys" do
       get "/api/collections/tags/#{t.id}"
       tag = last_response.json
-      tag.keys.should =~ %w[ spec id name rule ]
-      tag["rule"].should == ["=",["fact","one"],"1"]
+      tag.keys.should =~ %w[ spec id name matcher ]
+      tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
     end
   end
 end

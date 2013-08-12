@@ -3,6 +3,39 @@ require_relative 'spec_helper'
 describe Razor::Matcher do
   Matcher = Razor::Matcher
 
+  describe "#new" do
+    it { expect {Matcher.new({}).to raise_error TypeError} }
+    it { expect {Matcher.new("rule").to raise_error TypeError} }
+  end
+
+  describe "::unserialize" do
+    context "with invalid JSON data" do
+      it { expect {Matcher.unserialize({}).to raise_error } }
+      it { expect {Matcher.unserialize(1).to raise_error } }
+      it { expect {Matcher.unserialize('{"rule": []').to raise_error } }
+    end
+
+    context "with extra keys" do
+      subject(:m) { Matcher.unserialize('{"rule":[],"extra":1}') }
+      it { expect {m}.to raise_error }
+    end
+
+    context "with missing keys" do
+      subject(:m) { Matcher.unserialize('{}') }
+      it { expect {m}.to raise_error }
+    end
+
+    context "with the correct values" do
+      subject(:m) { Matcher.unserialize('{"rule":["=",1,1]}') }
+      it { m.rule.should == ["=", 1, 1] }
+    end
+
+    it "should have the same rule as a serialized matcher" do
+      m = Matcher.new(["=",["fact", "fifteen"], 15])
+      Matcher.unserialize(m.serialize).rule.should == m.rule
+    end
+  end
+
   def match(*rule)
     facts = {}
     facts = rule.pop if rule.last.is_a?(Hash)

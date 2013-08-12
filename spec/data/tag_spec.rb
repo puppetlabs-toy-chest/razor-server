@@ -11,7 +11,7 @@ describe Razor::Data::Tag do
 
   it "matches on the right facts" do
     t = Tag.create(:name => "t0",
-                   :rule => ["in", ["fact", "f1"], "a", "b", "c"])
+                   :matcher => Razor::Matcher.new(["in", ["fact", "f1"], "a", "b", "c"]))
     Tag.match(MockNode.new("f1" => "c")).should == [ t ]
     Tag.match(MockNode.new("f1" => "x")).should == []
   end
