@@ -34,10 +34,8 @@ describe Razor::Data::Node do
   end
 
   describe "hostname" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.hostname
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+    it "is null when no policy is bound" do
+      node.hostname.should be_nil
     end
 
     it "is set from the policy's hostname_pattern when bound" do
@@ -47,10 +45,8 @@ describe Razor::Data::Node do
   end
 
   describe "root_password" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.root_password
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+    it "is null when no policy is bound" do
+      node.root_password.should be_nil
     end
 
     it "returns the policy's root_password when bound" do
@@ -59,16 +55,14 @@ describe Razor::Data::Node do
     end
   end
 
-  describe "domainname" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.domainname
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+  describe "shortname" do
+    it "is null when no policy is bound" do
+      node.domainname.should be_nil
     end
 
-    it "returns the policy's root_password when bound" do
+    it "is the short hostname when bound" do
       node.bind(policy)
-      node.domainname.should == policy.domainname
+      node.shortname.should_not =~ /\./
     end
   end
 

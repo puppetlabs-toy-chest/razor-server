@@ -48,7 +48,6 @@ module Razor
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
         :configuration => {
           :hostname_pattern => policy.hostname_pattern,
-          :domain_name => policy.domainname,
           :root_password => policy.root_password,
         },
         :line_number => policy.line_number,

@@ -104,8 +104,7 @@ def make_policy(attr = {})
     :name => "p1",
     :enabled => true,
     :installer_name => "some_os",
-    :hostname_pattern => "host%n",
-    :domainname => "example.org",
+    :hostname_pattern => "host%n.example.org",
     :root_password => "secret",
     :line_number => 100
   }
