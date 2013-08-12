@@ -87,14 +87,14 @@ describe "command and query API" do
     subject(:pl){make_policy(:image => @image, :installer_name => "dummy")}
 
     it "should exist" do
-      get "/api/collections/policies/#{pl.id}"  
+      get "/api/collections/policies/#{pl.id}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/policies/#{pl.id}"  
+      get "/api/collections/policies/#{pl.id}"
       policy = last_response.json
-      
+
       policy.keys.should =~ %w[name id spec configuration enabled sort_order max_count image tags]
       policy["image"].keys.should =~ %w[name obj_id spec url]
       policy["configuration"].keys.should =~ %w[hostname_pattern domain_name root_password]

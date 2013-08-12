@@ -58,7 +58,7 @@ of collection, and a human-readable name for the collection.
 
 A `GET` request to a collection endpoint will yield a list of JSON objects,
 each of which has at minimum the following fields:
-    
+
 id   | a URL that uniquely identifies the object
 spec | a URL that identifies the type of the object
 name | a human-readable name for the object

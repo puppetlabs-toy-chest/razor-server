@@ -31,7 +31,7 @@ module Razor
     # identifies the object on the server, and a `name` field, which provides
     # a human-readable name for the object. This is the *baseline* definition
     # of an object; it is expected to be `#merge`d with a hash that overrides
-    # :spec, and that contains type-specific fields. 
+    # :spec, and that contains type-specific fields.
     def view_object_hash(obj)
       return nil unless obj
 
@@ -56,7 +56,7 @@ module Razor
           :domain_name => policy.domainname,
           :root_password => policy.root_password,
         },
-        :sort_order => policy.sort_order, 
+        :sort_order => policy.sort_order,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
       })
     end
