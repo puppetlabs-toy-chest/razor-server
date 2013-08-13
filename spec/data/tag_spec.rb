@@ -29,5 +29,6 @@ describe Razor::Data::Tag do
   context "when rule is not valid" do
     subject(:tag) {Tag.new(:name=>"t2", :matcher => Razor::Matcher.new(["yes","no"]))}
     it { should_not be_valid }
+    it { tag.valid?; tag.errors[:matcher].should_not be_empty }
   end
 end

@@ -29,7 +29,7 @@ class Razor::Data::Tag < Sequel::Model
     super
     unless matcher.nil?
       if matcher.is_a?(Razor::Matcher)
-        errors.add(:matcher, 'is not a valid matcher') unless matcher.valid?
+        errors[:matcher] = matcher.errors unless matcher.valid?
       else
         errors.add(:matcher, "is not a matcher object")
       end

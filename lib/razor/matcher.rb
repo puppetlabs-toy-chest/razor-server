@@ -96,6 +96,11 @@ class Razor::Matcher
   def valid?
     # Matchers should return boolean expressions
     validate(@rule, Boolean)
+    errors.empty?
+  end
+
+  def errors
+    @errors ||=[]
   end
 
   private
@@ -112,22 +117,49 @@ class Razor::Matcher
   end
 
   def validate(rule, required_returns)
-    return false unless rule.is_a?(Array) && rule.size >= 2 && rule.first.is_a?(String)
-    return false unless rule.flatten.all? {|arg| Mixed.any? {|type| arg.class <= type } }
+    errors.clear
 
-    attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]] or return false
+    # This error is fatal; all further validation assumes rule is an array
+    return errors << "must be an array" unless rule.is_a?(Array)
+
+    return errors << "must have at least one argument" unless rule.size >= 2
+
+    # This error is also fatal; if a type isn't accepted here, it certainly
+    # won't be later.
+    return unless rule.flatten.all? do |arg|
+      if Mixed.any? {|type| arg.class <= type }
+        true
+      else
+        errors << "cannot process objects of type #{arg.class}" and false
+      end
+    end
+
+    attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]]
+    unless attrs
+      # This error is fatal since unknown operators have unknown requirements
+      errors << "uses unrecognized operator '#{rule[0]}'; recognized " +
+                "operators are #{Functions::ATTRS.keys+Functions::ALIAS.keys}"
+      return false
+    end
 
     # Ensure all returned types are in required_returns, or that they
     # are subclasses of classes in required_returns
-    return false unless attrs[:returns].all? do |returned_type|
-      required_returns.any? {|allowed_type| returned_type <= allowed_type}
+    attrs[:returns].each do |return_type|
+      unless required_returns.any? {|allowed_type| return_type <= allowed_type}
+        errors << "attempts to return values of type #{return_type} from " +
+                  "#{rule[0]}, but only #{required_returns} are allowed"
+      end
     end
 
-    return rule.drop(1).all? do |arg|
+    rule.drop(1).each do |arg|
       if arg.is_a? Array
         validate(arg, attrs[:expects])
       else
-        attrs[:expects].any? {|type| arg.class <= type }
+        # Ensure all concrete objects are of expected types
+        unless attrs[:expects].any? {|type| arg.class <= type }
+          errors << "attempts to pass #{arg.inspect} of type #{arg.class} to "+
+                    "'#{rule[0]}', but only #{attrs[:expects]} are accepted"
+        end
       end
     end
   end
