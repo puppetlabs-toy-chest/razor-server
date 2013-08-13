@@ -67,7 +67,9 @@ module Razor
       view_object_hash(tag).merge({
         :spec => compose_url("spec", "object", "tag"),
 
-        :rule => tag.rule
+        :matcher => {
+          :rule => tag.matcher.rule
+        }
       })
     end
   end

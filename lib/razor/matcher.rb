@@ -1,3 +1,5 @@
+require 'json'
+
 # This class provides a generic matcher for rules/conditions
 #
 # It is assumed that rules are expressed as JSON arrays, using Lisp-style
@@ -17,8 +19,21 @@
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
+
+  Boolean = [TrueClass, FalseClass]
+  Mixed = [String, *Boolean, Numeric, NilClass]
+
   class Functions
-    ALIAS = { "=" => "eq", "!=" => "neq" }
+    ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
+
+    ATTRS = {
+        "and"  => {:expects => Boolean,  :returns => Boolean },
+        "or"   => {:expects => Boolean,  :returns => Boolean },
+        "fact" => {:expects => [String], :returns => Mixed   },
+        "eq"   => {:expects => Mixed,    :returns => Boolean },
+        "neq"  => {:expects => Mixed,    :returns => Boolean },
+        "in"   => {:expects => Mixed,    :returns => Boolean },
+      }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
     # pretty hard (e.g., truthiness, equality, type conversion from JSON)
@@ -52,14 +67,40 @@ class Razor::Matcher
     end
   end
 
+  def self.unserialize(rule_json)
+    rule_hash = JSON.parse(rule_json)
+
+    unless rule_hash.keys.sort == ["rule"]
+      raise "Invalid matcher; couldn't unserialize #{rule_hash}"
+    end
+
+    self.new(rule_hash["rule"])
+  end
+
+  def serialize
+    { "rule" => @rule }.to_json
+  end
+
+  attr_reader :rule
   # +rule+ must be an Array
   def initialize(rule)
-    @rule = rule
+    raise TypeError.new("rule is not an array") unless rule.is_a? Array
+    @rule = rule.freeze
   end
 
   def match?(values)
     fns = Functions.new(values)
     evaluate(@rule, fns) ? true : false
+  end
+
+  def valid?
+    # Matchers should return boolean expressions
+    validate(@rule, Boolean)
+    errors.empty?
+  end
+
+  def errors
+    @errors ||=[]
   end
 
   private
@@ -73,5 +114,53 @@ class Razor::Matcher
     end
     r[0] = Functions::ALIAS[r[0]] || r[0]
     fns.send(*r)
+  end
+
+  def validate(rule, required_returns)
+    errors.clear
+
+    # This error is fatal; all further validation assumes rule is an array
+    return errors << "must be an array" unless rule.is_a?(Array)
+
+    return errors << "must have at least one argument" unless rule.size >= 2
+
+    # This error is also fatal; if a type isn't accepted here, it certainly
+    # won't be later.
+    return unless rule.flatten.all? do |arg|
+      if Mixed.any? {|type| arg.class <= type }
+        true
+      else
+        errors << "cannot process objects of type #{arg.class}" and false
+      end
+    end
+
+    attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]]
+    unless attrs
+      # This error is fatal since unknown operators have unknown requirements
+      errors << "uses unrecognized operator '#{rule[0]}'; recognized " +
+                "operators are #{Functions::ATTRS.keys+Functions::ALIAS.keys}"
+      return false
+    end
+
+    # Ensure all returned types are in required_returns, or that they
+    # are subclasses of classes in required_returns
+    attrs[:returns].each do |return_type|
+      unless required_returns.any? {|allowed_type| return_type <= allowed_type}
+        errors << "attempts to return values of type #{return_type} from " +
+                  "#{rule[0]}, but only #{required_returns} are allowed"
+      end
+    end
+
+    rule.drop(1).each do |arg|
+      if arg.is_a? Array
+        validate(arg, attrs[:expects])
+      else
+        # Ensure all concrete objects are of expected types
+        unless attrs[:expects].any? {|type| arg.class <= type }
+          errors << "attempts to pass #{arg.inspect} of type #{arg.class} to "+
+                    "'#{rule[0]}', but only #{attrs[:expects]} are accepted"
+        end
+      end
+    end
   end
 end

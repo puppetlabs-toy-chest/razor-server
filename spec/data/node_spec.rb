@@ -73,7 +73,7 @@ describe Razor::Data::Node do
     hw_id = "00:11:22:33:44:55"
 
     let (:tag) {
-      Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
+      Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
     }
     let (:node) {
       Node.create(:hw_id => hw_id, :facts => { "f1" => "a" })
