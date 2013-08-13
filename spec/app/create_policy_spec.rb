@@ -33,7 +33,7 @@ describe "create policy command" do
 
     def create_policy(input = nil)
       input ||= policy_hash.to_json
-      post '/api/create_policy', input
+      post '/api/commands/create_policy', input
     end
 
     # Successful creation

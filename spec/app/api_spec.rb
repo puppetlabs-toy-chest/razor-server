@@ -26,7 +26,7 @@ describe "command and query API" do
       get '/api'
       data = last_response.json
       data.keys.should =~ %w[commands collections]
-      data["commands"].all? {|x| x.keys.should =~ %w[rel url]}
+      data["commands"].all? {|x| x.keys.should =~ %w[id rel url]}
     end
 
     it "should contain all valid URLs" do
