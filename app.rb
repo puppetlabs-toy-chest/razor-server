@@ -234,7 +234,7 @@ class Razor::App < Sinatra::Base
 
     # Finally, return the state (started, not complete) and the URL for the
     # final image to our poor caller, so they can watch progress happen.
-    [202, {"url" => compose_url('api', 'images', image.name)}.to_json]
+    [202, view_object_reference(image).to_json]
   end
 
   post '/api/commands/create_installer' do
@@ -279,5 +279,15 @@ class Razor::App < Sinatra::Base
     policy = Razor::Data::Policy[:name => params[:name]] or
       halt 404, "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
+  end
+
+  get '/api/collections/images' do
+    Razor::Data::Image.all.map { |img| view_object_reference(img)}.to_json
+  end
+
+  get '/api/collections/images/:name' do
+    image = Razor::Data::Image[:name => params[:name]] or
+      halt 404, "no image matched name=#{params[:name]}"
+    image_hash(image).to_json
   end
 end

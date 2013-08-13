@@ -135,4 +135,36 @@ describe "command and query API" do
       tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
     end
   end
+
+  context "/api/collections/images" do
+    it "should list all images" do
+      img1 = make_image(:name => "image1")
+      img2 = make_image(:name => "image2")
+
+      get "/api/collections/images"
+      last_response.status.should == 200
+
+      imgs = last_response.json
+      imgs.size.should == 2
+      imgs.map { |img| img["name"] }.should =~ %w[ image1 image2 ]
+      imgs.all? { |img| img.keys.should =~ %w[spec obj_id name url] }
+    end
+  end
+
+  context "/api/collections/images/:name" do
+    it "should find image by name" do
+      img1 = make_image(:name => "image1")
+
+      get "/api/collections/images/#{img1.name}"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ %w[spec id name image_url]
+    end
+
+    it "should return 404 when image not found" do
+      get "/api/collections/images/not_an_image"
+      last_response.status.should == 404
+    end
+  end
 end

@@ -67,5 +67,14 @@ module Razor
         }
       })
     end
+
+    def image_hash(image)
+      return nil unless image
+
+      view_object_hash(image).merge({
+        :spec => compose_url("spec", "object", "image"),
+        :image_url => image.image_url
+      })
+    end
   end
 end
