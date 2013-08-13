@@ -9,7 +9,7 @@ GEM
     jdbc-postgres (9.2.1002.1)
     kramdown (1.1.0)
     mime-types (1.23)
-    multi_json (1.7.7)
+    multi_json (1.7.9)
     parslet (1.4.0)
       blankslate (~> 2.0)
     rack (1.5.2)
@@ -28,7 +28,7 @@ GEM
     rspec-expectations (2.13.0)
       diff-lcs (>= 1.1.3, < 2.0)
     rspec-mocks (2.13.1)
-    sequel (4.0.0)
+    sequel (4.1.1)
     simplecov (0.7.1)
       multi_json (~> 1.0)
       simplecov-html (~> 0.7.1)
@@ -75,7 +75,7 @@ GEM
     torquebox-transactions (2.3.2)
       torquebox-core (= 2.3.2)
     torquebox-web (2.3.2-java)
-    yard (0.8.6.2)
+    yard (0.8.7)
 
 PLATFORMS
   java
