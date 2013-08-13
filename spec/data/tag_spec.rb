@@ -9,10 +9,16 @@ describe Razor::Data::Tag do
     end
   end
 
+  let (:tag0_hash) {
+    { "name" => "tag0",
+      "rule" => ["in", ["fact", "f1"], "a", "b", "c"] }
+  }
+
+  let (:tag0) { Tag.create(tag0_hash) }
+
   it "matches on the right facts" do
-    t = Tag.create(:name => "t0",
-                   :matcher => Razor::Matcher.new(["in", ["fact", "f1"], "a", "b", "c"]))
-    Tag.match(MockNode.new("f1" => "c")).should == [ t ]
+    tag0
+    Tag.match(MockNode.new("f1" => "c")).should == [ tag0 ]
     Tag.match(MockNode.new("f1" => "x")).should == []
   end
 
@@ -30,5 +36,41 @@ describe Razor::Data::Tag do
     subject(:tag) {Tag.new(:name=>"t2", :matcher => Razor::Matcher.new(["yes","no"]))}
     it { should_not be_valid }
     it { tag.valid?; tag.errors[:matcher].should_not be_empty }
+  end
+
+  describe "find_or_create_with_rule" do
+    def that_method(data)
+      Razor::Data::Tag::find_or_create_with_rule(data)
+    end
+
+    it "must raise an error if no name is given" do
+      expect { that_method({}) }.to raise_error ArgumentError
+    end
+
+    it "must find an existing tag" do
+      tag0
+      that_method("name" => tag0.name).should == tag0
+    end
+
+    it "must find an existing tag if the rules are identical" do
+      tag0
+      that_method(tag0_hash).should == tag0
+    end
+
+    it "must raise an error if tag exists but rules do not match" do
+      tag0
+      hash = tag0_hash.update("rule" => ["=", 1, 1])
+      expect { that_method(tag0_hash) }.to raise_error ArgumentError
+    end
+
+    it "must create a new tag when rule is given" do
+      tag = that_method(tag0_hash)
+      tag.should_not be_nil
+      tag.name.should == tag0_hash["name"]
+    end
+
+    it "must raise an error when a new tag has no rule" do
+      expect { that_method("name" => "new_tag") }.to raise_error ArgumentError
+    end
   end
 end
