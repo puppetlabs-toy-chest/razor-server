@@ -43,6 +43,8 @@ group :test do
   gem 'rspec-expectations', '~> 2.13.0'
   gem 'rspec-mocks', '~> 2.13.1'
   gem 'simplecov'
+  gem 'fabrication', '~> 2.7.2'
+  gem 'faker', '~> 1.2.0'
 end
 
 # This group, also, will be excluded by default in `torquebox archive`

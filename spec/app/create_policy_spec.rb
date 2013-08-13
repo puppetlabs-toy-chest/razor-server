@@ -12,7 +12,7 @@ describe "create policy command" do
       header 'content-type', 'application/json'
     end
 
-    let(:image) { make_image }
+    let(:image) { Fabricate(:image) }
 
     let (:tag1) { Tag.create(:name => "tag1" ) }
 

@@ -4,6 +4,9 @@ SimpleCov.start do
   add_filter ".erb"
 end
 
+require 'fabrication'
+require 'faker'
+
 require 'rack/test'
 require 'json'
 
@@ -85,30 +88,7 @@ RSpec.configure do |c|
 end
 
 # Conveniences for dealing with model objects
-Node = Razor::Data::Node
-Tag = Razor::Data::Tag
-Image = Razor::Data::Image
+Node   = Razor::Data::Node
+Tag    = Razor::Data::Tag
+Image  = Razor::Data::Image
 Policy = Razor::Data::Policy
-
-def make_image(attr = {})
-  h = {
-    :name      => "dummy",
-    :image_url => 'file:///dev/null'
-  }
-  h.merge!(attr)
-  Image.create(h)
-end
-
-def make_policy(attr = {})
-  h = {
-    :name => "p1",
-    :enabled => true,
-    :installer_name => "some_os",
-    :hostname_pattern => "host${id}.example.org",
-    :root_password => "secret",
-    :line_number => 100
-  }
-  h.merge!(attr)
-  h[:image] ||= make_image
-  Policy.create(h.merge(attr))
-end

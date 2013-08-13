@@ -1,12 +1,11 @@
 require_relative "../spec_helper"
 
 describe Razor::Data::Node do
-
   before(:each) do
     use_installer_fixtures
   end
 
-  let (:policy) { make_policy }
+  let (:policy) { Fabricate(:policy) }
 
   let (:node) { Node.create(:hw_id => "deadbeef") }
 
@@ -80,7 +79,7 @@ describe Razor::Data::Node do
     }
 
     it "should bind to a policy when there is a match" do
-      policy = make_policy(:line_number => 20)
+      policy = Fabricate(:policy, :line_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -92,7 +91,7 @@ describe Razor::Data::Node do
 
     it "should refuse to bind to a policy if any tag raises an error" do
       bad_tag = Tag.create(:name => "t2", :matcher => Razor::Matcher.new(["=", ["fact", "typo"], "b"]))
-      policy = make_policy(:line_number => 20)
+      policy = Fabricate(:policy, :line_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -107,12 +106,13 @@ describe Razor::Data::Node do
     end
 
     describe "of a bound node" do
-      let (:image) { make_image }
+      let (:image) { Fabricate(:image) }
 
-      def make_tagged_policy(line_number)
-        policy = make_policy(:name => "p#{line_number}",
-                             :image => image,
-                             :line_number => line_number)
+      def make_tagged_policy(sort_order)
+        policy = Fabricate(:policy,
+          :name => "p#{sort_order}",
+          :image => image,
+          :line_number => sort_order)
         policy.add_tag(tag)
         policy.save
         policy
@@ -133,7 +133,7 @@ describe Razor::Data::Node do
 
       it "should not change when node facts change" do
         node.facts = { "f2" => "a" }
-        random_policy = make_policy(:name => "random", :image => image)
+        random_policy = Fabricate(:policy, :name => "random", :image => image)
         node.bind(random_policy)
         node.save
 
