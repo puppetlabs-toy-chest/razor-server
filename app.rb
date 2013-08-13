@@ -255,7 +255,7 @@ class Razor::App < Sinatra::Base
                   halt 400, e.to_s
                 end
 
-    [202, {"url" => compose_url('api', 'installers', installer.name)}.to_json]
+    [202, view_object_reference(installer).to_json]
   end
 
   #
@@ -279,6 +279,17 @@ class Razor::App < Sinatra::Base
     policy = Razor::Data::Policy[:name => params[:name]] or
       halt 404, "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
+  end
+
+  # FIXME: Add a query to list all installers
+
+  get '/api/collections/installers/:name' do
+    begin
+      installer = Razor::Installer.find(params[:name])
+    rescue Razor::InstallerNotFoundError => e
+      halt [404, e.to_s]
+    end
+    installer_hash(installer).to_json
   end
 
   get '/api/collections/images' do

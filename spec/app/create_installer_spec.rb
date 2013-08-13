@@ -68,9 +68,9 @@ describe "create installer command" do
       create_installer
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ ['url']
+      last_response.json.keys.should =~ %w[name obj_id spec url]
 
-      last_response.json["url"].should =~ %r'/api/installers/installer\Z'
+      last_response.json["url"].should =~ %r'/api/collections/installers/installer\Z'
     end
 
     it "should create an image record in the database" do

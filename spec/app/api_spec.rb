@@ -167,4 +167,41 @@ describe "command and query API" do
       last_response.status.should == 404
     end
   end
+
+  context "/api/collections/installers/:name" do
+    before(:each) do
+      use_installer_fixtures
+    end
+
+    ROOT_KEYS = %w[spec id name os description boot_seq]
+    OS_KEYS = %w[name version]
+
+    it "works for file-based installers" do
+      get "/api/collections/installers/some_os"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ ROOT_KEYS
+      data["name"].should == "some_os"
+      data["os"].keys.should =~ OS_KEYS
+      data["boot_seq"].keys.should =~ %w[1 2 default]
+      data["boot_seq"]["2"].should == "boot_again"
+    end
+
+    it "works for DB-backed installers" do
+      inst = Razor::Data::Installer.create(:name => 'dbinst',
+                                           :os => 'SomeOS',
+                                           :os_version => '6',
+                                           :boot_seq => { 1 => "install",
+                                                          "default" => "local"})
+      get "/api/collections/installers/dbinst"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ ROOT_KEYS
+      data["name"].should == "dbinst"
+      data["os"].keys.should =~ OS_KEYS
+      data["boot_seq"].keys.should =~ %w[1 default]
+    end
+  end
 end

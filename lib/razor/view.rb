@@ -76,5 +76,19 @@ module Razor
         :image_url => image.image_url
       })
     end
+
+    def installer_hash(installer)
+      return nil unless installer
+
+      # FIXME: also return templates, requires some work for file-based
+      # installers
+      view_object_hash(installer).merge({
+        :os => {
+          :name => installer.os,
+          :version => installer.os_version },
+        :description => installer.description,
+        :boot_seq => installer.boot_seq
+      })
+    end
   end
 end
