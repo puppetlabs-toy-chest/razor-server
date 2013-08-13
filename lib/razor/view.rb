@@ -2,14 +2,9 @@ module Razor
   module View
 
     def view_object_url(obj)
-      type = case obj
-        when Razor::Data::Tag then "tags";
-        when Razor::Data::Node then "nodes";
-        when Razor::Data::Image then "images";
-        when Razor::Data::Policy then "policies";
-        else "objects"
-      end
-      compose_url "api", "collections", type, obj.id
+      # e.g., Razor::Data::Tag -> "tags"
+      type = obj.class.name.split("::").last.downcase.underscore.pluralize
+      compose_url "api", "collections", type, obj.name
     end
 
     # The definition of an object reference: it has a `url` field which is

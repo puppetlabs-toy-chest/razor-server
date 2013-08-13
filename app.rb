@@ -258,12 +258,16 @@ class Razor::App < Sinatra::Base
     [202, {"url" => compose_url('api', 'installers', installer.name)}.to_json]
   end
 
+  #
+  # Query/collections API
+  #
   get '/api/collections/tags' do
     Razor::Data::Tag.all.map {|t| view_object_reference(t)}.to_json
   end
 
-  get '/api/collections/tags/:id' do
-    tag = Razor::Data::Tag[params[:id]] or halt 404, "no tag matched id=#{params[:id]}"
+  get '/api/collections/tags/:name' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      halt 404, "no tag matched id=#{params[:name]}"
     tag_hash(tag).to_json
   end
 
@@ -271,8 +275,9 @@ class Razor::App < Sinatra::Base
     Razor::Data::Policy.all.map {|p| view_object_reference(p)}.to_json
   end
 
-  get '/api/collections/policies/:id' do
-    policy = Razor::Data::Policy[params[:id]] or halt 404, "no policy matched id=#{params[:id]}"
+  get '/api/collections/policies/:name' do
+    policy = Razor::Data::Policy[:name => params[:name]] or
+      halt 404, "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
   end
 end

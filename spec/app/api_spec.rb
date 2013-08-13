@@ -87,12 +87,12 @@ describe "command and query API" do
     subject(:pl){make_policy(:image => @image, :installer_name => "dummy")}
 
     it "should exist" do
-      get "/api/collections/policies/#{pl.id}"
+      get "/api/collections/policies/#{pl.name}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/policies/#{pl.id}"
+      get "/api/collections/policies/#{pl.name}"
       policy = last_response.json
 
       policy.keys.should =~ %w[name id spec configuration enabled sort_order max_count image tags]
@@ -121,15 +121,15 @@ describe "command and query API" do
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
+    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
 
     it "should exist" do
-      get "/api/collections/tags/#{t.id}"
+      get "/api/collections/tags/#{t.name}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/tags/#{t.id}"
+      get "/api/collections/tags/#{t.name}"
       tag = last_response.json
       tag.keys.should =~ %w[ spec id name matcher ]
       tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
