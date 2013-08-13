@@ -6,6 +6,10 @@ GEM
     diff-lcs (1.2.4)
     edn (1.0.0)
       parslet (~> 1.4.0)
+    fabrication (2.7.2)
+    faker (1.2.0)
+      i18n (~> 0.5)
+    i18n (0.6.5)
     jdbc-postgres (9.2.1002.1)
     kramdown (1.1.0)
     mime-types (1.23)
@@ -81,6 +85,8 @@ PLATFORMS
   java
 
 DEPENDENCIES
+  fabrication (~> 2.7.2)
+  faker (~> 1.2.0)
   jdbc-postgres
   kramdown
   rack-test

@@ -58,7 +58,7 @@ describe "command and query API" do
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
-      @image = make_image
+      @image = Fabricate(:image)
     end
 
     it "should return JSON content" do
@@ -68,7 +68,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  make_policy(:image => @image, :installer_name => "some_os")
+      pl =  Fabricate(:policy, :image => @image, :installer_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -86,18 +86,18 @@ describe "command and query API" do
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
-      @image = make_image
+      @image = Fabricate(:image)
     end
 
-    subject(:pl){make_policy(:image => @image, :installer_name => "some_os")}
+    subject(:pl){ Fabricate(:policy, :image => @image, :installer_name => "some_os")}
 
     it "should exist" do
-      get "/api/collections/policies/#{pl.name}"
+      get "/api/collections/policies/#{URI.escape(pl.name)}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/policies/#{pl.name}"
+      get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
       policy.keys.should =~ %w[name id spec configuration enabled line_number max_count image tags]
@@ -144,8 +144,8 @@ describe "command and query API" do
 
   context "/api/collections/images" do
     it "should list all images" do
-      img1 = make_image(:name => "image1")
-      img2 = make_image(:name => "image2")
+      img1 = Fabricate(:image, :name => "image1")
+      img2 = Fabricate(:image, :name => "image2")
 
       get "/api/collections/images"
       last_response.status.should == 200
@@ -159,7 +159,7 @@ describe "command and query API" do
 
   context "/api/collections/images/:name" do
     it "should find image by name" do
-      img1 = make_image(:name => "image1")
+      img1 = Fabricate(:image, :name => "image1")
 
       get "/api/collections/images/#{img1.name}"
       last_response.status.should == 200

@@ -22,7 +22,7 @@ describe "stock installer" do
         Razor.config["installer_path"] = INSTALLER_PATH
 
         @node = Node.create(:hw_id => "00:11:22:33:44:55")
-        policy = make_policy(:installer_name => name)
+        policy = Fabricate(:policy, :installer_name => name)
         @node.bind(policy)
         @node.save
       end
