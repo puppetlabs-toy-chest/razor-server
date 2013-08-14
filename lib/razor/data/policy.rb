@@ -1,9 +1,10 @@
 module Razor::Data
   class Policy < Sequel::Model
 
-    one_to_many :nodes
-    many_to_one :image
+    one_to_many  :nodes
+    many_to_one  :image
     many_to_many :tags
+    many_to_one  :broker
 
     def installer
       Razor::Installer.find(installer_name)

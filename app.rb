@@ -288,6 +288,13 @@ class Razor::App < Sinatra::Base
           halt [400, "Image '#{name}' not found"]
       end
 
+      if data["broker"]
+        name = data["broker"]["name"] or
+          halt [400, "The broker reference must have a 'name'"]
+        data["broker"] = Razor::Data::Broker[:name => name] or
+          halt [400, "Broker '#{name}' not found"]
+      end
+
       if data["installer"]
         data["installer_name"] = data.delete("installer")["name"]
       end

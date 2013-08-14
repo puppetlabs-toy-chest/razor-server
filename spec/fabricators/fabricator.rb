@@ -1,5 +1,15 @@
 require 'pathname'
 
+Fabricator(:broker, :class_name => Razor::Data::Broker) do
+  name   { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
+  # This is fixed, because we need something on disk to back it!
+  broker_type do
+    path = Pathname(__FILE__).dirname + '..' + 'fixtures' + 'brokers' + 'test.broker'
+    Razor::BrokerType.new(path)
+  end
+end
+
+
 Fabricator(:image, :class_name => Razor::Data::Image) do
   name      { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   image_url 'file:///dev/null'
@@ -15,4 +25,5 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   line_number      { Fabricate.sequence(:razor_data_policy_line_number, 100) }
 
   image
+  broker
 end
