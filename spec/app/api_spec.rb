@@ -63,6 +63,7 @@ describe "command and query API" do
 
     it "should return JSON content" do
       get '/api/collections/policies'
+      last_response.status.should == 200
       last_response.content_type.should =~ /application\/json/i
     end
 
@@ -109,7 +110,8 @@ describe "command and query API" do
 
   context "/api/collections/tags - tag list" do
     it "should return JSON content" do
-      get '/api/tags'
+      get '/api/collections/tags'
+      last_response.status.should == 200
       last_response.content_type.should =~ /application\/json/
     end
 
