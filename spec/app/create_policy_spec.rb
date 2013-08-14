@@ -12,20 +12,22 @@ describe "create policy command" do
       header 'content-type', 'application/json'
     end
 
-    let(:image) { Fabricate(:image) }
+    let(:image)  { Fabricate(:image) }
+    let(:broker) { Fabricate(:broker) }
 
     let (:tag1) { Tag.create(:name => "tag1" ) }
 
     let(:policy_hash) do
       # FIXME: Once we have proper helpers to generate these URL's,
       # use them in these tests
-      { :name => "test policy",
-        :image => { "name" => image.name },
-        :installer => { "name" => "some_os" },
-        :hostname => "host${id}.example.com",
+      { :name          => "test policy",
+        :image         => { "name" => image.name },
+        :installer     => { "name" => "some_os" },
+        :broker        => { "name" => broker.name },
+        :hostname      => "host${id}.example.com",
         :root_password => "geheim",
-        :line_number => 100,
-        :tags => [ { "name" => tag1.name } ]
+        :line_number   => 100,
+        :tags          => [ { "name" => tag1.name } ]
       }
     end
 
