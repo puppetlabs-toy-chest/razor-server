@@ -2,14 +2,9 @@ module Razor
   module View
 
     def view_object_url(obj)
-      type = case obj
-        when Razor::Data::Tag then "tags";
-        when Razor::Data::Node then "nodes";
-        when Razor::Data::Image then "images";
-        when Razor::Data::Policy then "policies";
-        else "objects"
-      end
-      compose_url "api", "collections", type, obj.id
+      # e.g., Razor::Data::Tag -> "tags"
+      type = obj.class.name.split("::").last.downcase.underscore.pluralize
+      compose_url "api", "collections", type, obj.name
     end
 
     # The definition of an object reference: it has a `url` field which is
@@ -31,7 +26,7 @@ module Razor
     # identifies the object on the server, and a `name` field, which provides
     # a human-readable name for the object. This is the *baseline* definition
     # of an object; it is expected to be `#merge`d with a hash that overrides
-    # :spec, and that contains type-specific fields. 
+    # :spec, and that contains type-specific fields.
     def view_object_hash(obj)
       return nil unless obj
 
@@ -53,10 +48,9 @@ module Razor
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
         :configuration => {
           :hostname_pattern => policy.hostname_pattern,
-          :domain_name => policy.domainname,
           :root_password => policy.root_password,
         },
-        :sort_order => policy.sort_order, 
+        :line_number => policy.line_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
       })
     end
@@ -70,6 +64,29 @@ module Razor
         :matcher => {
           :rule => tag.matcher.rule
         }
+      })
+    end
+
+    def image_hash(image)
+      return nil unless image
+
+      view_object_hash(image).merge({
+        :spec => compose_url("spec", "object", "image"),
+        :image_url => image.image_url
+      })
+    end
+
+    def installer_hash(installer)
+      return nil unless installer
+
+      # FIXME: also return templates, requires some work for file-based
+      # installers
+      view_object_hash(installer).merge({
+        :os => {
+          :name => installer.os,
+          :version => installer.os_version },
+        :description => installer.description,
+        :boot_seq => installer.boot_seq
       })
     end
   end

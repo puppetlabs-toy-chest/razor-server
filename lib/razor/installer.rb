@@ -32,7 +32,7 @@ module Razor
   # of the base installer (and then its base installers), and finally in
   # the +common+ directory
   class Installer
-    attr_reader :name, :os_version, :label, :description
+    attr_reader :name, :os, :os_version, :boot_seq, :label, :description
 
     def initialize(name, metadata)
       if metadata["base"]
@@ -44,6 +44,7 @@ module Razor
       unless metadata["os_version"]
         raise InstallerInvalidError, "#{name} does not have an os_version"
       end
+      @os = metadata["os"]
       @os_version = metadata["os_version"].to_s
       @label = metadata["label"] || "#{@name} #{@os_version}"
       @description = metadata["description"] || ""

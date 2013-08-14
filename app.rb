@@ -209,7 +209,8 @@ class Razor::App < Sinatra::Base
         # to use a case-folded match on the URL to identify their
         # desired command.
         {"rel" => url('/spec/create_new_image'), "url" => url('/api/commands/create_new_image')},
-        {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')}
+        {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')},
+        {"rel" => url('/spec/create_tag'), "url" => url('/api/commands/create_tag')}
       ],
       "collections" => [
         {"id"=> "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
@@ -234,7 +235,7 @@ class Razor::App < Sinatra::Base
 
     # Finally, return the state (started, not complete) and the URL for the
     # final image to our poor caller, so they can watch progress happen.
-    [202, {"url" => compose_url('api', 'images', image.name)}.to_json]
+    [202, view_object_reference(image).to_json]
   end
 
   post '/api/commands/create_installer' do
@@ -255,15 +256,63 @@ class Razor::App < Sinatra::Base
                   halt 400, e.to_s
                 end
 
-    [202, {"url" => compose_url('api', 'installers', installer.name)}.to_json]
+    [202, view_object_reference(installer).to_json]
   end
 
+  post '/api/commands/create_tag' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    tag = begin
+            Razor::Data::Tag.find_or_create_with_rule(data)
+          rescue => e
+            halt 400, e.to_s
+          end
+
+    [202, view_object_reference(tag).to_json]
+  end
+
+  post '/api/create_policy' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    begin
+      tags = (data.delete("tags") || []).map do |t|
+        Razor::Data::Tag.find_or_create_with_rule(t)
+      end
+
+      if data["image"]
+        name = data["image"]["name"] or
+          halt [400, "The image reference must have a 'name'"]
+        data["image"] = Razor::Data::Image[:name => name] or
+          halt [400, "Image '#{name}' not found"]
+      end
+
+      if data["installer"]
+        data["installer_name"] = data.delete("installer")["name"]
+      end
+      data["hostname_pattern"] = data.delete("hostname")
+
+      policy = Razor::Data::Policy.new(data).save
+      tags.each { |t| policy.add_tag(t) }
+      policy.save
+    rescue => e
+      halt 400, e.to_s
+    end
+
+    [202, view_object_reference(policy).to_json]
+  end
+
+  #
+  # Query/collections API
+  #
   get '/api/collections/tags' do
     Razor::Data::Tag.all.map {|t| view_object_reference(t)}.to_json
   end
 
-  get '/api/collections/tags/:id' do
-    tag = Razor::Data::Tag[params[:id]] or halt 404, "no tag matched id=#{params[:id]}"
+  get '/api/collections/tags/:name' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      halt 404, "no tag matched id=#{params[:name]}"
     tag_hash(tag).to_json
   end
 
@@ -271,8 +320,30 @@ class Razor::App < Sinatra::Base
     Razor::Data::Policy.all.map {|p| view_object_reference(p)}.to_json
   end
 
-  get '/api/collections/policies/:id' do
-    policy = Razor::Data::Policy[params[:id]] or halt 404, "no policy matched id=#{params[:id]}"
+  get '/api/collections/policies/:name' do
+    policy = Razor::Data::Policy[:name => params[:name]] or
+      halt 404, "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
+  end
+
+  # FIXME: Add a query to list all installers
+
+  get '/api/collections/installers/:name' do
+    begin
+      installer = Razor::Installer.find(params[:name])
+    rescue Razor::InstallerNotFoundError => e
+      halt [404, e.to_s]
+    end
+    installer_hash(installer).to_json
+  end
+
+  get '/api/collections/images' do
+    Razor::Data::Image.all.map { |img| view_object_reference(img)}.to_json
+  end
+
+  get '/api/collections/images/:name' do
+    image = Razor::Data::Image[:name => params[:name]] or
+      halt 404, "no image matched name=#{params[:name]}"
+    image_hash(image).to_json
   end
 end

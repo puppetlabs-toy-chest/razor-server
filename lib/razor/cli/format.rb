@@ -34,7 +34,7 @@ module Razor::CLI
 
     def format_reference_object(ref, indent = 0)
       output = ' '* indent + "ID: #{ref['obj_id'].to_s.ljust 4} "
-      output << "\"#{ref['name']}\" => " if ref["name"] 
+      output << "\"#{ref['name']}\" => " if ref["name"]
       output << "#{URI.parse(ref["url"]).path}"
     end
 

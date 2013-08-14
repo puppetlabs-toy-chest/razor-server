@@ -43,7 +43,7 @@ describe Razor::CLI::Navigate do
 
   context "with an invalid path" do
     subject(:nav) {Razor::CLI::Parse.new(["going","nowhere"]).navigate}
-  
+
     it {expect{nav.get_document}.to raise_error Razor::CLI::NavigationError}
   end
 end

@@ -48,6 +48,42 @@ description| Human-readable description
 boot_seq   | A hash mapping the boot counter or 'default' to a template
 templates  | A hash mapping template names to the actual ERB template text
 
+### Create tag
+
+To create a tag, clients post the following to the `/spec/create_tag`
+command:
+
+    {
+      "name": "small",
+      "rule": ["=", ["facts", "f1"], "42"]
+    }
+
+The `name` of the tag must be unique; the `rule` is a match expression.
+
+### Create policy
+
+    {
+      "name": "a policy",
+      "image": { "name": "some_image" },
+      "installer": { "name": "redhat6" },
+      "hostname": "host${id}.example.com",
+      "root_password": "secret",
+      "max_count": "20",
+      "line_number": "100"
+      "tags": [{ "name": "existing_tag"},
+               { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
+    }
+
+Policies are matched in the order of ascending line numbers.
+
+Tags, installers and images are referenced by their name. Tags can also be
+created by providing a rule; if a tag with that name already exists, the
+rule must be equal to the rule of the existing tag.
+
+Hostname is a pattern for the host names of the nodes bound to the policy;
+eventually you'll be able to use facts and other fun stuff there. For now,
+you get to say ${id} and get the node's DB id.
+
 ## Collections
 
 Along with the list of supported commands, a `GET /api` request returns a list
@@ -58,7 +94,7 @@ of collection, and a human-readable name for the collection.
 
 A `GET` request to a collection endpoint will yield a list of JSON objects,
 each of which has at minimum the following fields:
-    
+
 id   | a URL that uniquely identifies the object
 spec | a URL that identifies the type of the object
 name | a human-readable name for the object

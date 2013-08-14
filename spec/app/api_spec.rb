@@ -54,6 +54,8 @@ describe "command and query API" do
     # `before` is used instead of `let` since the database gets rolled
     # back after every test
     before(:each) do
+      use_installer_fixtures
+
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
@@ -65,7 +67,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  make_policy(:image => @image, :installer_name => "dummy")
+      pl =  make_policy(:image => @image, :installer_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -79,25 +81,27 @@ describe "command and query API" do
 
   context "/api/collections/policies/ID - get policy" do
     before(:each) do
+      use_installer_fixtures
+
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
       @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
       @image = make_image
     end
 
-    subject(:pl){make_policy(:image => @image, :installer_name => "dummy")}
+    subject(:pl){make_policy(:image => @image, :installer_name => "some_os")}
 
     it "should exist" do
-      get "/api/collections/policies/#{pl.id}"  
+      get "/api/collections/policies/#{pl.name}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/policies/#{pl.id}"  
+      get "/api/collections/policies/#{pl.name}"
       policy = last_response.json
-      
-      policy.keys.should =~ %w[name id spec configuration enabled sort_order max_count image tags]
+
+      policy.keys.should =~ %w[name id spec configuration enabled line_number max_count image tags]
       policy["image"].keys.should =~ %w[name obj_id spec url]
-      policy["configuration"].keys.should =~ %w[hostname_pattern domain_name root_password]
+      policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
       policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
     end
@@ -121,18 +125,87 @@ describe "command and query API" do
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
+    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
 
     it "should exist" do
-      get "/api/collections/tags/#{t.id}"
+      get "/api/collections/tags/#{t.name}"
       last_response.status.should be 200
     end
 
     it "should have the right keys" do
-      get "/api/collections/tags/#{t.id}"
+      get "/api/collections/tags/#{t.name}"
       tag = last_response.json
       tag.keys.should =~ %w[ spec id name matcher ]
       tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
+    end
+  end
+
+  context "/api/collections/images" do
+    it "should list all images" do
+      img1 = make_image(:name => "image1")
+      img2 = make_image(:name => "image2")
+
+      get "/api/collections/images"
+      last_response.status.should == 200
+
+      imgs = last_response.json
+      imgs.size.should == 2
+      imgs.map { |img| img["name"] }.should =~ %w[ image1 image2 ]
+      imgs.all? { |img| img.keys.should =~ %w[spec obj_id name url] }
+    end
+  end
+
+  context "/api/collections/images/:name" do
+    it "should find image by name" do
+      img1 = make_image(:name => "image1")
+
+      get "/api/collections/images/#{img1.name}"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ %w[spec id name image_url]
+    end
+
+    it "should return 404 when image not found" do
+      get "/api/collections/images/not_an_image"
+      last_response.status.should == 404
+    end
+  end
+
+  context "/api/collections/installers/:name" do
+    before(:each) do
+      use_installer_fixtures
+    end
+
+    ROOT_KEYS = %w[spec id name os description boot_seq]
+    OS_KEYS = %w[name version]
+
+    it "works for file-based installers" do
+      get "/api/collections/installers/some_os"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ ROOT_KEYS
+      data["name"].should == "some_os"
+      data["os"].keys.should =~ OS_KEYS
+      data["boot_seq"].keys.should =~ %w[1 2 default]
+      data["boot_seq"]["2"].should == "boot_again"
+    end
+
+    it "works for DB-backed installers" do
+      inst = Razor::Data::Installer.create(:name => 'dbinst',
+                                           :os => 'SomeOS',
+                                           :os_version => '6',
+                                           :boot_seq => { 1 => "install",
+                                                          "default" => "local"})
+      get "/api/collections/installers/dbinst"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data.keys.should =~ ROOT_KEYS
+      data["name"].should == "dbinst"
+      data["os"].keys.should =~ OS_KEYS
+      data["boot_seq"].keys.should =~ %w[1 default]
     end
   end
 end

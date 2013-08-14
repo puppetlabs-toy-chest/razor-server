@@ -1,6 +1,4 @@
 module Razor::Data
-  class NodeNotBoundError < RuntimeError; end
-
   class Node < Sequel::Model
     plugin :serialization, :json, :facts
     plugin :serialization, :json, :log
@@ -15,23 +13,14 @@ module Razor::Data
       Tag.match(self)
     end
 
-    def hostname
-      raise NodeNotBoundError, "hostname" unless policy
-      policy.hostname_pattern.gsub(/%n/, id.to_s)
-    end
-
-    def root_password
-      raise NodeNotBoundError, "root_password" unless policy
-      policy.root_password
-    end
-
     def domainname
-      raise NodeNotBoundError, "root_password" unless policy
-      policy.domainname
+      return nil if hostname.nil?
+      hostname.split(".").drop(1).join(".")
     end
 
-    def fqdn
-      "#{hostname}.#{domainname}"
+    def shortname
+      return nil if hostname.nil?
+      hostname.split(".").first
     end
 
     def log_append(hash)
@@ -44,7 +33,8 @@ module Razor::Data
     def bind(policy)
       self.policy = policy
       self.boot_count = 0
-      # FIXME: Populate hostname, domainname etc.
+      self.root_password = policy.root_password
+      self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
     end
 
     # This is a hack around the fact that the auto_validates plugin does

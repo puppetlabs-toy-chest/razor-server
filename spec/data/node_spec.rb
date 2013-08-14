@@ -2,6 +2,10 @@ require_relative "../spec_helper"
 
 describe Razor::Data::Node do
 
+  before(:each) do
+    use_installer_fixtures
+  end
+
   let (:policy) { make_policy }
 
   let (:node) { Node.create(:hw_id => "deadbeef") }
@@ -30,23 +34,21 @@ describe Razor::Data::Node do
   end
 
   describe "hostname" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.hostname
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+    it "is null when no policy is bound" do
+      node.hostname.should be_nil
     end
 
     it "is set from the policy's hostname_pattern when bound" do
+      policy.hostname_pattern = "host${id}.example.org"
+      policy.save
       node.bind(policy)
-      node.hostname.should == policy.hostname_pattern.gsub(/%n/, node.id.to_s)
+      node.hostname.should == "host#{node.id}.example.org"
     end
   end
 
   describe "root_password" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.root_password
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+    it "is null when no policy is bound" do
+      node.root_password.should be_nil
     end
 
     it "returns the policy's root_password when bound" do
@@ -55,16 +57,14 @@ describe Razor::Data::Node do
     end
   end
 
-  describe "domainname" do
-    it "raises NodeNotBoundError when no policy is bound" do
-      expect {
-        node.domainname
-      }.to raise_error(Razor::Data::NodeNotBoundError)
+  describe "shortname" do
+    it "is null when no policy is bound" do
+      node.domainname.should be_nil
     end
 
-    it "returns the policy's root_password when bound" do
+    it "is the short hostname when bound" do
       node.bind(policy)
-      node.domainname.should == policy.domainname
+      node.shortname.should_not =~ /\./
     end
   end
 
@@ -80,7 +80,7 @@ describe Razor::Data::Node do
     }
 
     it "should bind to a policy when there is a match" do
-      policy = make_policy(:sort_order => 20)
+      policy = make_policy(:line_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -93,10 +93,10 @@ describe Razor::Data::Node do
     describe "of a bound node" do
       let (:image) { make_image }
 
-      def make_tagged_policy(sort_order)
-        policy = make_policy(:name => "p#{sort_order}",
+      def make_tagged_policy(line_number)
+        policy = make_policy(:name => "p#{line_number}",
                              :image => image,
-                             :sort_order => sort_order)
+                             :line_number => line_number)
         policy.add_tag(tag)
         policy.save
         policy

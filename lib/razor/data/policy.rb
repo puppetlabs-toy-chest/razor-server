@@ -9,6 +9,20 @@ module Razor::Data
       Razor::Installer.find(installer_name)
     end
 
+    def validate
+      super
+
+      # Because we allow installers in the file system, we do not have a fk
+      # constraint on +installer_name+; this check only helps spot simple
+      # typos etc.
+      begin
+        self.installer
+      rescue Razor::InstallerNotFoundError
+        errors.add(:installer_name,
+                   "installer '#{installer_name}' does not exist")
+      end
+    end
+
     def self.bind(node)
       node_tags = node.tags
       # The policies that could be bound must
@@ -28,7 +42,7 @@ and
 (max_count is NULL or (select count(*) from nodes n where n.policy_id = policies.id) < max_count)
 SQL
       begin
-        match = Policy.where(sql).order(:sort_order).first
+        match = Policy.where(sql).order(:line_number).first
         if match
           match.lock!
           # Make sure nobody raced us to binding to the policy
