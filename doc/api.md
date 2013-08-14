@@ -48,6 +48,22 @@ description| Human-readable description
 boot_seq   | A hash mapping the boot counter or 'default' to a template
 templates  | A hash mapping template names to the actual ERB template text
 
+### Create broker
+
+To create a broker, clients post the following to the `create-broker` URL:
+
+    {
+      "name": "puppet",
+      "configuration": { "server": "puppet.example.org", "version": "3.0.0" },
+      "broker-type": "puppet"
+    }
+
+The `broker-type` must correspond to a broker that is present on the
+`broker_path` set in `config.yaml`.
+
+The permissible settings for the `configuration` hash depend on the broker
+type and are declared in the broker type's `configuration.yaml`.
+
 ### Create tag
 
 To create a tag, clients post the following to the `/spec/create_tag`
