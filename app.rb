@@ -196,7 +196,8 @@ class Razor::App < Sinatra::Base
   get '/api' do
     {
       "commands" => [
-        # `rel` is the relationship; by the standard, this is the closest we
+        # `rel` is the relationship; by RFC5988 (Web Linking) -- which is
+        # designed for HTTP, but we abuse in JSON -- this is the closest we
         # can get to a conformant identifier for a custom relationship type,
         # and since we expect to consume one per command to avoid clients just
         # knowing the URL, we get this nastiness.  At least we can turn it
@@ -210,7 +211,8 @@ class Razor::App < Sinatra::Base
         # desired command.
         {"rel" => url('/spec/create_new_image'), "url" => url('/api/commands/create_new_image')},
         {"rel" => url('/spec/create_installer'), "url" => url('/api/commands/create_installer')},
-        {"rel" => url('/spec/create_tag'), "url" => url('/api/commands/create_tag')}
+        {"rel" => url('/spec/create_tag'), "url" => url('/api/commands/create_tag')},
+        {"rel" => url('/spec/create_broker'), "url" => url('/api/commands/create_broker')}
       ],
       "collections" => [
         {"id"=> "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
@@ -270,6 +272,29 @@ class Razor::App < Sinatra::Base
           end
 
     [202, view_object_reference(tag).to_json]
+  end
+
+  post '/api/commands/create_broker' do
+    data = json_body
+    data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+
+    if data["broker_type"]
+      begin
+        data["broker_type"] = Razor::BrokerType.find(data["broker_type"])
+      rescue Razor::BrokerTypeNotFoundError
+        halt [400, "Broker type '#{data["broker_type"]}' not found"]
+      rescue => e
+        halt 400, e.to_s
+      end
+    end
+
+    broker = begin
+               Razor::Data::Broker.new(data).save
+             rescue => e
+               halt 400, e.to_s
+             end
+
+    [202, view_object_reference(broker).to_json]
   end
 
   post '/api/create_policy' do
