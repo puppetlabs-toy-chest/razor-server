@@ -79,7 +79,50 @@ describe Razor::Data::Broker do
       ).save
     end
 
+    context "with configuration items defined" do
+      before :each do
+        configuration = {
+          'server'  => {'required' => false, 'description' => 'foo'},
+          'version' => {'required' => true,  'description' => 'bar'}
+        }
+        set_broker_file('configuration.yaml' => configuration.to_yaml)
+      end
+
+      def new_broker(config)
+        Razor::Data::Broker.
+          new(:name => 'hello', :broker_type => broker, :configuration => config).
+          save
+      end
+
+      it "should fail if an unknown key is passed" do
+        expect {
+          new_broker('server' => 'foo', 'version' => 'bar', 'other' => 'baz')
+        }.to raise_error Sequel::ValidationFailed, /configuration key 'other' is not defined for this broker/
+      end
+
+      it "should fail if only unknown keys are passed" do
+        configuration = {
+          'server'  => {'required' => false, 'description' => 'foo'},
+          'version' => {'required' => false, 'description' => 'bar'}
+        }
+        set_broker_file('configuration.yaml' => configuration.to_yaml)
+
+        expect {
+          new_broker('other' => 'baz')
+        }.to raise_error Sequel::ValidationFailed, /configuration key 'other' is not defined for this broker/
+      end
+
+      it "should fail if a required key is missing" do
+        expect {
+          new_broker 'server' => 'foo.example.com'
+        }.to raise_error Sequel::ValidationFailed, /configuration key 'version' is required by this broker type, but was not supplied/
+      end
+    end
+
     it "should round-trip a rich configuration" do
+      schema = {'one' => {}, 'two' => {}, 'three' => {}}
+      set_broker_file('configuration.yaml' => schema.to_yaml)
+
       config = {"one" => 1, "two" => 2.0, "three" => ['a', {'b'=>'b'}, ['c']]}
       Razor::Data::Broker.new(
         :name          => 'hello',
