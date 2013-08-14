@@ -11,7 +11,27 @@ class Razor::Data::Broker < Sequel::Model
   # obvious errors.
   def validate
     super
-    broker_type.is_a?(Razor::BrokerType) or errors.add(:broker_type, "'#{broker_type}' is not valid")
+    if broker_type.is_a?(Razor::BrokerType)
+      # Validate our configuration -- now that we have access to our type to
+      # obtain the schema for validation.
+      schema = broker_type.configuration_schema
+
+      # Extra keys found in the data we were given are treated as errors,
+      # since they are most likely typos, or targetting a broker other than
+      # the current broker.
+      (configuration.keys - schema.keys).each do |additional|
+        errors.add(:configuration, "key '#{additional}' is not defined for this broker type")
+      end
+
+      # Required keys that are missing from the supplied configuration.
+      schema.each do |key, details|
+        next unless details['required']
+        next if configuration.has_key? key
+        errors.add(:configuration, "key '#{key}' is required by this broker type, but was not supplied")
+      end
+    else
+      errors.add(:broker_type, "'#{broker_type}' is not valid")
+    end
   end
 
   # This is the same hack around auto_validation as in +Node+
