@@ -66,6 +66,7 @@ The `name` of the tag must be unique; the `rule` is a match expression.
       "name": "a policy",
       "image": { "name": "some_image" },
       "installer": { "name": "redhat6" },
+      "broker": { "name": "puppet" },
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
@@ -76,9 +77,9 @@ The `name` of the tag must be unique; the `rule` is a match expression.
 
 Policies are matched in the order of ascending line numbers.
 
-Tags, installers and images are referenced by their name. Tags can also be
-created by providing a rule; if a tag with that name already exists, the
-rule must be equal to the rule of the existing tag.
+Tags, brokers, installers and images are referenced by their name. Tags can
+also be created by providing a rule; if a tag with that name already
+exists, the rule must be equal to the rule of the existing tag.
 
 Hostname is a pattern for the host names of the nodes bound to the policy;
 eventually you'll be able to use facts and other fun stuff there. For now,
