@@ -11,8 +11,9 @@ GEM
       i18n (~> 0.5)
     i18n (0.6.5)
     jdbc-postgres (9.2.1002.1)
+    json-schema (2.1.3)
     kramdown (1.1.0)
-    mime-types (1.23)
+    mime-types (1.24)
     multi_json (1.7.9)
     parslet (1.4.0)
       blankslate (~> 2.0)
@@ -88,6 +89,7 @@ DEPENDENCIES
   fabrication (~> 2.7.2)
   faker (~> 1.2.0)
   jdbc-postgres
+  json-schema (~> 2.0)
   kramdown
   rack-test
   rest-client
