@@ -32,20 +32,27 @@ class Razor::Matcher
   class RuleEvaluationError < ArgumentError; end
 
   class Functions
-    ALIAS = { "=" => "eq", "!=" => "neq", ">" => "gt", ">=" => "gte", "<" => "lt", "<=" => "lte", }.freeze
+    ALIAS = {
+      "=" => "eq",
+      "!=" => "neq",
+      ">" => "gt",
+      ">=" => "gte",
+      "<" => "lt",
+      "<=" => "lte",
+      }.freeze
 
     ATTRS = {
-        "and"  => {:expects => [Boolean],  :returns => Boolean },
-        "or"   => {:expects => [Boolean],  :returns => Boolean },
+        "and"  => {:expects => [Boolean],         :returns => Boolean },
+        "or"   => {:expects => [Boolean],         :returns => Boolean },
         "fact" => {:expects => [[String], Mixed], :returns => Mixed   },
-        "eq"   => {:expects => [Mixed],    :returns => Boolean },
-        "neq"  => {:expects => [Mixed],    :returns => Boolean },
-        "in"   => {:expects => [Mixed],    :returns => Boolean },
-        "num"  => {:expects => [Mixed],    :returns => Numeric },
-        "gte"  => {:expects => [[Numeric]],:returns => Boolean },
-        "gt"   => {:expects => [[Numeric]],:returns => Boolean },
-        "lte"  => {:expects => [[Numeric]],:returns => Boolean },
-        "lt"   => {:expects => [[Numeric]],:returns => Boolean },
+        "eq"   => {:expects => [Mixed],           :returns => Boolean },
+        "neq"  => {:expects => [Mixed],           :returns => Boolean },
+        "in"   => {:expects => [Mixed],           :returns => Boolean },
+        "num"  => {:expects => [Mixed],           :returns => Numeric },
+        "gte"  => {:expects => [[Numeric]],       :returns => Boolean },
+        "gt"   => {:expects => [[Numeric]],       :returns => Boolean },
+        "lte"  => {:expects => [[Numeric]],       :returns => Boolean },
+        "lt"   => {:expects => [[Numeric]],       :returns => Boolean },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
