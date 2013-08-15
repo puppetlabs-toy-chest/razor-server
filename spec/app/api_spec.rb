@@ -1,6 +1,8 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
+require 'json-schema'
+
 describe "command and query API" do
   include Rack::Test::Methods
 
@@ -208,6 +210,145 @@ describe "command and query API" do
       data["name"].should == "dbinst"
       data["os"].keys.should =~ OS_KEYS
       data["boot_seq"].keys.should =~ %w[1 default]
+    end
+  end
+
+  context "/api/collections/brokers" do
+    BrokerCollectionSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Broker Collection JSON Schema",
+      'type'     => 'array',
+      'items'    => {
+        '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        'type'     => 'object',
+        'additionalProperties' => false,
+        'properties' => {
+          "spec" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^https?://'
+          },
+          "url" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^https?://'
+          },
+          "obj_id" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'number'
+          },
+          "name" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^[^\n]+$'
+          }
+        }
+      }
+    }.freeze
+
+    BrokerItemSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Broker Collection JSON Schema",
+      'type'     => 'object',
+      'required' => %w[spec id name configuration broker_type],
+      'properties' => {
+        'spec' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'id'       => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'name'     => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[a-zA-Z0-9 ]+$'
+        },
+        'broker_type' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[a-zA-Z0-9 ]+$'
+        },
+        'configuration' => {
+          '$schema' => 'http://json-schema.org/draft-04/schema#',
+          'type'    => 'object',
+          'additionalProperties' => {
+            '$schema'   => 'http://json-schema.org/draft-04/schema#',
+            'oneOf'     => [
+              {
+                '$schema' => 'http://json-schema.org/draft-04/schema#',
+                'type'      => 'string',
+                'minLength' => 1
+              },
+              {
+                '$schema' => 'http://json-schema.org/draft-04/schema#',
+                'type'      => 'number',
+              }
+            ]
+          }
+        }
+      },
+      'additionalProperties' => false,
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
+    shared_examples "a broker collection" do |expected|
+      before :each do
+        Razor.config['broker_path'] =
+          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'brokers').realpath.to_s
+      end
+
+      it "should return a valid broker response empty set" do
+        get "/api/collections/brokers"
+
+        last_response.status.should == 200
+        last_response.json.should be_an_instance_of Array
+        last_response.json.count.should == expected
+        validate! BrokerCollectionSchema, last_response.body
+      end
+
+      it "should 404 a broker requested that does not exist" do
+        get "/api/collections/brokers/fast%20freddy"
+        last_response.status.should == 404
+      end
+
+      if expected > 0
+        it "should be able to access all broker instances" do
+          Razor::Data::Broker.all.each do |broker|
+            get "/api/collections/brokers/#{URI.escape(broker.name)}"
+            last_response.status.should == 200
+            validate! BrokerItemSchema, last_response.body
+          end
+        end
+      end
+    end
+
+    context "with none" do
+      it_should_behave_like "a broker collection", 0
+    end
+
+    context "with one" do
+      before :each do
+        Fabricate(:broker)
+      end
+
+      it_should_behave_like "a broker collection", 1
+    end
+
+    context "with ten" do
+      before :each do
+        10.times { Fabricate(:broker) }
+      end
+
+      it_should_behave_like "a broker collection", 10
     end
   end
 end
