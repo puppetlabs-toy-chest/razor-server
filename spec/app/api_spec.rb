@@ -59,7 +59,7 @@ describe "command and query API" do
       use_installer_fixtures
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
+      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
 
@@ -87,7 +87,7 @@ describe "command and query API" do
       use_installer_fixtures
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
+      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
 
@@ -129,7 +129,7 @@ describe "command and query API" do
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
+    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :rule => ["=",["fact","one"],"1"])}
 
     it "should exist" do
       get "/api/collections/tags/#{t.name}"
@@ -228,7 +228,7 @@ describe "command and query API" do
             'type'    => 'string',
             'pattern' => '^https?://'
           },
-          "url" => {
+          "id" => {
             '$schema' => 'http://json-schema.org/draft-04/schema#',
             'type'    => 'string',
             'pattern' => '^https?://'

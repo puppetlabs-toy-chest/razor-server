@@ -8,7 +8,7 @@ describe "create broker command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create_broker" do
+  context "/api/commands/create-broker" do
     before :each do
       header 'content-type', 'application/json'
 
@@ -23,12 +23,12 @@ describe "create broker command" do
     end
 
     def create_broker(command)
-      post '/api/commands/create_broker', command.to_json
+      post '/api/commands/create-broker', command.to_json
       command
     end
 
     it "should reject bad JSON" do
-      post '/api/commands/create_broker', '{"json": "not really..."'
+      post '/api/commands/create-broker', '{"json": "not really..."'
       last_response.status.should == 415
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
@@ -37,7 +37,7 @@ describe "create broker command" do
      "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
     ].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
-        post '/api/commands/create_broker', input
+        post '/api/commands/create-broker', input
         last_response.status.should == 415
       end
     end
@@ -55,10 +55,10 @@ describe "create broker command" do
 
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name obj_id spec url]
+      last_response.json.keys.should =~ %w[name id spec]
 
       name = URI.escape(command['name'])
-      last_response.json["url"].should =~ %r'/api/collections/brokers/#{name}\Z'
+      last_response.json["id"].should =~ %r'/api/collections/brokers/#{name}\Z'
     end
 
     it "should create an broker record in the database" do
