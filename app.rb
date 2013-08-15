@@ -215,7 +215,8 @@ class Razor::App < Sinatra::Base
         {"rel" => url('/spec/create_broker'), "url" => url('/api/commands/create_broker')}
       ],
       "collections" => [
-        {"id"=> "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
+        {"id" => "tags", "rel" => url('/spec/list_tags'), "url" => url('/api/collections/tags')},
+        {'id' => 'brokers', 'rel' => url('/spec/list_brokers'), 'url' => url('/api/collections/brokers')},
         {"id" => "policies", "rel" => url('/spec/list_policies'), "url" => url('/api/collections/policies')},
       ]
     }.to_json
@@ -346,6 +347,16 @@ class Razor::App < Sinatra::Base
     tag = Razor::Data::Tag[:name => params[:name]] or
       halt 404, "no tag matched id=#{params[:name]}"
     tag_hash(tag).to_json
+  end
+
+  get '/api/collections/brokers' do
+    Razor::Data::Broker.all.map {|t| view_object_reference(t)}.to_json
+  end
+
+  get '/api/collections/brokers/:name' do
+    broker = Razor::Data::Broker[:name => params[:name]] or
+      halt 404, "no broker matched id=#{params[:name]}"
+    broker_hash(broker).to_json
   end
 
   get '/api/collections/policies' do
