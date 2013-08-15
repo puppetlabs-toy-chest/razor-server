@@ -27,12 +27,12 @@ class Razor::Matcher
     ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
 
     ATTRS = {
-        "and"  => {:expects => Boolean,  :returns => Boolean },
-        "or"   => {:expects => Boolean,  :returns => Boolean },
-        "fact" => {:expects => [String], :returns => Mixed   },
-        "eq"   => {:expects => Mixed,    :returns => Boolean },
-        "neq"  => {:expects => Mixed,    :returns => Boolean },
-        "in"   => {:expects => Mixed,    :returns => Boolean },
+        "and"  => {:expects => [Boolean],  :returns => Boolean },
+        "or"   => {:expects => [Boolean],  :returns => Boolean },
+        "fact" => {:expects => [[String]], :returns => Mixed   },
+        "eq"   => {:expects => [Mixed],    :returns => Boolean },
+        "neq"  => {:expects => [Mixed],    :returns => Boolean },
+        "in"   => {:expects => [Mixed],    :returns => Boolean },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -151,14 +151,16 @@ class Razor::Matcher
       end
     end
 
-    rule.drop(1).each do |arg|
+    rule.drop(1).each_with_index do |arg, pos|
+      expected_types = attrs[:expects][pos] || attrs[:expects].last
       if arg.is_a? Array
-        validate(arg, attrs[:expects])
+        validate(arg, expected_types)
       else
         # Ensure all concrete objects are of expected types
-        unless attrs[:expects].any? {|type| arg.class <= type }
+        unless expected_types.any? {|type| arg.class <= type }
           errors << "attempts to pass #{arg.inspect} of type #{arg.class} to "+
-                    "'#{rule[0]}', but only #{attrs[:expects]} are accepted"
+                    "'#{rule[0]}' for argument #{pos}, but only "+
+                    "#{expected_types} are accepted"
         end
       end
     end
