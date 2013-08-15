@@ -30,7 +30,7 @@ describe Razor::Data::Tag do
   end
 
   context "when rule is nil" do
-    subject(:tag) {Tag.create(:name => "t1")}
+    subject(:tag) {Tag.create(:name => "t1", :rule => ["=", 1, 1])}
     it { should be_valid }
   end
 

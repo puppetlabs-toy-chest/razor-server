@@ -15,7 +15,7 @@ describe "create policy command" do
     let(:image)  { Fabricate(:image) }
     let(:broker) { Fabricate(:broker) }
 
-    let (:tag1) { Tag.create(:name => "tag1" ) }
+    let (:tag1) { Tag.create(:name => "tag1", :rule => ["=", 1, 1] ) }
 
     let(:policy_hash) do
       # FIXME: Once we have proper helpers to generate these URL's,

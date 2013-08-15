@@ -112,7 +112,7 @@ Sequel.migration do
     create_table :tags do
       primary_key :id
       String      :name, :null => false, :unique => true
-      String      :matcher
+      String      :matcher, :null => false
     end
 
     create_table :nodes do
