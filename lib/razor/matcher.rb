@@ -19,6 +19,9 @@ require 'json'
 #   fact    - retrieves the fact named arg1 from the node if it exists
 #             If not, an error is raised unless a second argument is given, in
 #             which case it is returned as the default.
+#   num     - converts arg1 to a numeric value if possible; raises if not
+#   <, <=   - true if arg1 </<= arg2
+#   >, >=   - true if arg1 >/>= arg2
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
@@ -29,7 +32,7 @@ class Razor::Matcher
   class RuleEvaluationError < ArgumentError; end
 
   class Functions
-    ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
+    ALIAS = { "=" => "eq", "!=" => "neq", ">" => "gt", ">=" => "gte", "<" => "lt", "<=" => "lte", }.freeze
 
     ATTRS = {
         "and"  => {:expects => [Boolean],  :returns => Boolean },
@@ -38,6 +41,11 @@ class Razor::Matcher
         "eq"   => {:expects => [Mixed],    :returns => Boolean },
         "neq"  => {:expects => [Mixed],    :returns => Boolean },
         "in"   => {:expects => [Mixed],    :returns => Boolean },
+        "num"  => {:expects => [Mixed],    :returns => Numeric },
+        "gte"  => {:expects => [[Numeric]],:returns => Boolean },
+        "gt"   => {:expects => [[Numeric]],:returns => Boolean },
+        "lte"  => {:expects => [[Numeric]],:returns => Boolean },
+        "lt"   => {:expects => [[Numeric]],:returns => Boolean },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -77,6 +85,39 @@ class Razor::Matcher
     def in(*args)
       needle = args.shift
       args.include?(needle)
+    end
+
+    def num(*args)
+      value = args[0]
+      begin
+        return value if value.is_a?(Numeric)
+        if value.is_a? String
+          # Make sure binary and octal integers get passed to Integer since
+          # Float can't handle them
+          return Integer(value) if value =~ /\A-?(0b[10]+  |  0[0-7]+)\Z/ix
+          return Float(value)
+        end
+      rescue ArgumentError => e
+        # Ignore this here, since a RuleEvaluationError will be raised later
+      end
+
+      raise RuleEvaluationError.new "can't convert #{value.inspect} to number"
+    end
+
+    def gte(*args)
+      args[0] >= args[1]
+    end
+
+    def gt(*args)
+      args[0] > args[1]
+    end
+
+    def lte(*args)
+      args[0] <= args[1]
+    end
+
+    def lt(*args)
+      args[0] < args[1]
     end
   end
 
