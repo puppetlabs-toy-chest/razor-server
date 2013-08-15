@@ -6,7 +6,7 @@ describe "create policy command" do
 
   let(:app) { Razor::App }
 
-  context "/api/create_policy" do
+  context "/api/commands/create-policy" do
     before :each do
       use_installer_fixtures
       header 'content-type', 'application/json'
@@ -33,7 +33,7 @@ describe "create policy command" do
 
     def create_policy(input = nil)
       input ||= policy_hash.to_json
-      post '/api/commands/create_policy', input
+      post '/api/commands/create-policy', input
     end
 
     # Successful creation

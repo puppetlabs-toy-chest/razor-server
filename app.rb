@@ -238,6 +238,7 @@ class Razor::App < Sinatra::Base
   # 400. The block should return an object whose +view_object_reference+
   # will be returned in the response together with status code 202
   def self.command(name, &block)
+    name = name.to_s.tr("_", "-")
     path = "/api/commands/#{name}"
     # List this command when clients ask for /api
     @@commands << {
@@ -260,7 +261,7 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :create_new_image do |data|
+  command :create_image do |data|
     # Create our shiny new image.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
