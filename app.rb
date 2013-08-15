@@ -215,10 +215,10 @@ class Razor::App < Sinatra::Base
     # something useful by putting documentation about how to use the
     # command or query interface behind it, I guess. --daniel 2013-06-26
     {
-      "commands" => @@commands.dup.map { |c| c.update("url" => url(c["url"])) },
+      "commands" => @@commands.dup.map { |c| c.update("id" => url(c["id"])) },
       "collections" => COLLECTIONS.map do |coll|
-        { "id" => coll, "rel" => spec_url("/collections/#{coll}"),
-          "url" => url("/api/collections/#{coll}")}
+        { "name" => coll, "rel" => spec_url("/collections/#{coll}"),
+          "id" => url("/api/collections/#{coll}")}
       end
     }.to_json
   end
@@ -241,9 +241,9 @@ class Razor::App < Sinatra::Base
     path = "/api/commands/#{name}"
     # List this command when clients ask for /api
     @@commands << {
-      "id" => name,
+      "name" => name,
       "rel" => Razor::View::spec_url("commands", name),
-      "url" => path
+      "id" => path
     }
 
     # Handler for the command

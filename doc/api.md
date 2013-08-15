@@ -10,6 +10,13 @@ attribute is an absolute URL underneath
 http://api.puppetlabs.com/razor/v1. These URL's are currently not backed by
 any content, and serve solely as a unique identifier.
 
+Two attributes are commonly used to identify objects: `id` is a fully
+qualified URL that can be used as a globally unique reference for that
+object, and a `GET` request against that URL will produce a representation
+of the object. The `name` attribute is used for a short (human readable)
+reference to the object, generally only unique amongst objects of the same
+type on the same server.
+
 ## Commands
 
 The list of commands that the Razor server supports is returned as part of

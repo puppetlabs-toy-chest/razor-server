@@ -29,16 +29,16 @@ module Razor::CLI
     def move_to(key)
       key = key.to_i if key.to_i.to_s == key
       if @doc.is_a? Array
-        obj = @doc.find {|x| x.is_a?(Hash) and (x["id"] || x["obj_id"]) == key }
+        obj = @doc.find {|x| x.is_a?(Hash) and x["name"] == key }
       elsif @doc.is_a? Hash
         obj = @doc[key]
       end
 
       raise NavigationError.new(@doc_url, key, @doc) unless obj
 
-      if obj.is_a?(Hash) && obj["url"]
-        @doc = json_get(obj["url"])
-        @doc_url = obj["url"]
+      if obj.is_a?(Hash) && obj["id"]
+        @doc = json_get(obj["id"])
+        @doc_url = obj["id"]
       elsif obj.is_a? Hash
         @doc = obj
       else

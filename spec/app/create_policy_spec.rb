@@ -42,9 +42,9 @@ describe "create policy command" do
 
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name obj_id spec url]
+      last_response.json.keys.should =~ %w[id name spec]
 
-      last_response.json["url"].should =~ %r'/api/collections/policies/test%20policy\Z'
+      last_response.json["id"].should =~ %r'/api/collections/policies/test%20policy\Z'
     end
 
     it "should fail if a nonexisting tag is referenced" do

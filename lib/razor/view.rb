@@ -18,26 +18,15 @@ module Razor
       obj.class.name.split("::").last.downcase.underscore.pluralize
     end
 
-    def spec_member_url(obj, kind = :member)
-      spec_url("collections", collection_name(obj), kind)
-    end
-
     def view_object_url(obj)
       compose_url "api", "collections", collection_name(obj), obj.name
     end
 
-    # The definition of an object reference: it has a `url` field which is
-    # unique across all objects, an `obj_id` field that is unique among objects
-    # of the same type, and a human-readable `name` field, which can be nil.
+    # The definition of an object reference: it has a `id` field which is
+    # a globally unique URL, and a `name` field that is unique among objects
+    # of the same type
     def view_object_reference(obj)
-      return nil unless obj
-
-      {
-        :spec => spec_member_url(obj, "ref"),
-        :url => view_object_url(obj),
-        :obj_id => obj.id,
-        :name => obj.respond_to?(:name) ? obj.name : nil,
-      }
+      view_object_hash(obj)
     end
 
     # The definition of a basic object type: it has a `spec` field, which
@@ -50,7 +39,7 @@ module Razor
       return nil unless obj
 
       {
-        :spec => spec_member_url(obj, "member"),
+        :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name
       }
