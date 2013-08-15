@@ -57,7 +57,18 @@ describe Razor::Matcher do
 
     it "fact should behave" do
       match("fact", "f1", { "f1" => "true" }).should == true
-      match("fact", "f2", { "f1" => "true" }).should == false
+      match("fact", "f1", { "f1" => false  }).should == false
+    end
+
+    it "fact should raise if fact not found and one argument given" do
+      expect do
+        match("fact", "f2", { "f1" => "true" })
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
+
+    it "fact should return the default if fact not found" do
+      match("fact", "f1", false, { "f1" => true }).should == true
+      match("fact", "f2", false, { "f1" => true }).should == false
     end
 
     it "eq should behave" do
@@ -114,11 +125,17 @@ describe Razor::Matcher do
       Matcher.new(["in", 0, 1, 3.6, 10e20]).should be_valid
     end
 
-    it "should require strings for 'fact' function" do
+    it "should require strings for argument 1 of the 'fact' function" do
       Matcher.new(["=",["fact","exists"], true]).should be_valid
       Matcher.new(["!=", ["fact", "one"], 0]).should be_valid
       Matcher.new(["=", ["fact", 5], "five"]).should_not be_valid
       Matcher.new(["and", ["fact", 4.458], true]).should_not be_valid
+    end
+
+    it "should allow all types for argument 2 of the 'fact' function" do
+      Matcher.new(["=",["fact","exists", "default"], true]).should be_valid
+      Matcher.new(["=",["fact","not", 1], true]).should be_valid
+      Matcher.new(["=",["fact","maybe", nil], true]).should be_valid
     end
 
     it "should require that top-level functions return booleans" do

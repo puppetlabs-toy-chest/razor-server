@@ -5,8 +5,8 @@ require 'json'
 # It is assumed that rules are expressed as JSON arrays, using Lisp-style
 # infix notation. An example of a condition would be
 #
-#   ["and" ["=" ["facts" "osfamily"] "RedHat"]
-#          ["in" ["facts" "macaddress"]
+#   ["and" ["=" ["fact" "osfamily"] "RedHat"]
+#          ["in" ["fact" "macaddress"]
 #                "de:ea:db:ee:f0:00" "..MAC.." "..MAC.."]]
 #
 # The overall syntax for calling a builtin function is
@@ -16,6 +16,9 @@ require 'json'
 #   and, or - true if anding/oring arguments is true
 #   =, !=   - true if arg1 =/!= arg2
 #   in      - true if arg1 is one of arg2 .. argn
+#   fact    - retrieves the fact named arg1 from the node if it exists
+#             If not, an error is raised unless a second argument is given, in
+#             which case it is returned as the default.
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
@@ -23,13 +26,15 @@ class Razor::Matcher
   Boolean = [TrueClass, FalseClass]
   Mixed = [String, *Boolean, Numeric, NilClass]
 
+  class RuleEvaluationError < ArgumentError; end
+
   class Functions
     ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
 
     ATTRS = {
         "and"  => {:expects => [Boolean],  :returns => Boolean },
         "or"   => {:expects => [Boolean],  :returns => Boolean },
-        "fact" => {:expects => [[String]], :returns => Mixed   },
+        "fact" => {:expects => [[String], Mixed], :returns => Mixed   },
         "eq"   => {:expects => [Mixed],    :returns => Boolean },
         "neq"  => {:expects => [Mixed],    :returns => Boolean },
         "in"   => {:expects => [Mixed],    :returns => Boolean },
@@ -49,8 +54,16 @@ class Razor::Matcher
       args.any? { |a| a }
     end
 
+    # Returns the fact named #{args[0]}
+    #
+    # If no fact with the specified name exists, args[1] is returned if given.
+    # If no fact exists and args[1] is not given, an ArgumentError is raised.
     def fact(*args)
-      @values["facts"][args[0]]
+      case
+      when @values["facts"].include?(args[0]) then @values["facts"][args[0]]
+      when args.length > 1 then args[1]
+      else raise RuleEvaluationError.new "Couldn't find fact '#{args[0]}'"
+      end
     end
 
     def eq(*args)
