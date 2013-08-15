@@ -65,9 +65,7 @@ module Razor
       return nil unless tag
 
       view_object_hash(tag).merge({
-        :matcher => {
-          :rule => tag.matcher.rule
-        }
+        :rule => tag.rule
       })
     end
 

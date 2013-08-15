@@ -139,8 +139,8 @@ describe "command and query API" do
     it "should have the right keys" do
       get "/api/collections/tags/#{t.name}"
       tag = last_response.json
-      tag.keys.should =~ %w[ spec id name matcher ]
-      tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
+      tag.keys.should =~ %w[ spec id name rule ]
+      tag["rule"].should == ["=",["fact","one"],"1"]
     end
   end
 
