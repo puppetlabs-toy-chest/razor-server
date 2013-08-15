@@ -16,10 +16,17 @@ describe Razor::Data::Tag do
 
   let (:tag0) { Tag.create(tag0_hash) }
 
+  describe "::match" do
   it "matches on the right facts" do
     tag0
     Tag.match(MockNode.new("f1" => "c")).should == [ tag0 ]
     Tag.match(MockNode.new("f1" => "x")).should == []
+  end
+
+  it "raises for bad rule matchers" do
+    bad_tag = Tag.create(:name=> "bad", :rule => ["=", 1, ["fact", "not"]])
+    expect { Tag.match(MockNode.new()) }.to raise_error ArgumentError
+  end
   end
 
   context "when rule is nil" do
