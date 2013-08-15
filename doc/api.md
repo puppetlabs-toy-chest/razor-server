@@ -3,6 +3,13 @@
 Some boilerplate on how URL's in this doc are only as examples, how we only
 support JSON, ...
 
+## Conventions
+
+The type of objects is indicated with a `spec` attribute. The value of the
+attribute is an absolute URL underneath
+http://api.puppetlabs.com/razor/v1. These URL's are currently not backed by
+any content, and serve solely as a unique identifier.
+
 ## Commands
 
 The list of commands that the Razor server supports is returned as part of

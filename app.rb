@@ -4,10 +4,6 @@ require_relative './lib/razor/initialize'
 require_relative './lib/razor'
 
 class Razor::App < Sinatra::Base
-  # We use this URL to generate unique names for relations in links
-  # etc. There is no guarantee that there is any contant at these URL's.
-  SPEC_URL = "http://api.puppetlabs.com/razor/v1"
-
   configure do
     # FIXME: This turns off template caching alltogether since I am not
     # sure that the caching won't interfere with how we lookup
@@ -221,7 +217,7 @@ class Razor::App < Sinatra::Base
     {
       "commands" => @@commands.dup.map { |c| c.update("url" => url(c["url"])) },
       "collections" => COLLECTIONS.map do |coll|
-        { "id" => coll, "rel" => "#{SPEC_URL}/collections/#{coll}",
+        { "id" => coll, "rel" => spec_url("/collections/#{coll}"),
           "url" => url("/api/collections/#{coll}")}
       end
     }.to_json
@@ -246,7 +242,7 @@ class Razor::App < Sinatra::Base
     # List this command when clients ask for /api
     @@commands << {
       "id" => name,
-      "rel" => "#{SPEC_URL}/commands/#{name}",
+      "rel" => Razor::View::spec_url("commands", name),
       "url" => path
     }
 

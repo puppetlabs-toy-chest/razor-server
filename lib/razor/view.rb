@@ -1,10 +1,29 @@
 module Razor
   module View
 
-    def view_object_url(obj)
+    # We use this URL to generate unique names for relations in links
+    # etc. There is no guarantee that there is any contant at these URL's.
+    SPEC_URL = "http://api.puppetlabs.com/razor/v1"
+
+    def self.spec_url(*path)
+      SPEC_URL + ('/' + path.join("/")).gsub(%r'//+', '/')
+    end
+
+    def spec_url(*paths)
+      Razor::View::spec_url(*paths)
+    end
+
+    def collection_name(obj)
       # e.g., Razor::Data::Tag -> "tags"
-      type = obj.class.name.split("::").last.downcase.underscore.pluralize
-      compose_url "api", "collections", type, obj.name
+      obj.class.name.split("::").last.downcase.underscore.pluralize
+    end
+
+    def spec_member_url(obj, kind = :member)
+      spec_url("collections", collection_name(obj), kind)
+    end
+
+    def view_object_url(obj)
+      compose_url "api", "collections", collection_name(obj), obj.name
     end
 
     # The definition of an object reference: it has a `url` field which is
@@ -14,7 +33,7 @@ module Razor
       return nil unless obj
 
       {
-        :spec => compose_url("spec","object","reference"),
+        :spec => spec_member_url(obj, "ref"),
         :url => view_object_url(obj),
         :obj_id => obj.id,
         :name => obj.respond_to?(:name) ? obj.name : nil,
@@ -31,7 +50,7 @@ module Razor
       return nil unless obj
 
       {
-        :spec => compose_url("spec","object"),
+        :spec => spec_member_url(obj, "member"),
         :id => view_object_url(obj),
         :name => obj.name
       }
@@ -41,8 +60,6 @@ module Razor
       return nil unless policy
 
       view_object_hash(policy).merge({
-        :spec => compose_url("spec", "object", "policy"),
-
         :image => view_object_reference(policy.image),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
@@ -59,8 +76,6 @@ module Razor
       return nil unless tag
 
       view_object_hash(tag).merge({
-        :spec => compose_url("spec", "object", "tag"),
-
         :matcher => {
           :rule => tag.matcher.rule
         }
@@ -71,7 +86,6 @@ module Razor
       return nil unless image
 
       view_object_hash(image).merge({
-        :spec => compose_url("spec", "object", "image"),
         :image_url => image.image_url
       })
     end
