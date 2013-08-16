@@ -12,12 +12,6 @@ module Razor
         end
       end
     end
-
-    class RequestError < Error
-      def initialize(url, ex = nil)
-        super "error while retrieving '#{url}'" + (ex ? ": #{ex}" : "")
-      end
-    end
   end
 end
 

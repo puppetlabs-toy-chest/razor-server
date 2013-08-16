@@ -94,11 +94,7 @@ module Razor::CLI
     end
 
     def get(url, headers={})
-      begin
-        response = RestClient.get url.to_s, headers
-      rescue Exception => e
-        raise RequestError.new url, e
-      end
+      response = RestClient.get url.to_s, headers
       puts "GET #{url.to_s}\n#{response.body}" if @parse.dump_response?
       response
     end
@@ -113,11 +109,7 @@ module Razor::CLI
 
     def json_post(url, body)
       headers = {  :accept=>:json, "Content-Type" => :json }
-      begin
-        response = RestClient.post url, body.to_json, headers
-      rescue Exception => e
-        raise RequestError.new(url, e)
-      end
+      response = RestClient.post url, body.to_json, headers
       puts "POST #{url.to_s}\n#{body}\n-->\n#{response.body}" if @parse.dump_response?
       JSON::parse(response.body)
     end

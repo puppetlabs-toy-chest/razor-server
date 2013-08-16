@@ -15,4 +15,20 @@ begin
   puts "From #{url}:\n\n#{format_document document}\n\n"
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"
+rescue RestClient::Exception => e
+  r = e.response
+  puts "Error from doing #{r.args[:method].to_s.upcase} #{r.args[:url]}"
+  puts e.message
+  begin
+    body = JSON::parse(r.body)
+    if body["details"]
+      puts body.delete("details")
+      unless body.empty?
+        puts format_document(body)
+      end
+    end
+  rescue => e
+    # Ignore errors here; our best efforts at telling the user more about
+    # what happened has failed
+  end
 end
