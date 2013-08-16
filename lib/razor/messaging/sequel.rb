@@ -1,3 +1,8 @@
+# This is a message processor; torquebox loads this into a brandnew
+# interpreter. We therefore have to load the entire Razor environment
+require_relative '../../razor/initialize'
+require_relative '../../razor'
+
 require 'torquebox-messaging'
 
 # A class to manage messages sent to individual Sequel::Model derived
@@ -325,4 +330,3 @@ end
 # with load ordering when we are part of the Sinatra application...
 require_relative '../initialize'
 require_relative '../../razor'
-
