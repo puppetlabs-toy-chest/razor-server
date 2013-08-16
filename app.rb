@@ -263,7 +263,8 @@ class Razor::App < Sinatra::Base
       rescue => e
         error 400, :details => e.to_s
       end
-      [202, view_object_reference(result).to_json]
+      result = view_object_reference(result) unless result.is_a?(Hash)
+      [202, result.to_json]
     end
   end
 
@@ -278,6 +279,18 @@ class Razor::App < Sinatra::Base
     # Finally, return the state (started, not complete) and the URL for the
     # final image to our poor caller, so they can watch progress happen.
     image
+  end
+
+  command :delete_image do |data|
+    data["name"] or error 400,
+      :error => "Supply 'name' to indicate which image to delete"
+    if image = Razor::Data::Image[:name => data['name']]
+      image.destroy
+      action = "image destroyed"
+    else
+      action = "no changes; image #{data["name"]} does not exist"
+    end
+    { :result => action }
   end
 
   command :create_installer do |data|
