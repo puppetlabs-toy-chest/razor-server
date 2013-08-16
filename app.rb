@@ -33,14 +33,18 @@ class Razor::App < Sinatra::Base
   # Server/node API
   #
   helpers do
+    def error(status, body = {})
+      halt status, body.to_json
+    end
+
     def json_body
       if request.content_type =~ %r'application/json'i
         return JSON.parse(request.body.read)
       else
-        halt 415, {"error" => "only application/json is accepted here"}.to_json
+        error 415, :error => "only application/json is accepted here"
       end
     rescue => e
-      halt 415, {"error" => "unable to parse JSON", "detail" => e.to_s}.to_json
+      error 415, :error => "unable to parse JSON", :details => e.to_s
     end
 
     def compose_url(*parts)
@@ -250,12 +254,12 @@ class Razor::App < Sinatra::Base
     # Handler for the command
     post path do
       data = json_body
-      data.is_a?(Hash) or halt [415, "body must be a JSON object"]
+      data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
 
       begin
         result = instance_exec(data, &block)
       rescue => e
-        halt 400, e.to_s
+        error 400, :details => e.to_s
       end
       [202, view_object_reference(result).to_json]
     end
@@ -310,9 +314,9 @@ class Razor::App < Sinatra::Base
 
     if data["image"]
       name = data["image"]["name"] or
-        halt [400, "The image reference must have a 'name'"]
+        error 400, :error => "The image reference must have a 'name'"
       data["image"] = Razor::Data::Image[:name => name] or
-        halt [400, "Image '#{name}' not found"]
+        error 400, :error => "Image '#{name}' not found"
     end
 
     if data["broker"]
@@ -343,7 +347,7 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/tags/:name' do
     tag = Razor::Data::Tag[:name => params[:name]] or
-      halt 404, "no tag matched id=#{params[:name]}"
+      error 404, :error => "no tag matched id=#{params[:name]}"
     tag_hash(tag).to_json
   end
 
@@ -363,7 +367,7 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/policies/:name' do
     policy = Razor::Data::Policy[:name => params[:name]] or
-      halt 404, "no policy matched id=#{params[:name]}"
+      error 404, :error => "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
   end
 
@@ -373,7 +377,8 @@ class Razor::App < Sinatra::Base
     begin
       installer = Razor::Installer.find(params[:name])
     rescue Razor::InstallerNotFoundError => e
-      halt [404, e.to_s]
+      error 404, :error => "Installer #{params[:name]} does not exist",
+        :details => e.to_s
     end
     installer_hash(installer).to_json
   end
@@ -384,7 +389,7 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/images/:name' do
     image = Razor::Data::Image[:name => params[:name]] or
-      halt 404, "no image matched name=#{params[:name]}"
+      error 404, :error => "no image matched name=#{params[:name]}"
     image_hash(image).to_json
   end
 end
