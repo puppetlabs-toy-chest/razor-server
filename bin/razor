@@ -12,7 +12,7 @@ end
 begin
   document = parse.navigate.get_document
   url = parse.navigate.last_url
-  puts "From #{url}:\n\n#{format_document parse.navigate.get_document}\n\n"
+  puts "From #{url}:\n\n#{format_document document}\n\n"
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"
 end

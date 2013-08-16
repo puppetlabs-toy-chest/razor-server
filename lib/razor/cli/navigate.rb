@@ -7,7 +7,7 @@ module Razor::CLI
     def initialize(parse, segments)
       @parse = parse
       @segments = segments||[]
-      @doc = endpoints
+      @doc = entrypoint
       @doc_url = parse.api_url
     end
 
@@ -15,15 +15,62 @@ module Razor::CLI
       @doc_url
     end
 
-    def endpoints
-      @endpoints ||= get_endpoints
+    def entrypoint
+      @entrypoint ||= json_get(@parse.api_url)
+    end
+
+    def collections
+      entrypoint["collections"]
+    end
+
+    def commands
+      entrypoint["commands"]
+    end
+
+    def query?
+      collections.any? { |coll| coll["name"] == @segments.first }
+    end
+
+    def command(name)
+      commands.find { |coll| coll["name"] == name }
+    end
+
+    def command?
+      !! command(@segments.first)
     end
 
     def get_document
-      while @segments.any?
-        move_to @segments.shift
+      if @segments.empty?
+        entrypoint
+      elsif query?
+        @doc = collections
+        while @segments.any?
+          move_to @segments.shift
+        end
+        @doc
+      elsif command?
+        # @todo lutter 2013-08-16: None of this has any tests, and error
+        # handling is heinous at best
+        cmd, body = extract_command
+        json_post(cmd["id"], body)
+      else
+        raise NavigationError.new(@doc_url, @segments, @doc)
       end
-      @doc
+    end
+
+    def extract_command
+      cmd = command(@segments.shift)
+      body = {}
+      until @segments.empty?
+        if @segments.shift =~ /\A--([a-z-]+)(=(\S+))?\Z/
+          body[$1] = ($3 || @segments.shift)
+        end
+      end
+      # Special treatment for tag rules
+      if cmd["name"] == "create-tag" && body["rule"]
+        body["rule"] = JSON::parse(body["rule"])
+      end
+      [cmd, body]
     end
 
     def move_to(key)
@@ -64,9 +111,15 @@ module Razor::CLI
       JSON.parse(response.body)
     end
 
-    def get_endpoints
-      json_get(@parse.api_url)["collections"]
+    def json_post(url, body)
+      headers = {  :accept=>:json, "Content-Type" => :json }
+      begin
+        response = RestClient.post url, body.to_json, headers
+      rescue Exception => e
+        raise RequestError.new(url, e)
+      end
+      puts "POST #{url.to_s}\n#{body}\n-->\n#{response.body}" if @parse.dump_response?
+      JSON::parse(response.body)
     end
-
   end
 end

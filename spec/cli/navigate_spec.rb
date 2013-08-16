@@ -27,7 +27,7 @@ describe Razor::CLI::Navigate do
     subject(:nav) {Razor::CLI::Parse.new([]).navigate}
     it do
       nav.get_document.should_not be_nil
-      nav.get_document.should == nav.endpoints
+      nav.get_document.should == nav.entrypoint
     end
   end
 
@@ -45,5 +45,10 @@ describe Razor::CLI::Navigate do
     subject(:nav) {Razor::CLI::Parse.new(["going","nowhere"]).navigate}
 
     it {expect{nav.get_document}.to raise_error Razor::CLI::NavigationError}
+  end
+
+  describe "extract_command" do
+    it "should understand --arg=value"
+    it "should understand '--arg value'"
   end
 end

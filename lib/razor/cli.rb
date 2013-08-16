@@ -5,7 +5,11 @@ module Razor
     class NavigationError < Error
       def initialize(url, key, doc)
         @key = key; @doc = doc
-        super "couldn't find ID or key '#{key}' for #{url}"
+        if key.is_a?(Array)
+          super "Could not navigate to '#{key.join(" ")}' from #{url}"
+        else
+          super "Could not find entry '#{key}' in document at #{url}"
+        end
       end
     end
 
