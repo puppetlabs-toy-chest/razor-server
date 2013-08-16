@@ -1,0 +1,5 @@
+---
+server:
+  description: "The hostname for the Puppet master to contact"
+version:
+  description: "The Puppet (gem) version to install on the machine"
