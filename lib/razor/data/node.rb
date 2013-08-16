@@ -11,6 +11,10 @@ module Razor::Data
 
     def tags
       Tag.match(self)
+    rescue Razor::Matcher::RuleEvaluationError => e
+      log_append :severity => "error", :msg => "RAZOR: Error while matching tags: #{e}"
+      save
+      raise e
     end
 
     def domainname

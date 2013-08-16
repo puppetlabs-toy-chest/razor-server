@@ -90,6 +90,22 @@ describe Razor::Data::Node do
       node.policy.should == policy
     end
 
+    it "should refuse to bind to a policy if any tag raises an error" do
+      bad_tag = Tag.create(:name => "t2", :matcher => Razor::Matcher.new(["=", ["fact", "typo"], "b"]))
+      policy = make_policy(:line_number => 20)
+      policy.add_tag(tag)
+      policy.save
+
+      expect do
+        Node.checkin({ "hw_id" => hw_id, "facts" => { "f1" => "a" }})
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+
+      node = Node.lookup(hw_id)
+      node.log[0]["severity"].should == "error"
+      node.log[0]["msg"].should =~ /tags/
+      node.policy.should be_nil
+    end
+
     describe "of a bound node" do
       let (:image) { make_image }
 

@@ -5,8 +5,8 @@ require 'json'
 # It is assumed that rules are expressed as JSON arrays, using Lisp-style
 # infix notation. An example of a condition would be
 #
-#   ["and" ["=" ["facts" "osfamily"] "RedHat"]
-#          ["in" ["facts" "macaddress"]
+#   ["and" ["=" ["fact" "osfamily"] "RedHat"]
+#          ["in" ["fact" "macaddress"]
 #                "de:ea:db:ee:f0:00" "..MAC.." "..MAC.."]]
 #
 # The overall syntax for calling a builtin function is
@@ -16,6 +16,12 @@ require 'json'
 #   and, or - true if anding/oring arguments is true
 #   =, !=   - true if arg1 =/!= arg2
 #   in      - true if arg1 is one of arg2 .. argn
+#   fact    - retrieves the fact named arg1 from the node if it exists
+#             If not, an error is raised unless a second argument is given, in
+#             which case it is returned as the default.
+#   num     - converts arg1 to a numeric value if possible; raises if not
+#   <, <=   - true if arg1 </<= arg2
+#   >, >=   - true if arg1 >/>= arg2
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
@@ -23,16 +29,30 @@ class Razor::Matcher
   Boolean = [TrueClass, FalseClass]
   Mixed = [String, *Boolean, Numeric, NilClass]
 
+  class RuleEvaluationError < ArgumentError; end
+
   class Functions
-    ALIAS = { "=" => "eq", "!=" => "neq" }.freeze
+    ALIAS = {
+      "=" => "eq",
+      "!=" => "neq",
+      ">" => "gt",
+      ">=" => "gte",
+      "<" => "lt",
+      "<=" => "lte",
+      }.freeze
 
     ATTRS = {
-        "and"  => {:expects => Boolean,  :returns => Boolean },
-        "or"   => {:expects => Boolean,  :returns => Boolean },
-        "fact" => {:expects => [String], :returns => Mixed   },
-        "eq"   => {:expects => Mixed,    :returns => Boolean },
-        "neq"  => {:expects => Mixed,    :returns => Boolean },
-        "in"   => {:expects => Mixed,    :returns => Boolean },
+        "and"  => {:expects => [Boolean],         :returns => Boolean },
+        "or"   => {:expects => [Boolean],         :returns => Boolean },
+        "fact" => {:expects => [[String], Mixed], :returns => Mixed   },
+        "eq"   => {:expects => [Mixed],           :returns => Boolean },
+        "neq"  => {:expects => [Mixed],           :returns => Boolean },
+        "in"   => {:expects => [Mixed],           :returns => Boolean },
+        "num"  => {:expects => [Mixed],           :returns => Numeric },
+        "gte"  => {:expects => [[Numeric]],       :returns => Boolean },
+        "gt"   => {:expects => [[Numeric]],       :returns => Boolean },
+        "lte"  => {:expects => [[Numeric]],       :returns => Boolean },
+        "lt"   => {:expects => [[Numeric]],       :returns => Boolean },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -49,8 +69,16 @@ class Razor::Matcher
       args.any? { |a| a }
     end
 
+    # Returns the fact named #{args[0]}
+    #
+    # If no fact with the specified name exists, args[1] is returned if given.
+    # If no fact exists and args[1] is not given, an ArgumentError is raised.
     def fact(*args)
-      @values["facts"][args[0]]
+      case
+      when @values["facts"].include?(args[0]) then @values["facts"][args[0]]
+      when args.length > 1 then args[1]
+      else raise RuleEvaluationError.new "Couldn't find fact '#{args[0]}'"
+      end
     end
 
     def eq(*args)
@@ -64,6 +92,39 @@ class Razor::Matcher
     def in(*args)
       needle = args.shift
       args.include?(needle)
+    end
+
+    def num(*args)
+      value = args[0]
+      begin
+        return value if value.is_a?(Numeric)
+        if value.is_a? String
+          # Make sure binary and octal integers get passed to Integer since
+          # Float can't handle them
+          return Integer(value) if value =~ /\A-?(0b[10]+  |  0[0-7]+)\Z/ix
+          return Float(value)
+        end
+      rescue ArgumentError => e
+        # Ignore this here, since a RuleEvaluationError will be raised later
+      end
+
+      raise RuleEvaluationError.new "can't convert #{value.inspect} to number"
+    end
+
+    def gte(*args)
+      args[0] >= args[1]
+    end
+
+    def gt(*args)
+      args[0] > args[1]
+    end
+
+    def lte(*args)
+      args[0] <= args[1]
+    end
+
+    def lt(*args)
+      args[0] < args[1]
     end
   end
 
@@ -151,14 +212,16 @@ class Razor::Matcher
       end
     end
 
-    rule.drop(1).each do |arg|
+    rule.drop(1).each_with_index do |arg, pos|
+      expected_types = attrs[:expects][pos] || attrs[:expects].last
       if arg.is_a? Array
-        validate(arg, attrs[:expects])
+        validate(arg, expected_types)
       else
         # Ensure all concrete objects are of expected types
-        unless attrs[:expects].any? {|type| arg.class <= type }
+        unless expected_types.any? {|type| arg.class <= type }
           errors << "attempts to pass #{arg.inspect} of type #{arg.class} to "+
-                    "'#{rule[0]}', but only #{attrs[:expects]} are accepted"
+                    "'#{rule[0]}' for argument #{pos}, but only "+
+                    "#{expected_types} are accepted"
         end
       end
     end

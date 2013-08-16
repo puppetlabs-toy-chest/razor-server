@@ -57,7 +57,18 @@ describe Razor::Matcher do
 
     it "fact should behave" do
       match("fact", "f1", { "f1" => "true" }).should == true
-      match("fact", "f2", { "f1" => "true" }).should == false
+      match("fact", "f1", { "f1" => false  }).should == false
+    end
+
+    it "fact should raise if fact not found and one argument given" do
+      expect do
+        match("fact", "f2", { "f1" => "true" })
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
+
+    it "fact should return the default if fact not found" do
+      match("fact", "f1", false, { "f1" => true }).should == true
+      match("fact", "f2", false, { "f1" => true }).should == false
     end
 
     it "eq should behave" do
@@ -77,6 +88,53 @@ describe Razor::Matcher do
     it "in should behave" do
       match("in", "a", "b", "c", "a").should == true
       match("in", "x", "b", "c", "a").should == false
+    end
+
+    describe "num" do
+      it "should behave for valid integers" do
+        match("=", ["num", 9      ], 9 ).should == true
+        match("=", ["num", "10"   ], 0 ).should == false
+        match("=", ["num", "0xf"  ], 15).should == true
+        match("=", ["num", "0b110"], 6 ).should == true
+        match("=", ["num", "027"  ], 23).should == true
+      end
+
+      it "should behave for valid floats" do
+        match("=", ["num", 5.4  ], 5  ).should == false
+        match("=", ["num", 5.4  ], 5.4).should == true
+        match("=", ["num", "2.7"], 2.7).should == true
+        match("=", ["num", "1e5"], 1e5).should == true
+      end
+
+      it "should raise exceptions for invalid numbers" do
+        ThatError = Razor::Matcher::RuleEvaluationError
+        expect {match("=", ["num", true], 1)}.to raise_error ThatError
+        expect {match("=", ["num", "2t"], 2)}.to raise_error ThatError
+        expect {match("=", ["num", "a2"], 2)}.to raise_error ThatError
+        expect {match("=", ["num", nil ], 0)}.to raise_error ThatError
+      end
+    end
+
+    it "gte should behave" do
+      match("gte", 3.5, 4).should == false
+      match(">=",  4,   4).should == true
+      match("gte", 100, 10).should == true
+    end
+
+    it "gt should behave" do
+      match("gt", 89, 34 ).should == true
+      match(">",  1,  2.5).should == false
+    end
+
+    it "lte should behave" do
+      match("lte", 4.0,  4   ).should == true
+      match("lte", 2.3,  5   ).should == true
+      match("<=",  2.45, 2.44).should == false
+    end
+
+    it "lt should behave" do
+      match("<",  4,   3  ).should == false
+      match("lt", 3.5, 3.6).should == true
     end
   end
 
@@ -114,11 +172,41 @@ describe Razor::Matcher do
       Matcher.new(["in", 0, 1, 3.6, 10e20]).should be_valid
     end
 
-    it "should require strings for 'fact' function" do
+    it "should require strings for argument 1 of the 'fact' function" do
       Matcher.new(["=",["fact","exists"], true]).should be_valid
       Matcher.new(["!=", ["fact", "one"], 0]).should be_valid
       Matcher.new(["=", ["fact", 5], "five"]).should_not be_valid
       Matcher.new(["and", ["fact", 4.458], true]).should_not be_valid
+    end
+
+    it "should allow all types for argument 2 of the 'fact' function" do
+      Matcher.new(["=",["fact","exists", "default"], true]).should be_valid
+      Matcher.new(["=",["fact","not", 1], true]).should be_valid
+      Matcher.new(["=",["fact","maybe", nil], true]).should be_valid
+    end
+
+    it "should require numbers for lte" do
+      Matcher.new(["lte", 5, 3.0]).should be_valid
+      Matcher.new(["<=",  1e15, 8]).should be_valid
+      Matcher.new(["lte", "5", 17]).should_not be_valid
+    end
+
+    it "should require numbers for lt" do
+      Matcher.new(["lt", 8, 2.4]).should be_valid
+      Matcher.new(["<",  7.553, 21]).should be_valid
+      Matcher.new(["lt", "9", false]).should_not be_valid
+    end
+
+    it "should require numbers for gte" do
+      Matcher.new(["gte", 3, 1]).should be_valid
+      Matcher.new([">=",  6.8, 8.6]).should be_valid
+      Matcher.new(["gte", "1", 1]).should_not be_valid
+    end
+
+    it "should require numbers for gt" do
+      Matcher.new(["gt", 1, 4]).should be_valid
+      Matcher.new([">",  8, 4.7]).should be_valid
+      Matcher.new(["gt", true, 3]).should_not be_valid
     end
 
     it "should require that top-level functions return booleans" do
