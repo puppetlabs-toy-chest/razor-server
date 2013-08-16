@@ -270,6 +270,7 @@ class Razor::App < Sinatra::Base
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
+    data["image_url"] = data.delete("image-url")
     image = Razor::Data::Image.new(data).save.freeze
 
     # Finally, return the state (started, not complete) and the URL for the

@@ -50,7 +50,7 @@ describe "command and query API" do
     it "should fail if an extra key is given, if otherwise good" do
       post '/api/commands/create-image', {
         "name"      => "magicos",
-        "image_url" => "file:///dev/null",
+        "image-url" => "file:///dev/null",
         "banana"    => "> orange",
       }.to_json
       last_response.status.should == 400
@@ -60,7 +60,7 @@ describe "command and query API" do
     it "should return the 202, and the URL of the image" do
       post '/api/commands/create-image', {
         "name" => "magicos",
-        "image_url" => "file:///dev/null"
+        "image-url" => "file:///dev/null"
       }.to_json
 
       last_response.status.should == 202
@@ -74,7 +74,7 @@ describe "command and query API" do
     it "should create an image record in the database" do
       post '/api/commands/create-image', {
         "name" => "magicos",
-        "image_url" => "file:///dev/null"
+        "image-url" => "file:///dev/null"
       }.to_json
 
       Image.find(:name => "magicos").should be_an_instance_of Image

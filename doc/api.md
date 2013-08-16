@@ -31,7 +31,14 @@ when the command has finished.
 
 ### Create new image
 
-TODO
+Load an image into the server
+
+    {
+      "name": "fedora19",
+      "image-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+    }
+
+Both name and image-url must be supplied
 
 ### Create installer
 
