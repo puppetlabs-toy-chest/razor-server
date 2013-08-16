@@ -1,0 +1,32 @@
+#!/bin/bash
+<% require 'shellwords' %>
+<% broker.version and version = "--version=#{broker.version.shellescape}" %>
+<% broker.server  and server  = "--server=#{broker.server.shellescape}" %>
+
+# Some utility functions.
+fail() { echo >&2 -- "$@"; exit 1; }
+warn() { echo >&2 -- "$@"; }
+
+# Make sure we have our dependencies installed, on PATH, and ready to go.
+hash gem 2>/dev/null || fail "The gem(1) binary is not on PATH"
+
+# It would be nice to do more than just warn about this.
+hash lsb_release 2>/dev/null || warn "The LSB tools, like lsb_release, are not installed"
+
+# Install the Puppet gem on the machine.
+gem install --no-rdoc --no-ri --conservative <%= version %> puppet
+
+# We have to create users to be able to run Puppet.
+#
+# @todo danielp 2013-08-05: It would be nice to verify if this was actually
+# true, and if so, if this is the best way to implement it.  It is the
+# documented way according to our documentation:
+#
+# http://docs.puppetlabs.com/guides/installation.html#installing-from-gems-not-recommended
+#
+# In any case, the older code did this, so we perpetuate the behaviour.
+puppet resource group puppet ensure=present
+puppet resource user  puppet ensure=present gid=puppet shell=/sbin/nologin
+
+# ...and, finally, make our one-shot run of Puppet happen.
+puppet agent --test <%= server %>
