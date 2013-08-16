@@ -117,3 +117,5 @@ module Razor
     end
   end
 end
+
+require_relative 'view/siren'

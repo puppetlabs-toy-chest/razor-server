@@ -89,6 +89,7 @@ class Razor::App < Sinatra::Base
 
   # Client API helpers
   helpers Razor::View
+  helpers Razor::View::Siren
 
   # Error handlers for node API
   error Razor::TemplateNotFoundError do
