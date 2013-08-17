@@ -14,6 +14,9 @@ class Razor::App < Sinatra::Base
   end
 
   before do
+    # We serve static files from /svc/image and will therefore let that
+    # handler determine the most appropriate content type
+    pass if request.path_info.start_with?("/svc/image")
     # Set our content type: like many people, we simply don't negotiate.
     content_type 'application/json'
   end
@@ -76,15 +79,7 @@ class Razor::App < Sinatra::Base
     end
 
     def image_url(path = "")
-      # FIXME: Needs to point to the root directory of the image on the
-      # image server.
-      # FIXME: Figure out a way to not special-case MK boots everywhere
-      #        Try to set up a MK policy and bind nodes to it
-      if @image
-        "http://images.example.org/#{@image.name}#{path}"
-      else
-        "http://images.example.org/microkernel#{path}"
-      end
+      url "/svc/image/#{@image.name}#{path}"
     end
 
     def config
