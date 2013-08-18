@@ -250,7 +250,7 @@ describe "command and query API" do
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Broker Collection JSON Schema",
       'type'     => 'object',
-      'required' => %w[spec id name configuration broker_type],
+      'required' => %w[spec id name configuration broker-type],
       'properties' => {
         'spec' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
@@ -267,7 +267,7 @@ describe "command and query API" do
           'type'     => 'string',
           'pattern'  => '^[a-zA-Z0-9 ]+$'
         },
-        'broker_type' => {
+        'broker-type' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
           'pattern'  => '^[a-zA-Z0-9 ]+$'

@@ -81,9 +81,9 @@ module Razor
       return nil unless broker
 
       view_object_hash(broker).merge(
-        :spec          => compose_url('spec', 'object', 'broker'),
-        :configuration => broker.configuration,
-        :broker_type   => broker.broker_type)
+        :spec            => compose_url('spec', 'object', 'broker'),
+        :configuration   => broker.configuration,
+        :"broker-type"   => broker.broker_type)
     end
 
     def installer_hash(installer)

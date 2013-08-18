@@ -18,7 +18,7 @@ describe "create broker command" do
 
     let :broker_command do
       { 'name'        => Faker::Commerce.product_name,
-        'broker_type' => 'test'
+        'broker-type' => 'test'
       }
     end
 
@@ -43,7 +43,7 @@ describe "create broker command" do
     end
 
     it "should fail if the named broker does not actually exist" do
-      create_broker broker_command.merge 'broker_type' => 'no-such-broker-for-me'
+      create_broker broker_command.merge 'broker-type' => 'no-such-broker-for-me'
 
       last_response.status.should == 400
       last_response.body.should == "Broker type 'no-such-broker-for-me' not found"

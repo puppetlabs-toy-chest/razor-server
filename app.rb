@@ -255,7 +255,9 @@ class Razor::App < Sinatra::Base
     post path do
       data = json_body
       data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
-
+      # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
+      # (recursively) so that we do not use '_' in the API (i.e., this also
+      # requires fixing up view.rb)
       begin
         result = instance_exec(data, &block)
       rescue => e
@@ -295,11 +297,11 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_broker do |data|
-    if data["broker_type"]
+    if type = data.delete("broker-type")
       begin
-        data["broker_type"] = Razor::BrokerType.find(data["broker_type"])
+        data["broker_type"] = Razor::BrokerType.find(type)
       rescue Razor::BrokerTypeNotFoundError
-        halt [400, "Broker type '#{data["broker_type"]}' not found"]
+        halt [400, "Broker type '#{type}' not found"]
       rescue => e
         halt 400, e.to_s
       end
