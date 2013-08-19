@@ -403,4 +403,19 @@ class Razor::App < Sinatra::Base
       error 404, :error => "no image matched name=#{params[:name]}"
     image_hash(image).to_json
   end
+
+  # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither
+  # a command not a collection.
+  get '/api/microkernel/bootstrap' do
+    params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]*\Z/ or
+      error 400,
+        :error => "The nic_max parameter must be an integer not starting with 0"
+
+    # How many NICs ipxe should probe for DHCP
+    @nic_max = params["nic_max"].to_i || 4
+
+    @installer = Razor::Installer.mk_installer
+
+    render_template("bootstrap")
+  end
 end

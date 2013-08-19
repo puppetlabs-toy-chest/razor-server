@@ -62,3 +62,35 @@ JRuby and TorqueBox help deliver a highly available solution at minimal cost,
 especially when focused on clustering multiple machines to provide high levels
 of resilience to day to day maintenance or upgrades.
 
+## Deploying
+
+1. Put the
+   [iPXE firmware](http://boot.ipxe.org/undionly.kpxe) `undionly.kpxe` on
+   your TFTP server
+1. Have the Razor server give you a default iPXE boot file with
+
+       curl -o bootstrap.ipxe http://razor.example.org/api/microkernel/bootstrap?nic_max=NNN
+
+   The parameter nic_max is the maximum number of interfaces with DHCP that
+   you plan to encounter on your machines and must be an integer not
+   starting with '0'; it defaults to 4. Put this file also on your TFTP
+   server.
+1. Arrange for your DHCP server to tell machines that are running the iPXE client
+   to load `bootstrap.ipxe`, and all other machines to boot `undionly.kpxe`
+
+### With dnsmasq
+
+If you are using [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html),
+the following configuration settings should suffice
+
+    # This works for dnsmasq 2.45
+    # iPXE sets option 175, mark it for network IPXEBOOT
+    dhcp-match=IPXEBOOT,175
+    dhcp-boot=net:IPXEBOOT,bootstrap.ipxe
+    dhcp-boot=undionly.kpxe
+    # TFTP setup
+    enable-tftp
+    tftp-root=/var/lib/tftpboot
+
+You then need to copy `undionly.kpxe` and `bootstrap.ipxe` to
+`/var/lib/tftpboot`

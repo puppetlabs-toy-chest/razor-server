@@ -170,3 +170,15 @@ name   | a human-readable name for the object
 
 If the reference object is in an array, the `obj_id` field serves as a unique
 identifier within the array.
+
+## Other things
+
+### The default boostrap iPXE file
+
+A GET request to `/api/microkernel/bootstrap` will return an iPXE script
+that can be used to bootstrap nodes that have just PXE booted (it
+culminates in chain loading from the Razor server)
+
+The URL accepts the parameter `nic_max` which should be set to the maximum
+number of network interfaces that respond to DHCP on any given machine. It
+defaults to 4.
