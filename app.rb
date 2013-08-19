@@ -146,8 +146,21 @@ class Razor::App < Sinatra::Base
     @node = Razor::Data::Node.boot(params[:hw_id], params[:dhcp_mac])
 
     @installer = @node.installer
-    @image = @node.policy.image if @node.policy
 
+    if @node.policy
+      @image = @node.policy.image
+    else
+      # @todo lutter 2013-08-19: We have no policy on the node, and will
+      # therefore boot into the MK. This is a gigantic hack; all we need is
+      # an image with the right name so that the image_url helper generates
+      # links to the microkernel directory in the image store.
+      #
+      # We do not have API support yet to set up MK's, and users therefore
+      # have to put the kernel and initrd into the microkernel/ directory
+      # in their image store manually for things to work.
+      @image = Razor::Data::Image.new(:name => "microkernel",
+                    :image_url => "file:///dev/null")
+    end
     template = @installer.boot_template(@node)
 
     render_template(template)
