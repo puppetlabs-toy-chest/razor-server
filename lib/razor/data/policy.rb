@@ -49,6 +49,7 @@ SQL
           # Make sure nobody raced us to binding to the policy
           if match.max_count.nil? or match.nodes.count < match.max_count
             node.bind(match)
+            node.log_append(:event => :bind, :policy => match.name)
             node.save_changes
             break
           end

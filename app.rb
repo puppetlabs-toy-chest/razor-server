@@ -163,6 +163,9 @@ class Razor::App < Sinatra::Base
     end
     template = @installer.boot_template(@node)
 
+    @node.log_append(:event => :boot, :installer => @installer.name,
+                     :template => template, :image => @image.name)
+    @node.save
     render_template(template)
   end
 
