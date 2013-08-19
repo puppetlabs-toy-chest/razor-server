@@ -3,6 +3,20 @@
 Some boilerplate on how URL's in this doc are only as examples, how we only
 support JSON, ...
 
+## Conventions
+
+The type of objects is indicated with a `spec` attribute. The value of the
+attribute is an absolute URL underneath
+http://api.puppetlabs.com/razor/v1. These URL's are currently not backed by
+any content, and serve solely as a unique identifier.
+
+Two attributes are commonly used to identify objects: `id` is a fully
+qualified URL that can be used as a globally unique reference for that
+object, and a `GET` request against that URL will produce a representation
+of the object. The `name` attribute is used for a short (human readable)
+reference to the object, generally only unique amongst objects of the same
+type on the same server.
+
 ## Commands
 
 The list of commands that the Razor server supports is returned as part of
@@ -17,7 +31,14 @@ when the command has finished.
 
 ### Create new image
 
-TODO
+Load an image into the server
+
+    {
+      "name": "fedora19",
+      "image-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+    }
+
+Both name and image-url must be supplied
 
 ### Create installer
 
@@ -149,3 +170,15 @@ name   | a human-readable name for the object
 
 If the reference object is in an array, the `obj_id` field serves as a unique
 identifier within the array.
+
+## Other things
+
+### The default boostrap iPXE file
+
+A GET request to `/api/microkernel/bootstrap` will return an iPXE script
+that can be used to bootstrap nodes that have just PXE booted (it
+culminates in chain loading from the Razor server)
+
+The URL accepts the parameter `nic_max` which should be set to the maximum
+number of network interfaces that respond to DHCP on any given machine. It
+defaults to 4.

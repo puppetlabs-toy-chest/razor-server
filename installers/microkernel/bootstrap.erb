@@ -1,0 +1,17 @@
+#!ipxe
+<% (0..@nic_max).each do |index| %>
+:n<%= index %>
+<% if index == @nic_max %>isset ${net<%= index %>/mac} && dhcp net<%= index %> || goto s1
+<% else %>isset ${net<%= index %>/mac} && dhcp net<%= index %> || goto n<%= index+1 %>
+<% end %>
+
+echo net<%= index %> has DHCP
+set dhcp_mac 01-${net<%= index %>/mac:hexhyp}
+<% end %>
+
+:s1
+chain <%= url("/svc/boot/#{(1..@nic_max).inject('${net0/mac}') {|x,y| x << "_${net#{y.to_s}/mac}"}}") %>?dhcp_mac=${dhcp_mac} || goto error
+
+:error
+sleep 60
+reboot

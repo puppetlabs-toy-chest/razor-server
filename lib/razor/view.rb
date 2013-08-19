@@ -1,24 +1,32 @@
 module Razor
   module View
 
-    def view_object_url(obj)
-      # e.g., Razor::Data::Tag -> "tags"
-      type = obj.class.name.split("::").last.downcase.underscore.pluralize
-      compose_url "api", "collections", type, obj.name
+    # We use this URL to generate unique names for relations in links
+    # etc. There is no guarantee that there is any contant at these URL's.
+    SPEC_URL = "http://api.puppetlabs.com/razor/v1"
+
+    def self.spec_url(*path)
+      SPEC_URL + ('/' + path.join("/")).gsub(%r'//+', '/')
     end
 
-    # The definition of an object reference: it has a `url` field which is
-    # unique across all objects, an `obj_id` field that is unique among objects
-    # of the same type, and a human-readable `name` field, which can be nil.
-    def view_object_reference(obj)
-      return nil unless obj
+    def spec_url(*paths)
+      Razor::View::spec_url(*paths)
+    end
 
-      {
-        :spec => compose_url("spec","object","reference"),
-        :url => view_object_url(obj),
-        :obj_id => obj.id,
-        :name => obj.respond_to?(:name) ? obj.name : nil,
-      }
+    def collection_name(obj)
+      # e.g., Razor::Data::Tag -> "tags"
+      obj.class.name.split("::").last.downcase.underscore.pluralize
+    end
+
+    def view_object_url(obj)
+      compose_url "api", "collections", collection_name(obj), obj.name
+    end
+
+    # The definition of an object reference: it has a `id` field which is
+    # a globally unique URL, and a `name` field that is unique among objects
+    # of the same type
+    def view_object_reference(obj)
+      view_object_hash(obj)
     end
 
     # The definition of a basic object type: it has a `spec` field, which
@@ -31,7 +39,7 @@ module Razor
       return nil unless obj
 
       {
-        :spec => compose_url("spec","object"),
+        :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name
       }
@@ -41,8 +49,6 @@ module Razor
       return nil unless policy
 
       view_object_hash(policy).merge({
-        :spec => compose_url("spec", "object", "policy"),
-
         :image => view_object_reference(policy.image),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
@@ -59,11 +65,7 @@ module Razor
       return nil unless tag
 
       view_object_hash(tag).merge({
-        :spec => compose_url("spec", "object", "tag"),
-
-        :matcher => {
-          :rule => tag.matcher.rule
-        }
+        :rule => tag.rule
       })
     end
 
@@ -71,7 +73,6 @@ module Razor
       return nil unless image
 
       view_object_hash(image).merge({
-        :spec => compose_url("spec", "object", "image"),
         :image_url => image.image_url
       })
     end
@@ -80,9 +81,9 @@ module Razor
       return nil unless broker
 
       view_object_hash(broker).merge(
-        :spec          => compose_url('spec', 'object', 'broker'),
-        :configuration => broker.configuration,
-        :broker_type   => broker.broker_type)
+        :spec            => compose_url('spec', 'object', 'broker'),
+        :configuration   => broker.configuration,
+        :"broker-type"   => broker.broker_type)
     end
 
     def installer_hash(installer)

@@ -6,7 +6,7 @@ describe "create tag command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create_tag" do
+  context "/api/commands/create-tag" do
     before :each do
       header 'content-type', 'application/json'
     end
@@ -18,7 +18,7 @@ describe "create tag command" do
 
     def create_tag(input = nil)
       input ||= tag_hash.to_json
-      post '/api/commands/create_tag', input
+      post '/api/commands/create-tag', input
     end
 
     it "should reject bad JSON" do
@@ -42,9 +42,9 @@ describe "create tag command" do
 
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name obj_id spec url]
+      last_response.json.keys.should =~ %w[id name spec]
 
-      last_response.json["url"].should =~ %r'/api/collections/tags/test\Z'
+      last_response.json["id"].should =~ %r'/api/collections/tags/test\Z'
     end
 
     it "should create an tag record in the database" do

@@ -6,7 +6,7 @@ describe "create policy command" do
 
   let(:app) { Razor::App }
 
-  context "/api/create_policy" do
+  context "/api/commands/create-policy" do
     before :each do
       use_installer_fixtures
       header 'content-type', 'application/json'
@@ -15,7 +15,7 @@ describe "create policy command" do
     let(:image)  { Fabricate(:image) }
     let(:broker) { Fabricate(:broker) }
 
-    let (:tag1) { Tag.create(:name => "tag1" ) }
+    let (:tag1) { Tag.create(:name => "tag1", :rule => ["=", 1, 1] ) }
 
     let(:policy_hash) do
       # FIXME: Once we have proper helpers to generate these URL's,
@@ -33,7 +33,7 @@ describe "create policy command" do
 
     def create_policy(input = nil)
       input ||= policy_hash.to_json
-      post '/api/create_policy', input
+      post '/api/commands/create-policy', input
     end
 
     # Successful creation
@@ -42,9 +42,9 @@ describe "create policy command" do
 
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name obj_id spec url]
+      last_response.json.keys.should =~ %w[id name spec]
 
-      last_response.json["url"].should =~ %r'/api/collections/policies/test%20policy\Z'
+      last_response.json["id"].should =~ %r'/api/collections/policies/test%20policy\Z'
     end
 
     it "should fail if a nonexisting tag is referenced" do

@@ -250,6 +250,13 @@ describe Razor::BrokerType do
   end
 
   context "install_script" do
+    around :each do |test|
+      Dir.mktmpdir do |dir|
+        Razor.config['broker_path'] = dir
+        test.run
+      end
+    end
+
     def broker_instance_for(that, configuration = nil)
       b = Razor::Data::Broker.new(:name => 'hello', :broker_type => that)
       configuration and b.configuration = configuration

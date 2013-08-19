@@ -29,7 +29,7 @@ module Razor::CLI
     def format_objects(objects, indent = 0)
       objects.map do |obj|
         obj.is_a?(Hash) ? format_object(obj, indent) : ' '*indent + obj.inspect
-      end.join "\n"
+      end.join "\n\n"
     end
 
     def format_reference_object(ref, indent = 0)

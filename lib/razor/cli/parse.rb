@@ -24,13 +24,18 @@ module Razor::CLI
       end
     end
 
+    def list_things(name, items)
+      "\n    #{name}:\n" +
+        items.map {|x| x["name"]}.compact.sort.map do |name|
+        "        #{name}"
+      end.join("\n")
+    end
+
     def help
       output = get_optparse.to_s
-      output << "\n    endpoints:\n"
-      output << navigate.endpoints.map do |ref|
-        next unless ref['id']
-        "        #{ref["id"]} #{ref["desc"] || nil}"
-      end.compact.join("\n")
+      output << list_things("collections", navigate.collections)
+      output << list_things("commands", navigate.commands)
+      output
     end
 
     def show_help?
@@ -46,9 +51,9 @@ module Razor::CLI
     def initialize(args)
       @api_url = URI.parse("http://localhost:8080/api")
       @args = args.dup
-      @options = get_optparse.parse!(args)
+      rest = get_optparse.order(args)
       if args.any?
-        @navigation = args
+        @navigation = rest
       else
         @option_help = true
       end

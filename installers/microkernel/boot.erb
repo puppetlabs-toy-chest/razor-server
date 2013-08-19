@@ -1,6 +1,10 @@
 #!ipxe
-kernel <%= image_url("/vmlinuz") %> maxcpus=1 <%= config["microkernel.debug_level"] %> <%= config["microkernel.kernel_args"] %> || goto error
-initrd <%= image_url("/initrd") %> || goto error
+# <%= image_url("/initrd0.img") %>
+initrd http://boot.watzmann.net/tmp/initrd0.img || goto error
+# This works for one specific MK image, because of the root arg which has
+# the build time of the image in it - in future MK's we'll build with a more
+# generic label
+kernel <%= image_url("/vmlinuz0") %> rootflags=loop initrd=initrd0.img root=live:/livecd-microkernel-201308182124.iso rootfstype=auto ro rd.live.image quiet acpi=force rd.luks=0 rd.md=0 rd.dm=0 razor.server=<%= url("/svc/checkin")%> <%= config["microkernel.kernel_args"] %> || goto error
 boot || goto error
 
 :error

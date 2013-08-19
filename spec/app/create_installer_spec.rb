@@ -6,7 +6,7 @@ describe "create installer command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create_installer" do
+  context "/api/commands/create-installer" do
     before :each do
       header 'content-type', 'application/json'
     end
@@ -20,7 +20,7 @@ describe "create installer command" do
 
     def create_installer(input = nil)
       input ||= installer_hash.to_json
-      post '/api/commands/create_installer', input
+      post '/api/commands/create-installer', input
     end
 
     it "should reject bad JSON" do
@@ -68,9 +68,9 @@ describe "create installer command" do
       create_installer
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name obj_id spec url]
+      last_response.json.keys.should =~ %w[id name spec]
 
-      last_response.json["url"].should =~ %r'/api/collections/installers/installer\Z'
+      last_response.json["id"].should =~ %r'/api/collections/installers/installer\Z'
     end
 
     it "should create an image record in the database" do

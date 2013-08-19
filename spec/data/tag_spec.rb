@@ -30,17 +30,17 @@ describe Razor::Data::Tag do
   end
 
   context "when rule is nil" do
-    subject(:tag) {Tag.create(:name => "t1")}
+    subject(:tag) {Tag.create(:name => "t1", :rule => ["=", 1, 1])}
     it { should be_valid }
   end
 
   context "when rule is valid" do
-    subject(:tag) {Tag.create(:name=>"t2", :matcher => Razor::Matcher.new(["=",["fact","five"], 5]))}
+    subject(:tag) {Tag.create(:name=>"t2", :rule => ["=",["fact","five"], 5])}
     it { should be_valid }
   end
 
   context "when rule is not valid" do
-    subject(:tag) {Tag.new(:name=>"t2", :matcher => Razor::Matcher.new(["yes","no"]))}
+    subject(:tag) {Tag.new(:name=>"t2", :rule => ["yes","no"])}
     it { should_not be_valid }
     it { tag.valid?; tag.errors[:matcher].should_not be_empty }
   end

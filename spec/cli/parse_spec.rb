@@ -35,7 +35,8 @@ describe Razor::CLI::Parse do
       it { p.help.should be_a String}
 
       it "should print a list of known endpoints" do
-        p.navigate.should_receive(:endpoints).and_return([]);
+        p.navigate.should_receive(:collections).and_return([])
+        p.navigate.should_receive(:commands).and_return([])
         p.help
       end
     end

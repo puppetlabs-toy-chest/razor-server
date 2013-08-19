@@ -26,7 +26,7 @@ describe "command and query API" do
       get '/api'
       data = last_response.json
       data.keys.should =~ %w[commands collections]
-      data["commands"].all? {|x| x.keys.should =~ %w[rel url]}
+      data["commands"].all? {|x| x.keys.should =~ %w[id rel name]}
     end
 
     it "should contain all valid URLs" do
@@ -38,14 +38,14 @@ describe "command and query API" do
         # of here: by knowing the failure mode, we can tell "missing" from
         # "exists but refuses us service" safely.
         header 'content-type', 'text/x-unknown-binary-blob'
-        post row["url"]
+        post row["id"]
         # The positive assertion captures cases where we incorrectly accept
         # the unknown content type; they shouldn't happen, but it beats out a
         # false positive.
         last_response.status.should == 415
       end
       data["collections"].all? do |row|
-        get row["url"]
+        get row["id"]
         last_response.status.should == 200
       end
     end
@@ -59,7 +59,7 @@ describe "command and query API" do
       use_installer_fixtures
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
+      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
 
@@ -77,7 +77,7 @@ describe "command and query API" do
       data = last_response.json
       data.size.should be 1
       data.all? do |policy|
-        policy.keys.should =~ %w[name obj_id spec url]
+        policy.keys.should =~ %w[id name spec]
       end
     end
   end
@@ -87,7 +87,7 @@ describe "command and query API" do
       use_installer_fixtures
 
       @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
-      @tag = Razor::Data::Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
+      @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
 
@@ -103,7 +103,7 @@ describe "command and query API" do
       policy = last_response.json
 
       policy.keys.should =~ %w[name id spec configuration enabled line_number max_count image tags]
-      policy["image"].keys.should =~ %w[name obj_id spec url]
+      policy["image"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
       policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
@@ -123,13 +123,13 @@ describe "command and query API" do
       data = last_response.json
       data.size.should be 1
       data.all? do |tag|
-        tag.keys.should =~ %w[spec obj_id name url]
+        tag.keys.should =~ %w[id name spec]
       end
     end
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))}
+    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :rule => ["=",["fact","one"],"1"])}
 
     it "should exist" do
       get "/api/collections/tags/#{t.name}"
@@ -139,8 +139,8 @@ describe "command and query API" do
     it "should have the right keys" do
       get "/api/collections/tags/#{t.name}"
       tag = last_response.json
-      tag.keys.should =~ %w[ spec id name matcher ]
-      tag["matcher"].should == {"rule" => ["=",["fact","one"],"1"] }
+      tag.keys.should =~ %w[ spec id name rule ]
+      tag["rule"].should == ["=",["fact","one"],"1"]
     end
   end
 
@@ -155,7 +155,7 @@ describe "command and query API" do
       imgs = last_response.json
       imgs.size.should == 2
       imgs.map { |img| img["name"] }.should =~ %w[ image1 image2 ]
-      imgs.all? { |img| img.keys.should =~ %w[spec obj_id name url] }
+      imgs.all? { |img| img.keys.should =~ %w[id name spec] }
     end
   end
 
@@ -228,7 +228,7 @@ describe "command and query API" do
             'type'    => 'string',
             'pattern' => '^https?://'
           },
-          "url" => {
+          "id" => {
             '$schema' => 'http://json-schema.org/draft-04/schema#',
             'type'    => 'string',
             'pattern' => '^https?://'
@@ -250,7 +250,7 @@ describe "command and query API" do
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Broker Collection JSON Schema",
       'type'     => 'object',
-      'required' => %w[spec id name configuration broker_type],
+      'required' => %w[spec id name configuration broker-type],
       'properties' => {
         'spec' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
@@ -267,7 +267,7 @@ describe "command and query API" do
           'type'     => 'string',
           'pattern'  => '^[a-zA-Z0-9 ]+$'
         },
-        'broker_type' => {
+        'broker-type' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
           'pattern'  => '^[a-zA-Z0-9 ]+$'
