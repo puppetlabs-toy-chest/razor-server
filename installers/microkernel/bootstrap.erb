@@ -1,4 +1,5 @@
 #!ipxe
+<% @nic_max ||= 4 %>
 <% (0..@nic_max).each do |index| %>
 :n<%= index %>
 <% if index == @nic_max %>isset ${net<%= index %>/mac} && dhcp net<%= index %> || goto s1
