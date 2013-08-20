@@ -385,6 +385,59 @@ describe "command and query API" do
       }
     }.freeze
 
+    NodeItemSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Node Collection JSON Schema",
+      'type'     => 'object',
+      'required' => %w[spec id name hw_id],
+      'properties' => {
+        'spec' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'id'       => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'name'     => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[0-9a-fA-F]+$'
+        },
+        'hw_id'    => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[0-9a-fA-F]+$'
+        },
+        'dhcp_mac' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[0-9a-fA-F]+$'
+        },
+        'policy'   => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+        'facts' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+        'hostname' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+        'root_password' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+        'ip_address' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+        'boot_count' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        },
+      },
+      'additionalProperties' => false,
+    }.freeze
+
     def validate!(schema, json)
       # Why does the validate method insist it should be able to modify
       # my schema?  That would be, y'know, bad.
@@ -409,6 +462,16 @@ describe "command and query API" do
       it "should 404 a node requested that does not exist" do
         get "/api/collections/nodes/fast%20freddy"
         last_response.status.should == 404
+      end
+
+      if expected > 0
+        it "should be able to access all node instances" do
+          Razor::Data::Node.all.each do |node|
+            get "/api/collections/nodes/#{URI.escape(node.name)}"
+            last_response.status.should == 200
+            validate! NodeItemSchema, last_response.body
+          end
+        end
       end
     end
 

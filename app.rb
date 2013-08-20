@@ -421,6 +421,12 @@ class Razor::App < Sinatra::Base
     Razor::Data::Node.all.map {|node| view_object_reference(node) }.to_json
   end
 
+  get '/api/collections/nodes/:hw_id' do
+    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
+      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
+    node_hash(node).to_json
+  end
+
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither
   # a command not a collection.
   get '/api/microkernel/bootstrap' do
