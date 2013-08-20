@@ -99,5 +99,20 @@ module Razor
         :boot_seq => installer.boot_seq
       })
     end
+
+    def node_hash(node)
+      return nil unless node
+      view_object_hash(node).merge(
+        :hw_id         => node.hw_id,
+        :dhcp_mac      => node.dhcp_mac,
+        :policy        => view_object_reference(node.policy),
+        # for now, log is omitted; I don't think we want it inline
+        :facts         => node.facts,
+        :hostname      => node.hostname,
+        :root_password => node.root_password,
+        :ip_address    => node.ip_address,
+        :boot_count    => node.boot_count
+      ).delete_if {|k,v| v.nil? }
+    end
   end
 end
