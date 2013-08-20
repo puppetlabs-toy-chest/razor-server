@@ -68,7 +68,7 @@ module Razor::Data
     end
 
     def self.checkin(body)
-      hw_id = body['hw_id']
+      hw_id = canonicalize_hw_id(body['hw_id'])
       if node = lookup(hw_id)
         if body['facts'] != node.facts
           node.facts = body['facts']
@@ -84,14 +84,16 @@ module Razor::Data
       { :action => :none }
     end
 
+    def self.canonicalize_hw_id(input)
+      input.gsub(/[_:]/, '').downcase
+    end
+
     def self.lookup(hw_id)
-      self[:hw_id => hw_id]
+      self[:hw_id => canonicalize_hw_id(hw_id)]
     end
 
     def self.boot(hw_id, dhcp_mac = nil)
-      unless node = lookup(hw_id)
-        node = Node.create(:hw_id => hw_id)
-      end
+      node = lookup(hw_id) || Node.create(:hw_id => canonicalize_hw_id(hw_id))
       node.dhcp_mac = dhcp_mac if dhcp_mac && dhcp_mac != ""
       node.boot_count += 1
       node.save
