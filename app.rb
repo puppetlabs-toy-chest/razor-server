@@ -213,7 +213,7 @@ class Razor::App < Sinatra::Base
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :images, :tags, :policies]
+  COLLECTIONS = [:brokers, :images, :tags, :policies, :nodes]
 
   #
   # The main entry point for the public/management API
@@ -415,6 +415,10 @@ class Razor::App < Sinatra::Base
     image = Razor::Data::Image[:name => params[:name]] or
       error 404, :error => "no image matched name=#{params[:name]}"
     image_hash(image).to_json
+  end
+
+  get '/api/collections/nodes' do
+    Razor::Data::Node.all.map {|node| view_object_reference(node) }.to_json
   end
 
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither

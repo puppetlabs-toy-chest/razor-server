@@ -27,3 +27,10 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   image
   broker
 end
+
+
+Fabricator(:node, :class_name => Razor::Data::Node) do
+  # not strictly a legal MAC, but the shape is correct.  (eg: could be a
+  # broadcast MAC, or some other invalid value.)
+  hw_id { 6.times.map { Random.rand(256).to_s(16) }.join }
+end

@@ -351,4 +351,85 @@ describe "command and query API" do
       it_should_behave_like "a broker collection", 10
     end
   end
+
+  context "/api/collections/nodes" do
+    NodeCollectionSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Node Collection JSON Schema",
+      'type'     => 'array',
+      'items'    => {
+        '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        'type'     => 'object',
+        'additionalProperties' => false,
+        'properties' => {
+          "spec" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^https?://'
+          },
+          "id" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^https?://'
+          },
+          "obj_id" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'number'
+          },
+          "name" => {
+            '$schema' => 'http://json-schema.org/draft-04/schema#',
+            'type'    => 'string',
+            'pattern' => '^[^\n]+$'
+          }
+        }
+      }
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
+    shared_examples "a node collection" do |expected|
+      before :each do
+        Razor.config['broker_path'] =
+          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'brokers').realpath.to_s
+      end
+
+      it "should return a valid node response empty set" do
+        get "/api/collections/nodes"
+
+        last_response.status.should == 200
+        last_response.json.should be_an_instance_of Array
+        last_response.json.count.should == expected
+        validate! NodeCollectionSchema, last_response.body
+      end
+
+      it "should 404 a node requested that does not exist" do
+        get "/api/collections/nodes/fast%20freddy"
+        last_response.status.should == 404
+      end
+    end
+
+    context "with none" do
+      it_should_behave_like "a node collection", 0
+    end
+
+    context "with one" do
+      before :each do
+        Fabricate(:node)
+      end
+
+      it_should_behave_like "a node collection", 1
+    end
+
+    context "with ten" do
+      before :each do
+        10.times { Fabricate(:node) }
+      end
+
+      it_should_behave_like "a node collection", 10
+    end
+  end
 end
