@@ -1,7 +1,12 @@
-# This is a message processor; torquebox loads this into a brandnew
-# interpreter. We therefore have to load the entire Razor environment
-require_relative '../../razor/initialize'
-require_relative '../../razor'
+# This allows Ruby to parse the Razor::Messaging::Sequel class without
+# Kernel::include-ing the ../../razor and ../../razor/initialize files.
+# Loading those files here causes a race condition when trying to load the
+# Razor::Data classes, which include parts of the Razor::Messaging::Sequel
+# class, which isn't yet defined.
+module Razor
+  module Messaging
+  end
+end
 
 require 'torquebox-messaging'
 
