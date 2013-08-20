@@ -24,7 +24,7 @@ describe "provisioning API" do
 
   describe "booting known nodes" do
     before(:each) do
-      @node = Node.create(:hw_id => "00:11:22:33:44:55")
+      @node = Node.create(:hw_id => "001122334455")
     end
 
     it "without policy should boot the microkernel" do
@@ -83,7 +83,7 @@ describe "provisioning API" do
 
   describe "fetching a template" do
     before(:each) do
-      @node = Node.create(:hw_id => "00:11:22:33:44:55")
+      @node = Node.create(:hw_id => "001122334455")
       @node.bind(policy)
       @node.save
     end
@@ -142,7 +142,7 @@ describe "provisioning API" do
     end
 
     it "should store the log message for an existing node" do
-      node = Node.create(:hw_id => "00:11:22:33:44:55")
+      node = Node.create(:hw_id => "001122334455")
 
       get "/svc/log/#{node.id}?msg=message&severity=warn"
       last_response.status.should == 204
@@ -155,7 +155,7 @@ describe "provisioning API" do
 
   describe "storing node IP" do
     before(:each) do
-      @node = Node.create(:hw_id => "00:11:22:33:44:55")
+      @node = Node.create(:hw_id => "001122334455")
     end
 
     it "should store an IP" do
@@ -178,7 +178,7 @@ describe "provisioning API" do
   end
 
   describe "node checkin" do
-    hw_id = "00:11:22:33:44:55"
+    hw_id = "001122334455"
 
     it "should return 400 for non-json requests" do
       header 'Content-Type', 'text/plain'

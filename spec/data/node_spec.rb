@@ -9,12 +9,36 @@ describe Razor::Data::Node do
 
   let (:node) { Node.create(:hw_id => "deadbeef") }
 
-  it "lookup should find node by HW id" do
-    mac = "00:11:22:33:44:55"
-    nc = Node.create(:hw_id => mac)
-    nl = Node.lookup(mac)
-    nl.should == nc
-    nl.id.should_not be_nil
+  context "canonicalize_hw_id" do
+    {
+      '00:0c:29:56:a5:35' => '000c2956a535',
+      '00:0C:29:56:A5:35' => '000c2956a535',
+      '00:0c:29:3f:68:c3____' => '000c293f68c3',
+      '00:0C:29:3f:68:C3____' => '000c293f68c3',
+      '00:0C:29:B5:1F:D1_00:0C:29:3f:68:C3_00:0c:29:56:a5:35__' =>
+          '000c29b51fd1000c293f68c3000c2956a535'
+    }.each do |have, want|
+      it "should canonicalize #{have.inspect} to #{want.inspect}" do
+        Node.canonicalize_hw_id(have).should == want
+      end
+    end
+  end
+
+  context "lookup" do
+    it "should find node by HW id" do
+      mac = "001122334455"
+      nc = Node.create(:hw_id => mac)
+      nl = Node.lookup(mac)
+      nl.should == nc
+      nl.id.should_not be_nil
+    end
+
+    it "should find the correct node for several mac inputs" do
+      # hand calculated the canonical version...
+      node = Fabricate(:node, :hw_id => '5254000d97f0')
+      Node.lookup('52:54:00:0d:97:f0____').should == node
+      Node.lookup('5254000d97f0').should == node
+    end
   end
 
   it "log_append stores messages" do
@@ -69,7 +93,7 @@ describe Razor::Data::Node do
 
 
   describe "binding on checkin" do
-    hw_id = "00:11:22:33:44:55"
+    hw_id = "001122334455"
 
     let (:tag) {
       Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
