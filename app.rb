@@ -430,6 +430,14 @@ class Razor::App < Sinatra::Base
     node_hash(node).to_json
   end
 
+  get '/api/collections/nodes/:hw_id/log' do
+    # @todo lutter 2013-08-20: There are no tests for this handler
+    # @todo lutter 2013-08-20: Do we need to send the log through a view ?
+    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
+      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
+    node.log.to_json
+  end
+
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither
   # a command not a collection.
   get '/api/microkernel/bootstrap' do

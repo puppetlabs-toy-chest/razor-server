@@ -106,7 +106,8 @@ module Razor
         :hw_id         => node.hw_id,
         :dhcp_mac      => node.dhcp_mac,
         :policy        => view_object_reference(node.policy),
-        # for now, log is omitted; I don't think we want it inline
+        :log           => { :id => view_object_url(node) + "/log",
+                            :name => "log" },
         :facts         => node.facts,
         :hostname      => node.hostname,
         :root_password => node.root_password,

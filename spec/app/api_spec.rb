@@ -416,6 +416,23 @@ describe "command and query API" do
           'type'     => 'string',
           'pattern'  => '^[0-9a-fA-F]+$'
         },
+        'log'   => {
+          '$schema'    => 'http://json-schema.org/draft-04/schema#',
+          'type'       => 'object',
+          'required'   => %w[id name],
+          'properties' => {
+            'id'       => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'name'     => {
+              '$schema'   => 'http://json-schema.org/draft-04/schema#',
+              'type'      => 'string',
+              'minLength' => 1
+            },
+          },
+        },
         'policy'   => {
           '$schema'    => 'http://json-schema.org/draft-04/schema#',
           'type'       => 'object',
