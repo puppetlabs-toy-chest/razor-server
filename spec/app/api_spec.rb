@@ -417,22 +417,55 @@ describe "command and query API" do
           'pattern'  => '^[0-9a-fA-F]+$'
         },
         'policy'   => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          '$schema'    => 'http://json-schema.org/draft-04/schema#',
+          'type'       => 'object',
+          'required'   => %w[spec id name],
+          'properties' => {
+            'spec' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'id'       => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'name'     => {
+              '$schema'   => 'http://json-schema.org/draft-04/schema#',
+              'type'      => 'string',
+              'minLength' => 1
+            },
+          },
+          'additionalProperties' => false,
         },
         'facts' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          '$schema'       => 'http://json-schema.org/draft-04/schema#',
+          'type'          => 'object',
+          'minProperties' => 1,
+          'additionalProperties' => {
+            '$schema'   => 'http://json-schema.org/draft-04/schema#',
+            'type'      => 'string',
+            'minLength' => 0
+          }
         },
         'hostname' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
         },
         'root_password' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
         },
         'ip_address' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'string',
+          'pattern'  => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
         },
         'boot_count' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'integer',
+          'minimum'  => 0
         },
       },
       'additionalProperties' => false,
@@ -481,7 +514,7 @@ describe "command and query API" do
 
     context "with one" do
       before :each do
-        Fabricate(:node)
+        Fabricate(:bound_node)
       end
 
       it_should_behave_like "a node collection", 1
@@ -489,7 +522,8 @@ describe "command and query API" do
 
     context "with ten" do
       before :each do
-        10.times { Fabricate(:node) }
+        5.times { Fabricate(:node) }
+        5.times { Fabricate(:bound_node) }
       end
 
       it_should_behave_like "a node collection", 10

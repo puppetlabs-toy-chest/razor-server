@@ -12,7 +12,9 @@ describe "provisioning API" do
     use_installer_fixtures
   end
 
-  let (:policy) { Fabricate(:policy) }
+  let (:policy) do
+    Fabricate(:policy, installer_name: 'some_os')
+  end
 
   it "should boot new nodes into the MK" do
     hw_id = "00:11:22:33:44:55"
