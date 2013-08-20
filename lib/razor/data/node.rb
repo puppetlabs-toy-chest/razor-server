@@ -5,6 +5,15 @@ module Razor::Data
 
     many_to_one :policy
 
+    # Return the `hw_id` field as `name` to the outside.
+    #
+    # @todo danielp 2013-08-19: this is kind of a hack to make the generic
+    # view code work reasonably correctly in the face of this being the *one*
+    # data object that differs from the others.  In the longer term we should
+    # figure out what the right solution looks like, but this will get us
+    # working for now.
+    alias_method 'name', 'hw_id'
+
     def installer
       policy ? policy.installer : Razor::Installer.mk_installer
     end
