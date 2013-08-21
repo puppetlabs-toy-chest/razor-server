@@ -40,7 +40,11 @@ module Razor::Data
       self.log ||= []
       hash[:timestamp] ||= Time.now.to_i
       hash[:severity] ||= 'info'
-      self.log << hash
+      # Roundtrip the hash through JSON to make sure we always have the
+      # same entries in the log that we would get from loading from DB
+      # (otherwise we could have symbols, which will turn into strings on
+      # reloading)
+      self.log << JSON::parse(hash.to_json)
     end
 
     def bind(policy)
@@ -77,11 +81,14 @@ module Razor::Data
       else
         node = create(:hw_id => hw_id, :facts => body['facts'])
       end
+      action = :none
       Policy.bind(node) unless node.policy
       if node.policy
-        # FIXME: Bound to a policy, what do we do next ?
+        node.log_append(:action => :reboot, :policy => node.policy.name)
+        node.save
+        action = :reboot
       end
-      { :action => :none }
+      { :action => action }
     end
 
     def self.canonicalize_hw_id(input)

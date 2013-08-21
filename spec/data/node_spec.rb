@@ -111,6 +111,8 @@ describe Razor::Data::Node do
 
       node = Node.lookup(hw_id)
       node.policy.should == policy
+      node.log.last["action"].should == "reboot"
+      node.log.last["policy"].should == policy.name
     end
 
     it "should refuse to bind to a policy if any tag raises an error" do

@@ -163,6 +163,9 @@ class Razor::App < Sinatra::Base
     end
     template = @installer.boot_template(@node)
 
+    @node.log_append(:event => :boot, :installer => @installer.name,
+                     :template => template, :image => @image.name)
+    @node.save
     render_template(template)
   end
 
@@ -425,6 +428,14 @@ class Razor::App < Sinatra::Base
     node = Razor::Data::Node[:hw_id => params[:hw_id]] or
       error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
     node_hash(node).to_json
+  end
+
+  get '/api/collections/nodes/:hw_id/log' do
+    # @todo lutter 2013-08-20: There are no tests for this handler
+    # @todo lutter 2013-08-20: Do we need to send the log through a view ?
+    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
+      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
+    node.log.to_json
   end
 
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither

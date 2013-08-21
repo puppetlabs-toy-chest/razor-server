@@ -30,6 +30,11 @@ describe "provisioning API" do
     it "without policy should boot the microkernel" do
       get "/svc/boot/#{@node.hw_id}"
       assert_booting("Microkernel")
+      @node.reload
+      @node.log.last["event"].should == "boot"
+      @node.log.last["installer"].should == "microkernel"
+      @node.log.last["template"].should == "boot"
+      @node.log.last["image"].should == "microkernel"
     end
 
     it "with policy repeatedly should boot the installer kernels" do

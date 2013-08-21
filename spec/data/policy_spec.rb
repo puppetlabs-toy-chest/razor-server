@@ -15,6 +15,8 @@ describe Razor::Data::Policy do
     pl.save
     Policy.bind(@node)
     @node.policy.should == pl
+    @node.log.last["event"].should == "bind"
+    @node.log.last["policy"].should == pl.name
   end
 
   it "does not save a policy if the named installer does not exist" do
