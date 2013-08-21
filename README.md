@@ -1,96 +1,52 @@
 # Razor server
 
-This is a rewrite of the Razor server
+This code is still in development mode; that means that we might make
+backwards incompatible changes, especially to the database schema which
+would force you to rebuild all the machines that Razor is managing. Razor
+will become stable RSN.
 
-LET ME KNOW IF YOU INTEND TO HACK ON THIS - OTHERWISE I MIGHT DO NASTY
-THINGS TO THE REPO
+## Getting in touch
+
+* on IRC: `#puppet-razor` on [freenode](http://freenode.net/)
+* mailing list: [puppet-razor@googlegroups.com](http://groups.google.com/group/puppet-razor)
 
 ## Getting started
 
-Currently, the Razor server requires a certain amount of manual setup, and
-is only suitable for development. You need the following to work on it:
+The Wiki has all the details; in particular look at
 
-* Make sure you have JRuby 1.7.4 and Bundler, installed
-  - RVM should work fine out of the box
-  - your platform JRuby or a binary JRuby should also be fine
-* Make sure you have a PostgreSQL database available
-* Create a database in that PostgreSQL instance
-* cd into this directory
-* Run 'bundle install'
-* cp config.yaml.sample config.yaml
-* Edit config.yaml and adjust, at a very minimum the `database_url` for
-  development and test (these should be different databases)
-  - in most development cases, with no authentication, you can just put
-    your database name in the obvious place in the URL.
-* Run `rake db:migrate`
-* Run `torquebox deploy`
-* Run `torquebox run` to start the server
-  - `torquebox run --jvm-options='-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled'`
-    is recommended if you expect to modify code and redeploy regularly, to
-    reduce problems with running out of heap space in the JVM.
+* [Installation](wiki/installation): how to get a Razor environment up and running
+* [Geting started](wiki/Getting-started): using the CLI to do useful things
+* [Developer setup](wiki/Developer-setup): for when you feel like hacking
 
-At this point the application is running on port 8080, ready to
-serve connections.
+## What does Razor do anyway ?
 
-If you make changes to your code, run `torquebox deploy` again to notify a
-running server that it should reload your application.  Presently, real-time
-reloading is not enabled.
+Project Razor is a power control, provisioning, and management application
+designed to deploy both bare-metal and virtual computer resources. Razor
+provides broker plugins for integration with third party configuration
+systems such as Puppet.
 
+Razor does this by discovering new nodes using
+[facter](https://github.com/puppetlabs/facter), tagging nodes using facts
+based on user-supplied rules and deciding what to install through matching
+tags to user-supplied policies. Installation itself is handled flexibly
+through ERB templating all installer files. Once installation completes,
+the node can be handed off to a broker, typically a configuration
+management system. Razor makes this handoff seamless and flexible.
 
-## Running tests
+This is a 0.x release, so the CLI and API is still in flux and may
+change. Make sure you __read the release notes before upgrading__
 
-* Run `rake spec:all` or `rspec spec`
+## Razor MicroKernel
 
-As of now, coverage generation through SimpleCov is automatically enabled for
-all spec test runs.  This doesn't substantially change the runtime of the
-tests.
+The [MicroKernel](https://github.com/puppetlabs/razor-el-mk) is a small OS
+image that Razor boots on new nodes to do discovery. It periodically
+submits [facts](https://github.com/puppetlabs/facter) about the node and
+waits for instructions from the server about what to do next, if anything.
 
-You should set `JRUBY_OPTS='--debug'` in your environment to avoid the warning
-about reduced coverage accuracy -- or simply ignore the warning, which does
-not change the accuracy of the tests themselves.
+A [prebuild image](http://links.puppetlabs.com/razor-microkernel-001.tar)
+is available.
 
-(The same option is required if you intend to use a debugger with JRuby.)
+## License
 
-
-## JRuby, TorqueBox?  Madness!
-
-Not really; part of the promise of Razor is that it can help manage a pool of
-machines, including reprovisioning.  This means it lives as part of the boot
-process of every server on the network.  If that goes down, bad things follow.
-
-JRuby and TorqueBox help deliver a highly available solution at minimal cost,
-especially when focused on clustering multiple machines to provide high levels
-of resilience to day to day maintenance or upgrades.
-
-## Deploying
-
-1. Put the
-   [iPXE firmware](http://boot.ipxe.org/undionly.kpxe) `undionly.kpxe` on
-   your TFTP server
-1. Have the Razor server give you a default iPXE boot file with
-
-       curl -o bootstrap.ipxe http://razor.example.org/api/microkernel/bootstrap?nic_max=NNN
-
-   The parameter nic_max is the maximum number of interfaces with DHCP that
-   you plan to encounter on your machines and must be an integer not
-   starting with '0'; it defaults to 4. Put this file also on your TFTP
-   server.
-1. Arrange for your DHCP server to tell machines that are running the iPXE client
-   to load `bootstrap.ipxe`, and all other machines to boot `undionly.kpxe`
-
-### With dnsmasq
-
-If you are using [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html),
-the following configuration settings should suffice
-
-    # This works for dnsmasq 2.45
-    # iPXE sets option 175, mark it for network IPXEBOOT
-    dhcp-match=IPXEBOOT,175
-    dhcp-boot=net:IPXEBOOT,bootstrap.ipxe
-    dhcp-boot=undionly.kpxe
-    # TFTP setup
-    enable-tftp
-    tftp-root=/var/lib/tftpboot
-
-You then need to copy `undionly.kpxe` and `bootstrap.ipxe` to
-`/var/lib/tftpboot`
+Razor is distributed under the Apache 2.0 license.
+See [the LICENSE file][license] for full details.
