@@ -29,6 +29,7 @@ rescue RestClient::Exception => e
     end
   rescue => e
     # Ignore errors here; our best efforts at telling the user more about
-    # what happened has failed
+    # what happened has failed. Just dump the response
+    puts r.body
   end
 end
