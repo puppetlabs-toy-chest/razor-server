@@ -84,6 +84,24 @@ describe "command and query API" do
         policy["properties"].keys.should =~ %w[name]
       end
     end
+
+    it "should have actions for policies" do
+      get '/api/collections/policies'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/policies'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name image installer
+          hostname root-password enabled line-number broker]
+      end
+    end
+
   end
 
   context "/api/collections/policies/ID - get policy" do
@@ -136,6 +154,22 @@ describe "command and query API" do
       data["entities"].size.should be 1
       data["entities"].first["properties"]["name"].should == t.name
     end
+
+    it "should have actions for tags" do
+      get '/api/collections/tags'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/tags'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name rule]
+      end
+    end
   end
 
   context "/api/collections/tags/ID - get tag" do
@@ -182,6 +216,22 @@ describe "command and query API" do
         img["properties"].keys.should =~ ["name"]
       end
     end
+
+    it "should have actions for images" do
+      get '/api/collections/images'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/images'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name image-url]
+      end
+    end
   end
 
   context "/api/collections/images/:name" do
@@ -201,6 +251,20 @@ describe "command and query API" do
       data = last_response.json
       data["properties"].keys.should =~ %w[name image_url]
       data["properties"]["name"].should == "image1"
+    end
+
+    it "should have actions" do
+      get "/api/collections/images/image1"
+      last_response.json["actions"].map {|a| a["name"]}.should =~ %w[delete]
+    end
+
+    describe "'delete' action" do
+      subject(:delete) do
+        get '/api/collections/images/image1'
+        last_response.json["actions"].find {|act| act["name"]=="delete" }
+      end
+
+      it {delete["fields"].should be_empty}
     end
 
     it "should return 404 when image not found" do
@@ -311,6 +375,22 @@ describe "command and query API" do
         last_response.json["class"].should == [class_url("collection"), class_url("broker")]
         last_response.json["entities"].should be_an_instance_of Array
         last_response.json["entities"].count.should == expected
+      end
+
+      it "should have actions for tags" do
+        get '/api/collections/brokers'
+        last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+      end
+
+      describe "'create' action" do
+        subject(:create) do
+          get '/api/collections/brokers'
+          last_response.json["actions"].find {|act| act["name"]=="create" }
+        end
+
+        it do
+          create["fields"].map{|f| f["name"]}.should =~ %w[name configuration broker-type]
+        end
       end
 
       it "should 404 a broker requested that does not exist" do
@@ -490,6 +570,11 @@ describe "command and query API" do
         last_response.json["entities"].count.should == expected
         last_response.json["class"].should == [class_url("collection"), class_url("node")]
       end
+      it "should not return any actions" do
+        get "/api/collections/nodes"
+        last_response.json["actions"].should be_empty
+      end
+
 
       it "should 404 a node requested that does not exist" do
         get "/api/collections/nodes/fast%20freddy"

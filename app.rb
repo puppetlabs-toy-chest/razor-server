@@ -311,8 +311,8 @@ class Razor::App < Sinatra::Base
   def self.retrieve_one(&block)
     path = @path + "/:name"
     get path do
-      view_object_hash(instance_exec(&block),
-        @@actions[path].map {|x| x.merge :href=>url(x[:href]) }).to_json
+      actions = @@actions[path].map {|x| x.merge :href=>url(x[:href]) }
+      view_object_hash(instance_exec(&block), actions.any? ? actions : nil).to_json
     end
   end
 
@@ -334,7 +334,8 @@ class Razor::App < Sinatra::Base
 
   collection :images do
 create do
-  fields []
+  fields [ Razor::View::Siren::action_field('name'),
+    Razor::View::Siren::action_field('image-url') ]
 
   lambda do |data|
     # Create our shiny new image.  This will implicitly, thanks to saving
@@ -372,7 +373,13 @@ end
 
   collection :installers do
 create do
-  fields []
+  fields [ Razor::View::Siren::action_field('name'),
+    Razor::View::Siren::action_field('os'),
+    Razor::View::Siren::action_field('os-version'),
+    Razor::View::Siren::action_field('description'),
+    Razor::View::Siren::action_field('boot-seq'),
+    Razor::View::Siren::action_field('templates'),
+  ]
 
   lambda do |data|
     # If boot_seq is not a Hash, the model validation for installers
@@ -401,7 +408,9 @@ end
 
   collection :tags do
 create do
-  fields []
+  fields [ Razor::View::Siren::action_field('name'),
+    Razor::View::Siren::action_field('rule'),
+  ]
 
   lambda do |data|
     Razor::Data::Tag.find_or_create_with_rule(data)
@@ -420,7 +429,10 @@ end
 
   collection :brokers do
 create do
-  fields []
+  fields [ Razor::View::Siren::action_field('name'),
+    Razor::View::Siren::action_field('configuration'),
+    Razor::View::Siren::action_field('broker-type'),
+  ]
 
   lambda do |data|
     if type = data["broker_type"]
@@ -448,7 +460,15 @@ end
 
   collection :policies do
 create do
-  fields []
+  fields [ Razor::View::Siren::action_field('name'),
+    Razor::View::Siren::action_field('image'),
+    Razor::View::Siren::action_field('installer'),
+    Razor::View::Siren::action_field('hostname'),
+    Razor::View::Siren::action_field('root-password'),
+    Razor::View::Siren::action_field('enabled','checkbox'),
+    Razor::View::Siren::action_field('line-number'),
+    Razor::View::Siren::action_field('broker'),
+  ]
 
   lambda do |data|
     tags = (data.delete("tags") || []).map do |t|
