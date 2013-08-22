@@ -100,6 +100,19 @@ class Razor::App < Sinatra::Base
     def config
       @config ||= Razor::Util::TemplateConfig.new
     end
+
+    def underscore_keys(data)
+      if data.is_a? Array
+        data.map {|x| x.respond_to?(:each) ? underscore_keys(x) : x}
+      elsif data.is_a? Hash
+        data.keys.each do |key|
+          value = data.delete(key)
+          value = underscore_keys(value) if value.respond_to? :each
+          data[key.tr('-','_')] = value
+        end
+        data
+      end
+    end
   end
 
   # Client API helpers
@@ -264,10 +277,7 @@ class Razor::App < Sinatra::Base
     handler = lambda do
       data = json_body
       data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
-      # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
-      # (recursively) so that we do not use '_' in the API (i.e., this also
-      # requires fixing up view.rb)
-
+      data = underscore_keys(data)
       begin
         result = instance_exec(data, &call)
       rescue => e
@@ -331,7 +341,6 @@ create do
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
-    data["image_url"] = data.delete("image-url")
     image = Razor::Data::Image.new(data).save.freeze
 
     # Finally, return the state (started, not complete) and the URL for the
@@ -414,7 +423,7 @@ create do
   fields []
 
   lambda do |data|
-    if type = data.delete("broker-type")
+    if type = data["broker_type"]
       begin
         data["broker_type"] = Razor::BrokerType.find(type)
       rescue Razor::BrokerTypeNotFoundError
