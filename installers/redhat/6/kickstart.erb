@@ -4,16 +4,16 @@
 
 install
 url --url=<%= image_url %>
-text
+cmdline
 lang en_US.UTF-8
 keyboard us
 rootpw <%= node.root_password %>
 network --hostname <%= node.hostname %>
-firewall --service=ssh
+firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
-selinux --disabled
-timezone --utc America/Denver
-bootloader --location=mbr --driveorder=sda --append=crashkernel=auto rhgb quiet
+timezone --utc America/Los_Angeles
+# Avoid having 'rhgb quiet' on the boot line
+bootloader --location=mbr --append="crashkernel=auto"
 # The following is the partition information you requested
 # Note that any partitions you deleted are not expressed
 # here so unless you clear all partitions first, this is
@@ -30,9 +30,12 @@ reboot
 
 %end
 
-%post --log=/root/razor-post.log
-curl <%= log_url("Kickstart end") %>
-curl -o /tmp/razor_postinstall.sh <%= file_url("os_boot") %>
-echo bash /tmp/razor_postinstall.sh >> /etc/rc.local
-chmod +x /tmp/razor_postinstall.sh
+%post --log=/var/log/razor.log
+echo Kickstart post
+curl -s -o /root/razor_postinstall.sh <%= file_url("post_install") %>
+echo bash /root/razor_postinstall.sh >> /etc/rc.local
+chmod +x /root/razor_postinstall.sh
+
+curl -s <%= stage_done_url("kickstart") %>
+%end
 ############

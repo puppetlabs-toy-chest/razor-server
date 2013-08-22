@@ -5,5 +5,8 @@ echo Installation image: <%= image_url %>
 
 sleep 3
 kernel <%= "#{image_url("/isolinux/vmlinuz")} #{render_template("kernel_args")}" %> || goto error
-initrd <%= "#{image_url("/isolinux/initrd")}" %> || goto error
+initrd <%= "#{image_url("/isolinux/initrd.img")}" %> || goto error
 boot
+
+:error
+prompt --key s --timeout 60 ERROR, hit 's' for the iPXE shell; reboot in 60 seconds && shell || reboot
