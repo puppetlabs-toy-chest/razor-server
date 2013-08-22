@@ -6,7 +6,7 @@ describe "create policy command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create-policy" do
+  shared_examples "a policy creation endpoint" do |api_path|
     before :each do
       use_installer_fixtures
       header 'content-type', 'application/json'
@@ -31,9 +31,11 @@ describe "create policy command" do
       }
     end
 
+    let(:api_path) {api_path}
+
     def create_policy(input = nil)
       input ||= policy_hash.to_json
-      post '/api/commands/create-policy', input
+      post api_path, input
     end
 
     # Successful creation
@@ -41,7 +43,6 @@ describe "create policy command" do
       create_policy
 
       last_response.status.should == 202
-      last_response.json?.should be_true
       last_response.json.keys.should =~ %w[class properties rel href]
       last_response.json["properties"].keys.should =~ ["name"]
       last_response.json["href"].should =~ %r'/api/collections/policies/test%20policy\Z'
@@ -64,5 +65,13 @@ describe "create policy command" do
 
       Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
     end
+  end
+
+  context "/api/commands/create-policy" do
+    it_should_behave_like "a policy creation endpoint", "/api/commands/create-policy"
+  end
+
+  context "/api/collections/policies" do
+    it_should_behave_like "a policy creation endpoint", "/api/collections/policies"
   end
 end

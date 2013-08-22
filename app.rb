@@ -229,10 +229,6 @@ class Razor::App < Sinatra::Base
   end
 
   # The collections we advertise in the API
-  #
-  # @todo danielp 2013-06-26: this should be some sort of discovery, not a
-  # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :images, :tags, :policies, :nodes]
 
   #
   # The main entry point for the public/management API
@@ -240,58 +236,97 @@ class Razor::App < Sinatra::Base
   get '/api' do
 
     siren_entity(class_url('api'), nil,
-      COLLECTIONS.map do |coll|
-        klass = "Razor::Data::#{coll.to_s.classify}".constantize
-        pl_name = collection_name(klass)
-        siren_object_ref(class_url(klass), spec_url("collections", pl_name),
-          url("/api/collections/#{pl_name}"), pl_name)
-      end,
-        @@commands.dup.map { |c| c.update("href" => url(c["href"])) }
-    ).to_json
+      @@collections["/api"].dup.map {|x| x.merge :href => url(x[:href]) },
+      @@actions["/api"] ).to_json
   end
 
-  # Command handling and query API: this provides navigation data to allow
-  # clients to discover which URL namespace content is available, and access
-  # the query and command operations they desire.
 
-  @@commands = []
+  def self.collection(type, &block)
+    @@collections ||= Hash.new {|h,k| h[k]=[]}
+    @@actions     ||= Hash.new {|h,k| h[k]=[]}
 
-  # A helper to wire up new commands and enter them into the list of
-  # commands we return from /api. The actual command handler will live
-  # at '/api/commands/#{name}'. The block will be passed the body of the
-  # request, already parsed into a Ruby object.
-  #
-  # Any exception the block may throw will lead to a response with status
-  # 400. The block should return an object whose +view_reference_object+
-  # will be returned in the response together with status code 202
-  def self.command(name, &block)
-    name = name.to_s.tr("_", "-")
-    path = "/api/commands/#{name}"
-    # List this command when clients ask for /api
-    @@commands << {
-      "name" => name,
-      "class" => [Razor::View::class_url("command/#{name}")],
-      "href" => path
-    }
+    @type_pl = type.to_s.pluralize
+    @type = type.to_s.singularize
 
-    # Handler for the command
-    post path do
+    @path = "/api/collections/#{@type_pl}"
+    @class = "Razor::Data::#{@type.classify}".constantize
+    instance_exec(&block)
+  end
+
+  def self.create(&block)
+    @fields = []
+    call = instance_exec(&block)
+
+    @@actions[@path] << Razor::View::Siren.action("create",
+      "Create #{@type.indefinite_article} #{@type}", @path,
+      Razor::View::class_url(@class), @fields || [], "POST" )
+
+    handler = lambda do
       data = json_body
       data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
       # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
       # (recursively) so that we do not use '_' in the API (i.e., this also
       # requires fixing up view.rb)
+
       begin
-        result = instance_exec(data, &block)
+        result = instance_exec(data, &call)
       rescue => e
         error 400, :details => e.to_s
       end
       result = view_reference_object(result, spec_url("self")) unless result.is_a?(Hash)
       [202, result.to_json]
     end
+
+    post @path, &handler
+    post "/api/commands/create-#{@type}", &handler
   end
 
-  command :create_image do |data|
+  def self.fields(fields)
+    @fields = fields
+  end
+
+  def self.retrieve_all(&block)
+    @@collections["/api"] << Razor::View::Siren.object_ref(
+      [Razor::View::class_url("collection"), Razor::View::class_url(@class)],
+      Razor::View::spec_url("collections", @type_pl),
+      "/api/collections/#{@type_pl}", @type_pl )
+
+    klass = @class; path = @path
+    get @path do
+      view_reference_collection(klass, instance_exec(&block), nil,
+        @@actions[path].dup.map {|x| x.merge :href => url(x[:href]) }).to_json
+    end
+  end
+
+  def self.retrieve_one(&block)
+    path = @path + "/:name"
+    get path do
+      view_object_hash(instance_exec(&block),
+        @@actions[path].map {|x| x.merge :href=>url(x[:href]) }).to_json
+    end
+  end
+
+  def self.delete_one(&block)
+    delete @path+"/:name" do
+      [202, { :result => instance_exec(&block) }.to_json]
+    end
+
+    post "/api/commands/delete-#{@type}" do
+      data = json_body
+      data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
+      params[:name] = data["name"]
+      [202, { :result => instance_exec(&block) }.to_json]
+    end
+
+    @@actions[@path+"/:name"] << Razor::View::Siren.action("delete", "Delete #{@type}",
+      @path, Razor::View::class_url(@class), [], "DELETE" )
+  end
+
+  collection :images do
+create do
+  fields []
+
+  lambda do |data|
     # Create our shiny new image.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
@@ -303,20 +338,34 @@ class Razor::App < Sinatra::Base
     # final image to our poor caller, so they can watch progress happen.
     image
   end
+end
 
-  command :delete_image do |data|
-    data["name"] or error 400,
+  delete_one do
+    params[:name] or error 400,
       :error => "Supply 'name' to indicate which image to delete"
-    if image = Razor::Data::Image[:name => data['name']]
+    if image = Razor::Data::Image[:name => params[:name]]
       image.destroy
-      action = "image destroyed"
+      "image destroyed"
     else
-      action = "no changes; image #{data["name"]} does not exist"
+      "no changes; image #{params[:name]} does not exist"
     end
-    { :result => action }
   end
 
-  command :create_installer do |data|
+    retrieve_all do
+      Razor::Data::Image.all
+    end
+
+    retrieve_one do
+      Razor::Data::Image[:name => params[:name]] or
+        error 404, :error => "no image matched name=#{params[:name]}"
+    end
+  end
+
+  collection :installers do
+create do
+  fields []
+
+  lambda do |data|
     # If boot_seq is not a Hash, the model validation for installers
     # will catch that, and will make saving the installer fail
     if (boot_seq = data["boot_seq"]).is_a?(Hash)
@@ -327,12 +376,44 @@ class Razor::App < Sinatra::Base
 
     Razor::Data::Installer.new(data).save.freeze
   end
+end
 
-  command :create_tag do |data|
-    Razor::Data::Tag.find_or_create_with_rule(data)
+# FIXME: Add a query to list all installers
+
+    retrieve_one do
+      begin
+        installer = Razor::Installer.find(params[:name])
+      rescue Razor::InstallerNotFoundError => e
+        error 404, :error => "Installer #{params[:name]} does not exist",
+          :details => e.to_s
+      end
+    end
   end
 
-  command :create_broker do |data|
+  collection :tags do
+create do
+  fields []
+
+  lambda do |data|
+    Razor::Data::Tag.find_or_create_with_rule(data)
+  end
+end
+
+    retrieve_all do
+      Razor::Data::Tag.all
+    end
+
+    retrieve_one do
+      Razor::Data::Tag[:name => params[:name]] or
+        error 404, :error => "no tag matched id=#{params[:name]}"
+    end
+  end
+
+  collection :brokers do
+create do
+  fields []
+
+  lambda do |data|
     if type = data.delete("broker-type")
       begin
         data["broker_type"] = Razor::BrokerType.find(type)
@@ -342,11 +423,25 @@ class Razor::App < Sinatra::Base
         halt 400, e.to_s
       end
     end
-
     Razor::Data::Broker.new(data).save
   end
+end
 
-  command :create_policy do |data|
+    retrieve_all do
+      Razor::Data::Broker.all
+    end
+
+    retrieve_one do
+      Razor::Data::Broker[:name => params[:name]] or
+        halt 404, "no broker matched id=#{params[:name]}"
+    end
+  end
+
+  collection :policies do
+create do
+  fields []
+
+  lambda do |data|
     tags = (data.delete("tags") || []).map do |t|
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
@@ -376,70 +471,27 @@ class Razor::App < Sinatra::Base
 
     policy
   end
+end
 
-  #
-  # Query/collections API
-  #
-  get '/api/collections/tags' do
-    view_reference_collection(Razor::Data::Tag, Razor::Data::Tag.all).to_json
-  end
-
-  get '/api/collections/tags/:name' do
-    tag = Razor::Data::Tag[:name => params[:name]] or
-      error 404, :error => "no tag matched id=#{params[:name]}"
-    tag_hash(tag).to_json
-  end
-
-  get '/api/collections/brokers' do
-    view_reference_collection(Razor::Data::Broker, Razor::Data::Broker.all).to_json
-  end
-
-  get '/api/collections/brokers/:name' do
-    broker = Razor::Data::Broker[:name => params[:name]] or
-      halt 404, "no broker matched id=#{params[:name]}"
-    broker_hash(broker).to_json
-  end
-
-  get '/api/collections/policies' do
-    view_reference_collection(Razor::Data::Policy, Razor::Data::Policy.all).to_json
-  end
-
-  get '/api/collections/policies/:name' do
-    policy = Razor::Data::Policy[:name => params[:name]] or
-      error 404, :error => "no policy matched id=#{params[:name]}"
-    policy_hash(policy).to_json
-  end
-
-  # FIXME: Add a query to list all installers
-
-  get '/api/collections/installers/:name' do
-    begin
-      installer = Razor::Installer.find(params[:name])
-    rescue Razor::InstallerNotFoundError => e
-      error 404, :error => "Installer #{params[:name]} does not exist",
-        :details => e.to_s
+    retrieve_all do
+      Razor::Data::Policy.all
     end
-    installer_hash(installer).to_json
+
+    retrieve_one do
+      Razor::Data::Policy[:name => params[:name]] or
+        error 404, :error => "no policy matched id=#{params[:name]}"
+    end
   end
 
-  get '/api/collections/images' do
-    view_reference_collection(Razor::Data::Image, Razor::Data::Image.all).to_json
-  end
+  collection :nodes do
+    retrieve_all do
+      Razor::Data::Node.all
+    end
 
-  get '/api/collections/images/:name' do
-    image = Razor::Data::Image[:name => params[:name]] or
-      error 404, :error => "no image matched name=#{params[:name]}"
-    image_hash(image).to_json
-  end
-
-  get '/api/collections/nodes' do
-    view_reference_collection(Razor::Data::Node, Razor::Data::Node.all).to_json
-  end
-
-  get '/api/collections/nodes/:hw_id' do
-    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
-      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
-    node_hash(node).to_json
+    retrieve_one do
+      Razor::Data::Node[:hw_id => params[:name]] or
+        error 404, :error => "no node matched hw_id=#{params[:name]}"
+    end
   end
 
   get '/api/collections/nodes/:hw_id/log' do

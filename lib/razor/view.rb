@@ -61,16 +61,16 @@ module Razor
       siren_collection_entity(class_url(type), entities, collection_rel, actions)
     end
 
-    def view_object_hash(object)
+    def view_object_hash(object, actions)
       helper = object.class.to_s.demodulize.singularize.underscore + "_hash"
       if respond_to? helper.to_sym
-        send helper.to_sym, object
+        send helper.to_sym, object, actions
       else
         raise "No helper exists for #{object}"
       end
     end
 
-    def policy_hash(policy)
+    def policy_hash(policy, actions = nil)
       return nil unless policy
 
       properties = {
@@ -89,20 +89,20 @@ module Razor
       image_relation = spec_url("collections", collection_name(policy), "member", object_name(policy.image))
       image_entity = view_reference_object policy.image, image_relation
 
-      siren_entity(class_url(policy.class), properties, [tags_entity, image_entity])
+      siren_entity(class_url(policy.class), properties, [tags_entity, image_entity], actions)
     end
 
-    def tag_hash(tag)
+    def tag_hash(tag, actions = nil)
       return nil unless tag
       properties = {
         :name => tag.name,
         :rule => tag.matcher.rule,
       }
 
-      siren_entity(class_url(tag.class), properties)
+      siren_entity(class_url(tag.class), properties, nil, actions)
     end
 
-    def image_hash(image)
+    def image_hash(image, actions = nil)
       return nil unless image
 
       properties = {
@@ -110,10 +110,10 @@ module Razor
         :image_url => image.image_url
       }
 
-      siren_entity(class_url(image.class), properties)
+      siren_entity(class_url(image.class), properties, nil, actions)
     end
 
-    def broker_hash(broker)
+    def broker_hash(broker, actions = nil)
       return nil unless broker
 
       properties = {
@@ -122,10 +122,10 @@ module Razor
         :"broker-type"   => broker.broker_type,
       }
 
-      siren_entity(class_url(broker.class), properties)
+      siren_entity(class_url(broker.class), properties, nil, actions)
     end
 
-    def installer_hash(installer)
+    def installer_hash(installer, actions = nil)
       return nil unless installer
 
       # FIXME: also return templates, requires some work for file-based
@@ -139,10 +139,10 @@ module Razor
         :boot_seq => installer.boot_seq
       }
 
-      siren_entity(class_url(installer.class), properties)
+      siren_entity(class_url(installer.class), properties, nil, actions)
     end
 
-    def node_hash(node)
+    def node_hash(node, actions = nil)
       return nil unless node
       properties = {
         :hw_id         => node.hw_id,
@@ -161,8 +161,17 @@ module Razor
       log_entity = siren_object_ref(class_url(node.class.to_s+"/log"),
         log_relation, view_object_url(node) + "/log", "log")
 
-      siren_entity(class_url(node.class), properties, [policy_entity, log_entity].compact)
+      siren_entity(class_url(node.class), properties,
+        [policy_entity, log_entity].compact, actions)
     end
+  end
+end
+
+# This is only moderately view-related, but it does have to do with formatting
+# output, so here it is.
+class String
+  def indefinite_article
+    "aeiou".include?(self[0].downcase) ? "an" : "a"
   end
 end
 

@@ -8,7 +8,7 @@ describe "create broker command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create-broker" do
+  shared_examples "a broker creation endpoint" do |api_path|
     before :each do
       header 'content-type', 'application/json'
 
@@ -22,13 +22,15 @@ describe "create broker command" do
       }
     end
 
+    let(:api_path) {api_path}
+
     def create_broker(command)
-      post '/api/commands/create-broker', command.to_json
+      post api_path, command.to_json
       command
     end
 
     it "should reject bad JSON" do
-      post '/api/commands/create-broker', '{"json": "not really..."'
+      post api_path, '{"json": "not really..."'
       last_response.status.should == 415
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
@@ -37,7 +39,7 @@ describe "create broker command" do
      "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
     ].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
-        post '/api/commands/create-broker', input
+        post api_path, input
         last_response.status.should == 415
       end
     end
@@ -54,7 +56,6 @@ describe "create broker command" do
       command = create_broker broker_command
 
       last_response.status.should == 202
-      last_response.json?.should be_true
       last_response.json.keys.should =~ %w[class href properties rel]
 
       name = URI.escape(command['name'])
@@ -66,5 +67,13 @@ describe "create broker command" do
 
       Razor::Data::Broker[:name => command['name']].should be_an_instance_of Razor::Data::Broker
     end
+  end
+
+  context "/api/commands/create-broker" do
+    it_should_behave_like "a broker creation endpoint", "/api/commands/create-broker"
+  end
+
+  context "/api/collections/brokers" do
+    it_should_behave_like "a broker creation endpoint", "/api/collections/brokers"
   end
 end
