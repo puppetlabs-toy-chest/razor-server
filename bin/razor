@@ -10,10 +10,19 @@ if parse.show_help?
   exit 0
 end
 begin
-  entity = parse.navigate.get_final_entity
+  object = parse.navigate.get_final_object
+  final_arguments = parse.final_arguments
 
-  url = parse.navigate.last_url
-  puts "From #{url}:\n\n#{format_entity entity}\n\n"
+  if object.is_a? Razor::CLI::Siren::Action
+    object = parse.navigate.execute_action(object, final_arguments)
+  end
+
+# Show the final entity
+  if object.is_a?(Razor::CLI::Siren::Entity)
+    puts "From #{parse.navigate.last_url}:\n\n#{format_entity object}\n\n"
+  else
+    raise "Can't handle #{object}"
+  end
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"
 rescue RestClient::Exception => e

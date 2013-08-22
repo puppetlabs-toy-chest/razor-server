@@ -5,6 +5,7 @@ module Razor::CLI
 
     class Field
       attr_reader :name, :type, :value
+      attr_writer :value
 
       def initialize(name, type, value)
         @name = name
@@ -24,6 +25,7 @@ module Razor::CLI
     end
 
     class Action
+      attr_accessor :path
       attr_reader :name, :title, :url, :method, :fields
 
       def initialize(name, title, url, method, fields)
@@ -56,6 +58,7 @@ module Razor::CLI
     end
 
     class Entity
+      attr_accessor :path
       attr_reader :type, :properties, :entities, :actions, :links, :title, :relation, :href
 
       def initialize(type, properties, entities, actions, links, title, rel=nil, href=nil)

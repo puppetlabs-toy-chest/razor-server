@@ -7,7 +7,7 @@ module Razor::CLI
     def initialize(parse, segments)
       @parse = parse
       @segments = segments||[]
-      @entity = entrypoint
+      self.current_object = entrypoint
       @last_url = parse.api_url
     end
 
@@ -17,88 +17,78 @@ module Razor::CLI
       @entrypoint ||= siren_get @parse.api_url
     end
 
-    def collections
-      @entity.entities
+    def current_object
+      @entity
     end
 
-    def actions
-      @entity.actions
+    def current_object=(value)
+      if value.is_a?(Razor::CLI::Siren::Entity) && value.href
+        @entity = siren_get(value.href)
+        @last_url = value.href
+      else
+        @entity = value
+      end
     end
 
     def query(name)
-      collections.find {|coll| coll.properties["name"] == name }
+      current_object.entities.find {|coll| coll.properties["name"] == name }
     end
 
-    def query?
+    def next_is_query?
       !! query(@segments.first)
     end
 
     def action(name)
-      actions.find { |action| action.name == name }
+      current_object.actions.find { |action| action.name == name }
     end
 
-    def action?
+    def next_is_action?
       !! action(@segments.first)
     end
 
-    def get_final_entity
+    def get_final_object
       if @segments.empty?
-        @entity
+        current_object
       else
         while @segments.any?
-          if query?
+          path = current_object.path.dup << @segments.first
+          if next_is_query?
             # Follow the breadcrumbs to the next entity
-            move_to @segments.shift
-          elsif action?
-            # Execute the action at the current location
-            # @todo lutter 2013-08-16: None of this has any tests, and error
-            # handling is heinous at best
-            cmd, body = extract_action
-            siren_request(cmd.href, cmd.method, body)
+            self.current_object = query(@segments.shift)
+            current_object.path = path
+          elsif next_is_action?
+            self.current_object = action(@segments.shift)
+            current_object.path = path
+            break # There's no point trying to navigate from an action
           else
-            raise NavigationError.new(@last_url, @segments, @entity)
+            raise NavigationError.new(@last_url, @segments, current_object)
           end
         end
-        @entity
+        current_object
       end
     end
 
-    def extract_action
-      raise "@todo alexkonradi 2013-08-20 Handle Siren commands"
+    def execute_action(action, arguments)
+      # Parse arguments into action.fields -> field.value
+      body = extract_arguments(action, arguments)
 
-      act = action(@segments.shift)
+      self.current_object = siren_request(action.url, action.method, body)
+    end
+
+    def extract_arguments(act, arguments)
       body = {}
-      until @segments.empty?
-        if @segments.shift =~ /\A--([a-z-]+)(=(\S+))?\Z/
-          body[$1] = ($3 || @segments.shift)
+      until arguments.empty?
+        if arguments.shift =~ /\A--([a-z-]+)(=(\S+))?\Z/
+          body[$1] = ($3 || arguments.shift)
         end
       end
       # Special treatment for tag rules
-      if act.name == "create-tag" && body["rule"]
+      if act.title == "Create a tag" && body["rule"]
         body["rule"] = JSON::parse(body["rule"])
       end
       body = JSON::parse(File::read(body["json"])) if body["json"]
-      [act, body]
-    end
 
-    def self.find_entity(current, key)
-      by_name = current["entities"].find do |ent|
-        ent["properties"] and ent["properties"]["name"]==key
-      end
-      return by_name if by_name
-    end
-
-    def move_to(key)
-      new_entity = query(key) or raise NavigationError.new(@doc_url, key, @entity)
-
-      # Follow 'href' if it exists
-      if new_entity.href
-        @entity = siren_get(new_entity.href)
-        @last_url = new_entity.href
-      else
-        @entity = new_entity # Since sub-entities are themselves valid entities
-      end
-      @entity
+      body
     end
 
     def get(url, headers={})
