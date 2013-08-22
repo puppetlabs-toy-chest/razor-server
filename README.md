@@ -46,6 +46,12 @@ waits for instructions from the server about what to do next, if anything.
 A [prebuild image](http://links.puppetlabs.com/razor-microkernel-001.tar)
 is available.
 
+## Reference
+
+* Original Razor Overview: [Nickapedia.com](http://nickapedia.com/2012/05/21/lex-parsimoniae-cloud-provisioning-with-a-razor)
+* Razor Session from PuppetConf 2012: [Youtube](http://www.youtube.com/watch?v=cR1bOg0IU5U)
+
+
 ## License
 
 Razor is distributed under the Apache 2.0 license.
