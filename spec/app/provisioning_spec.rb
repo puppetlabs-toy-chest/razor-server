@@ -37,17 +37,36 @@ describe "provisioning API" do
       @node.log.last["image"].should == "microkernel"
     end
 
-    it "with policy repeatedly should boot the installer kernels" do
-      @node.bind(policy)
-      @node.save
-      get "/svc/boot/#{@node.hw_id}"
-      assert_booting("Boot SomeOS 3")
+    describe "booting repeatedly with policy" do
+      before(:each) do
+        @node.bind(policy)
+        @node.save
+      end
 
-      get "/svc/boot/#{@node.hw_id}"
-      assert_booting("Boot SomeOS 3 again")
+      it "without calling stage_done boots the same template" do
+        get "/svc/boot/#{@node.hw_id}"
+        assert_booting("Boot SomeOS 3")
 
-      get "/svc/boot/#{@node.hw_id}"
-      assert_booting("Boot local")
+        get "/svc/boot/#{@node.hw_id}"
+        assert_booting("Boot SomeOS 3")
+
+        get "/svc/boot/#{@node.hw_id}"
+        assert_booting("Boot SomeOS 3")
+      end
+
+      it "with calling stage_done progresses through the boot sequence" do
+        get "/svc/stage-done/#{@node.id}"
+        last_response.status.should == 204
+
+        get "/svc/boot/#{@node.hw_id}"
+        assert_booting("Boot SomeOS 3 again")
+
+        get "/svc/stage-done/#{@node.id}"
+        last_response.status.should == 204
+
+        get "/svc/boot/#{@node.hw_id}"
+        assert_booting("Boot local")
+      end
     end
 
 

@@ -82,6 +82,13 @@ class Razor::App < Sinatra::Base
       url "/svc/image/#{@image.name}#{path}"
     end
 
+    # @todo lutter 2013-08-21: all the installers need to be adapted to do
+    # a 'curl <%= stage_done_url %> to signal that they are ready to
+    # proceed to the next stage in the boot sequence
+    def stage_done_url
+      url "/svc/stage-done/#{@node.id}"
+    end
+
     def config
       @config ||= Razor::Util::TemplateConfig.new
     end
@@ -199,6 +206,11 @@ class Razor::App < Sinatra::Base
     node.ip_address = params[:ip]
     node.log_append(:msg => "received IP address #{node.ip_address}")
     node.save
+    [204, {}]
+  end
+
+  get '/svc/stage-done/:node_id' do
+    Razor::Data::Node.stage_done(params[:node_id])
     [204, {}]
   end
 

@@ -49,7 +49,7 @@ module Razor::Data
 
     def bind(policy)
       self.policy = policy
-      self.boot_count = 0
+      self.boot_count = 1
       self.root_password = policy.root_password
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
     end
@@ -102,6 +102,12 @@ module Razor::Data
     def self.boot(hw_id, dhcp_mac = nil)
       node = lookup(hw_id) || Node.create(:hw_id => canonicalize_hw_id(hw_id))
       node.dhcp_mac = dhcp_mac if dhcp_mac && dhcp_mac != ""
+      node.save
+    end
+
+    def self.stage_done(node_id)
+      node = self[node_id]
+      node.log_append(:event => :stage_done, :stage => node.boot_count)
       node.boot_count += 1
       node.save
     end
