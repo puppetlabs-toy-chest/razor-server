@@ -26,17 +26,17 @@ describe Razor::CLI::Navigate do
   context "with no path" do
     subject(:nav) {Razor::CLI::Parse.new([]).navigate}
     it do
-      nav.get_document.should_not be_nil
-      nav.get_document.should == nav.entrypoint
+      nav.get_final_entity.should_not be_nil
+      nav.get_final_entity.should == nav.entrypoint
     end
   end
 
   context "with a single item path" do
     subject(:nav) {Razor::CLI::Parse.new(["tags"]).navigate}
-    it { nav.get_document.should == []}
+    it { nav.get_final_entity["entities"].should == []}
 
     it do
-      nav.get_document;
+      nav.get_final_entity;
       nav.last_url.to_s.should == "http://example.org/api/collections/tags"
     end
   end
@@ -44,7 +44,7 @@ describe Razor::CLI::Navigate do
   context "with an invalid path" do
     subject(:nav) {Razor::CLI::Parse.new(["going","nowhere"]).navigate}
 
-    it {expect{nav.get_document}.to raise_error Razor::CLI::NavigationError}
+    it {expect{nav.get_final_entity}.to raise_error Razor::CLI::NavigationError}
   end
 
   describe "extract_command" do

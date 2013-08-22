@@ -10,9 +10,10 @@ if parse.show_help?
   exit 0
 end
 begin
-  document = parse.navigate.get_document
+  entity = parse.navigate.get_final_entity
+
   url = parse.navigate.last_url
-  puts "From #{url}:\n\n#{format_document document}\n\n"
+  puts "From #{url}:\n\n#{format_entity entity}\n\n"
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"
 rescue RestClient::Exception => e

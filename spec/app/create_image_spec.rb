@@ -67,8 +67,9 @@ describe "command and query API" do
       last_response.mime_type.downcase.should == 'application/json'
 
       data = JSON.parse(last_response.body)
-      data.keys.should =~ %w[id name spec]
-      data["id"].should =~ %r'/api/collections/images/magicos\Z'
+      data.keys.should =~ %w[class href properties rel]
+      data["properties"].keys.should =~ ["name"]
+      data["href"].should =~ %r'/api/collections/images/magicos\Z'
     end
 
     it "should create an image record in the database" do

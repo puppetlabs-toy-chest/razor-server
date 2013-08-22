@@ -26,7 +26,7 @@ module Razor::CLI
 
     def list_things(name, items)
       "\n    #{name}:\n" +
-        items.map {|x| x["name"]}.compact.sort.map do |name|
+        items.map {|x| x["name"]||(x["properties"]||{})["name"]}.compact.sort.map do |name|
         "        #{name}"
       end.join("\n")
     end
@@ -34,8 +34,7 @@ module Razor::CLI
     def help
       output = get_optparse.to_s
       output << list_things("collections", navigate.collections)
-      output << list_things("commands", navigate.commands)
-      output
+      output << list_things("actions", navigate.actions)
     end
 
     def show_help?

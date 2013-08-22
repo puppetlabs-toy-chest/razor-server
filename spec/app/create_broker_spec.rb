@@ -55,10 +55,10 @@ describe "create broker command" do
 
       last_response.status.should == 202
       last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[name id spec]
+      last_response.json.keys.should =~ %w[class href properties rel]
 
       name = URI.escape(command['name'])
-      last_response.json["id"].should =~ %r'/api/collections/brokers/#{name}\Z'
+      last_response.json["href"].should =~ %r'/api/collections/brokers/#{name}\Z'
     end
 
     it "should create an broker record in the database" do

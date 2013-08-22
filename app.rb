@@ -14,11 +14,20 @@ class Razor::App < Sinatra::Base
   end
 
   before do
+    case request.path_info
     # We serve static files from /svc/image and will therefore let that
     # handler determine the most appropriate content type
-    pass if request.path_info.start_with?("/svc/image")
+    when %r'\A/svc/image' then pass
+
+    # We serve JSON Siren from /api and /api/collections
+    when %r'\A/api($|/collections)'
+      content_type 'application/vnd.siren+json'
+      pass
+
     # Set our content type: like many people, we simply don't negotiate.
+    else
     content_type 'application/json'
+    end
   end
 
   before %r'/api($|/)'i do
@@ -28,8 +37,14 @@ class Razor::App < Sinatra::Base
     # This should read `request.accept?(application/json)`, but
     # unfortunately for us, https://github.com/sinatra/sinatra/issues/731
     # --daniel 2013-06-26
-    request.preferred_type('application/json') or
-      halt [406, {"error" => "only application/json content is available"}.to_json]
+    case request.path_info
+    when %r'\A/api($|/collections)'
+      request.preferred_type('application/vnd.siren+json') or
+        halt [406, {"error" => "only application/vnd.siren+json content is available"}.to_json]
+    else
+      request.preferred_type('application/json') or
+        halt [406, {"error" => "only application/json content is available"}.to_json]
+    end
   end
 
   #
@@ -223,20 +238,16 @@ class Razor::App < Sinatra::Base
   # The main entry point for the public/management API
   #
   get '/api' do
-    # `rel` is the relationship; by RFC5988 (Web Linking) -- which is
-    # designed for HTTP, but we abuse in JSON -- this is the closest we can
-    # get to a conformant identifier for a custom relationship type, and
-    # since we expect to consume one per command to avoid clients just
-    # knowing the URL, we get this nastiness.  At least we can turn it into
-    # something useful by putting documentation about how to use the
-    # command or query interface behind it, I guess. --daniel 2013-06-26
-    {
-      "commands" => @@commands.dup.map { |c| c.update("id" => url(c["id"])) },
-      "collections" => COLLECTIONS.map do |coll|
-        { "name" => coll, "rel" => spec_url("/collections/#{coll}"),
-          "id" => url("/api/collections/#{coll}")}
-      end
-    }.to_json
+
+    siren_entity(class_url('api'), nil,
+      COLLECTIONS.map do |coll|
+        klass = "Razor::Data::#{coll.to_s.classify}".constantize
+        pl_name = collection_name(klass)
+        siren_object_ref(class_url(klass), spec_url("collections", pl_name),
+          url("/api/collections/#{pl_name}"), pl_name)
+      end,
+        @@commands.dup.map { |c| c.update("href" => url(c["href"])) }
+    ).to_json
   end
 
   # Command handling and query API: this provides navigation data to allow
@@ -251,7 +262,7 @@ class Razor::App < Sinatra::Base
   # request, already parsed into a Ruby object.
   #
   # Any exception the block may throw will lead to a response with status
-  # 400. The block should return an object whose +view_object_reference+
+  # 400. The block should return an object whose +view_reference_object+
   # will be returned in the response together with status code 202
   def self.command(name, &block)
     name = name.to_s.tr("_", "-")
@@ -259,8 +270,8 @@ class Razor::App < Sinatra::Base
     # List this command when clients ask for /api
     @@commands << {
       "name" => name,
-      "rel" => Razor::View::spec_url("commands", name),
-      "id" => path
+      "class" => [Razor::View::class_url("command/#{name}")],
+      "href" => path
     }
 
     # Handler for the command
@@ -275,7 +286,7 @@ class Razor::App < Sinatra::Base
       rescue => e
         error 400, :details => e.to_s
       end
-      result = view_object_reference(result) unless result.is_a?(Hash)
+      result = view_reference_object(result, spec_url("self")) unless result.is_a?(Hash)
       [202, result.to_json]
     end
   end
@@ -370,7 +381,7 @@ class Razor::App < Sinatra::Base
   # Query/collections API
   #
   get '/api/collections/tags' do
-    Razor::Data::Tag.all.map {|t| view_object_reference(t)}.to_json
+    view_reference_collection(Razor::Data::Tag, Razor::Data::Tag.all).to_json
   end
 
   get '/api/collections/tags/:name' do
@@ -380,7 +391,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/brokers' do
-    Razor::Data::Broker.all.map {|t| view_object_reference(t)}.to_json
+    view_reference_collection(Razor::Data::Broker, Razor::Data::Broker.all).to_json
   end
 
   get '/api/collections/brokers/:name' do
@@ -390,7 +401,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/policies' do
-    Razor::Data::Policy.all.map {|p| view_object_reference(p)}.to_json
+    view_reference_collection(Razor::Data::Policy, Razor::Data::Policy.all).to_json
   end
 
   get '/api/collections/policies/:name' do
@@ -412,7 +423,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/images' do
-    Razor::Data::Image.all.map { |img| view_object_reference(img)}.to_json
+    view_reference_collection(Razor::Data::Image, Razor::Data::Image.all).to_json
   end
 
   get '/api/collections/images/:name' do
@@ -422,7 +433,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes' do
-    Razor::Data::Node.all.map {|node| view_object_reference(node) }.to_json
+    view_reference_collection(Razor::Data::Node, Razor::Data::Node.all).to_json
   end
 
   get '/api/collections/nodes/:hw_id' do
