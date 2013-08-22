@@ -14,9 +14,9 @@ will become stable RSN.
 
 The Wiki has all the details; in particular look at
 
-* [Installation](wiki/installation): how to get a Razor environment up and running
-* [Geting started](wiki/Getting-started): using the CLI to do useful things
-* [Developer setup](wiki/Developer-setup): for when you feel like hacking
+* [Installation](https://github.com/puppetlabs/razor-server/wiki/Installation): how to get a Razor environment up and running
+* [Geting started](https://github.com/puppetlabs/razor-server/wiki/Getting-started): using the CLI to do useful things
+* [Developer setup](https://github.com/puppetlabs/razor-server/wiki/Developer-setup): for when you feel like hacking
 
 ## What does Razor do anyway ?
 
