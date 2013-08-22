@@ -18,3 +18,4 @@ end
 require_relative 'cli/navigate'
 require_relative 'cli/parse'
 require_relative 'cli/format'
+require_relative 'cli/siren'

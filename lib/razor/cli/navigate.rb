@@ -18,15 +18,15 @@ module Razor::CLI
     end
 
     def collections
-      @entity["entities"] || []
+      @entity.entities
     end
 
     def actions
-      @entity["actions"] || []
+      @entity.actions
     end
 
     def query(name)
-      collections.find { |coll| (coll["properties"]||{})["name"] == name }
+      collections.find {|coll| coll.properties["name"] == name }
     end
 
     def query?
@@ -34,7 +34,7 @@ module Razor::CLI
     end
 
     def action(name)
-      actions.find { |coll| coll["name"] == name }
+      actions.find { |action| action.name == name }
     end
 
     def action?
@@ -54,9 +54,9 @@ module Razor::CLI
             # @todo lutter 2013-08-16: None of this has any tests, and error
             # handling is heinous at best
             cmd, body = extract_action
-            json_request(cmd["href"], cmd["method"], body)
+            siren_request(cmd.href, cmd.method, body)
           else
-            raise NavigationError.new(@doc_url, @segments, @doc)
+            raise NavigationError.new(@last_url, @segments, @entity)
           end
         end
         @entity
@@ -74,7 +74,7 @@ module Razor::CLI
         end
       end
       # Special treatment for tag rules
-      if act["name"] == "create-tag" && body["rule"]
+      if act.name == "create-tag" && body["rule"]
         body["rule"] = JSON::parse(body["rule"])
       end
       body = JSON::parse(File::read(body["json"])) if body["json"]
@@ -92,9 +92,9 @@ module Razor::CLI
       new_entity = query(key) or raise NavigationError.new(@doc_url, key, @entity)
 
       # Follow 'href' if it exists
-      if new_entity["href"]
-        @entity = siren_get(new_entity["href"])
-        @last_url = new_entity["href"]
+      if new_entity.href
+        @entity = siren_get(new_entity.href)
+        @last_url = new_entity.href
       else
         @entity = new_entity # Since sub-entities are themselves valid entities
       end
@@ -113,17 +113,18 @@ module Razor::CLI
       unless response.headers[:content_type] =~ /application\/(vnd.siren\+)?json/
        raise "Received content type #{response.headers[:content_type]}"
       end
-      JSON.parse(response.body)
+
+      Razor::CLI::Siren::Entity.parse(JSON.parse(response.body))
     end
 
-    def json_request(url, method, body = nil)
+    def siren_request(url, method, body = nil)
       headers = { :accept => "application/vnd.siren+json", :content_type => :json }
       response = case method
       when "POST" then RestClient.post url, body.to_json, headers
       else raise Error.new "Can't handle method #{method}"
       end
       puts "#{method} #{url.to_s}\n#{body}\n-->\n#{response.body}" if @parse.dump_response?
-      JSON::parse(response.body)
+      Razor::CLI::Siren::Entity.parse(JSON::parse(response.body))
     end
 
   end

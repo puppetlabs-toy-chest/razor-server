@@ -26,7 +26,7 @@ module Razor::CLI
 
     def list_things(name, items)
       "\n    #{name}:\n" +
-        items.map {|x| x["name"]||(x["properties"]||{})["name"]}.compact.sort.map do |name|
+        items.map {|x| x.respond_to?(:name) ? x.name : x.properties["name"]}.compact.sort.map do |name|
         "        #{name}"
       end.join("\n")
     end

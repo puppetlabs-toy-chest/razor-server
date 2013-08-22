@@ -21,39 +21,38 @@ module Razor::CLI
     end
 
     def format_entity(entity)
-      entity_class = entity["class"]
-      if entity_class.first.end_with? "collection"
-        format_entity_list(entity["entities"])
+      if entity.type.first.end_with? "collection"
+        format_entity_list(entity.entities)
       else
         format_single_entity(entity)
       end
     end
 
     def format_entity_list(entities)
-      types = entities.map {|ent| ent["class"]}.uniq
+      types = entities.map {|ent| ent.type}.uniq
       types.map do |type|
-        format_homogenous_list(entities.select {|ent| ent["class"]==type})
+        format_homogenous_list(entities.select {|ent| ent.type==type})
       end.join "\n\n"
     end
 
     def format_homogenous_list(entities)
       table = Terminal::Table.new do |t|
 
-        allKeys = entities.map {|ent| ent["properties"]}.compact.map(&:keys).flatten.uniq
+        allKeys = entities.map {|ent| ent.properties}.map(&:keys).flatten.uniq
         orderedKeys = order_keys(allKeys)
 
         # If this is a list of references
-        if entities.all? {|ent| ent["href"] }
+        if entities.all? {|ent| ent.href }
           orderedKeys << "_href"
-          entities.each {|ent| ent["properties"]["_href"] = URI.parse(ent["href"]).path }
+          entities.each {|ent| ent.properties["_href"] = URI.parse(ent.href).path }
         end
 
         t.headings = orderedKeys.map { |key| KeyAliases[key] || key.capitalize }
 
-        t.rows = entities.map { |ent| ent["properties"].values_at(*orderedKeys) }
+        t.rows = entities.map { |ent| ent.properties.values_at(*orderedKeys) }
       end
 
-      "#{class_name(entities.first["class"]).pluralize}\n#{table.to_s}"
+      "#{class_name(entities.first.type).pluralize}\n#{table.to_s}"
     end
 
     def format_single_entity(entity)
@@ -61,7 +60,7 @@ module Razor::CLI
         keys = order_keys (entity.properties ||= {}).keys
         table.headings = ["Property", "Value"]
         table.rows = keys.map do |key|
-          [ (KeyAliases[key]||key.capitalize), PP.pp((entity["properties"][key]),"")]
+          [ (KeyAliases[key]||key.capitalize), PP.pp((entity.properties[key]),"")]
         end
       end
 

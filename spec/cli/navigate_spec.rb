@@ -33,7 +33,7 @@ describe Razor::CLI::Navigate do
 
   context "with a single item path" do
     subject(:nav) {Razor::CLI::Parse.new(["tags"]).navigate}
-    it { nav.get_final_entity["entities"].should == []}
+    it { nav.get_final_entity.entities.should == []}
 
     it do
       nav.get_final_entity;
