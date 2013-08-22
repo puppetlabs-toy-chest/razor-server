@@ -97,8 +97,8 @@ describe "command and query API" do
       end
 
       it do
-        create["fields"].map{|f| f["name"]}.should =~ %w[name image installer
-          hostname root-password enabled line-number broker]
+        create["fields"].map{|f| f["name"]}.should =~ %w[name image-name installer-name
+          hostname root-password enabled line-number broker-name]
       end
     end
 

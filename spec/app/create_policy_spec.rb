@@ -65,6 +65,15 @@ describe "create policy command" do
 
       Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
     end
+
+    it "should create a policy given text-only fields" do
+      policy_hash[:image_name]=policy_hash.delete(:image)["name"]
+      policy_hash[:installer_name]=policy_hash.delete(:installer)["name"]
+      policy_hash[:broker_name]=policy_hash.delete(:broker)["name"]
+      create_policy
+
+      Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
+    end
   end
 
   context "/api/commands/create-policy" do

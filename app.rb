@@ -461,13 +461,13 @@ end
   collection :policies do
 create do
   fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('image'),
-    Razor::View::Siren::action_field('installer'),
+    Razor::View::Siren::action_field('image-name'),
+    Razor::View::Siren::action_field('installer-name'),
     Razor::View::Siren::action_field('hostname'),
     Razor::View::Siren::action_field('root-password'),
     Razor::View::Siren::action_field('enabled','checkbox'),
     Razor::View::Siren::action_field('line-number'),
-    Razor::View::Siren::action_field('broker'),
+    Razor::View::Siren::action_field('broker-name'),
   ]
 
   lambda do |data|
@@ -475,15 +475,15 @@ create do
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
 
-    if data["image"]
-      name = data["image"]["name"] or
+    if data["image"] or data["image_name"]
+      name = data.delete("image_name") || data["image"]["name"] or
         error 400, :error => "The image reference must have a 'name'"
       data["image"] = Razor::Data::Image[:name => name] or
         error 400, :error => "Image '#{name}' not found"
     end
 
-    if data["broker"]
-      name = data["broker"]["name"] or
+    if data["broker"] or data["broker_name"]
+      name = data.delete("broker_name") || data["broker"]["name"] or
         halt [400, "The broker reference must have a 'name'"]
       data["broker"] = Razor::Data::Broker[:name => name] or
         halt [400, "Broker '#{name}' not found"]
