@@ -27,17 +27,9 @@ describe Razor::CLI::Parse do
         parse('-U',url).api_url.to_s.should == url
       end
     end
+  end
 
-    describe "#help" do
-      subject(:p) {parse}
-      it { should respond_to :help}
-
-      it { p.help.should be_a String}
-
-      it "should print a list of known endpoints" do
-        p.should_receive(:list_things).twice.and_return("")
-        p.help
-      end
-    end
+  describe "#navigate" do
+    it {parse.navigate.should be_a Razor::CLI::Navigate}
   end
 end

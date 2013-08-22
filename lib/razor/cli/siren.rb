@@ -42,6 +42,18 @@ module Razor::CLI
         fields = (action_obj["fields"] || []).map {|x| Field.parse(x)}
         self.new(*properties, fields)
       end
+
+      def optparse
+        OptionParser.new do |opts|
+          opts.banner = "Usage: #{$0} #{path.join ' '}#{' FLAGS' if fields.any?}"
+          opts.separator "\nFlags" if fields.any?
+          self.fields.each do |field|
+            opts.on "--#{field.name} #{field.name.upcase.tr '-','_'}" do |value|
+              field.value = value
+            end
+          end
+        end
+      end
     end
 
     class Link
@@ -73,6 +85,30 @@ module Razor::CLI
         @href = href
       end
 
+      def optparse
+        OptionParser.new do |opts|
+          p_or_a= [@entities.any? ? "PATH" : nil, @actions.any? ? "ACTION" : nil]
+          p_or_a = p_or_a.any? ? "[#{p_or_a.join ' OR '}]" : nil
+          opts.banner = "Usage: #{$0} #{@path.join ' '} #{p_or_a}"
+          opts.separator "Show details for '#{properties["name"] || 'object'}'"
+
+          unless entities.empty?
+            opts.separator "\nPaths:"
+            entities.each do |entity|
+              name = entity.properties["name"]
+              opts.separator "  #{name}#{" - #{entity.title}" if entity.title}"
+            end
+          end
+
+          unless actions.empty?
+            opts.separator "\nActions:"
+            actions.each do |action|
+              opts.separator "  #{action.name}#{" - #{action.title}" if action.title}"
+            end
+          end
+        end
+      end
+
       def self.parse(entity_obj)
         type = entity_obj["class"] || []
         properties = Properties.parse(entity_obj["properties"] || {})
@@ -83,7 +119,51 @@ module Razor::CLI
         relation =  entity_obj["rel"] || []
         href = entity_obj["href"]
 
-        self.new(type, properties, entities, actions, links, title, relation, href)
+        case type.first
+        when  /collection\Z/
+          CollectionEntity.new(type, properties, entities, actions, links, title, relation, href)
+        when /api\Z/
+          RootEntity.new(type, properties, entities, actions, links, title, relation, href)
+        else
+          self.new(type, properties, entities, actions, links, title, relation, href)
+        end
+      end
+    end
+
+    class RootEntity < Entity
+      def optparse(parse)
+        additional_opts = parse.optparse.dup
+        additional_opts.banner = "Options:"
+        OptionParser.new do |opts|
+          opts.banner = "Usage: #{$0} [options] [PATH OR ACTION]"
+
+          opts.separator "\nPaths: #{'(none)' if entities.empty?}"
+          entities.each do |entity|
+            name = entity.properties["name"]
+            opts.separator "  #{name}#{" - #{entity.title}" if entity.title}"
+          end
+
+          opts.separator "\nActions: #{'(none)' if actions.empty?}"
+          actions.each do |action|
+            opts.separator "  #{action.name}#{" - #{action.title}" if action.title}"
+          end
+
+          opts.separator "\n#{additional_opts}"
+        end
+      end
+    end
+
+    class CollectionEntity < Entity
+      def optparse
+        OptionParser.new do |opts|
+          opts.banner = "Usage: #{$0} #{path.join ' '} [PATH OR ACTION]"
+          opts.separator title if title
+
+          opts.separator "\nActions: #{'(none)' if actions.empty?}"
+          actions.each do |action|
+            opts.separator "  #{action.name}#{" - #{action.title}" if action.title}"
+          end
+        end
       end
     end
   end

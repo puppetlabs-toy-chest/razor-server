@@ -70,25 +70,19 @@ module Razor::CLI
 
     def execute_action(action, arguments)
       # Parse arguments into action.fields -> field.value
-      body = extract_arguments(action, arguments)
-
-      self.current_object = siren_request(action.url, action.method, body)
-    end
-
-    def extract_arguments(act, arguments)
-      body = {}
-      until arguments.empty?
-        if arguments.shift =~ /\A--([a-z-]+)(=(\S+))?\Z/
-          body[$1] = ($3 || arguments.shift)
+      action.optparse.parse(arguments)
+      body = Hash[action.fields.map {|f| [f.name, f.value]}]
+      # Parse field values into JSON structures if possible
+      body.each do |key,value|
+        # Don't bother with anything that's not at least plausibly JSON
+        if /(\A{.*}\Z|\[.*\]\Z)/ =~ value
+          begin; body[key]=JSON.parse(value); rescue => e; end
         end
       end
-      # Special treatment for tag rules
-      if act.title == "Create a tag" && body["rule"]
-        body["rule"] = JSON::parse(body["rule"])
-      end
+
       body = JSON::parse(File::read(body["json"])) if body["json"]
 
-      body
+      self.current_object = siren_request(action.url, action.method, body)
     end
 
     def get(url, headers={})

@@ -52,19 +52,4 @@ describe Razor::CLI::Navigate do
 
     it {expect{nav.get_final_object}.to raise_error Razor::CLI::NavigationError}
   end
-
-  describe "extract_command" do
-    subject(:nav) {Razor::CLI::Parse.new(["tags"]).navigate}
-    subject(:act) {Razor::CLI::Siren::Action.parse "name" => "create"}
-
-    it "should understand --arg=value" do
-      args = nav.extract_arguments(act, ["--one=1", "--two=two", "--three=too_many"])
-      args.should == { "one"=>"1", "two" => "two", "three" => "too_many"}
-    end
-
-    it "should understand '--arg value'" do
-      args = nav.extract_arguments(act, %w"--ex 1 --why maybe --zee yes")
-      args.should == { "ex"=>"1", "why" => "maybe", "zee" => "yes"}
-    end
-  end
 end

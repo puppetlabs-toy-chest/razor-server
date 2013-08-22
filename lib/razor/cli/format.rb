@@ -74,5 +74,34 @@ module Razor::CLI
     def order_keys(keys)
       (PriorityKeys & keys) + (keys - PriorityKeys)
     end
+
+    def format_help(object, parse = nil)
+      raise "Cannot format help for #{object}" unless object.class.to_s["Razor::CLI::Siren"]
+      case object
+      when Razor::CLI::Siren::RootEntity
+        object.optparse(parse).to_s
+      else object.optparse.to_s
+      end
+    end
+
+    # For the main API endpoint
+    def format_root_entity_help(entity)
+      "For NAVIGATION:" +
+      entity.entities.map do |ent|
+        output = "\n   #{ent.properties["name"]}"
+        output <<" - #{ent.title}" if ent.title
+        output
+      end.join
+    end
+
+    def format_collection_entity_help(entity)
+      output = "#{entity.title}\n"
+      output = "   actions: #{'(none)' if entity.actions.none?}"
+      entity.actions.each do |action|
+        output << "\n      #{action.name}"
+        output << " - #{action.title}"
+      end
+      output
+    end
   end
 end

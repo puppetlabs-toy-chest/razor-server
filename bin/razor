@@ -5,14 +5,19 @@ require_relative "../lib/razor/cli"
 include Razor::CLI::Format
 
 parse = Razor::CLI::Parse.new(ARGV)
-if parse.show_help?
-  puts parse.help
-  exit 0
-end
+
 begin
   object = parse.navigate.get_final_object
   final_arguments = parse.final_arguments
 
+  # Show help if requested
+  if parse.show_help?
+    puts format_help(object, parse)
+
+  # Show help for actions that require arguments
+  elsif object.is_a?(Razor::CLI::Siren::Action) && object.fields.any? && final_arguments.empty?
+    puts format_help(object)
+  else
   if object.is_a? Razor::CLI::Siren::Action
     object = parse.navigate.execute_action(object, final_arguments)
   end
@@ -22,6 +27,7 @@ begin
     puts "From #{parse.navigate.last_url}:\n\n#{format_entity object}\n\n"
   else
     raise "Can't handle #{object}"
+  end
   end
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"

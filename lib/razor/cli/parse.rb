@@ -4,8 +4,8 @@ require 'optparse'
 module Razor::CLI
 
   class Parse
-    def get_optparse
-      @optparse ||= OptionParser.new do |opts|
+    def optparse
+      OptionParser.new do |opts|
         opts.banner = "Usage: razor [FLAGS] NAVIGATION\n"
                       "   or: razor shell"
 
@@ -20,21 +20,7 @@ module Razor::CLI
         opts.on "-h", "--help", "Show this screen" do
           @option_help = true
         end
-
       end
-    end
-
-    def list_things(name, items)
-      "\n    #{name}:\n" +
-        items.map {|x| x.respond_to?(:name) ? x.name : x.properties["name"]}.compact.sort.map do |name|
-        "        #{name}"
-      end.join("\n")
-    end
-
-    def help
-      output = get_optparse.to_s
-      output << list_things("collections", navigate.entrypoint.entities)
-      output << list_things("actions", navigate.entrypoint.actions)
     end
 
     def show_help?
@@ -50,7 +36,7 @@ module Razor::CLI
     def initialize(args)
       @api_url = URI.parse("http://localhost:8080/api")
       @args = args.dup
-      navigate_args = get_optparse.order(args)
+      navigate_args = optparse.order(args)
       if navigate_args.find {|x| /\A--help|-h\Z/ =~ x}
         @option_help = true
         @navigation_path = navigate_args.take_while {|x| /\A(?!-)/ =~ x}
