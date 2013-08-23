@@ -18,16 +18,16 @@ begin
   elsif object.is_a?(Razor::CLI::Siren::Action) && object.fields.any? && final_arguments.empty?
     puts format_help(object)
   else
-  if object.is_a? Razor::CLI::Siren::Action
-    object = parse.navigate.execute_action(object, final_arguments)
-  end
+    if object.is_a? Razor::CLI::Siren::Action
+      object = parse.navigate.execute_action(object, final_arguments)
+    end
 
-# Show the final entity
-  if object.is_a?(Razor::CLI::Siren::Entity)
-    puts "From #{parse.navigate.last_url}:\n\n#{format_entity object}\n\n"
-  else
-    raise "Can't handle #{object}"
-  end
+  # Show the final entity
+    if object.is_a?(Razor::CLI::Siren::Entity)
+      puts "From #{parse.navigate.last_url}:\n\n#{format_entity object}\n\n"
+    else
+      raise "Can't handle #{object}"
+    end
   end
 rescue Razor::CLI::NavigationError => e
   puts "Error: #{e}\n#{parse.help}\n\n"

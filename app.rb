@@ -247,7 +247,6 @@ class Razor::App < Sinatra::Base
   # The main entry point for the public/management API
   #
   get '/api' do
-
     siren_entity(class_url('api'), nil,
       @@collections["/api"].dup.map {|x| x.merge :href => url(x[:href]) },
       @@actions["/api"] ).to_json
@@ -333,33 +332,33 @@ class Razor::App < Sinatra::Base
   end
 
   collection :images do
-create do
-  fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('image-url') ]
+    create do
+      fields [ Razor::View::Siren::action_field('name'),
+        Razor::View::Siren::action_field('image-url') ]
 
-  lambda do |data|
-    # Create our shiny new image.  This will implicitly, thanks to saving
-    # changes, trigger our loading saga to begin.  (Which takes place in the
-    # same transactional context, ensuring we don't send a message to our
-    # background workers without also committing this data to our database.)
-    image = Razor::Data::Image.new(data).save.freeze
+      lambda do |data|
+        # Create our shiny new image.  This will implicitly, thanks to saving
+        # changes, trigger our loading saga to begin.  (Which takes place in the
+        # same transactional context, ensuring we don't send a message to our
+        # background workers without also committing this data to our database.)
+        image = Razor::Data::Image.new(data).save.freeze
 
-    # Finally, return the state (started, not complete) and the URL for the
-    # final image to our poor caller, so they can watch progress happen.
-    image
-  end
-end
-
-  delete_one do
-    params[:name] or error 400,
-      :error => "Supply 'name' to indicate which image to delete"
-    if image = Razor::Data::Image[:name => params[:name]]
-      image.destroy
-      "image destroyed"
-    else
-      "no changes; image #{params[:name]} does not exist"
+        # Finally, return the state (started, not complete) and the URL for the
+        # final image to our poor caller, so they can watch progress happen.
+        image
+      end
     end
-  end
+
+    delete_one do
+      params[:name] or error 400,
+        :error => "Supply 'name' to indicate which image to delete"
+      if image = Razor::Data::Image[:name => params[:name]]
+        image.destroy
+        "image destroyed"
+      else
+        "no changes; image #{params[:name]} does not exist"
+      end
+    end
 
     retrieve_all do
       Razor::Data::Image.all
@@ -372,27 +371,27 @@ end
   end
 
   collection :installers do
-create do
-  fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('os'),
-    Razor::View::Siren::action_field('os-version'),
-    Razor::View::Siren::action_field('description'),
-    Razor::View::Siren::action_field('boot-seq'),
-    Razor::View::Siren::action_field('templates'),
-  ]
+    create do
+      fields [ Razor::View::Siren::action_field('name'),
+        Razor::View::Siren::action_field('os'),
+        Razor::View::Siren::action_field('os-version'),
+        Razor::View::Siren::action_field('description'),
+        Razor::View::Siren::action_field('boot-seq'),
+        Razor::View::Siren::action_field('templates'),
+      ]
 
-  lambda do |data|
-    # If boot_seq is not a Hash, the model validation for installers
-    # will catch that, and will make saving the installer fail
-    if (boot_seq = data["boot_seq"]).is_a?(Hash)
-      # JSON serializes integers as strings, undo that
-      boot_seq.keys.select { |k| k.is_a?(String) and k =~ /^[0-9]+$/ }.
-        each { |k| boot_seq[k.to_i] = boot_seq.delete(k) }
+      lambda do |data|
+        # If boot_seq is not a Hash, the model validation for installers
+        # will catch that, and will make saving the installer fail
+        if (boot_seq = data["boot_seq"]).is_a?(Hash)
+          # JSON serializes integers as strings, undo that
+          boot_seq.keys.select { |k| k.is_a?(String) and k =~ /^[0-9]+$/ }.
+            each { |k| boot_seq[k.to_i] = boot_seq.delete(k) }
+        end
+
+        Razor::Data::Installer.new(data).save.freeze
+      end
     end
-
-    Razor::Data::Installer.new(data).save.freeze
-  end
-end
 
 # FIXME: Add a query to list all installers
 
@@ -407,15 +406,15 @@ end
   end
 
   collection :tags do
-create do
-  fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('rule'),
-  ]
+    create do
+      fields [ Razor::View::Siren::action_field('name'),
+        Razor::View::Siren::action_field('rule'),
+      ]
 
-  lambda do |data|
-    Razor::Data::Tag.find_or_create_with_rule(data)
-  end
-end
+      lambda do |data|
+        Razor::Data::Tag.find_or_create_with_rule(data)
+      end
+    end
 
     retrieve_all do
       Razor::Data::Tag.all
@@ -428,25 +427,25 @@ end
   end
 
   collection :brokers do
-create do
-  fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('configuration'),
-    Razor::View::Siren::action_field('broker-type'),
-  ]
+    create do
+      fields [ Razor::View::Siren::action_field('name'),
+        Razor::View::Siren::action_field('configuration'),
+        Razor::View::Siren::action_field('broker-type'),
+      ]
 
-  lambda do |data|
-    if type = data["broker_type"]
-      begin
-        data["broker_type"] = Razor::BrokerType.find(type)
-      rescue Razor::BrokerTypeNotFoundError
-        halt [400, "Broker type '#{type}' not found"]
-      rescue => e
-        halt 400, e.to_s
+      lambda do |data|
+        if type = data["broker_type"]
+          begin
+            data["broker_type"] = Razor::BrokerType.find(type)
+          rescue Razor::BrokerTypeNotFoundError
+            halt [400, "Broker type '#{type}' not found"]
+          rescue => e
+            halt 400, e.to_s
+          end
+        end
+        Razor::Data::Broker.new(data).save
       end
     end
-    Razor::Data::Broker.new(data).save
-  end
-end
 
     retrieve_all do
       Razor::Data::Broker.all
@@ -459,48 +458,48 @@ end
   end
 
   collection :policies do
-create do
-  fields [ Razor::View::Siren::action_field('name'),
-    Razor::View::Siren::action_field('image-name'),
-    Razor::View::Siren::action_field('installer-name'),
-    Razor::View::Siren::action_field('hostname'),
-    Razor::View::Siren::action_field('root-password'),
-    Razor::View::Siren::action_field('enabled','checkbox'),
-    Razor::View::Siren::action_field('line-number'),
-    Razor::View::Siren::action_field('broker-name'),
-  ]
+    create do
+      fields [ Razor::View::Siren::action_field('name'),
+        Razor::View::Siren::action_field('image-name'),
+        Razor::View::Siren::action_field('installer-name'),
+        Razor::View::Siren::action_field('hostname'),
+        Razor::View::Siren::action_field('root-password'),
+        Razor::View::Siren::action_field('enabled','checkbox'),
+        Razor::View::Siren::action_field('line-number'),
+        Razor::View::Siren::action_field('broker-name'),
+      ]
 
-  lambda do |data|
-    tags = (data.delete("tags") || []).map do |t|
-      Razor::Data::Tag.find_or_create_with_rule(t)
+      lambda do |data|
+        tags = (data.delete("tags") || []).map do |t|
+          Razor::Data::Tag.find_or_create_with_rule(t)
+        end
+
+        if data["image"] or data["image_name"]
+          name = data.delete("image_name") || data["image"]["name"] or
+            error 400, :error => "The image reference must have a 'name'"
+          data["image"] = Razor::Data::Image[:name => name] or
+            error 400, :error => "Image '#{name}' not found"
+        end
+
+        if data["broker"] or data["broker_name"]
+          name = data.delete("broker_name") || data["broker"]["name"] or
+            halt [400, "The broker reference must have a 'name'"]
+          data["broker"] = Razor::Data::Broker[:name => name] or
+            halt [400, "Broker '#{name}' not found"]
+        end
+
+        if data["installer"]
+          data["installer_name"] = data.delete("installer")["name"]
+        end
+        data["hostname_pattern"] = data.delete("hostname")
+
+        policy = Razor::Data::Policy.new(data).save
+        tags.each { |t| policy.add_tag(t) }
+        policy.save
+
+        policy
+      end
     end
-
-    if data["image"] or data["image_name"]
-      name = data.delete("image_name") || data["image"]["name"] or
-        error 400, :error => "The image reference must have a 'name'"
-      data["image"] = Razor::Data::Image[:name => name] or
-        error 400, :error => "Image '#{name}' not found"
-    end
-
-    if data["broker"] or data["broker_name"]
-      name = data.delete("broker_name") || data["broker"]["name"] or
-        halt [400, "The broker reference must have a 'name'"]
-      data["broker"] = Razor::Data::Broker[:name => name] or
-        halt [400, "Broker '#{name}' not found"]
-    end
-
-    if data["installer"]
-      data["installer_name"] = data.delete("installer")["name"]
-    end
-    data["hostname_pattern"] = data.delete("hostname")
-
-    policy = Razor::Data::Policy.new(data).save
-    tags.each { |t| policy.add_tag(t) }
-    policy.save
-
-    policy
-  end
-end
 
     retrieve_all do
       Razor::Data::Policy.all
