@@ -65,6 +65,15 @@ end
 
 desc "Open a preloaded irb session"
 task :console do
-  libdir = File::expand_path(File::join(File::dirname(__FILE__), "lib"))
-  sh "irb -I #{libdir} -r razor/initialize -r razor"
+  $: << File::expand_path(File::join(File::dirname(__FILE__), "lib"))
+
+  require 'irb'
+  require 'razor/initialize'
+  require 'razor'
+
+  puts "Model classes from Razor::Data have been included in the toplevel"
+  include Razor::Data
+
+  ARGV.clear
+  IRB.start
 end
