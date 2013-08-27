@@ -1,4 +1,5 @@
 require_relative '../spec_helper'
+require_relative 'siren_helper'
 require_relative '../../app'
 
 require 'json-schema'
@@ -7,6 +8,10 @@ describe "command and query API" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+
+  def class_url(path)
+    "http://api.puppetlabs.com/razor/v1/class/#{path}"
+  end
 
   context "/ - API navigation index" do
     %w[text/plain text/html text/* application/js].each do |type|
@@ -17,36 +22,34 @@ describe "command and query API" do
       end
     end
 
-    it "should return JSON content" do
+    it "should return JSON Siren content" do
       get '/api'
-      last_response.content_type.should =~ /application\/json/i
+      last_response.status.should == 200
+      is_valid_siren?(last_response).should == true
     end
 
     it "should match the shape of our command handler" do
       get '/api'
       data = last_response.json
-      data.keys.should =~ %w[commands collections]
-      data["commands"].all? {|x| x.keys.should =~ %w[id rel name]}
+      data.keys.should =~ %w[actions class entities]
+
+      data["actions"].all? { |x| x.keys.should =~ %w[href class name] }
     end
 
     it "should contain all valid URLs" do
       get '/api'
       data = JSON.parse(last_response.body)
-      data["commands"].all? do |row|
+      data["actions"].all? do |row|
         # An invariant of our command support is that they reject anything
         # other than application/json in the body, which we can take advantage
         # of here: by knowing the failure mode, we can tell "missing" from
         # "exists but refuses us service" safely.
         header 'content-type', 'text/x-unknown-binary-blob'
-        post row["id"]
+        post row["href"]
         # The positive assertion captures cases where we incorrectly accept
         # the unknown content type; they shouldn't happen, but it beats out a
         # false positive.
         last_response.status.should == 415
-      end
-      data["collections"].all? do |row|
-        get row["id"]
-        last_response.status.should == 200
       end
     end
   end
@@ -63,10 +66,11 @@ describe "command and query API" do
       @image = Fabricate(:image)
     end
 
-    it "should return JSON content" do
+    it "should return a JSON Siren list of policies" do
       get '/api/collections/policies'
       last_response.status.should == 200
-      last_response.content_type.should =~ /application\/json/i
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("collection"), class_url("policy")]
     end
 
     it "should list all policies" do
@@ -75,11 +79,29 @@ describe "command and query API" do
 
       get '/api/collections/policies'
       data = last_response.json
-      data.size.should be 1
-      data.all? do |policy|
-        policy.keys.should =~ %w[id name spec]
+      data["entities"].all? do |policy|
+        policy.keys.should include "href"
+        policy["properties"].keys.should =~ %w[name]
       end
     end
+
+    it "should have actions for policies" do
+      get '/api/collections/policies'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/policies'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name image-name installer-name
+          hostname root-password enabled line-number broker-name]
+      end
+    end
+
   end
 
   context "/api/collections/policies/ID - get policy" do
@@ -93,37 +115,59 @@ describe "command and query API" do
 
     subject(:pl){ Fabricate(:policy, :image => @image, :installer_name => "some_os")}
 
-    it "should exist" do
+    it "should return a JSON Siren policy" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       last_response.status.should be 200
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("policy")]
     end
 
     it "should have the right keys" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled line_number max_count image tags]
-      policy["image"].keys.should =~ %w[id name spec]
-      policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
-      policy["tags"].should be_empty
-      policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
+      properties, subentities = policy.values_at "properties", "entities"
+      properties.keys.should =~ %w[name configuration enabled line_number max_count]
+      properties["configuration"].keys.should =~ %w[hostname_pattern root_password]
+
+      image = policy["entities"].find {|ent| ent["rel"].first.end_with? "image"}
+      tags = policy["entities"].find {|ent| ent["rel"].first.end_with? "tags"}
+
+      image["properties"].keys.should =~ ["name"]
+      tags["entities"].should be_empty
     end
   end
 
   context "/api/collections/tags - tag list" do
-    it "should return JSON content" do
+    let! (:t) {Razor::Data::Tag.create(:name=>"tag 1", :rule =>["=",["fact","one"],"1"]) }
+
+    it "should return a JSON Siren list of tags" do
       get '/api/collections/tags'
       last_response.status.should == 200
-      last_response.content_type.should =~ /application\/json/
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("collection"), class_url("tag")]
     end
 
     it "should list all tags" do
-      t = Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
       get '/api/collections/tags'
       data = last_response.json
-      data.size.should be 1
-      data.all? do |tag|
-        tag.keys.should =~ %w[id name spec]
+      data["entities"].size.should be 1
+      data["entities"].first["properties"]["name"].should == t.name
+    end
+
+    it "should have actions for tags" do
+      get '/api/collections/tags'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/tags'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name rule]
       end
     end
   end
@@ -131,43 +175,96 @@ describe "command and query API" do
   context "/api/collections/tags/ID - get tag" do
     subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :rule => ["=",["fact","one"],"1"])}
 
-    it "should exist" do
+    it "should return a JSON Siren tag" do
       get "/api/collections/tags/#{t.name}"
       last_response.status.should be 200
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("tag")]
     end
 
     it "should have the right keys" do
       get "/api/collections/tags/#{t.name}"
+
       tag = last_response.json
-      tag.keys.should =~ %w[ spec id name rule ]
-      tag["rule"].should == ["=",["fact","one"],"1"]
+      tag["properties"].keys.should =~ %w[name rule]
+      tag["properties"]["rule"].should == ["=",["fact","one"],"1"]
     end
   end
 
   context "/api/collections/images" do
+    let!(:img1) {Fabricate(:image, :name => "image1")}
+    let!(:img2) {Fabricate(:image, :name => "image2")}
+
+    it "should return a JSON Siren list of images" do
+      get "/api/collections/images"
+      last_response.status.should be 200
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("collection"), class_url("image")]
+    end
+
     it "should list all images" do
-      img1 = Fabricate(:image, :name => "image1")
-      img2 = Fabricate(:image, :name => "image2")
 
       get "/api/collections/images"
       last_response.status.should == 200
-
-      imgs = last_response.json
+      img_list = last_response.json
+      imgs = img_list["entities"]
       imgs.size.should == 2
-      imgs.map { |img| img["name"] }.should =~ %w[ image1 image2 ]
-      imgs.all? { |img| img.keys.should =~ %w[id name spec] }
+
+      imgs.map { |img| img["properties"]["name"] }.should =~ %w[ image1 image2 ]
+      imgs.all? do |img|
+        img.keys.should =~ %w[properties href class rel]
+        img["properties"].keys.should =~ ["name"]
+      end
+    end
+
+    it "should have actions for images" do
+      get '/api/collections/images'
+      last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+    end
+
+    describe "'create' action" do
+      subject(:create) do
+        get '/api/collections/images'
+        last_response.json["actions"].find {|act| act["name"]=="create" }
+      end
+
+      it do
+        create["fields"].map{|f| f["name"]}.should =~ %w[name image-url]
+      end
     end
   end
 
   context "/api/collections/images/:name" do
-    it "should find image by name" do
-      img1 = Fabricate(:image, :name => "image1")
+    let!(:img1) { Fabricate(:image, :name => "image1")}
 
-      get "/api/collections/images/#{img1.name}"
+    it "should return a JSON Siren image" do
+      get "/api/collections/images/image1"
+      last_response.status.should == 200
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("image")]
+    end
+
+    it "should find image by name" do
+      get "/api/collections/images/image1"
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ %w[spec id name image_url]
+      data["properties"].keys.should =~ %w[name image_url]
+      data["properties"]["name"].should == "image1"
+    end
+
+    it "should have actions" do
+      get "/api/collections/images/image1"
+      last_response.json["actions"].map {|a| a["name"]}.should =~ %w[delete]
+    end
+
+    describe "'delete' action" do
+      subject(:delete) do
+        get '/api/collections/images/image1'
+        last_response.json["actions"].find {|act| act["name"]=="delete" }
+      end
+
+      it {delete["fields"].should be_empty}
     end
 
     it "should return 404 when image not found" do
@@ -181,14 +278,20 @@ describe "command and query API" do
       use_installer_fixtures
     end
 
-    ROOT_KEYS = %w[spec id name os description boot_seq]
+    ROOT_KEYS = %w[name os description boot_seq]
     OS_KEYS = %w[name version]
+
+    it "should return a JSON Siren installer" do
+      get "/api/collections/installers/some_os"
+      is_valid_siren?(last_response).should == true
+      last_response.json["class"].should == [class_url("installer")]
+    end
 
     it "works for file-based installers" do
       get "/api/collections/installers/some_os"
       last_response.status.should == 200
+      data = last_response.json["properties"]
 
-      data = last_response.json
       data.keys.should =~ ROOT_KEYS
       data["name"].should == "some_os"
       data["os"].keys.should =~ OS_KEYS
@@ -205,7 +308,7 @@ describe "command and query API" do
       get "/api/collections/installers/dbinst"
       last_response.status.should == 200
 
-      data = last_response.json
+      data = last_response.json["properties"]
       data.keys.should =~ ROOT_KEYS
       data["name"].should == "dbinst"
       data["os"].keys.should =~ OS_KEYS
@@ -214,54 +317,12 @@ describe "command and query API" do
   end
 
   context "/api/collections/brokers" do
-    BrokerCollectionSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Broker Collection JSON Schema",
-      'type'     => 'array',
-      'items'    => {
-        '$schema'  => 'http://json-schema.org/draft-04/schema#',
-        'type'     => 'object',
-        'additionalProperties' => false,
-        'properties' => {
-          "spec" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "obj_id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'number'
-          },
-          "name" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^[^\n]+$'
-          }
-        }
-      }
-    }.freeze
-
     BrokerItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Broker Collection JSON Schema",
       'type'     => 'object',
-      'required' => %w[spec id name configuration broker-type],
+      'required' => %w[name configuration broker-type],
       'properties' => {
-        'spec' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
         'name'     => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
@@ -306,13 +367,30 @@ describe "command and query API" do
           (Pathname(__FILE__).dirname.parent + 'fixtures' + 'brokers').realpath.to_s
       end
 
-      it "should return a valid broker response empty set" do
+      it "should return a JSON Siren empty set of brokers" do
         get "/api/collections/brokers"
 
         last_response.status.should == 200
-        last_response.json.should be_an_instance_of Array
-        last_response.json.count.should == expected
-        validate! BrokerCollectionSchema, last_response.body
+        is_valid_siren?(last_response).should == true
+        last_response.json["class"].should == [class_url("collection"), class_url("broker")]
+        last_response.json["entities"].should be_an_instance_of Array
+        last_response.json["entities"].count.should == expected
+      end
+
+      it "should have actions for tags" do
+        get '/api/collections/brokers'
+        last_response.json["actions"].map{|a| a["name"]}.should =~ %w[create]
+      end
+
+      describe "'create' action" do
+        subject(:create) do
+          get '/api/collections/brokers'
+          last_response.json["actions"].find {|act| act["name"]=="create" }
+        end
+
+        it do
+          create["fields"].map{|f| f["name"]}.should =~ %w[name configuration broker-type]
+        end
       end
 
       it "should 404 a broker requested that does not exist" do
@@ -325,7 +403,7 @@ describe "command and query API" do
           Razor::Data::Broker.all.each do |broker|
             get "/api/collections/brokers/#{URI.escape(broker.name)}"
             last_response.status.should == 200
-            validate! BrokerItemSchema, last_response.body
+            validate! BrokerItemSchema, last_response.json["properties"].to_json
           end
         end
       end
@@ -353,136 +431,120 @@ describe "command and query API" do
   end
 
   context "/api/collections/nodes" do
-    NodeCollectionSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Node Collection JSON Schema",
-      'type'     => 'array',
-      'items'    => {
-        '$schema'  => 'http://json-schema.org/draft-04/schema#',
-        'type'     => 'object',
-        'additionalProperties' => false,
-        'properties' => {
-          "spec" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "obj_id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'number'
-          },
-          "name" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^[^\n]+$'
-          }
-        }
-      }
-    }.freeze
 
     NodeItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Node Collection JSON Schema",
       'type'     => 'object',
-      'required' => %w[spec id name hw_id],
-      'properties' => {
-        'spec' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
-        },
-        'hw_id'    => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
-        },
-        'dhcp_mac' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
-        },
-        'log'   => {
+      'required' => %w[class properties entities],
+      'properties' => {  # Properties of the root entity.
+        'class'      => {
           '$schema'    => 'http://json-schema.org/draft-04/schema#',
-          'type'       => 'object',
-          'required'   => %w[id name],
-          'properties' => {
-            'id'       => {
-              '$schema'  => 'http://json-schema.org/draft-04/schema#',
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'name'     => {
-              '$schema'   => 'http://json-schema.org/draft-04/schema#',
-              'type'      => 'string',
-              'minLength' => 1
-            },
+          'type'       => 'array',
+          'items'      => {
+            '$schema'    => 'http://json-schema.org/draft-04/schema#',
+            'type'       => 'string',
+            'pattern'    => '^https?://',
           },
         },
-        'policy'   => {
+        'entities'   => {
           '$schema'    => 'http://json-schema.org/draft-04/schema#',
+          'type'       => 'array',
+          'minItems'   => 1, # At least a log
+          'maxItems'   => 2, # At most a policy and a log
+          'items'      => {
+            '$schema'    => 'http://json-schema.org/draft-04/schema#',
+            'type'       => 'object',
+            'required'   => %w[class href properties],
+            'properties' => {
+              'class' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'array',
+                'items'    => {
+                  '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                  'type'     => 'string',
+                }
+              },
+              'href'       => {
+                '$schema'    => 'http://json-schema.org/draft-04/schema#',
+                'type'       => 'string',
+                'pattern'    => '^https?://'
+              },
+              'rel'        => {
+                '$schema'    => 'http://json-schema.org/draft-04/schema#',
+                'type'       => 'array',
+                'minItems'   => 1,
+                'items'      => {
+                  '$schema'    => 'http://json-schema.org/draft-04/schema#',
+                  'type'       => 'string',
+                  'pattern'    => '^https?://'
+                },
+              },
+              'properties' => {  # 'properties' object of the policy entity
+                '$schema'    => 'http://json-schema.org/draft-04/schema#',
+                'type'       => 'object',
+                'required'   => ["name"],
+                'properties'   => {
+                  'name'         => {
+                    '$schema'     => 'http://json-schema.org/draft-04/schema#',
+                    'type'        => 'string',
+                    'minLength'   => 1,
+                  },
+                },
+                'additionalProperties' => false,
+              },
+            },
+            'additionalProperties' => false,
+          },
+        },
+        'properties' => { # 'properties' object in the root entity
           'type'       => 'object',
-          'required'   => %w[spec id name],
-          'properties' => {
-            'spec' => {
-              '$schema'  => 'http://json-schema.org/draft-04/schema#',
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'id'       => {
-              '$schema'  => 'http://json-schema.org/draft-04/schema#',
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
+          'properties'   => { # keys in the 'properties' object
             'name'     => {
-              '$schema'   => 'http://json-schema.org/draft-04/schema#',
-              'type'      => 'string',
-              'minLength' => 1
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^[0-9a-fA-F]+$'
+            },
+            'hw_id'    => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^[0-9a-fA-F]+$'
+            },
+            'dhcp_mac' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^[0-9a-fA-F]+$'
+            },
+            'facts' => {
+              '$schema'       => 'http://json-schema.org/draft-04/schema#',
+              'type'          => 'object',
+              'minProperties' => 1,
+              'additionalProperties' => {
+                '$schema'   => 'http://json-schema.org/draft-04/schema#',
+                'type'      => 'string',
+                'minLength' => 0
+              }
+            },
+            'hostname' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+            },
+            'root_password' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+            },
+            'ip_address' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'string',
+              'pattern'  => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
+            },
+            'boot_count' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => 'integer',
+              'minimum'  => 0
             },
           },
           'additionalProperties' => false,
-        },
-        'facts' => {
-          '$schema'       => 'http://json-schema.org/draft-04/schema#',
-          'type'          => 'object',
-          'minProperties' => 1,
-          'additionalProperties' => {
-            '$schema'   => 'http://json-schema.org/draft-04/schema#',
-            'type'      => 'string',
-            'minLength' => 0
-          }
-        },
-        'hostname' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-        },
-        'root_password' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-        },
-        'ip_address' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
-        },
-        'boot_count' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'integer',
-          'minimum'  => 0
         },
       },
       'additionalProperties' => false,
@@ -504,10 +566,15 @@ describe "command and query API" do
         get "/api/collections/nodes"
 
         last_response.status.should == 200
-        last_response.json.should be_an_instance_of Array
-        last_response.json.count.should == expected
-        validate! NodeCollectionSchema, last_response.body
+        is_valid_siren?(last_response).should == true
+        last_response.json["entities"].count.should == expected
+        last_response.json["class"].should == [class_url("collection"), class_url("node")]
       end
+      it "should not return any actions" do
+        get "/api/collections/nodes"
+        last_response.json["actions"].should be_empty
+      end
+
 
       it "should 404 a node requested that does not exist" do
         get "/api/collections/nodes/fast%20freddy"
@@ -519,7 +586,20 @@ describe "command and query API" do
           Razor::Data::Node.all.each do |node|
             get "/api/collections/nodes/#{URI.escape(node.name)}"
             last_response.status.should == 200
+            is_valid_siren?(last_response).should == true
             validate! NodeItemSchema, last_response.body
+            # Checking for the node and policy reference could be done in the schema,
+            # but it's a lot easier to do it here
+
+            policy = last_response.json["entities"].find {|ent| ent["class"]== [class_url("policy")]}
+
+            unless node.policy.nil?
+              policy["properties"].keys.should =~ ["name"]
+            end
+
+            log = last_response.json["entities"].find {|ent| ent["class"]== [class_url("node/log")]}
+            log.should_not be_nil
+            log["properties"]["name"].should_not be_empty
           end
         end
       end

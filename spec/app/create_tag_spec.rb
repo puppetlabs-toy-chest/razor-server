@@ -6,7 +6,7 @@ describe "create tag command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create-tag" do
+  shared_examples "a tag creation endpoint" do |api_path|
     before :each do
       header 'content-type', 'application/json'
     end
@@ -16,9 +16,11 @@ describe "create tag command" do
         :rule => ["=", ["fact", "kernel"], "Linux"] }
     end
 
+    let(:api_path) { api_path }
+
     def create_tag(input = nil)
       input ||= tag_hash.to_json
-      post '/api/commands/create-tag', input
+      post api_path, input
     end
 
     it "should reject bad JSON" do
@@ -41,10 +43,9 @@ describe "create tag command" do
       create_tag
 
       last_response.status.should == 202
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[id name spec]
-
-      last_response.json["id"].should =~ %r'/api/collections/tags/test\Z'
+      last_response.json.keys.should =~ %w[class properties rel href]
+      last_response.json["properties"].keys.should =~ ["name"]
+      last_response.json["href"].should =~ %r'/api/collections/tags/test\Z'
     end
 
     it "should create an tag record in the database" do
@@ -52,5 +53,13 @@ describe "create tag command" do
 
       Razor::Data::Tag[:name => tag_hash[:name]].should be_an_instance_of Razor::Data::Tag
     end
+  end
+
+  context "/api/commands/create-tag" do
+    it_should_behave_like "a tag creation endpoint", "/api/commands/create-tag"
+  end
+
+  context "/api/collections/tags" do
+    it_should_behave_like "a tag creation endpoint", "/api/collections/tags"
   end
 end

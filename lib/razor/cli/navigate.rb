@@ -7,112 +7,109 @@ module Razor::CLI
     def initialize(parse, segments)
       @parse = parse
       @segments = segments||[]
-      @doc = entrypoint
-      @doc_url = parse.api_url
+      self.current_object = entrypoint
+      @last_url = parse.api_url
     end
 
-    def last_url
-      @doc_url
-    end
+    attr_reader :last_url
 
     def entrypoint
-      @entrypoint ||= json_get(@parse.api_url)
+      @entrypoint ||= siren_get @parse.api_url
     end
 
-    def collections
-      entrypoint["collections"]
+    def current_object
+      @entity
     end
 
-    def commands
-      entrypoint["commands"]
+    def current_object=(value)
+      if value.is_a?(Razor::CLI::Siren::Entity) && value.href
+        @entity = siren_get(value.href)
+        @last_url = value.href
+      else
+        @entity = value
+      end
     end
 
-    def query?
-      collections.any? { |coll| coll["name"] == @segments.first }
+    def query(name)
+      current_object.entities.find {|coll| coll.properties["name"] == name }
     end
 
-    def command(name)
-      commands.find { |coll| coll["name"] == name }
+    def next_is_query?
+      !! query(@segments.first)
     end
 
-    def command?
-      !! command(@segments.first)
+    def action(name)
+      current_object.actions.find { |action| action.name == name }
     end
 
-    def get_document
+    def next_is_action?
+      !! action(@segments.first)
+    end
+
+    def get_final_object
       if @segments.empty?
-        entrypoint
-      elsif query?
-        @doc = collections
+        current_object
+      else
         while @segments.any?
-          move_to @segments.shift
+          path = current_object.path.dup << @segments.first
+          if next_is_query?
+            # Follow the breadcrumbs to the next entity
+            self.current_object = query(@segments.shift)
+            current_object.path = path
+          elsif next_is_action?
+            self.current_object = action(@segments.shift)
+            current_object.path = path
+            break # There's no point trying to navigate from an action
+          else
+            raise NavigationError.new(@last_url, @segments, current_object)
+          end
         end
-        @doc
-      elsif command?
-        # @todo lutter 2013-08-16: None of this has any tests, and error
-        # handling is heinous at best
-        cmd, body = extract_command
-        json_post(cmd["id"], body)
-      else
-        raise NavigationError.new(@doc_url, @segments, @doc)
+        current_object
       end
     end
 
-    def extract_command
-      cmd = command(@segments.shift)
-      body = {}
-      until @segments.empty?
-        if @segments.shift =~ /\A--([a-z-]+)(=(\S+))?\Z/
-          body[$1] = ($3 || @segments.shift)
+    def execute_action(action, arguments)
+      # Parse arguments into action.fields -> field.value
+      action.optparse.parse(arguments)
+      body = Hash[action.fields.map {|f| [f.name, f.value]}]
+      # Parse field values into JSON structures if possible
+      body.each do |key,value|
+        # Don't bother with anything that's not at least plausibly JSON
+        if /(\A{.*}\Z|\[.*\]\Z)/ =~ value
+          begin; body[key]=JSON.parse(value); rescue => e; end
         end
       end
-      # Special treatment for tag rules
-      if cmd["name"] == "create-tag" && body["rule"]
-        body["rule"] = JSON::parse(body["rule"])
-      end
+
       body = JSON::parse(File::read(body["json"])) if body["json"]
-      [cmd, body]
-    end
 
-    def move_to(key)
-      key = key.to_i if key.to_i.to_s == key
-      if @doc.is_a? Array
-        obj = @doc.find {|x| x.is_a?(Hash) and x["name"] == key }
-      elsif @doc.is_a? Hash
-        obj = @doc[key]
-      end
-
-      raise NavigationError.new(@doc_url, key, @doc) unless obj
-
-      if obj.is_a?(Hash) && obj["id"]
-        @doc = json_get(obj["id"])
-        @doc_url = obj["id"]
-      elsif obj.is_a? Hash
-        @doc = obj
-      else
-        @doc = nil
-      end
+      self.current_object = siren_request(action.url, action.method, body)
     end
 
     def get(url, headers={})
+      headers.merge! :accept => "application/vnd.siren+json"
       response = RestClient.get url.to_s, headers
       puts "GET #{url.to_s}\n#{response.body}" if @parse.dump_response?
       response
     end
 
-    def json_get(url, headers = {})
-      response = get(url,headers.merge(:accept => :json))
-      unless response.headers[:content_type] =~ /application\/json/
+    def siren_get(url, headers = {})
+        response = get(url,headers.merge(:accept => "application/vnd.siren+json"))
+      unless response.headers[:content_type] =~ /application\/(vnd.siren\+)?json/
        raise "Received content type #{response.headers[:content_type]}"
       end
-      JSON.parse(response.body)
+
+      Razor::CLI::Siren::Entity.parse(JSON.parse(response.body))
     end
 
-    def json_post(url, body)
-      headers = {  :accept=>:json, "Content-Type" => :json }
-      response = RestClient.post url, body.to_json, headers
-      puts "POST #{url.to_s}\n#{body}\n-->\n#{response.body}" if @parse.dump_response?
-      JSON::parse(response.body)
+    def siren_request(url, method, body = nil)
+      headers = { :accept => "application/vnd.siren+json", :content_type => :json }
+      response = case method
+      when "POST" then RestClient.post url, body.to_json, headers
+      else raise Error.new "Can't handle method #{method}"
+      end
+      puts "#{method} #{url.to_s}\n#{body}\n-->\n#{response.body}" if @parse.dump_response?
+      Razor::CLI::Siren::Entity.parse(JSON::parse(response.body))
     end
+
   end
 end

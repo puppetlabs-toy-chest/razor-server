@@ -6,7 +6,7 @@ describe "create installer command" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create-installer" do
+  shared_examples "an installer creation endpoint" do |api_path|
     before :each do
       header 'content-type', 'application/json'
     end
@@ -18,9 +18,11 @@ describe "create installer command" do
         :boot_seq => { 1 => "boot_install", "default" => "boot_local" } }
     end
 
+    let(:api_path) {api_path}
+
     def create_installer(input = nil)
       input ||= installer_hash.to_json
-      post '/api/commands/create-installer', input
+      post api_path, input
     end
 
     it "should reject bad JSON" do
@@ -67,10 +69,10 @@ describe "create installer command" do
     it "should return 202, and the URL of the installer" do
       create_installer
       last_response.status.should == 202
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[id name spec]
+      last_response.json.keys.should =~ %w[class properties rel href]
+      last_response.json["properties"].keys.should =~ ["name"]
 
-      last_response.json["id"].should =~ %r'/api/collections/installers/installer\Z'
+      last_response.json["href"].should =~ %r'/api/collections/installers/installer\Z'
     end
 
     it "should create an image record in the database" do
@@ -78,5 +80,13 @@ describe "create installer command" do
 
       Razor::Data::Installer[:name => installer_hash[:name]].should be_an_instance_of Razor::Data::Installer
     end
+  end
+
+  context "/api/commands/create-installer" do
+    it_should_behave_like "an installer creation endpoint", "/api/commands/create-installer"
+  end
+
+  context "/api/collections/installers" do
+    it_should_behave_like "an installer creation endpoint", "/api/collections/installers"
   end
 end
