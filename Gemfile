@@ -23,7 +23,7 @@ source 'http://torquebox.org/rubygems'
 #ruby-gemset=razor-server
 ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.4'
 
-gem 'torquebox', '2.3.2'
+gem 'torquebox'
 gem 'sinatra'
 gem 'sequel'
 gem 'jdbc-postgres'
@@ -56,7 +56,7 @@ group :development do
   #
   # For production you can use this, or deploy to a distinct installation of
   # TorqueBox, as you prefer.
-  gem 'torquebox-server', '2.3.2'
+  gem 'torquebox-server'
 end
 
 # This allows you to create `Gemfile.local` and have it loaded automatically;
