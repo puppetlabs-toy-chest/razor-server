@@ -103,7 +103,8 @@ describe Razor::Installer do
   describe "boot_template" do
     it "uses the boot template with the right seq" do
       inst = Installer.find("some_os")
-      node = Razor::Data::Node.new(:hw_id => "deadbeef", :boot_count => 0)
+      node = Razor::Data::Node.new(:hw_info => ["mac=deadbeef"],
+                                   :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|
         node.boot_count += 1
         inst.boot_template(node).should == t

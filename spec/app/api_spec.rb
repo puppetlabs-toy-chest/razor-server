@@ -58,7 +58,7 @@ describe "command and query API" do
     before(:each) do
       use_installer_fixtures
 
-      @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
+      @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
@@ -86,7 +86,7 @@ describe "command and query API" do
     before(:each) do
       use_installer_fixtures
 
-      @node = Razor::Data::Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
+      @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @image = Fabricate(:image)
     end
@@ -389,7 +389,7 @@ describe "command and query API" do
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Node Collection JSON Schema",
       'type'     => 'object',
-      'required' => %w[spec id name hw_id],
+      'required' => %w[spec id name],
       'properties' => {
         'spec' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
@@ -404,12 +404,11 @@ describe "command and query API" do
         'name'     => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
+          'pattern'  => '^node[0-9]+$'
         },
-        'hw_id'    => {
+        'hw_info'    => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
+          'type'     => 'object'
         },
         'dhcp_mac' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',

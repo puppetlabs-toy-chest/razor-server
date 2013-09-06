@@ -285,24 +285,24 @@ describe Razor::BrokerType do
     end
 
     it "should pass the node to the install script template" do
-      broker = {'test' => {'install.erb' => "<%= node.hw_id %>"}}
+      broker = {'test' => {'install.erb' => "<%= node.name %>"}}
       with_brokers_in(paths.first => broker) do
-        node   = Razor::Data::Node.new(:hw_id => '12345678')
+        node   = Fabricate(:node)
         broker = Razor::BrokerType.find('test')
         script = broker.install_script(node, broker_instance_for(broker))
-        script.should == node.hw_id
+        script.should == node.name
       end
     end
 
     it "should pass an immutable node to the template" do
-      broker = {'test' => {'install.erb' => "<%= node.hw_id = 'exploited!' %>"}}
+      broker = {'test' => {'install.erb' => "<%= node.hw_info = ['serial=exploited!'] %>"}}
       with_brokers_in(paths.first => broker) do
-        node = Razor::Data::Node.new(:hw_id => '12345678')
+        node = Fabricate(:node, :hw_info => [ "mac=12345678" ])
         expect {
           broker = Razor::BrokerType.find('test')
           script = broker.install_script(node, broker_instance_for(broker))
         }.to raise_error /frozen/
-        node.hw_id.should == '12345678'
+        node.hw_info.should == [ "mac=12345678" ]
       end
     end
 

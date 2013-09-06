@@ -1,18 +1,50 @@
 module Razor::Data
+  class DuplicateNodeError < RuntimeError
+    attr_reader :hw_info, :nodes
+
+    def initialize(hw_info, nodes)
+      @hw_info = hw_info
+      @nodes = nodes
+    end
+  end
+
   class Node < Sequel::Model
+    # The possible keys we allow in hw_info,
+    HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
+
     plugin :serialization, :json, :facts
     plugin :serialization, :json, :log
+    plugin :typecast_on_load, :hw_info
 
     many_to_one :policy
 
-    # Return the `hw_id` field as `name` to the outside.
-    #
-    # @todo danielp 2013-08-19: this is kind of a hack to make the generic
-    # view code work reasonably correctly in the face of this being the *one*
-    # data object that differs from the others.  In the longer term we should
-    # figure out what the right solution looks like, but this will get us
-    # working for now.
-    alias_method 'name', 'hw_id'
+    # Return a 'name'; for now this is a fixed generated string
+    # @todo lutter 2013-08-30: figure out a way for users to control how
+    # node names are set
+    def name
+      id.nil? ? nil : "node#{id}"
+    end
+
+    # Set the hardware info from a hash.
+    def hw_hash=(hw_hash)
+      self.hw_info = self.class.canonicalize_hw_info(hw_hash)
+    end
+
+    # Turn the hw_info back into a hash. Possible keys are the ones in
+    # +HW_INFO_KEYS+; all values are strings, except for +mac+, which is an
+    # array of strings if any MAC addresses are present
+    def hw_hash
+      hw_info.inject({}) do |h, p|
+        pair = p.split("=", 2)
+        if pair[0] == 'mac'
+          h['mac'] ||= []
+          h['mac'] << pair[1]
+        else
+          h[pair[0]] = pair[1]
+        end
+        h
+      end
+    end
 
     def installer
       policy ? policy.installer : Razor::Installer.mk_installer
@@ -34,6 +66,13 @@ module Razor::Data
     def shortname
       return nil if hostname.nil?
       hostname.split(".").first
+    end
+
+    def freeze
+      # Validation, which should not change the object, sometimes does. So
+      # validate before we freeze
+      validate
+      super
     end
 
     def log_append(hash)
@@ -71,38 +110,100 @@ module Razor::Data
       end
     end
 
-    def self.checkin(body)
-      hw_id = canonicalize_hw_id(body['hw_id'])
-      if node = lookup(hw_id)
-        if body['facts'] != node.facts
-          node.facts = body['facts']
-          node.save
+    def validate
+      super
+      unless hw_info.nil?
+        # PGArray is not an Array, just behaves like one
+        hw_info.is_a?(Sequel::Postgres::PGArray) or hw_info.is_a?(Array) or
+          errors.add(:hw_info, "must be an array")
+        hw_info.each do |p|
+          pair = p.split("=", 2)
+          pair.size == 2 or
+            errors.add(:hw_info, "entry '#{p}' is not in the format 'key=value'")
+          (pair[1].nil? or pair[1] == "") and
+            errors.add(:hw_info, "entry '#{p}' does not have a value")
+          HW_INFO_KEYS.include?(pair[0]) or
+            errors.add(:hw_info, "entry '#{p}' uses an unknown key #{pair[0]}")
+          # @todo lutter 2013-09-03: we should do more checking, e.g. that
+          # MAC addresses are sane
         end
-      else
-        node = create(:hw_id => hw_id, :facts => body['facts'])
+      end
+    end
+
+    # Process a checkin for this node; +body+ must be a hash where
+    # +body['facts']+ contains the latest facts from the node. Update the
+    # facts in the DB if they have changed since the last checkin. If the
+    # node doesn't have a policy applied to it yet, try to match it and
+    # return a hash whose +:action+ key contains the next action for the
+    # node (+:none+ or +:reboot+)
+    def checkin(body)
+      if facts != body['facts']
+        self.facts = body['facts']
       end
       action = :none
-      Policy.bind(node) unless node.policy
-      if node.policy
-        node.log_append(:action => :reboot, :policy => node.policy.name)
-        node.save
+      Policy.bind(self) unless policy
+      if policy
+        log_append(:action => :reboot, :policy => policy.name)
         action = :reboot
       end
+      save_changes
       { :action => action }
     end
 
-    def self.canonicalize_hw_id(input)
-      input.gsub(/[_:]/, '').downcase
+    def self.find_by_name(name)
+      # We currently do not store the name in the DB; this just reverses
+      # what the +#name+ method does and looks up by id
+      self[$1] if name =~ /\Anode([0-9]+)\Z/
     end
 
-    def self.lookup(hw_id)
-      self[:hw_id => canonicalize_hw_id(hw_id)]
+    # Normalize the hardware info. Be very careful when you change this
+    # as this might require a DB migration so that existing nodes can
+    # still be found after the change
+    #
+    # Besides the keys coming in from the MK, +hw_info+ might also be a
+    # +hw_hash+, implying that +mac+ might be an array of MAC addresses
+    def self.canonicalize_hw_info(hw_info)
+      if macs = hw_info["mac"]
+        # hw_info might contain an array of mac's; spread that out
+        hw_info = hw_info.to_a.reject! {|k,v| k == "mac" } +
+                  ["mac"].product(macs)
+      end
+      hw_info.map do |k,v|
+        # We treat the netXXX keys special so that our hw_info is
+        # independent of the order in which the BIOS enumerates NICs. We
+        # also don't care about case
+        k = "mac" if k =~ /net[0-9]+/
+        [k.downcase, v.downcase]
+      end.sort do |a, b|
+        # Sort the [key, value] pairs lexicographically
+        a[0] == b[0] ? a[1] <=> b[1] : a[0] <=> b[0]
+      end.map { |pair| "#{pair[0]}=#{pair[1]}" }
     end
 
-    def self.boot(hw_id, dhcp_mac = nil)
-      node = lookup(hw_id) || Node.create(:hw_id => canonicalize_hw_id(hw_id))
-      node.dhcp_mac = dhcp_mac if dhcp_mac && dhcp_mac != ""
-      node.save
+    # Look up a node by its hw_info; any node whose hw_info overlaps with
+    # the given hw_info is considered to match. If there is more than one
+    # matching node, throw a +DuplicateNodeError+. If there is none, create
+    # a new node
+    def self.lookup(params)
+      dhcp_mac = params.delete("dhcp_mac")
+      dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
+
+      hw_info = canonicalize_hw_info(params)
+
+      nodes = self.where(:hw_info.pg_array.overlaps(hw_info)).all
+      if nodes.size == 0
+        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+      elsif nodes.size == 1
+        node = nodes.first
+        unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
+          node.dhcp_mac = dhcp_mac
+          node.save
+        end
+        node
+      else
+        # We have more than one node matching hw_info; fail
+        raise DuplicateNodeError.new(hw_info, nodes)
+      end
     end
 
     def self.stage_done(node_id)

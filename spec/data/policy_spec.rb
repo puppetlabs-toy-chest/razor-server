@@ -4,7 +4,8 @@ describe Razor::Data::Policy do
 
   before(:each) do
     use_installer_fixtures
-    @node = Node.create(:hw_id => "abc", :facts => { "f1" => "a" })
+    @node = Fabricate(:node, :hw_hash => { "mac" => ["abc"] },
+                      :facts => { "f1" => "a" })
     @tag = Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
     @image = Fabricate(:image)
   end

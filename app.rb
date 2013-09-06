@@ -92,6 +92,26 @@ class Razor::App < Sinatra::Base
     def config
       @config ||= Razor::Util::TemplateConfig.new
     end
+
+    # Construct the URL that our iPXE bootstrap script should use to call
+    # /svc/boot. Attempt to include as much information about the node as
+    # iPXE can give us
+    def ipxe_boot_url
+      vars = {}
+      (1..@nic_max).each do |index|
+        net_id = "net#{index - 1}"
+        vars[net_id] = "${#{net_id}/mac:hexhyp}"
+      end
+      ["dhcp_mac", "serial", "asset", "uuid"].each { |k| vars[k] = "${#{k}}" }
+      q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
+      url "/svc/boot?#{q}"
+    end
+
+    # Information to include on the microkernel kernel command line that
+    # the MK agent uses to identify the node
+    def microkernel_kernel_args
+      "razor.register=#{url("/svc/checkin/@node.id")} #{Razor.config["microkernel.kernel_args"]}"
+    end
   end
 
   # Client API helpers
@@ -138,19 +158,26 @@ class Razor::App < Sinatra::Base
   # out "do this" from "register me", as this presently forbids multiple
   # actions being queued for the MK, and so on.  (At least, without inventing
   # a custom bundling format for them...)
-  post '/svc/checkin' do
+  #
+  # @todo lutter 2013-09-04: this code assumes that we can tell an MK its
+  # unique checkin URL, which is true for MK's that boot through
+  # +installers/microkernel/boot.erb+. If we need to allow booting of MK's
+  # by other means, we'd need to convince facter to send us the same
+  # hw_info that iPXE does and identify the node via +Node.lookup+
+  post '/svc/checkin/:id' do
     return 400 if request.content_type != 'application/json'
     begin
       json = JSON::parse(request.body.read)
     rescue JSON::ParserError
       return 400
     end
-    return 400 unless json['facts'] and json['hw_id']
-    Razor::Data::Node.checkin(json).to_json
+    return 400 unless json['facts']
+    node = Razor::Data::Node[params["id"]] or return 404
+    node.checkin(json).to_json
   end
 
-  get '/svc/boot/:hw_id' do
-    @node = Razor::Data::Node.boot(params[:hw_id], params[:dhcp_mac])
+  get '/svc/boot' do
+    @node = Razor::Data::Node.lookup(params)
 
     @installer = @node.installer
 
@@ -436,16 +463,16 @@ class Razor::App < Sinatra::Base
     Razor::Data::Node.all.map {|node| view_object_reference(node) }.to_json
   end
 
-  get '/api/collections/nodes/:hw_id' do
-    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
-      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
+  get '/api/collections/nodes/:name' do
+    node = Razor::Data::Node.find_by_name(params[:name]) or
+      error 404, :error => "no node matched name=#{params[:name]}"
     node_hash(node).to_json
   end
 
-  get '/api/collections/nodes/:hw_id/log' do
+  get '/api/collections/nodes/:name/log' do
     # @todo lutter 2013-08-20: There are no tests for this handler
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
-    node = Razor::Data::Node[:hw_id => params[:hw_id]] or
+    node = Razor::Data::Node.find_by_name(params[:name]) or
       error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
     node.log.to_json
   end
@@ -453,12 +480,12 @@ class Razor::App < Sinatra::Base
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither
   # a command not a collection.
   get '/api/microkernel/bootstrap' do
-    params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]*\Z/ or
+    params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]+\Z/ or
       error 400,
         :error => "The nic_max parameter must be an integer not starting with 0"
 
     # How many NICs ipxe should probe for DHCP
-    @nic_max = params["nic_max"].to_i || 4
+    @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i
 
     @installer = Razor::Installer.mk_installer
 

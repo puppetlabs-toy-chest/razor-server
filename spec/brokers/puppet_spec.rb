@@ -9,7 +9,7 @@ describe Razor::BrokerType.find('puppet') do
     # I wish there were a better way to fake this, I guess.
     mac = (1..6).map {'0123456789ABCDEF'.split('').sample(2).join }
     Razor::Data::Node.new(
-      :hw_id    => mac.join,
+      :hw_info  => ["mac=#{mac.join("-")}"],
       :dhcp_mac => mac.join(':'),
       :facts    => {'kernel' => 'simulated', 'osversion' => 'over 9000'},
       :hostname => "#{Faker::Lorem.word}.#{Faker::Internet.domain_name}",

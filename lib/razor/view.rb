@@ -103,7 +103,7 @@ module Razor
     def node_hash(node)
       return nil unless node
       view_object_hash(node).merge(
-        :hw_id         => node.hw_id,
+        :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
         :policy        => view_object_reference(node.policy),
         :log           => { :id => view_object_url(node) + "/log",

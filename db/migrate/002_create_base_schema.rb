@@ -117,15 +117,12 @@ Sequel.migration do
 
     create_table :nodes do
       primary_key :id
-      # FIXME: store hw_id as an array of MACs rather than a concatenation
-      # of MAC's
-      String      :hw_id, :null => false
-      index  Sequel.function(:lower, :hw_id), :unique => true,
-                                              :name => 'nodes_hw_id_index'
+
+      column :hw_info, 'Text[]', :null => false
 
       String      :dhcp_mac
-      index  Sequel.function(:lower, :hw_id), :unique => true,
-                                              :name => 'nodes_dhcp_mac_index'
+      index  Sequel.function(:lower, :dhcp_mac), :unique => true,
+                                                 :name => 'nodes_dhcp_mac_index'
 
       foreign_key :policy_id, :policies
       # FIXME: the log should go into its own table, with a timestamp

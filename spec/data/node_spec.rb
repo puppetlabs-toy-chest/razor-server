@@ -7,37 +7,80 @@ describe Razor::Data::Node do
 
   let (:policy) { Fabricate(:policy) }
 
-  let (:node) { Node.create(:hw_id => "deadbeef") }
+  let (:node) { Fabricate(:node) }
 
-  context "canonicalize_hw_id" do
-    {
-      '00:0c:29:56:a5:35' => '000c2956a535',
-      '00:0C:29:56:A5:35' => '000c2956a535',
-      '00:0c:29:3f:68:c3____' => '000c293f68c3',
-      '00:0C:29:3f:68:C3____' => '000c293f68c3',
-      '00:0C:29:B5:1F:D1_00:0C:29:3f:68:C3_00:0c:29:56:a5:35__' =>
-          '000c29b51fd1000c293f68c3000c2956a535'
-    }.each do |have, want|
-      it "should canonicalize #{have.inspect} to #{want.inspect}" do
-        Node.canonicalize_hw_id(have).should == want
+  context "canonicalize_hw_info" do
+    def canonicalize(hw_info)
+      Node.canonicalize_hw_info(hw_info)
+    end
+
+    it "should rename netX to mac" do
+      canonicalize("net0" => "1", "net1" => "2").should == ["mac=1", "mac=2"]
+    end
+
+    it "should order MACs case insensitively" do
+      canonicalize("net0" => "B", "net1" => "a").should == ["mac=a", "mac=b"]
+    end
+
+    it "should sort entries by keys" do
+      canonicalize("uuid" => "1", "serial" => "2", "asset" => "asset").should ==
+        ["asset=asset", "serial=2", "uuid=1"]
+    end
+  end
+
+  context "hw_hash=" do
+    it "canonicalizes a hash" do
+      n = Node.new(:hw_hash => { "mac" => ["B", "a"], "serial" => "1" })
+      n.hw_info.should == ["mac=a", "mac=b", "serial=1"]
+    end
+  end
+
+  context "find_by_name" do
+    it "finds a node" do
+      node = Fabricate(:node)
+      Node.find_by_name(node.name).should == node
+    end
+
+    ["node42", "hello there", ""].each do |name|
+      it "returns nil for nonexistant node '#{name}'" do
+        Node.find_by_name(name).should be_nil
       end
     end
   end
 
   context "lookup" do
-    it "should find node by HW id" do
-      mac = "001122334455"
-      nc = Node.create(:hw_id => mac)
-      nl = Node.lookup(mac)
+    it "should find node by hw_info" do
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+      nc = Fabricate(:node, :hw_hash => hw_hash)
+      nl = Node.lookup(hw_hash)
       nl.should == nc
       nl.id.should_not be_nil
     end
 
-    it "should find the correct node for several mac inputs" do
-      # hand calculated the canonical version...
-      node = Fabricate(:node, :hw_id => '5254000d97f0')
-      Node.lookup('52:54:00:0d:97:f0____').should == node
-      Node.lookup('5254000d97f0').should == node
+    it "should find node by partial hw_info" do
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+      nc = Fabricate(:node, :hw_hash => hw_hash)
+      nl = Node.lookup("asset" => "ABCD")
+      nl.should == nc
+      nl.id.should_not be_nil
+    end
+
+    it "should create node when no match exists" do
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+      nl = Node.lookup(hw_hash)
+      nl.id.should_not be_nil
+      Node[nl.id].should_not be_nil
+      nl.hw_hash.should == hw_hash
+    end
+
+    it "should raise DuplicateNodeError if two nodes have overlapping hw_info" do
+      hw1 = { "serial" => "1", "asset" => "asset" }
+      hw2 = { "serial" => "1", "uuid" => "u1" }
+      n1 = Fabricate(:node, :hw_hash => hw1)
+      n2 = Fabricate(:node, :hw_hash => hw2)
+      expect {
+        Node.lookup(hw1)
+      }.to raise_error(Razor::Data::DuplicateNodeError)
     end
   end
 
@@ -99,7 +142,7 @@ describe Razor::Data::Node do
       Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
     }
     let (:node) {
-      Node.create(:hw_id => hw_id, :facts => { "f1" => "a" })
+      Node.create(:hw_info => ["mac=#{hw_id}"], :facts => { "f1" => "a" })
     }
 
     it "should bind to a policy when there is a match" do
@@ -107,9 +150,10 @@ describe Razor::Data::Node do
       policy.add_tag(tag)
       policy.save
 
-      Node.checkin({ "hw_id" => hw_id, "facts" => { "f1" => "a" }})
+      node = Node.lookup("net0" => hw_id)
+      node.checkin("facts" => { "f1" => "a" })
+      node.modified?.should be_false
 
-      node = Node.lookup(hw_id)
       node.policy.should == policy
       node.log.last["action"].should == "reboot"
       node.log.last["policy"].should == policy.name
@@ -122,10 +166,11 @@ describe Razor::Data::Node do
       policy.save
 
       expect do
-        Node.checkin({ "hw_id" => hw_id, "facts" => { "f1" => "a" }})
+        node = Node.lookup("net0" => hw_id)
+        node.checkin("facts" => { "f1" => "a" })
       end.to raise_error Razor::Matcher::RuleEvaluationError
 
-      node = Node.lookup(hw_id)
+      node = Node.lookup("net0" => hw_id)
       node.log[0]["severity"].should == "error"
       node.log[0]["msg"].should =~ /tags/
       node.policy.should be_nil
@@ -152,7 +197,7 @@ describe Razor::Data::Node do
 
         # Change the policies
         policy10 = make_tagged_policy(10)
-        Node.checkin("hw_id" => node.hw_id, "facts" => node.facts)
+        node.checkin("facts" => node.facts)
         node.reload
         node.policy.should == policy20
       end
@@ -164,11 +209,23 @@ describe Razor::Data::Node do
         node.save
 
         policy20 = make_tagged_policy(20)
-        Node.checkin("hw_id" => node.hw_id, "facts" => { "f1" => "a" })
+        node.checkin("facts" => { "f1" => "a" })
         node.reload
         node.tags.should == [ tag ]
         node.policy.should == random_policy
       end
+    end
+  end
+
+  describe "freeze" do
+    it "works for an existing node" do
+      n = Fabricate(:node)
+      n.save
+      n.freeze
+      n.name.should_not be_nil
+      expect { n.hostname = "host" }.to raise_error /frozen/
+      expect { n.facts = { "f2" => "y" } }.to raise_error /frozen/
+      expect { n.save }.to raise_error /frozen/
     end
   end
 end

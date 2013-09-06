@@ -17,18 +17,18 @@ describe "provisioning API" do
   end
 
   it "should boot new nodes into the MK" do
-    hw_id = "00:11:22:33:44:55"
-    get "/svc/boot/#{hw_id}"
+    get "/svc/boot?net0=00:11:22:33:44:55"
     assert_booting("Microkernel")
   end
 
   describe "booting known nodes" do
     before(:each) do
-      @node = Node.create(:hw_id => "001122334455")
+      @node = Fabricate(:node)
+      @mac = @node.hw_hash["mac"].first
     end
 
     it "without policy should boot the microkernel" do
-      get "/svc/boot/#{@node.hw_id}"
+      get "/svc/boot?net0=#{@mac}"
       assert_booting("Microkernel")
       @node.reload
       @node.log.last["event"].should == "boot"
@@ -41,16 +41,17 @@ describe "provisioning API" do
       before(:each) do
         @node.bind(policy)
         @node.save
+        @mac = @node.hw_hash["mac"].first
       end
 
       it "without calling stage_done boots the same template" do
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot SomeOS 3")
 
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot SomeOS 3")
 
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot SomeOS 3")
       end
 
@@ -58,13 +59,13 @@ describe "provisioning API" do
         get "/svc/stage-done/#{@node.id}"
         last_response.status.should == 204
 
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot SomeOS 3 again")
 
         get "/svc/stage-done/#{@node.id}"
         last_response.status.should == 204
 
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot local")
       end
     end
@@ -75,19 +76,19 @@ describe "provisioning API" do
 
       it "should be nil when not provided" do
         header 'Content-Type', 'application/json'
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
 
         last_response.status.should == 200
-        node = Node.lookup(@node.hw_id)
+        node = Node.lookup("net0" => @mac)
         node.dhcp_mac.should be_nil
       end
 
       it "should be stored when given in the checkin data" do
         header 'Content-Type', 'application/json'
-        get "/svc/boot/#{@node.hw_id}?dhcp_mac=#{dhcp_mac}"
+        get "/svc/boot?net0=#{@mac}&dhcp_mac=#{dhcp_mac}"
 
         last_response.status.should == 200
-        node = Node.lookup(@node.hw_id)
+        node = Node.lookup("net0" => @mac)
         node.dhcp_mac.should == dhcp_mac
       end
 
@@ -96,10 +97,10 @@ describe "provisioning API" do
         @node.save
 
         header 'Content-Type', 'application/json'
-        get "/svc/boot/#{@node.hw_id}"
+        get "/svc/boot?net0=#{@mac}"
 
         last_response.status.should == 200
-        node = Node.lookup(@node.hw_id)
+        node = Node.lookup("net0" => @mac)
         node.dhcp_mac.should == dhcp_mac
       end
     end
@@ -107,7 +108,7 @@ describe "provisioning API" do
 
   describe "fetching a template" do
     before(:each) do
-      @node = Node.create(:hw_id => "001122334455")
+      @node = Fabricate(:node)
       @node.bind(policy)
       @node.save
     end
@@ -166,7 +167,7 @@ describe "provisioning API" do
     end
 
     it "should store the log message for an existing node" do
-      node = Node.create(:hw_id => "001122334455")
+      node = Fabricate(:node)
 
       get "/svc/log/#{node.id}?msg=message&severity=warn"
       last_response.status.should == 204
@@ -179,7 +180,7 @@ describe "provisioning API" do
 
   describe "storing node IP" do
     before(:each) do
-      @node = Node.create(:hw_id => "001122334455")
+      @node = Fabricate(:node)
     end
 
     it "should store an IP" do
@@ -206,35 +207,27 @@ describe "provisioning API" do
 
     it "should return 400 for non-json requests" do
       header 'Content-Type', 'text/plain'
-      post "/svc/checkin", "{}"
+      post "/svc/checkin/42", "{}"
       last_response.status.should == 400
     end
 
     it "should return 400 for malformed JSON" do
       header 'Content-Type', 'application/json'
-      post "/svc/checkin", "{}}"
+      post "/svc/checkin/42", "{}}"
       last_response.status.should == 400
     end
 
     it "should return 400 for JSON without facts" do
       header 'Content-Type', 'application/json'
-      post "/svc/checkin", { :stuff => 1, :hw_id => 1 }.to_json
+      post "/svc/checkin/42", { :stuff => 1 }.to_json
       last_response.status.should == 400
     end
 
-    it "should return 400 for JSON without hw_id" do
+    it "should return 404 for a new node" do
       header 'Content-Type', 'application/json'
-      post "/svc/checkin", { :stuff => 1, :facts => {} }.to_json
-      last_response.status.should == 400
-    end
-
-    it "should return a none action for a new node" do
-      header 'Content-Type', 'application/json'
-      body = { :facts => { :hostname => "example" }, :hw_id => 'foodbaad' }.to_json
-      post "/svc/checkin", body
-      last_response.status.should == 200
-      last_response.mime_type.should == 'application/json'
-      last_response.json.should == { "action" => "none" }
+      body = { :facts => { :hostname => "example" } }.to_json
+      post "/svc/checkin/42", body
+      last_response.status.should == 404
     end
   end
 

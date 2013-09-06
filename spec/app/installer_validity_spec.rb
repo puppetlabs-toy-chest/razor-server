@@ -21,7 +21,7 @@ describe "stock installer" do
       before(:each) do
         Razor.config["installer_path"] = INSTALLER_PATH
 
-        @node = Node.create(:hw_id => "001122334455")
+        @node = Fabricate(:node, :hw_info => ["mac=001122334455"])
         policy = Fabricate(:policy, :installer_name => name)
         @node.bind(policy)
         @node.save

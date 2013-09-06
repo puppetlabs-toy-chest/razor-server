@@ -4,6 +4,16 @@ def random_version
   3.times.map {|n| Random.rand(20).to_s }.join('.')
 end
 
+def random_mac
+  # not strictly a legal MAC, but the shape is correct.  (eg: could be a
+  # broadcast MAC, or some other invalid value.)
+  6.times.map { Random.rand(256).to_s(16) }.join("-")
+end
+
+ASSET_CHARS=('A'..'Z').to_a + ('0'..'9').to_a
+def random_asset
+  ASSET_CHARS.sample(6).join
+end
 
 Fabricator(:broker, :class_name => Razor::Data::Broker) do
   name   { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
@@ -43,13 +53,12 @@ end
 
 
 Fabricator(:node, :class_name => Razor::Data::Node) do
-  # not strictly a legal MAC, but the shape is correct.  (eg: could be a
-  # broadcast MAC, or some other invalid value.)
-  hw_id { 6.times.map { Random.rand(256).to_s(16) }.join }
+  hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+end
 
-  # I can't tell if this is always set, or only set when the node has taken
-  # some action, but I am going to assume "always" for now.
-  after_build {|node, _| node.dhcp_mac = node.hw_id }
+Fabricator(:node_with_facts, :class_name => Razor::Data::Node) do
+  hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+  facts   { { "f1" => "a" } }
 end
 
 Fabricator(:bound_node, from: :node) do

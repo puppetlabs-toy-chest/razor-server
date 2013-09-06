@@ -4,7 +4,7 @@ require_relative 'config'
 
 # Load Sequel extensions
 Sequel.extension :core_extensions, :inflector
-Sequel.extension :pg_array, :pg_array_ops
+Sequel.extension :pg_array_ops
 require 'sequel/plugins/serialization'
 
 module Razor
