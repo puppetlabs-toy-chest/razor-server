@@ -33,10 +33,10 @@ module Razor::Data
     HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
 
     plugin :serialization, :json, :facts
-    plugin :serialization, :json, :log
     plugin :typecast_on_load, :hw_info
 
     many_to_one :policy
+    one_to_many :node_log_entries
 
     # Return a 'name'; for now this is a fixed generated string
     # @todo lutter 2013-08-30: figure out a way for users to control how
@@ -88,6 +88,16 @@ module Razor::Data
       hostname.split(".").first
     end
 
+    # Retrive the entire log for this node as an array of hashes, ordered
+    # by increasing timestamp. In addition to the keys mentioned for
+    # +log_append+ each entry will also contain the +timstamp+ in ISO8601
+    # format
+    def log
+      node_log_entries_dataset.order(:timestamp).map do |log|
+        { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
+      end
+    end
+
     def freeze
       # Validation, which should not change the object, sometimes does. So
       # validate before we freeze
@@ -107,16 +117,14 @@ module Razor::Data
     # @todo lutter 2013-09-06: narrow down and document what actions and
     # events can be logged, together with the additional information for
     # each
-    def log_append(hash)
-      self.log ||= []
-      hash[:timestamp] ||= Time.now.to_i
-      hash[:severity] ||= 'info'
+    def log_append(entry)
+      entry[:severity] ||= 'info'
       # Roundtrip the hash through JSON to make sure we always have the
       # same entries in the log that we would get from loading from DB
       # (otherwise we could have symbols, which will turn into strings on
       # reloading)
-      self.log << JSON::parse(hash.to_json)
-      self.save
+      entry = JSON::parse(entry.to_json)
+      add_node_log_entry(:entry => entry)
     end
 
     def bind(policy)
@@ -136,8 +144,6 @@ module Razor::Data
     def schema_type_class(k)
       if k == :facts
         Hash
-      elsif k == :log
-        Array
       else
         super
       end
