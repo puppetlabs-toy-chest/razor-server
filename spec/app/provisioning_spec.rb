@@ -21,6 +21,21 @@ describe "provisioning API" do
     assert_booting("Microkernel")
   end
 
+  it "should log an error if more than one node matches the hw_info" do
+    n1 = Fabricate(:node, :hw_info => ["serial=s1", "asset=a1"])
+    n2 = Fabricate(:node, :hw_info => ["serial=s2", "asset=a1"])
+    get "/svc/boot?asset=a1"
+    last_response.status.should == 400
+    [n1, n2].each do |n|
+      n.reload
+      entry = n.log.last
+      entry.should_not be_nil
+      entry['severity'].should == 'error'
+      entry['event'].should == 'boot'
+      entry['error'].should == 'duplicate_node'
+    end
+  end
+
   describe "booting known nodes" do
     before(:each) do
       @node = Fabricate(:node)

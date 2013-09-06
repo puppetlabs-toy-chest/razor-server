@@ -6,6 +6,26 @@ module Razor::Data
       @hw_info = hw_info
       @nodes = nodes
     end
+
+    def message
+      nodes_message =
+        node_ids.map { |h| "(name=#{h[:name]}, id=#{h[:id]})" }.join(",")
+      "Multiple nodes match hw_info #{hw_info}. Nodes: #{nodes_message}"
+    end
+
+    def log_to_nodes!
+      log_entry = {
+        :event => :boot, :severity => :error,
+        :error => :duplicate_node,
+        :nodes => node_ids,
+        :hw_info => hw_info
+      }
+      nodes.each { |node| node.log_append(log_entry) }
+    end
+
+    def node_ids
+      nodes.map { |node| { :name => node.name, :id => node.id } }
+    end
   end
 
   class Node < Sequel::Model
@@ -75,6 +95,18 @@ module Razor::Data
       super
     end
 
+    # Log a message to the node's log and save the log. Messages should be
+    # hashes, where some of the keys have standard meanings. These keys are
+    #
+    # +:severity+ - 'info', 'warn' or 'error'
+    # +:msg+      - human readable text
+    # +:error+    - the kind of error that happened
+    # +:action+   - an action the node was told to perform
+    # +:event+    - an event on the server, e.g. 'boot'
+    #
+    # @todo lutter 2013-09-06: narrow down and document what actions and
+    # events can be logged, together with the additional information for
+    # each
     def log_append(hash)
       self.log ||= []
       hash[:timestamp] ||= Time.now.to_i
@@ -84,6 +116,7 @@ module Razor::Data
       # (otherwise we could have symbols, which will turn into strings on
       # reloading)
       self.log << JSON::parse(hash.to_json)
+      self.save
     end
 
     def bind(policy)

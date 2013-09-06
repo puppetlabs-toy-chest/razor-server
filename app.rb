@@ -177,7 +177,13 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/boot' do
-    @node = Razor::Data::Node.lookup(params)
+    begin
+      @node = Razor::Data::Node.lookup(params)
+    rescue Razor::Data::DuplicateNodeError => e
+      e.log_to_nodes!
+      Razor.logger.error(e.message)
+      return 400
+    end
 
     @installer = @node.installer
 
