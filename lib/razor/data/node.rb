@@ -199,6 +199,10 @@ module Razor::Data
           node.dhcp_mac = dhcp_mac
           node.save
         end
+        if hw_info != node.hw_info
+          node.hw_info = hw_info
+          node.save
+        end
         node
       else
         # We have more than one node matching hw_info; fail

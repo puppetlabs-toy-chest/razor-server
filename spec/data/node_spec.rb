@@ -61,8 +61,7 @@ describe Razor::Data::Node do
       hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
       nc = Fabricate(:node, :hw_hash => hw_hash)
       nl = Node.lookup("asset" => "ABCD")
-      nl.should == nc
-      nl.id.should_not be_nil
+      nl.id.should == nc.id
     end
 
     it "should create node when no match exists" do
@@ -81,6 +80,17 @@ describe Razor::Data::Node do
       expect {
         Node.lookup(hw1)
       }.to raise_error(Razor::Data::DuplicateNodeError)
+    end
+
+    it "should update hw_info when it changes" do
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+      n1 = Node.lookup(hw_hash)
+      n1.should_not be_nil
+
+      hw_hash = { "net0" => "de-ad-be-ef-00-00", "asset" => "abcd" }
+      n2 = Node.lookup(hw_hash)
+      n2.id.should == n1.id
+      n2.hw_info.should == [ "asset=abcd", "mac=de-ad-be-ef-00-00" ]
     end
   end
 
