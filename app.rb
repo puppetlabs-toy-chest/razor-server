@@ -110,7 +110,7 @@ class Razor::App < Sinatra::Base
     # Information to include on the microkernel kernel command line that
     # the MK agent uses to identify the node
     def microkernel_kernel_args
-      "razor.register=#{url("/svc/checkin/@node.id")} #{Razor.config["microkernel.kernel_args"]}"
+      "razor.register=#{url("/svc/checkin/#{@node.id}")} #{Razor.config["microkernel.kernel_args"]}"
     end
   end
 
