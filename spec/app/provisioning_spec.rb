@@ -36,6 +36,11 @@ describe "provisioning API" do
     end
   end
 
+  it "should tolerate empty and extraneous parameters in /svc/boot" do
+    get "/svc/boot?serial=1234&net0=&net1=&asset=&nic_max=4"
+    assert_booting("Microkernel")
+  end
+
   describe "booting known nodes" do
     before(:each) do
       @node = Fabricate(:node)

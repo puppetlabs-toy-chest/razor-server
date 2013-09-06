@@ -207,6 +207,8 @@ module Razor::Data
         # also don't care about case
         k = "mac" if k =~ /net[0-9]+/
         [k.downcase, v.downcase]
+      end.select do |k, v|
+        (HW_INFO_KEYS + ["mac"]).include?(k) && v && v != ""
       end.sort do |a, b|
         # Sort the [key, value] pairs lexicographically
         a[0] == b[0] ? a[1] <=> b[1] : a[0] <=> b[0]
