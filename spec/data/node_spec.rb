@@ -92,6 +92,19 @@ describe Razor::Data::Node do
       n2.id.should == n1.id
       n2.hw_info.should == [ "asset=abcd", "mac=de-ad-be-ef-00-00" ]
     end
+
+    it "should complain if hardware is moved between known nodes" do
+      hw1 = { "net0" => "01:01", "net1" => "01:02" }
+      hw2 = { "net0" => "02:01" }
+      n1 = Node.lookup(hw1)
+      n2 = Node.lookup(hw2)
+      n1.id.should_not == n2.id
+      # Move the second NIC from n1 to n2
+      hw2["net1"] = hw1.delete("net1")
+      expect {
+        Node.lookup(hw2)
+      }.to raise_error(Razor::Data::DuplicateNodeError)
+    end
   end
 
   it "log_append stores messages" do
