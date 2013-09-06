@@ -432,6 +432,31 @@ describe "command and query API" do
             },
           },
         },
+        'tags'     => {
+          '$schema'    => 'http://json-schema.org/draft-04/schema#',
+          'type'       => 'array',
+          'items'      => {
+            'type'       => 'object',
+            'required'   => %w[id name spec],
+            'properties'  => {
+              'id'       => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string',
+                'pattern'  => '^https?://'
+              },
+              'name'     => {
+                '$schema'   => 'http://json-schema.org/draft-04/schema#',
+                'type'      => 'string',
+                'minLength' => 1
+              },
+              'spec' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string',
+                'pattern'  => '^https?://'
+              },
+            },
+          },
+        },
         'policy'   => {
           '$schema'    => 'http://json-schema.org/draft-04/schema#',
           'type'       => 'object',

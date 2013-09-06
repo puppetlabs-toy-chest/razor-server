@@ -111,6 +111,7 @@ module Razor
         :policy        => view_object_reference(node.policy),
         :log           => { :id => view_object_url(node) + "/log",
                             :name => "log" },
+        :tags          => node.tags.map { |t| view_object_reference(t) },
         :facts         => node.facts,
         :hostname      => node.hostname,
         :root_password => node.root_password,
