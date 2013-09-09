@@ -104,6 +104,7 @@ module Razor
       return nil unless node
       # @todo lutter 2013-09-09: if there is a policy, use boot_count to
       # provide a useful status about progress
+      last_checkin_s = node.last_checkin.xmlschema if node.last_checkin
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
@@ -113,7 +114,8 @@ module Razor
         :facts         => node.facts,
         :hostname      => node.hostname,
         :root_password => node.root_password,
-        :ip_address    => node.ip_address
+        :ip_address    => node.ip_address,
+        :last_checkin  => last_checkin_s
       ).delete_if {|k,v| v.nil? }
     end
   end
