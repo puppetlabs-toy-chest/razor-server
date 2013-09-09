@@ -25,3 +25,28 @@ all:
   # The *broker_path* is a colon separated list of directories containing
   # broker types
   broker_path: brokers
+  facts:
+    # Facts that we should always ignore. These are stripped out before we
+    # do anything else with facts coming in from a node. Each entry in this
+    # array can either be a string (literal name of a fact) or a regexp
+    # enclosed in /../ where any fact that matches the regexp will be
+    # dropped
+    blacklist:
+      - id
+      - /kernel.*/
+      - memorysize
+      - memoryfree
+      - operatingsystem
+      - operatingsystemrelease
+      - osfamily
+      - path
+      - ps
+      - rubysitedir
+      - rubyversion
+      - selinux
+      - sshdsakey
+      - sshrsakey
+      - swapfree
+      - swapsize
+      - timezone
+      - /uptime.*/

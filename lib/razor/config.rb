@@ -32,6 +32,15 @@ module Razor
       expand_paths('broker')
     end
 
+    def fact_blacklisted?(name)
+      !! facts_blacklist_rx.match(name)
+    end
+
+    # @todo lutter 2013-09-08: validate the config on server startup and
+    # produce useful error if anything is fishy. Things to validate:
+    #   - facts.blacklist compiles to a valid regexp
+    #   - image_store_root is an existing writable directory
+
     private
     def expand_paths(what)
       option_name  = what + '_path' # eg: broker_path, installer_path
@@ -45,6 +54,17 @@ module Razor
       else
         [File::expand_path(File::join(Razor.root, what.pluralize))]
       end
+    end
+
+    def facts_blacklist_rx
+      @facts_blacklist_rx ||=
+        Regexp.compile("\\A((" + self["facts.blacklist"].map do |s|
+                         if s =~ %r{\A/(.*)/\Z}
+                           $1
+                         else
+                           Regexp.quote(s)
+                         end
+                       end.join(")|(") + "))\\Z")
     end
   end
 end

@@ -240,6 +240,30 @@ describe Razor::Data::Node do
     end
   end
 
+  describe "checkin handles blacklisted facts" do
+    before(:each) do
+      Razor.config["facts.blacklist"] = [ "a", "/b[0-9]+/"]
+    end
+
+    let (:node) {
+      Node.create(:hw_info => ["serial=42"], :facts => { "f1" => "a" })
+    }
+
+    ["a", "b17"].each do |k|
+      it "(suppresses #{k})" do
+        node.checkin("facts" => { k => "1" })
+        node.facts.should == {}
+      end
+    end
+
+    ["a1", "b", "blue", "x"].each do |k|
+      it "(does not suppress #{k})" do
+        node.checkin("facts" => { k => "1" })
+        node.facts.should == { k => "1" }
+      end
+    end
+  end
+
   describe "freeze" do
     it "works for an existing node" do
       n = Fabricate(:node)

@@ -176,8 +176,11 @@ module Razor::Data
     # return a hash whose +:action+ key contains the next action for the
     # node (+:none+ or +:reboot+)
     def checkin(body)
-      if facts != body['facts']
-        self.facts = body['facts']
+      new_facts = body['facts'].reject do |k, _|
+        Razor.config.fact_blacklisted?(k)
+      end
+      if facts != new_facts
+        self.facts = new_facts
       end
       action = :none
       Policy.bind(self) unless policy

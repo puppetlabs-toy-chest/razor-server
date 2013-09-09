@@ -45,6 +45,10 @@ class Razor::Config
   def values=(v)
     @values = v
   end
+
+  def reset!
+    @facts_blacklist_rx = nil
+  end
 end
 
 FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
@@ -58,6 +62,7 @@ end
 RSpec.configure do |c|
   c.around(:each) do |example|
     config_values = Razor.config.values.dup
+    Razor.config.reset!
     example.run
     Razor.config.values = config_values
   end
