@@ -9,6 +9,7 @@ require 'faker'
 
 require 'rack/test'
 require 'json'
+require 'timecop'
 
 ENV["RACK_ENV"] ||= "test"
 

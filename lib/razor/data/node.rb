@@ -182,6 +182,10 @@ module Razor::Data
       if facts != new_facts
         self.facts = new_facts
       end
+      # @todo lutter 2013-09-09: we'd really like to use the DB's idea of
+      # time, i.e. have the update statement do 'last_checkin = now()' but
+      # that is currently not possible with Sequel
+      self.last_checkin = Time.now
       action = :none
       Policy.bind(self) unless policy
       if policy

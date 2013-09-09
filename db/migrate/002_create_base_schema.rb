@@ -141,6 +141,7 @@ Sequel.migration do
       # should do that by pulling a broker install script from the node)
       String      :ip_address
       Integer     :boot_count, :default => 0
+      column      :last_checkin, 'timestamp with time zone'
     end
 
     create_table :node_log_entries do

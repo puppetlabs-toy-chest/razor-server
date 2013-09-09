@@ -264,6 +264,55 @@ describe Razor::Data::Node do
     end
   end
 
+  describe "last_checkin timestamp" do
+    before(:each) do
+      Timecop.freeze
+    end
+
+    after { Timecop.return }
+
+    it "should be nil when node is created" do
+      node = Fabricate(:node)
+      node.last_checkin.should be_nil
+    end
+
+    it "should not be set by lookup" do
+      node = Node.lookup("serial" => "1234")
+      node.last_checkin.should be_nil
+    end
+
+    describe "on checkin" do
+      let (:body) { { "facts" => { "f1" => "1" } } }
+
+      let (:node) do
+        n = Fabricate(:node)
+        n.checkin(body)
+        n
+      end
+
+      it "is set" do
+        node.last_checkin.should_not be_nil
+      end
+
+      it "is updated when facts change" do
+        last = node.last_checkin
+        Timecop.travel(10)
+        body["facts"]["f1"] = "2"
+
+        node.checkin(body)
+        node.last_checkin.should > last
+      end
+
+      it "is updated when facts do not change" do
+        last = node.last_checkin
+        Timecop.travel(10)
+
+        node.checkin(body)
+        node.last_checkin.should > last
+      end
+    end
+  end
+
   describe "freeze" do
     it "works for an existing node" do
       n = Fabricate(:node)

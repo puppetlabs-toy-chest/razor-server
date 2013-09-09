@@ -46,6 +46,7 @@ group :test do
   gem 'fabrication', '~> 2.7.2'
   gem 'faker', '~> 1.2.0'
   gem 'json-schema', '~> 2.0'
+  gem 'timecop'
 end
 
 # This group, also, will be excluded by default in `torquebox archive`
