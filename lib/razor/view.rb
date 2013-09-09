@@ -102,6 +102,8 @@ module Razor
 
     def node_hash(node)
       return nil unless node
+      # @todo lutter 2013-09-09: if there is a policy, use boot_count to
+      # provide a useful status about progress
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
@@ -111,8 +113,7 @@ module Razor
         :facts         => node.facts,
         :hostname      => node.hostname,
         :root_password => node.root_password,
-        :ip_address    => node.ip_address,
-        :boot_count    => node.boot_count
+        :ip_address    => node.ip_address
       ).delete_if {|k,v| v.nil? }
     end
   end
