@@ -215,7 +215,7 @@ describe Razor::Data::Node do
       it "should not change when policies change" do
         # Setup
         policy20 = make_tagged_policy(20)
-        Policy.bind(node)
+        node.match_and_bind
         node.policy.should == policy20
 
         # Change the policies
@@ -234,8 +234,25 @@ describe Razor::Data::Node do
         policy20 = make_tagged_policy(20)
         node.checkin("facts" => { "f1" => "a" })
         node.reload
-        node.tags.should == [ tag ]
+        node.tags.should be_empty
         node.policy.should == random_policy
+      end
+
+      it "should not change when a tag changes" do
+        policy20 = make_tagged_policy(20)
+        node.match_and_bind
+        node.policy.should == policy20
+
+        # Make the tag not match the node anymore
+        tag.rule = ["=", ["fact", "f1"], "b"]
+        tag.save
+        tag.match?(node).should be_false
+
+        node.checkin("facts" => { "f1" => "a" })
+        node.reload
+        # node.tags reflects the tags that applied when the node was bound
+        node.tags.should == [ tag ]
+        node.policy.should == policy20
       end
     end
   end

@@ -14,6 +14,8 @@ describe Razor::Data::Policy do
     pl = Fabricate(:policy, :image => @image, :installer_name => "some_os")
     pl.add_tag(@tag)
     pl.save
+    @node.add_tag(@tag)
+
     Policy.bind(@node)
     @node.policy.should == pl
     @node.log.last["event"].should == "bind"
@@ -34,6 +36,8 @@ describe Razor::Data::Policy do
                        :max_count => 1)
       pl.add_tag(@tag)
       pl.save
+      @node.add_tag(@tag)
+
       Policy.bind(@node)
       @node.policy.should == pl
     end

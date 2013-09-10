@@ -38,6 +38,11 @@ module Razor::Data
     many_to_one :policy
     one_to_many :node_log_entries
 
+    # The tags that were applied to this node the last time it did a
+    # checkin with the microkernel. These are not necessarily the same tags
+    # that would apply if the node was matched right now
+    many_to_many :tags
+
     # Return a 'name'; for now this is a fixed generated string
     # @todo lutter 2013-08-30: figure out a way for users to control how
     # node names are set
@@ -68,14 +73,6 @@ module Razor::Data
 
     def installer
       policy ? policy.installer : Razor::Installer.mk_installer
-    end
-
-    def tags
-      Tag.match(self)
-    rescue Razor::Matcher::RuleEvaluationError => e
-      log_append :severity => "error", :msg => "RAZOR: Error while matching tags: #{e}"
-      save
-      raise e
     end
 
     def domainname
@@ -169,6 +166,19 @@ module Razor::Data
       end
     end
 
+    # Update the tags for this node and try to bind a policy.
+    def match_and_bind
+      new_tags = Tag.match(self)
+      (self.tags - new_tags).each { |t| self.remove_tag(t) }
+      (new_tags - self.tags).each { |t| self.add_tag(t) }
+      Policy.bind(self)
+    rescue Razor::Matcher::RuleEvaluationError => e
+      log_append :severity => "error",
+                 :msg => "RAZOR: Error while matching tags: #{e}"
+      save
+      raise e
+    end
+
     # Process a checkin for this node; +body+ must be a hash where
     # +body['facts']+ contains the latest facts from the node. Update the
     # facts in the DB if they have changed since the last checkin. If the
@@ -187,7 +197,7 @@ module Razor::Data
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
       action = :none
-      Policy.bind(self) unless policy
+      match_and_bind unless policy
       if policy
         log_append(:action => :reboot, :policy => policy.name)
         action = :reboot

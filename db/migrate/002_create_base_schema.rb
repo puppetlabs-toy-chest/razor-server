@@ -151,6 +151,7 @@ Sequel.migration do
       String      :entry, :null => false
     end
 
+    create_join_table( :tag_id => :tags, :node_id => :nodes)
     create_join_table( :tag_id => :tags, :policy_id => :policies)
   end
 
