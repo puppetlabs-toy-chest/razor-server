@@ -1,11 +1,12 @@
 #!ipxe
-echo ***************************************************************
+echo ***********************************************************************
 echo @todo lutter 2013-08-21: the Sinatra bug
 echo https://github.com/sinatra/sinatra/issues/739 seems to make iPXE very
-echo very slow downloading files. If this download is too slow, put the initrd
-echo onto your TFTP server and replace the below with tftp://IP/initrd0.img
-echo in installers/microkernel/boot.erb on your server
-echo ***************************************************************
+echo very slow downloading files. If this download is too slow, put
+echo initrd0.img onto your TFTP server and replace the initrd line below
+echo with 'initrd tftp://IP/initrd0.img' in installers/microkernel/boot.erb
+echo on your server
+echo ***********************************************************************
 echo
 
 initrd <%= image_url("/initrd0.img") %> || goto error
