@@ -570,4 +570,22 @@ describe "command and query API" do
       it_should_behave_like "a node collection", 10
     end
   end
+
+  context "/api/microkernel/bootstrap" do
+    it "generates a script for 4 NIC's if nic_max is not given" do
+      get "/api/microkernel/bootstrap"
+      last_response.status.should == 200
+      4.times.each do |i|
+        last_response.body.should =~ /^[^#]*dhcp\s+net#{i}/m
+      end
+    end
+
+    it "accepts a nic_max parameter" do
+      get "/api/microkernel/bootstrap?nic_max=7"
+      last_response.status.should == 200
+      7.times.each do |i|
+        last_response.body.should =~ /^[^#]*dhcp\s+net#{i}/m
+      end
+    end
+  end
 end

@@ -503,7 +503,7 @@ class Razor::App < Sinatra::Base
   # @todo lutter 2013-08-18: advertise this in the entrypoint; it's neither
   # a command not a collection.
   get '/api/microkernel/bootstrap' do
-    params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]+\Z/ or
+    params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]*\Z/ or
       error 400,
         :error => "The nic_max parameter must be an integer not starting with 0"
 
