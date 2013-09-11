@@ -104,7 +104,7 @@ Sequel.migration do
 
       TrueClass   :enabled
       Integer     :max_count
-      Integer     :line_number, :null => false, :unique => true
+      Integer     :rule_number, :null => false, :unique => true
 
       foreign_key :broker_id, :brokers, :null => false
     end

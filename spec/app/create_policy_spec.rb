@@ -26,7 +26,7 @@ describe "create policy command" do
         :broker        => { "name" => broker.name },
         :hostname      => "host${id}.example.com",
         :root_password => "geheim",
-        :line_number   => 100,
+        :rule_number   => 100,
         :tags          => [ { "name" => tag1.name } ]
       }
     end

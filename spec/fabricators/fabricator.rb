@@ -45,7 +45,7 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   installer_name   { Fabricate(:installer).name }
   hostname_pattern 'host${id}.example.org'
   root_password    { Faker::Internet.password }
-  line_number      { Fabricate.sequence(:razor_data_policy_line_number, 100) }
+  rule_number      { Fabricate.sequence(:razor_data_policy_rule_number, 100) }
 
   image
   broker

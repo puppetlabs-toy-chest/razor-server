@@ -56,7 +56,7 @@ module Razor
           :hostname_pattern => policy.hostname_pattern,
           :root_password => policy.root_password,
         },
-        :line_number => policy.line_number,
+        :rule_number => policy.rule_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
       })
     end

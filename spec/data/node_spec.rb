@@ -169,7 +169,7 @@ describe Razor::Data::Node do
     }
 
     it "should bind to a policy when there is a match" do
-      policy = Fabricate(:policy, :line_number => 20)
+      policy = Fabricate(:policy, :rule_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -184,7 +184,7 @@ describe Razor::Data::Node do
 
     it "should refuse to bind to a policy if any tag raises an error" do
       bad_tag = Tag.create(:name => "t2", :matcher => Razor::Matcher.new(["=", ["fact", "typo"], "b"]))
-      policy = Fabricate(:policy, :line_number => 20)
+      policy = Fabricate(:policy, :rule_number => 20)
       policy.add_tag(tag)
       policy.save
 
@@ -206,7 +206,7 @@ describe Razor::Data::Node do
         policy = Fabricate(:policy,
           :name => "p#{sort_order}",
           :image => image,
-          :line_number => sort_order)
+          :rule_number => sort_order)
         policy.add_tag(tag)
         policy.save
         policy

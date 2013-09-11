@@ -43,7 +43,7 @@ and
 (max_count is NULL or (select count(*) from nodes n where n.policy_id = policies.id) < max_count)
 SQL
       begin
-        match = Policy.where(sql).order(:line_number).first
+        match = Policy.where(sql).order(:rule_number).first
         if match
           match.lock!
           # Make sure nobody raced us to binding to the policy
