@@ -151,7 +151,15 @@ Sequel.migration do
       String      :entry, :null => false
     end
 
-    create_join_table( :tag_id => :tags, :node_id => :nodes)
+    # Join table for nodes/tags; we can't use create_join_table since we
+    # want the association to disappear if either end disappears
+    create_table :nodes_tags do
+      foreign_key :node_id, :nodes, :null=>false, :on_delete => :cascade
+      foreign_key :tag_id, :tags, :null=>false, :on_delete => :cascade
+      primary_key [:node_id, :tag_id]
+      index [:node_id, :tag_id]
+    end
+
     create_join_table( :tag_id => :tags, :policy_id => :policies)
   end
 

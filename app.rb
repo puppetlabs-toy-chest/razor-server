@@ -354,6 +354,18 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  command :delete_node do |data|
+    data['name'] or error 400,
+      :error => "Supply 'name' to indicate which node to delete"
+    if node = Razor::Data::Node.find_by_name(data['name'])
+      node.destroy
+      action = "node destroyed"
+    else
+      action = "no changes; node #{data['name']} does not exist"
+    end
+    { :result => action }
+  end
+
   command :create_installer do |data|
     # If boot_seq is not a Hash, the model validation for installers
     # will catch that, and will make saving the installer fail
