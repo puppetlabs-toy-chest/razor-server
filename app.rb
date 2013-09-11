@@ -172,8 +172,13 @@ class Razor::App < Sinatra::Base
       return 400
     end
     return 400 unless json['facts']
-    node = Razor::Data::Node[params["id"]] or return 404
-    node.checkin(json).to_json
+    begin
+      node = Razor::Data::Node[params["id"]] or return 404
+      node.checkin(json).to_json
+    rescue Razor::Matcher::RuleEvaluationError => e
+      Razor.logger.error("during checkin of #{node.name}: " + e.message)
+      { :action => :none }.to_json
+    end
   end
 
   get '/svc/boot' do

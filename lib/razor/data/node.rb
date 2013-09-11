@@ -173,8 +173,7 @@ module Razor::Data
       (new_tags - self.tags).each { |t| self.add_tag(t) }
       Policy.bind(self)
     rescue Razor::Matcher::RuleEvaluationError => e
-      log_append :severity => "error",
-                 :msg => "RAZOR: Error while matching tags: #{e}"
+      log_append :severity => "error", :msg => e.message
       save
       raise e
     end

@@ -249,6 +249,23 @@ describe "provisioning API" do
       post "/svc/checkin/42", body
       last_response.status.should == 404
     end
+
+    it "should return 200 if tag evaluation fails and log an error" do
+      node = Fabricate(:node)
+      # This will cause a RuleEvaluationError since there is no 'none' fact
+      # in the checkin
+      tag = Fabricate(:tag, :rule => ["=", ["fact", "none"], "1"])
+
+      header 'Content-Type', 'application/json'
+      body = { :facts => { :architecture => "i386" } }.to_json
+      post "/svc/checkin/#{node.id}", body
+
+      last_response.status.should == 200
+      last_response.json.should == { "action" => "none" }
+
+      node.reload
+      node.log.last["severity"].should == "error"
+    end
   end
 
   def assert_booting(msg)

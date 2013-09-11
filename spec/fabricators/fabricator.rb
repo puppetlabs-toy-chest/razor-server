@@ -98,3 +98,8 @@ Fabricator(:bound_node, from: :node) do
     node.save
   end
 end
+
+Fabricator(:tag, :class_name => Razor::Data::Tag) do
+  name { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
+  rule { ["=", "1", "1"] }
+end

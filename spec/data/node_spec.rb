@@ -195,7 +195,7 @@ describe Razor::Data::Node do
 
       node = Node.lookup("net0" => hw_id)
       node.log[0]["severity"].should == "error"
-      node.log[0]["msg"].should =~ /tags/
+      node.log[0]["msg"].should =~ /typo/
       node.policy.should be_nil
     end
 
