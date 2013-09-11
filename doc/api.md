@@ -40,6 +40,14 @@ Load an image into the server
 
 Both name and image-url must be supplied
 
+### Delete an image
+
+The `delete-image` command accepts a single image name:
+
+    {
+      "name": "fedora16"
+    }
+
 ### Create installer
 
 To create an installer, clients post the following to the
@@ -121,6 +129,18 @@ exists, the rule must be equal to the rule of the existing tag.
 Hostname is a pattern for the host names of the nodes bound to the policy;
 eventually you'll be able to use facts and other fun stuff there. For now,
 you get to say ${id} and get the node's DB id.
+
+### Delete node
+
+A single node can be removed from the database with the `delete-node`
+command. It accepts the name of a single node:
+
+    {
+      'name': 'node17'
+    }
+
+Of course, if that node boots again at some point, it will be automatically
+recreated.
 
 ## Collections
 
