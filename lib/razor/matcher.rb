@@ -29,7 +29,15 @@ class Razor::Matcher
   Boolean = [TrueClass, FalseClass]
   Mixed = [String, *Boolean, Numeric, NilClass]
 
-  class RuleEvaluationError < ArgumentError; end
+  class RuleEvaluationError < ArgumentError
+    def rule=(rule)
+      @rule = rule
+    end
+
+    def to_s
+      super + " while evaluating rule: #{@rule}"
+    end
+  end
 
   class Functions
     ALIAS = {
@@ -152,6 +160,9 @@ class Razor::Matcher
   def match?(values)
     fns = Functions.new(values)
     evaluate(@rule, fns) ? true : false
+  rescue RuleEvaluationError => e
+    e.rule = @rule
+    raise
   end
 
   def valid?
