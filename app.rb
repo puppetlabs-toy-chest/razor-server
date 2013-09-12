@@ -65,7 +65,9 @@ class Razor::App < Sinatra::Base
     end
 
     def store_url(vars)
-      q = ::URI::encode_www_form(vars)
+      # We intentionally do not URL escape here; users need to be able to
+      # say '$node_ip' in the URL vars and have the shell interpolate that.
+      q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
       url "/svc/store/#{@node.id}?#{q}"
     end
 
