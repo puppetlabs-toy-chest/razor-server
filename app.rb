@@ -121,11 +121,11 @@ class Razor::App < Sinatra::Base
 
   # Error handlers for node API
   error Razor::TemplateNotFoundError do
-    status 404
+    status [404, env["sinatra.error"].message]
   end
 
   error Razor::Util::ConfigAccessProhibited do
-    status 500
+    status [500, env["sinatra.error"].message]
   end
 
   # Convenience for /svc/boot and /svc/file
