@@ -142,6 +142,17 @@ command. It accepts the name of a single node:
 Of course, if that node boots again at some point, it will be automatically
 recreated.
 
+### Unbind node
+
+Unbinding a node removes its association with a policy; once unbound, the
+node will boot back into the Microkernel and go through discovery, tag
+matching and possibly be bound to another policy. Specify which node to
+unbind by sending the node's name in the body of the request
+
+    {
+      'name': 'node17'
+    }
+
 ## Collections
 
 Along with the list of supported commands, a `GET /api` request returns a list
