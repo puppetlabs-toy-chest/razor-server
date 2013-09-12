@@ -267,9 +267,10 @@ module Razor::Data
       end
     end
 
-    def self.stage_done(node_id)
+    def self.stage_done(node_id, name = "")
       node = self[node_id]
-      node.log_append(:event => :stage_done, :stage => node.boot_count)
+      name = node.boot_count if name.nil? or name.empty?
+      node.log_append(:event => :stage_done, :stage => name || node.boot_count)
       node.boot_count += 1
       node.save
     end

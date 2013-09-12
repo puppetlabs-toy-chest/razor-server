@@ -87,8 +87,8 @@ class Razor::App < Sinatra::Base
     # @todo lutter 2013-08-21: all the installers need to be adapted to do
     # a 'curl <%= stage_done_url %> to signal that they are ready to
     # proceed to the next stage in the boot sequence
-    def stage_done_url
-      url "/svc/stage-done/#{@node.id}"
+    def stage_done_url(name = "")
+      url "/svc/stage-done/#{@node.id}?name=#{name}"
     end
 
     def config
@@ -225,6 +225,9 @@ class Razor::App < Sinatra::Base
     @installer = @node.installer
     @image = @node.policy.image
 
+    @node.log_append(:event => :get_file, :template => params[:template],
+                     :url => request.url)
+
     render_template(params[:template])
   end
 
@@ -232,7 +235,8 @@ class Razor::App < Sinatra::Base
     node = Razor::Data::Node[params[:node_id]]
     halt 404 unless node
 
-    node.log_append(:msg=> params[:msg], :severity => params[:severity])
+    node.log_append(:event => :node_log,
+                    :msg=> params[:msg], :severity => params[:severity])
     node.save
     [204, {}]
   end
@@ -244,13 +248,13 @@ class Razor::App < Sinatra::Base
 
     # We only allow setting the ip address for now
     node.ip_address = params[:ip]
-    node.log_append(:msg => "received IP address #{node.ip_address}")
+    node.log_append(:event => :store, :vars => { :ip => params[:ip] })
     node.save
     [204, {}]
   end
 
   get '/svc/stage-done/:node_id' do
-    Razor::Data::Node.stage_done(params[:node_id])
+    Razor::Data::Node.stage_done(params[:node_id], params[:name])
     [204, {}]
   end
 
