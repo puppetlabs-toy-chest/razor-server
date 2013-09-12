@@ -1,13 +1,18 @@
 #!ipxe
-echo Razor <%= installer.label %> model boot_call
+echo <%= installer.label %> (Installed by Razor)
 echo Installation node : <%= node_url %>
 echo Installation image: <%= image_url %>
-echo Continuing local boot
 
 sleep 3
-# FIXME: On most machines, doing exit here works best to boot locally, on
-# some it's necessary to say 'sanboot --no-describe --drive 0x80'; we need to
-# figure out how to conditionalize the template to pick one or the other,
-# depending on the node and the bugs in its BIOS (see
-# http://ipxe.org/cmd/sanboot)
+<%# FIXME: On most machines, doing exit here works best to boot locally, on %>
+<%# some it's necessary to say 'sanboot --no-describe --drive 0x80'; we     %>
+<%# need to figure out how to conditionalize the template to pick one or    %>
+<%# the other, depending on the node and the bugs in its BIOS (see          %>
+<%# http://ipxe.org/cmd/sanboot)                                            %>
+
+echo Continuing local boot
+<% if node.facts["virtual"] == "kvm" %>
+sanboot --no-describe --drive 0x80
+<% else %>
 exit
+<% end %>
