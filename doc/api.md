@@ -50,7 +50,13 @@ The `delete-image` command accepts a single image name:
 
 ### Create installer
 
-To create an installer, clients post the following to the
+Razor supports both installers stored in the filesystem and installers
+stored in the database; for development, it is highly recommended that you
+store your installers in the filesystem. Details about that can be found
+[on the Wiki](https://github.com/puppetlabs/razor-server/wiki/Writing-installers)
+
+For production setups, it is usually better to store your installers in the
+database. To create an installer, clients post the following to the
 `/spec/create_installer` URL:
 
     {
