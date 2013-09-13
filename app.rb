@@ -476,7 +476,9 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/policies' do
-    Razor::Data::Policy.all.map {|p| view_object_reference(p)}.to_json
+    Razor::Data::Policy.order(:rule_number).all.map do |p|
+      view_object_reference(p)
+    end.to_json
   end
 
   get '/api/collections/policies/:name' do
