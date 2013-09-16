@@ -10,44 +10,15 @@ if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
     [ "$?" -eq 0 ] || exit 1
 fi
 
-# Configure hostname.
-hostname <%= node.hostname %>
-echo <%= node.hostname %> > /etc/hostname
+<%= render_template("set_hostname") %>
 
-# This set of commands should convert the first local (but non-loopback) IP
-# address in the /etc/hosts file to an entry that has the fully-qualified
-# hostname and local hostname as part of the entry (so that tehse names can
-# be resolved properly). A backup of the original file will be left in place
-# in the /etc/hosts- file
-cp -p /etc/hosts /etc/hosts-
-grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= node.hostname %>'\2'<%= node.shortname %>'/' >> /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | tail -n +2 >> /etc/hosts
-grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
-
-[ "$?" -eq 0 ] || curl -s <%= log_url("set_hostname_fail", :error) %>
-
-# Get current IP
-node_ip=$(ip addr show eth0 | awk '/inet / { sub("/[0-9]+$", "", $2); print $2 }')
-echo IP is $node_ip
+<%= render_template("store_ip") %>
 
 # @todo lutter 2013-09-12: we should register the system with RHN; be
 # careful though, since this file is also used by the CentOS installer, for
 # which there is no RHN registration
 
-# Send IP up
-curl -s <%= store_url("ip" => "$node_ip") %>
-
-cat <<EOF > /etc/motd
-Installed by Razor using <%= installer.label %> - <%= installer.description %>
-Image: <%= image_url %>
-Node: <%= node_url %>
-Install log: /var/log/razor.log
-EOF
-
-sed -i '/razor_postinstall/d' /etc/rc.local
-
-curl -s <%= broker_install_url %> | bash
+<%= render_template("os_complete") %>
 
 # We are done
 curl -s <%= stage_done_url("finished") %>

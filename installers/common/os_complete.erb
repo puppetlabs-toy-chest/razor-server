@@ -1,0 +1,12 @@
+<%# -*- shell-script -*- %>
+cat <<EOF > /etc/motd
+Installed by Razor using <%= installer.label %> - <%= installer.description %>
+Image: <%= image_url %>
+Node: <%= node_url %>
+Install log: /var/log/razor.log
+EOF
+
+sed -i '/razor_postinstall/d' /etc/rc.local
+
+<%# @todo lutter 2013-09-16: The broker installation via URL does not work yet %>
+<%# curl -s <% broker_install_url % > | bash %>

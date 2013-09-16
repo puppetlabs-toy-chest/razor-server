@@ -4,8 +4,8 @@ echo Installation node : <%= node_url  %>
 echo Installation image: <%= image_url %>
 
 sleep 3
-kernel <%= "#{image_url("/isolinux/vmlinuz")} #{render_template("kernel_args")}" %> || goto error
-initrd <%= "#{image_url("/isolinux/initrd.img")}" %> || goto error
+kernel <%= image_url("/isolinux/vmlinuz") %> <%= render_template("kernel_args").strip %> || goto error
+initrd <%= image_url("/isolinux/initrd.img") %> || goto error
 boot
 
 :error
