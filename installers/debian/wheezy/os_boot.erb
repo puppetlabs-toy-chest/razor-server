@@ -1,41 +1,19 @@
 #!/bin/bash
 
-# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
-sed -i '4 i\
-192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
-[ "$?" -eq 0 ] && curl <%= log_url("added_puppet_hosts_ok") %> || curl <%= log_url("added_puppet_hosts_fail", :error) %>
+exec >> /var/log/razor.log 2>&1
 
-hostname <%= node.hostname %>
-echo <%= node.hostname %> > /etc/hostname
-
-# this set of commands should convert the first local (but non-loopback) IP
-# address in the /etc/hosts file to an entry that has the fully-qualified
-# hostname and local hostname as part of the entry (so that tehse names can
-# be resolved properly).  A backup of the original file will be left in place
-# in the /etc/hosts- file
-cp -p /etc/hosts /etc/hosts-
-grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= node.hostname %>'\2'<%= node.shortname %>'/' >> /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | tail -n +2 >> /etc/hosts
-grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
-
-[ "$?" -eq 0 ] && curl <%= log_url("set_hostname_ok") %> || curl <%= log_url("set_hostname_fail", :error) %>
+<%= render_template("set_hostname") %>
 
 sed -i 's_<%= image_url("archive.ubuntu.com/ubuntu_g")%>' /etc/apt/sources.list
 apt-get -y update
-[ "$?" -eq 0 ] && curl <%= log_url("apt_update_ok") %> || curl <%= log_url("apt_update_fail", :error) %>
+[ "$?" -eq 0 ] || curl -s <%= log_url("apt_update_fail", :error) %>
 
 apt-get -y upgrade
-[ "$?" -eq 0 ] && curl <%= log_url("apt_upgrade_ok") %> || curl <%= log_url("apt_upgrade_fail") %>
+[ "$?" -eq 0 ] || curl -s <%= log_url("apt_upgrade_fail", :error) %>
 
-apt-get -y install rubygems facter
-[ "$?" -eq 0 ] && curl <%= log_url("apt_install_ok") %> || curl <%= log_url("apt_install_fail", :error) %>
+<%= render_template("store_ip") %>
 
-# Get current IP
-node_ip=`facter ipaddress`
-# Send IP up
-curl <%= store_url(:ip => "$node_ip") %>
-# get final script
-curl <%= file_url("os_complete") %> | sh
+<%= render_template("os_complete") %>
+
 # Send final state
-curl <%= log_url("os_boot done") %>
+curl -s <%= stage_done_url("finished") %>

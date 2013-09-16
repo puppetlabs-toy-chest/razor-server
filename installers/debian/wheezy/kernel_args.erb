@@ -1,3 +1,2 @@
-<% if node.dhcp_mac %>BOOTIF=<%= node.dhcp_mac %>  DEBCONF_DEBUG=5 install auto=true url=<%= file_url("preseed") %> debian-installer=en_US locale=en_US kbd-chooser/method=us netcfg/get_hostname=wheezy netcfg/get_domain=razor.lan fb=false debconf/frontend=noninteractive console-setup/ask_detect=false console-keymaps-at/keymap=us interface=auto
-<% else %>DEBCONF_DEBUG=5 install auto=true url=<%= file_url("preseed") %> debian-installer=en_US locale=en_US kbd-chooser/method=us netcfg/get_hostname=wheezy netcfg/get_domain=razor.lan fb=false debconf/frontend=noninteractive console-setup/ask_detect=false console-keymaps-at/keymap=us
-<% end %>
+<% @bootif = node.dhcp_mac ? "BOOTIF=#{node.dhcp_mac} " : "interface=auto " %>
+DEBCONF_DEBUG=5 install auto=true url=<%= file_url("preseed") %> debian-installer=en_US locale=en_US kbd-chooser/method=us netcfg/get_hostname=<%= node.shortname %> netcfg/get_domain=<%= node.domainname %> fb=false debconf/frontend=noninteractive console-setup/ask_detect=false <%= @bootif %>
