@@ -15,7 +15,7 @@ describe Razor::Messaging::Sequel do
     it "should return nil if no instance is found" do
       # Ensure we don't just, say, return the first instance of an object
       # regardless of the input.
-      saved = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save
+      saved = Razor::Data::Repo.new(:name => 'some', :iso_url => 'file:///').save
       handler.find_instance_in_class(Razor::Data::Repo, { :name => 'nonesuch' }).
         should be_nil
     end
@@ -33,7 +33,7 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should return an instance if the object exists" do
-      saved = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save
+      saved = Razor::Data::Repo.new(:name => 'some', :iso_url => 'file:///').save
       # This may not be identity, but is equality.
       handler.find_instance_in_class(Razor::Data::Repo, saved.pk_hash).
         should == saved
@@ -261,7 +261,7 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should not queue a retry if the instance is found" do
-      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :iso_url => 'file:///').save.pk_hash
       content = {
         'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
@@ -274,7 +274,7 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should deliver the message if 'arguments' is missing" do
-      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :iso_url => 'file:///').save.pk_hash
       content = {
         'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
@@ -286,7 +286,7 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should deliver the message if 'arguments' is nil" do
-      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :iso_url => 'file:///').save.pk_hash
       content = {
         'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
@@ -301,7 +301,7 @@ describe Razor::Messaging::Sequel do
 
   describe "Sequel::Model#publish" do
     subject(:repo) do
-      repo = Razor::Data::Repo.new(:name => 'test', :repo_url => 'file:///').save
+      repo = Razor::Data::Repo.new(:name => 'test', :iso_url => 'file:///').save
       queue.remove_messages # saving produces messages, which we are not testing.
       repo
     end

@@ -41,8 +41,8 @@ describe "command and query API" do
       last_response.mime_type.downcase.should == 'application/json'
     end
 
-    it "should fail if only the repo_url is given" do
-      post '/api/commands/create-repo', {"repo_url" => "file:///dev/null"}.to_json
+    it "should fail if only the iso_url is given" do
+      post '/api/commands/create-repo', {"iso_url" => "file:///dev/null"}.to_json
       last_response.status.should == 400
       last_response.mime_type.downcase.should == 'application/json'
     end
@@ -50,7 +50,7 @@ describe "command and query API" do
     it "should fail if an extra key is given, if otherwise good" do
       post '/api/commands/create-repo', {
         "name"      => "magicos",
-        "repo-url" => "file:///dev/null",
+        "iso-url"   => "file:///dev/null",
         "banana"    => "> orange",
       }.to_json
       last_response.status.should == 400
@@ -60,7 +60,7 @@ describe "command and query API" do
     it "should return the 202, and the URL of the repo" do
       post '/api/commands/create-repo', {
         "name" => "magicos",
-        "repo-url" => "file:///dev/null"
+        "iso-url" => "file:///dev/null"
       }.to_json
 
       last_response.status.should == 202
@@ -74,7 +74,7 @@ describe "command and query API" do
     it "should create an repo record in the database" do
       post '/api/commands/create-repo', {
         "name" => "magicos",
-        "repo-url" => "file:///dev/null"
+        "iso-url" => "file:///dev/null"
       }.to_json
 
       Repo.find(:name => "magicos").should be_an_instance_of Repo

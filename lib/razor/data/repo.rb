@@ -20,7 +20,7 @@ module Razor::Data
     # The only columns that may be set through "mass assignment", which is
     # typically through the constructor.  Only enforced at the Ruby layer, but
     # since we direct everything through the model that is acceptable.
-    set_allowed_columns :name, :repo_url
+    set_allowed_columns :name, :iso_url
 
     # When a new instance is saved, we need to make the repo accessible as a
     # local file.
@@ -47,7 +47,7 @@ module Razor::Data
     #
     # @warning this should not be called inside a transaction.
     def make_the_repo_accessible
-      url = URI.parse(repo_url)
+      url = URI.parse(iso_url)
       if url.scheme.downcase == 'file'
         File.readable?(url.path) or raise "unable to read local file #{url.path}"
         publish 'unpack_repo', url.path

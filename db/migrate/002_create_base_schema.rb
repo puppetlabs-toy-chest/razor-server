@@ -37,7 +37,7 @@ Sequel.migration do
       column :name, :varchar, :size => 250, :null => false
       index  Sequel.function(:lower, :name), :unique => true, :name => 'repos_name_index'
 
-      column :repo_url, :varchar, :size => 1000, :null => false
+      column :iso_url, :varchar, :size => 1000, :null => false
 
       # Our temporary working directory, used while actively downloading and
       # unpacking content.
@@ -46,7 +46,7 @@ Sequel.migration do
       validate do
         format NAME_RX, :name, :name => 'repo_name_is_simple'
 
-        format URL_RX, :repo_url, :name => 'repo_url_is_simple'
+        format URL_RX, :iso_url, :name => 'iso_url_is_simple'
       end
     end
 

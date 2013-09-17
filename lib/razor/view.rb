@@ -73,7 +73,7 @@ module Razor
       return nil unless repo
 
       view_object_hash(repo).merge({
-        :repo_url => repo.repo_url
+        :iso_url => repo.iso_url
       })
     end
 

@@ -27,7 +27,7 @@ end
 
 Fabricator(:repo, :class_name => Razor::Data::Repo) do
   name      { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
-  repo_url  'file:///dev/null'
+  iso_url   'file:///dev/null'
 end
 
 

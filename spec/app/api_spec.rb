@@ -167,7 +167,7 @@ describe "command and query API" do
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ %w[spec id name repo_url]
+      data.keys.should =~ %w[spec id name iso_url]
     end
 
     it "should return 404 when repo not found" do

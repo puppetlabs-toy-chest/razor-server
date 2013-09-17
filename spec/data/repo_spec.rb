@@ -11,14 +11,14 @@ describe Razor::Data::Repo do
   context "name" do
     (0..31).map {|n| n.chr(Encoding::UTF_8) }.map(&:to_s).each do |char|
       it "should reject control characters (testing: #{char.inspect})" do
-        repo = Repo.new(:name => "hello #{char} world", :repo_url => 'file:///')
+        repo = Repo.new(:name => "hello #{char} world", :iso_url => 'file:///')
         repo.should_not be_valid
         expect { repo.save }.to raise_error Sequel::ValidationFailed
       end
     end
 
     it "should reject the `/` character in names" do
-      repo = Repo.new(:name => "hello/goodbye", :repo_url => 'file:///')
+      repo = Repo.new(:name => "hello/goodbye", :iso_url => 'file:///')
       repo.should_not be_valid
       expect { repo.save }.to raise_error Sequel::ValidationFailed
     end
@@ -57,25 +57,25 @@ describe Razor::Data::Repo do
 
         context "in Ruby" do
           it "should be rejected at the start" do
-            Repo.new(:name => "#{ws}name", :repo_url => url).
+            Repo.new(:name => "#{ws}name", :iso_url => url).
               should_not be_valid
           end
 
           it "should be rejected at the end" do
-            Repo.new(:name => "name#{ws}", :repo_url => url).
+            Repo.new(:name => "name#{ws}", :iso_url => url).
               should_not be_valid
           end
 
           # Fair warning: what with using a regex for validation, this is a
           # common failure mode, and not in fact redundant to the checks above.
           it "should be rejected at both the start and the end" do
-            Repo.new(:name => "#{ws}name#{ws}", :repo_url => url).
+            Repo.new(:name => "#{ws}name#{ws}", :iso_url => url).
               should_not be_valid
           end
 
           if ws.ord >= 0x20 then
             it "should accept the whitespace in the middle of a name" do
-              Repo.new(:name => "hello#{ws}world", :repo_url => url).
+              Repo.new(:name => "hello#{ws}world", :iso_url => url).
                 should be_valid
             end
           end
@@ -84,13 +84,13 @@ describe Razor::Data::Repo do
         context "in PostgreSQL" do
           it "should be rejected at the start" do
             expect {
-              Repo.dataset.insert(:name => "#{ws}name", :repo_url => url)
+              Repo.dataset.insert(:name => "#{ws}name", :iso_url => url)
             }.to raise_error Sequel::CheckConstraintViolation
           end
 
           it "should be rejected at the end" do
             expect {
-              Repo.dataset.insert(:name => "name#{ws}", :repo_url => url)
+              Repo.dataset.insert(:name => "name#{ws}", :iso_url => url)
             }.to raise_error Sequel::CheckConstraintViolation
           end
 
@@ -98,14 +98,14 @@ describe Razor::Data::Repo do
           # common failure mode, and not in fact redundant to the checks above.
           it "should be rejected at both the start and the end" do
             expect {
-              Repo.dataset.insert(:name => "#{ws}name#{ws}", :repo_url => url)
+              Repo.dataset.insert(:name => "#{ws}name#{ws}", :iso_url => url)
             }.to raise_error Sequel::CheckConstraintViolation
           end
 
           if ws.ord >= 0x20 then
             it "should accept the whitespace in the middle of a name" do
               # As long as we don't raise, we win.
-              Repo.dataset.insert(:name => "hello#{ws}world", :repo_url => url)
+              Repo.dataset.insert(:name => "hello#{ws}world", :iso_url => url)
             end
           end
         end
@@ -166,7 +166,7 @@ describe Razor::Data::Repo do
         #
         # Internally this is testing on the actual *characters*.
         it "accept all legal characters: string \"#{display}\"" do
-          Repo.new(:repo_url => 'file:///', :name => string).save.should be_valid
+          Repo.new(:iso_url => 'file:///', :name => string).save.should be_valid
         end
       end
     end
@@ -181,19 +181,19 @@ describe Razor::Data::Repo do
         url = 'file:///dev/null'
 
         it "should accept the name #{name.inspect}" do
-          repo = Repo.new(:name => name, :repo_url => url)
+          repo = Repo.new(:name => name, :iso_url => url)
           repo.should be_valid
         end
 
         it "should round-trip the name #{name.inspect} through the database" do
-          repo = Repo.new(:name => name, :repo_url => url).save
+          repo = Repo.new(:name => name, :iso_url => url).save
           Repo.find(:name => name).should == repo
         end
       end
     end
   end
 
-  context "repo_url" do
+  context "iso_url" do
     [
       'http://example.com/foobar',
       'http://example/foobar',
@@ -205,7 +205,7 @@ describe Razor::Data::Repo do
     ].each do |url|
       it "should accept a basic URL: #{url.inspect}" do
         # save to push validation through the database, too.
-        Repo.new(:name => 'foo', :repo_url => url).save.should be_valid
+        Repo.new(:name => 'foo', :iso_url => url).save.should be_valid
       end
     end
 
@@ -221,12 +221,12 @@ describe Razor::Data::Repo do
       'http://example.com/foo bar'
     ].each do |url|
       it "Ruby should reject invalid URL: #{url.inspect}" do
-        Repo.new(:name => 'foo', :repo_url => url).should_not be_valid
+        Repo.new(:name => 'foo', :iso_url => url).should_not be_valid
       end
 
       it "PostgreSQL should reject invalid URL: #{url.inspect}" do
         expect {
-          Repo.dataset.insert(:name => 'foo', :repo_url => url)
+          Repo.dataset.insert(:name => 'foo', :iso_url => url)
         }.to raise_error Sequel::CheckConstraintViolation
       end
     end
@@ -234,7 +234,7 @@ describe Razor::Data::Repo do
 
   context "after creation" do
     it "should automatically 'make_the_repo_accessible'" do
-      repo = Repo.new(:name => 'foo', :repo_url => 'file:///')
+      repo = Repo.new(:name => 'foo', :iso_url => 'file:///')
       expect {
         repo.save
       }.to have_published(
@@ -252,7 +252,7 @@ describe Razor::Data::Repo do
     context "with file URLs" do
       let :tmpfile do Tempfile.new(['make_the_repo_accessible', '.iso']) end
       let :path    do tmpfile.path end
-      let :repo   do Repo.new(:name => 'test', :repo_url => "file://#{path}") end
+      let :repo   do Repo.new(:name => 'test', :iso_url => "file://#{path}") end
 
       it "should raise (to trigger a retry) if the repo is not readable" do
         File.chmod(00000, path) # yes, *no* permissions, thanks
@@ -273,7 +273,7 @@ describe Razor::Data::Repo do
       end
 
       it "should work with uppercase file scheme" do
-        repo.repo_url = "FILE://#{path}"
+        repo.iso_url = "FILE://#{path}"
 
         expect {
           repo.make_the_repo_accessible
@@ -319,7 +319,7 @@ describe Razor::Data::Repo do
       end
 
       let :repo do
-        Repo.new(:name => 'test', :repo_url => 'http://localhost:8000/')
+        Repo.new(:name => 'test', :iso_url => 'http://localhost:8000/')
       end
 
       context "download_file_to_tempdir" do
@@ -343,7 +343,7 @@ describe Razor::Data::Repo do
       end
 
       it "should publish 'unpack_repo' if the repo is readable" do
-        repo.repo_url = 'http://localhost:8000/short.iso'
+        repo.iso_url = 'http://localhost:8000/short.iso'
         repo.save              # make sure our primary key is set!
 
         expect {
@@ -362,7 +362,7 @@ describe Razor::Data::Repo do
     it "should remove the temporary directory, if there is one" do
       tmpdir = Dir.mktmpdir('razor-repo-download')
 
-      repo = Repo.new(:name => 'foo', :repo_url => 'file:///')
+      repo = Repo.new(:name => 'foo', :iso_url => 'file:///')
       repo.tmpdir = tmpdir
       repo.save
       repo.destroy
@@ -371,7 +371,7 @@ describe Razor::Data::Repo do
     end
 
     it "should not fail if there is no temporary directory" do
-      repo = Repo.new(:name => 'foo', :repo_url => 'file:///')
+      repo = Repo.new(:name => 'foo', :iso_url => 'file:///')
       repo.tmpdir = nil
       repo.save
       repo.destroy
@@ -381,7 +381,7 @@ describe Razor::Data::Repo do
   context "filesystem_safe_name" do
     '/\\?*:|"<>$\''.each_char do |char|
       it "should escape #{char.inspect}" do
-        repo = Repo.new(:name => "foo#{char}bar", :repo_url => 'file:///')
+        repo = Repo.new(:name => "foo#{char}bar", :iso_url => 'file:///')
         repo.filesystem_safe_name.should_not include char
         repo.filesystem_safe_name.should =~ /%0{0,6}#{char.ord.to_s(16)}/i
       end
@@ -393,14 +393,14 @@ describe Razor::Data::Repo do
       Razor.config.stub(:[]).with('repo_store_root').and_return(nil)
 
       expect {
-        Repo.new(:name => "foo", :repo_url => 'file:///').repo_store_root
+        Repo.new(:name => "foo", :iso_url => 'file:///').repo_store_root
       }.to raise_error RuntimeError, /repo_store_root/
     end
 
     it "should raise if the path is not absolute" do
       Razor.config.stub(:[]).with('repo_store_root').and_return('hoobly-goobly')
       expect {
-        Repo.new(:name => "foo", :repo_url => 'file:///').repo_store_root
+        Repo.new(:name => "foo", :iso_url => 'file:///').repo_store_root
       }.to raise_error RuntimeError, /repo_store_root/
     end
 
@@ -408,7 +408,7 @@ describe Razor::Data::Repo do
       path = '/no/such/repo-store'
       Razor.config.stub(:[]).with('repo_store_root').and_return(path)
 
-      root = Repo.new(:name => "foo", :repo_url => 'file:///').repo_store_root
+      root = Repo.new(:name => "foo", :iso_url => 'file:///').repo_store_root
       root.should be_an_instance_of Pathname
       root.should == Pathname(path)
     end
@@ -420,7 +420,7 @@ describe Razor::Data::Repo do
     end
 
     let :repo do
-      Repo.new(:name => 'unpack', :repo_url => "file://#{tiny_iso}").save
+      Repo.new(:name => 'unpack', :iso_url => "file://#{tiny_iso}").save
     end
 
     it "should create the repo store root directory if absent" do
@@ -464,7 +464,7 @@ describe Razor::Data::Repo do
 
   context "release_temporary_repo" do
     let :repo do
-      Repo.new(:name => 'unpack', :repo_url => 'file:///dev/empty').save
+      Repo.new(:name => 'unpack', :iso_url => 'file:///dev/empty').save
     end
 
     it "should do nothing, successfully, if tmpdir is nil" do

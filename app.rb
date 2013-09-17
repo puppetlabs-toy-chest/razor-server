@@ -206,7 +206,7 @@ class Razor::App < Sinatra::Base
       # have to put the kernel and initrd into the microkernel/ directory
       # in their repo store manually for things to work.
       @repo = Razor::Data::Repo.new(:name => "microkernel",
-                    :repo_url => "file:///dev/null")
+                                    :iso_url => "file:///dev/null")
     end
     template = @installer.boot_template(@node)
 
@@ -340,7 +340,7 @@ class Razor::App < Sinatra::Base
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
-    data["repo_url"] = data.delete("repo-url")
+    data["iso_url"] = data.delete("iso-url")
     repo = Razor::Data::Repo.new(data).save.freeze
 
     # Finally, return the state (started, not complete) and the URL for the

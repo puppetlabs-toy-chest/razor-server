@@ -35,10 +35,10 @@ Load an repo into the server
 
     {
       "name": "fedora19",
-      "repo-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
     }
 
-Both name and repo-url must be supplied
+Both `name` and `iso-url` must be supplied
 
 ### Delete an repo
 
