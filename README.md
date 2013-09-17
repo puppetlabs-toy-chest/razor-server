@@ -1,9 +1,28 @@
 # Razor server
 
-This code is still in development mode; that means that we might make
+Razor is an advanced provisioning application which can deploy both
+bare-metal and virtual systems. It's aimed at solving the problem of how to
+bring new metal into a state where your existing DevOps/configuration
+management workflows can take it over.
+
+Newly added machines in a Razor deployment will PXE-boot from a special
+Razor Microkernel image, then check in, provide Razor with inventory
+information, and wait for further instructions. Razor will consult
+user-created policy rules to choose which preconfigured model to apply to a
+new node, which will begin to follow the model's directions, giving
+feedback to Razor as it completes various steps. Models can include steps
+for handoff to a DevOps system such as
+[Puppet](https://github.com/puppetlabs/puppet) or to any other system
+capable of controlling the node (such as a vCenter server taking possession
+of ESX systems).
+
+***
+
+This is a [0.x release](http://semvber.org); that means that we might make
 backwards incompatible changes, especially to the database schema which
-would force you to rebuild all the machines that Razor is managing. Razor
-will become stable RSN.
+would force you to rebuild all the machines that Razor is managing. The
+current code base is perfectlt suitable for evaluation and smaller lab
+setups but not for production use.
 
 ## Getting in touch
 
@@ -12,7 +31,8 @@ will become stable RSN.
 
 ## Getting started
 
-The Wiki has all the details; in particular look at
+The [Wiki](https://github.com/puppetlabs/razor-server/wiki) has all the
+details; in particular look at
 
 * [Installation](https://github.com/puppetlabs/razor-server/wiki/Installation): how to get a Razor environment up and running
 * [Geting started](https://github.com/puppetlabs/razor-server/wiki/Getting-started): using the CLI to do useful things
@@ -20,10 +40,10 @@ The Wiki has all the details; in particular look at
 
 ## What does Razor do anyway ?
 
-Project Razor is a power control, provisioning, and management application
-designed to deploy both bare-metal and virtual computer resources. Razor
-provides broker plugins for integration with third party configuration
-systems such as Puppet.
+Razor is a power control, provisioning, and management application designed
+to deploy both bare-metal and virtual computer resources. Razor provides
+broker plugins for integration with third party configuration systems such
+as Puppet.
 
 Razor does this by discovering new nodes using
 [facter](https://github.com/puppetlabs/facter), tagging nodes using facts
@@ -32,9 +52,6 @@ tags to user-supplied policies. Installation itself is handled flexibly
 through ERB templating all installer files. Once installation completes,
 the node can be handed off to a broker, typically a configuration
 management system. Razor makes this handoff seamless and flexible.
-
-This is a 0.x release, so the CLI and API is still in flux and may
-change. Make sure you __read the release notes before upgrading__
 
 ## Razor MicroKernel
 
@@ -45,6 +62,15 @@ waits for instructions from the server about what to do next, if anything.
 
 A [prebuilt archive](http://links.puppetlabs.com/razor-microkernel-001.tar)
 is available.
+
+## Razor Client
+
+The [Client](https://github.com/puppetlabs/razor-client) is a small Ruby
+script that makes interacting with the server from the command line
+easier. It lets you explore what the server knows about your
+infrastructure, and modify how machines are provisioned, by interacting
+with the
+[Razor server API](https://github.com/puppetlabs/razor-server/blob/master/doc/api.md)
 
 ## Reference
 
