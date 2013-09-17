@@ -6,13 +6,13 @@ describe "command and query API" do
 
   let(:app) { Razor::App }
 
-  context "/api/commands/create-image" do
+  context "/api/commands/create-repo" do
     before :each do
       header 'content-type', 'application/json'
     end
 
     it "should reject bad JSON" do
-      post '/api/commands/create-image', '{"json": "not really..."'
+      post '/api/commands/create-repo', '{"json": "not really..."'
       last_response.status.should == 415
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
@@ -21,13 +21,13 @@ describe "command and query API" do
       "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
     ].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
-        post '/api/commands/create-image', input
+        post '/api/commands/create-repo', input
         last_response.status.should == 415
       end
     end
 
     it "should fail with only bad key present in input" do
-      post '/api/commands/create-image', {"cats" => "> dogs"}.to_json
+      post '/api/commands/create-repo', {"cats" => "> dogs"}.to_json
       last_response.status.should == 400
       last_response.mime_type.downcase.should == 'application/json'
       # @todo danielp 2013-06-26: should do something to assert we got a good
@@ -36,31 +36,31 @@ describe "command and query API" do
     end
 
     it "should fail if only the name is given" do
-      post '/api/commands/create-image', {"name" => "magicos"}.to_json
+      post '/api/commands/create-repo', {"name" => "magicos"}.to_json
       last_response.status.should == 400
       last_response.mime_type.downcase.should == 'application/json'
     end
 
-    it "should fail if only the image_url is given" do
-      post '/api/commands/create-image', {"image_url" => "file:///dev/null"}.to_json
+    it "should fail if only the repo_url is given" do
+      post '/api/commands/create-repo', {"repo_url" => "file:///dev/null"}.to_json
       last_response.status.should == 400
       last_response.mime_type.downcase.should == 'application/json'
     end
 
     it "should fail if an extra key is given, if otherwise good" do
-      post '/api/commands/create-image', {
+      post '/api/commands/create-repo', {
         "name"      => "magicos",
-        "image-url" => "file:///dev/null",
+        "repo-url" => "file:///dev/null",
         "banana"    => "> orange",
       }.to_json
       last_response.status.should == 400
       last_response.mime_type.downcase.should == 'application/json'
     end
 
-    it "should return the 202, and the URL of the image" do
-      post '/api/commands/create-image', {
+    it "should return the 202, and the URL of the repo" do
+      post '/api/commands/create-repo', {
         "name" => "magicos",
-        "image-url" => "file:///dev/null"
+        "repo-url" => "file:///dev/null"
       }.to_json
 
       last_response.status.should == 202
@@ -68,16 +68,16 @@ describe "command and query API" do
 
       data = JSON.parse(last_response.body)
       data.keys.should =~ %w[id name spec]
-      data["id"].should =~ %r'/api/collections/images/magicos\Z'
+      data["id"].should =~ %r'/api/collections/repos/magicos\Z'
     end
 
-    it "should create an image record in the database" do
-      post '/api/commands/create-image', {
+    it "should create an repo record in the database" do
+      post '/api/commands/create-repo', {
         "name" => "magicos",
-        "image-url" => "file:///dev/null"
+        "repo-url" => "file:///dev/null"
       }.to_json
 
-      Image.find(:name => "magicos").should be_an_instance_of Image
+      Repo.find(:name => "magicos").should be_an_instance_of Repo
     end
   end
 end

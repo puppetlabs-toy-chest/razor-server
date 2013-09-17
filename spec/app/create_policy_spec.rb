@@ -12,7 +12,7 @@ describe "create policy command" do
       header 'content-type', 'application/json'
     end
 
-    let(:image)  { Fabricate(:image) }
+    let(:repo)   { Fabricate(:repo) }
     let(:broker) { Fabricate(:broker) }
 
     let (:tag1) { Tag.create(:name => "tag1", :rule => ["=", 1, 1] ) }
@@ -21,7 +21,7 @@ describe "create policy command" do
       # FIXME: Once we have proper helpers to generate these URL's,
       # use them in these tests
       { :name          => "test policy",
-        :image         => { "name" => image.name },
+        :repo          => { "name" => repo.name },
         :installer     => { "name" => "some_os" },
         :broker        => { "name" => broker.name },
         :hostname      => "host${id}.example.com",
@@ -53,8 +53,8 @@ describe "create policy command" do
       last_response.status.should == 400
     end
 
-    it "should fail if a nonexisting image is referenced" do
-      policy_hash[:image] = { "name" => "not_an_image" }
+    it "should fail if a nonexisting repo is referenced" do
+      policy_hash[:repo] = { "name" => "not_an_repo" }
       create_policy
       last_response.status.should == 400
     end

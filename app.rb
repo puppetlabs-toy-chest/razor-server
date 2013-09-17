@@ -14,9 +14,9 @@ class Razor::App < Sinatra::Base
   end
 
   before do
-    # We serve static files from /svc/image and will therefore let that
+    # We serve static files from /svc/repo and will therefore let that
     # handler determine the most appropriate content type
-    pass if request.path_info.start_with?("/svc/image")
+    pass if request.path_info.start_with?("/svc/repo")
     # Set our content type: like many people, we simply don't negotiate.
     content_type 'application/json'
   end
@@ -80,8 +80,8 @@ class Razor::App < Sinatra::Base
       url "/api/nodes/#{@node.id}"
     end
 
-    def image_url(path = "")
-      url "/svc/image/#{@image.name}#{path}"
+    def repo_url(path = "")
+      url "/svc/repo/#{@repo.name}#{path}"
     end
 
     # @todo lutter 2013-08-21: all the installers need to be adapted to do
@@ -130,7 +130,7 @@ class Razor::App < Sinatra::Base
 
   # Convenience for /svc/boot and /svc/file
   def render_template(name)
-    locals = { :installer => @installer, :node => @node, :image => @image }
+    locals = { :installer => @installer, :node => @node, :repo => @repo }
     content_type 'text/plain'
     template, opts = @installer.find_template(name)
     erb template, opts.merge(locals: locals, layout: false)
@@ -195,23 +195,23 @@ class Razor::App < Sinatra::Base
     @installer = @node.installer
 
     if @node.policy
-      @image = @node.policy.image
+      @repo = @node.policy.repo
     else
       # @todo lutter 2013-08-19: We have no policy on the node, and will
       # therefore boot into the MK. This is a gigantic hack; all we need is
-      # an image with the right name so that the image_url helper generates
-      # links to the microkernel directory in the image store.
+      # an repo with the right name so that the repo_url helper generates
+      # links to the microkernel directory in the repo store.
       #
       # We do not have API support yet to set up MK's, and users therefore
       # have to put the kernel and initrd into the microkernel/ directory
-      # in their image store manually for things to work.
-      @image = Razor::Data::Image.new(:name => "microkernel",
-                    :image_url => "file:///dev/null")
+      # in their repo store manually for things to work.
+      @repo = Razor::Data::Repo.new(:name => "microkernel",
+                    :repo_url => "file:///dev/null")
     end
     template = @installer.boot_template(@node)
 
     @node.log_append(:event => :boot, :installer => @installer.name,
-                     :template => template, :image => @image.name)
+                     :template => template, :repo => @repo.name)
     @node.save
     render_template(template)
   end
@@ -223,7 +223,7 @@ class Razor::App < Sinatra::Base
     halt 409 unless @node.policy
 
     @installer = @node.installer
-    @image = @node.policy.image
+    @repo = @node.policy.repo
 
     @node.log_append(:event => :get_file, :template => params[:template],
                      :url => request.url)
@@ -258,8 +258,8 @@ class Razor::App < Sinatra::Base
     [204, {}]
   end
 
-  get '/svc/image/*' do |path|
-    root = File.expand_path(Razor.config['image_store_root'])
+  get '/svc/repo/*' do |path|
+    root = File.expand_path(Razor.config['repo_store_root'])
     fpath = File.join(root, path)
     fpath.start_with?(root) and File.file?(path) or
       [404, { :error => "File #{path} not found" }.to_json ]
@@ -272,7 +272,7 @@ class Razor::App < Sinatra::Base
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :images, :tags, :policies, :nodes]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes]
 
   #
   # The main entry point for the public/management API
@@ -335,27 +335,27 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :create_image do |data|
-    # Create our shiny new image.  This will implicitly, thanks to saving
+  command :create_repo do |data|
+    # Create our shiny new repo.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
-    data["image_url"] = data.delete("image-url")
-    image = Razor::Data::Image.new(data).save.freeze
+    data["repo_url"] = data.delete("repo-url")
+    repo = Razor::Data::Repo.new(data).save.freeze
 
     # Finally, return the state (started, not complete) and the URL for the
-    # final image to our poor caller, so they can watch progress happen.
-    image
+    # final repo to our poor caller, so they can watch progress happen.
+    repo
   end
 
-  command :delete_image do |data|
+  command :delete_repo do |data|
     data["name"] or error 400,
-      :error => "Supply 'name' to indicate which image to delete"
-    if image = Razor::Data::Image[:name => data['name']]
-      image.destroy
-      action = "image destroyed"
+      :error => "Supply 'name' to indicate which repo to delete"
+    if repo = Razor::Data::Repo[:name => data['name']]
+      repo.destroy
+      action = "repo destroyed"
     else
-      action = "no changes; image #{data["name"]} does not exist"
+      action = "no changes; repo #{data["name"]} does not exist"
     end
     { :result => action }
   end
@@ -426,11 +426,11 @@ class Razor::App < Sinatra::Base
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
 
-    if data["image"]
-      name = data["image"]["name"] or
-        error 400, :error => "The image reference must have a 'name'"
-      data["image"] = Razor::Data::Image[:name => name] or
-        error 400, :error => "Image '#{name}' not found"
+    if data["repo"]
+      name = data["repo"]["name"] or
+        error 400, :error => "The repo reference must have a 'name'"
+      data["repo"] = Razor::Data::Repo[:name => name] or
+        error 400, :error => "Repo '#{name}' not found"
     end
 
     if data["broker"]
@@ -499,14 +499,14 @@ class Razor::App < Sinatra::Base
     installer_hash(installer).to_json
   end
 
-  get '/api/collections/images' do
-    Razor::Data::Image.all.map { |img| view_object_reference(img)}.to_json
+  get '/api/collections/repos' do
+    Razor::Data::Repo.all.map { |repo| view_object_reference(repo)}.to_json
   end
 
-  get '/api/collections/images/:name' do
-    image = Razor::Data::Image[:name => params[:name]] or
-      error 404, :error => "no image matched name=#{params[:name]}"
-    image_hash(image).to_json
+  get '/api/collections/repos/:name' do
+    repo = Razor::Data::Repo[:name => params[:name]] or
+      error 404, :error => "no repo matched name=#{params[:name]}"
+    repo_hash(repo).to_json
   end
 
   get '/api/collections/nodes' do

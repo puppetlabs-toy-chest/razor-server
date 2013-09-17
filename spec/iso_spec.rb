@@ -29,7 +29,7 @@ describe Razor::ISO do
 
     let :tiny_iso do Pathname(__FILE__).dirname + 'fixtures' + 'iso' + 'tiny.iso' end
 
-    it "should unpack the image with bsdtar" do
+    it "should unpack the repo with bsdtar" do
       Dir.mktmpdir do |dir|
         Razor::ISO.unpack(tiny_iso, dir)
         File.read(Pathname(dir) + 'content.txt').should == "This is the life!\n"

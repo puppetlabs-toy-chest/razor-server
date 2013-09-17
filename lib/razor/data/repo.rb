@@ -3,30 +3,30 @@ require 'open-uri'
 require 'uri'
 require 'fcntl'
 
-# Manage our unpacked OS images on disk.  This is a relatively stateful class,
+# Manage our unpacked OS repos on disk.  This is a relatively stateful class,
 # because it is a proxy for data physically stored outside our database.
 #
 # That means a great deal of the code is handling the complexity of keeping
 # the two in sync, as well as handling several long running tasks such as
-# image downloading.
+# repo downloading.
 #
-# @todo danielp 2013-07-10: at the moment I pretend that the image URL will
+# @todo danielp 2013-07-10: at the moment I pretend that the repo URL will
 # never change.  That simplifies the initial implementation, but isn't really
 # viable in the longer term.  The main complexity comes from handling that
-# *after* we have downloaded and unpacked the image, which we might avoid by
+# *after* we have downloaded and unpacked the repo, which we might avoid by
 # refusing to update the column at that point...
 module Razor::Data
-  class Image < Sequel::Model
+  class Repo < Sequel::Model
     # The only columns that may be set through "mass assignment", which is
     # typically through the constructor.  Only enforced at the Ruby layer, but
     # since we direct everything through the model that is acceptable.
-    set_allowed_columns :name, :image_url
+    set_allowed_columns :name, :repo_url
 
-    # When a new instance is saved, we need to make the image accessible as a
+    # When a new instance is saved, we need to make the repo accessible as a
     # local file.
     def after_create
       super
-      publish 'make_the_image_accessible'
+      publish 'make_the_repo_accessible'
     end
 
     # When we are destroyed, if we have a scratch directory, we need to
@@ -41,18 +41,18 @@ module Razor::Data
     end
 
 
-    # Make the image accessible on the local system, and then generate
-    # a notification.  In the event the image is remote, it will be downloaded
+    # Make the repo accessible on the local system, and then generate
+    # a notification.  In the event the repo is remote, it will be downloaded
     # and the temporary file stored for later cleanup.
     #
     # @warning this should not be called inside a transaction.
-    def make_the_image_accessible
-      url = URI.parse(image_url)
+    def make_the_repo_accessible
+      url = URI.parse(repo_url)
       if url.scheme.downcase == 'file'
         File.readable?(url.path) or raise "unable to read local file #{url.path}"
-        publish 'unpack_image', url.path
+        publish 'unpack_repo', url.path
       else
-        publish 'unpack_image', download_file_to_tempdir(url)
+        publish 'unpack_repo', download_file_to_tempdir(url)
       end
     end
 
@@ -70,7 +70,7 @@ module Razor::Data
     # directories as we go, to ensure that we can later clean up
     # after ourselves.
     def download_file_to_tempdir(url)
-      tmpdir   = Pathname(Dir.mktmpdir("razor-image-#{filesystem_safe_name}-download"))
+      tmpdir   = Pathname(Dir.mktmpdir("razor-repo-#{filesystem_safe_name}-download"))
       filename = tmpdir + Pathname(url.path).basename
 
       File.open(filename, CreateFileForWrite, 0600) do |dest|
@@ -120,20 +120,20 @@ module Razor::Data
       raise e
     end
 
-    # Return the path on disk for our image store root; each image is unpacked
+    # Return the path on disk for our repo store root; each repo is unpacked
     # into a directory immediately below this root.
-    def image_store_root
+    def repo_store_root
       # @todo danielp 2013-07-24: this should be lifted into some more global
       # validation of our configuration file.  When we figure that out, we
       # should pull it up to there.
-      root = Razor.config['image_store_root'] or
-        raise "`image_store_root` is not set in the configuration file"
+      root = Razor.config['repo_store_root'] or
+        raise "`repo_store_root` is not set in the configuration file"
       root = Pathname(root)
-      root.absolute? or raise "`image_store_root` was not an absolute path"
+      root.absolute? or raise "`repo_store_root` was not an absolute path"
       root
     end
 
-    # Return the name of the image, made file-system safe by URL-encoding it
+    # Return the name of the repo, made file-system safe by URL-encoding it
     # as a single string.
     def filesystem_safe_name
       URI.escape(name, '/\\?*:|"<>$\'')
@@ -142,18 +142,18 @@ module Razor::Data
       # is nothing attached to the appropriate communication port.
     end
 
-    # Take a local ISO image file, possible temporary, possibly permanent,
+    # Take a local ISO repo file, possible temporary, possibly permanent,
     # that we can read, and unpack it into our working directory.  Once we are
     # done, notify ourselves of that so any cleanup required can be performed.
-    def unpack_image(path)
-      destination = image_store_root + filesystem_safe_name
+    def unpack_repo(path)
+      destination = repo_store_root + filesystem_safe_name
       destination.mkpath        # in case it didn't already exist
       Razor::ISO.unpack(path, destination)
-      self.publish('release_temporary_image')
+      self.publish('release_temporary_repo')
     end
 
-    # Release any temporary image previously downloaded.
-    def release_temporary_image
+    # Release any temporary repo previously downloaded.
+    def release_temporary_repo
       if self.tmpdir
         FileUtils.remove_entry_secure(self.tmpdir)
         self.tmpdir = nil

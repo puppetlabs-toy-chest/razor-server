@@ -25,9 +25,9 @@ Fabricator(:broker, :class_name => Razor::Data::Broker) do
 end
 
 
-Fabricator(:image, :class_name => Razor::Data::Image) do
+Fabricator(:repo, :class_name => Razor::Data::Repo) do
   name      { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
-  image_url 'file:///dev/null'
+  repo_url  'file:///dev/null'
 end
 
 
@@ -47,7 +47,7 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   root_password    { Faker::Internet.password }
   rule_number      { Fabricate.sequence(:razor_data_policy_rule_number, 100) }
 
-  image
+  repo
   broker
 end
 

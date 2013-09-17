@@ -73,7 +73,7 @@ describe "create installer command" do
       last_response.json["id"].should =~ %r'/api/collections/installers/installer\Z'
     end
 
-    it "should create an image record in the database" do
+    it "should create an repo record in the database" do
       create_installer
 
       Razor::Data::Installer[:name => installer_hash[:name]].should be_an_instance_of Razor::Data::Installer

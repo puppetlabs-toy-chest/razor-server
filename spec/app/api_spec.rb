@@ -60,7 +60,7 @@ describe "command and query API" do
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
-      @image = Fabricate(:image)
+      @repo = Fabricate(:repo)
     end
 
     it "should return JSON content" do
@@ -70,7 +70,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  Fabricate(:policy, :image => @image, :installer_name => "some_os")
+      pl =  Fabricate(:policy, :repo => @repo, :installer_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -88,10 +88,10 @@ describe "command and query API" do
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
-      @image = Fabricate(:image)
+      @repo = Fabricate(:repo)
     end
 
-    subject(:pl){ Fabricate(:policy, :image => @image, :installer_name => "some_os")}
+    subject(:pl){ Fabricate(:policy, :repo => @repo, :installer_name => "some_os")}
 
     it "should exist" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
@@ -102,8 +102,8 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count image tags]
-      policy["image"].keys.should =~ %w[id name spec]
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags]
+      policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
       policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
@@ -144,34 +144,34 @@ describe "command and query API" do
     end
   end
 
-  context "/api/collections/images" do
-    it "should list all images" do
-      img1 = Fabricate(:image, :name => "image1")
-      img2 = Fabricate(:image, :name => "image2")
+  context "/api/collections/repos" do
+    it "should list all repos" do
+      repo1 = Fabricate(:repo, :name => "repo1")
+      repo2 = Fabricate(:repo, :name => "repo2")
 
-      get "/api/collections/images"
+      get "/api/collections/repos"
       last_response.status.should == 200
 
-      imgs = last_response.json
-      imgs.size.should == 2
-      imgs.map { |img| img["name"] }.should =~ %w[ image1 image2 ]
-      imgs.all? { |img| img.keys.should =~ %w[id name spec] }
+      repos = last_response.json
+      repos.size.should == 2
+      repos.map { |repo| repo["name"] }.should =~ %w[ repo1 repo2 ]
+      repos.all? { |repo| repo.keys.should =~ %w[id name spec] }
     end
   end
 
-  context "/api/collections/images/:name" do
-    it "should find image by name" do
-      img1 = Fabricate(:image, :name => "image1")
+  context "/api/collections/repos/:name" do
+    it "should find repo by name" do
+      repo1 = Fabricate(:repo, :name => "repo1")
 
-      get "/api/collections/images/#{img1.name}"
+      get "/api/collections/repos/#{repo1.name}"
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ %w[spec id name image_url]
+      data.keys.should =~ %w[spec id name repo_url]
     end
 
-    it "should return 404 when image not found" do
-      get "/api/collections/images/not_an_image"
+    it "should return 404 when repo not found" do
+      get "/api/collections/repos/not_an_repo"
       last_response.status.should == 404
     end
   end

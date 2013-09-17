@@ -49,7 +49,7 @@ module Razor
       return nil unless policy
 
       view_object_hash(policy).merge({
-        :image => view_object_reference(policy.image),
+        :repo => view_object_reference(policy.repo),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
         :configuration => {
@@ -69,11 +69,11 @@ module Razor
       })
     end
 
-    def image_hash(image)
-      return nil unless image
+    def repo_hash(repo)
+      return nil unless repo
 
-      view_object_hash(image).merge({
-        :image_url => image.image_url
+      view_object_hash(repo).merge({
+        :repo_url => repo.repo_url
       })
     end
 

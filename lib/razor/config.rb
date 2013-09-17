@@ -39,7 +39,7 @@ module Razor
     # @todo lutter 2013-09-08: validate the config on server startup and
     # produce useful error if anything is fishy. Things to validate:
     #   - facts.blacklist compiles to a valid regexp
-    #   - image_store_root is an existing writable directory
+    #   - repo_store_root is an existing writable directory
 
     private
     def expand_paths(what)

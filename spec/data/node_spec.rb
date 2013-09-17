@@ -200,12 +200,12 @@ describe Razor::Data::Node do
     end
 
     describe "of a bound node" do
-      let (:image) { Fabricate(:image) }
+      let (:repo) { Fabricate(:repo) }
 
       def make_tagged_policy(sort_order)
         policy = Fabricate(:policy,
           :name => "p#{sort_order}",
-          :image => image,
+          :repo => repo,
           :rule_number => sort_order)
         policy.add_tag(tag)
         policy.save
@@ -227,7 +227,7 @@ describe Razor::Data::Node do
 
       it "should not change when node facts change" do
         node.facts = { "f2" => "a" }
-        random_policy = Fabricate(:policy, :name => "random", :image => image)
+        random_policy = Fabricate(:policy, :name => "random", :repo => repo)
         node.bind(random_policy)
         node.save
 

@@ -96,5 +96,5 @@ end
 # Conveniences for dealing with model objects
 Node   = Razor::Data::Node
 Tag    = Razor::Data::Tag
-Image  = Razor::Data::Image
+Repo   = Razor::Data::Repo
 Policy = Razor::Data::Policy

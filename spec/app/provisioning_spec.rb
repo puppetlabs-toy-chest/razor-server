@@ -54,7 +54,7 @@ describe "provisioning API" do
       @node.log.last["event"].should == "boot"
       @node.log.last["installer"].should == "microkernel"
       @node.log.last["template"].should == "boot"
-      @node.log.last["image"].should == "microkernel"
+      @node.log.last["repo"].should == "microkernel"
     end
 
     describe "booting repeatedly with policy" do

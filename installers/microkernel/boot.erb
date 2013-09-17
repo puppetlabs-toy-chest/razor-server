@@ -9,9 +9,9 @@ echo on your server
 echo ***********************************************************************
 echo
 
-initrd <%= image_url("/initrd0.img") %> || goto error
+initrd <%= repo_url("/initrd0.img") %> || goto error
 
-kernel <%= image_url("/vmlinuz0") %> rootflags=loop initrd=initrd0.img root=live:/microkernel.iso rootfstype=auto ro rd.live.image quiet acpi=force rd.luks=0 rd.md=0 rd.dm=0 <%= microkernel_kernel_args %> || goto error
+kernel <%= repo_url("/vmlinuz0") %> rootflags=loop initrd=initrd0.img root=live:/microkernel.iso rootfstype=auto ro rd.live.image quiet acpi=force rd.luks=0 rd.md=0 rd.dm=0 <%= microkernel_kernel_args %> || goto error
 boot || goto error
 
 :error

@@ -23,7 +23,7 @@ Sequel.migration do
   up do
     extension(:constraint_validations)
 
-    create_table :images do
+    create_table :repos do
       primary_key :id
 
       # We want case-folded uniqueness for name, since that avoids challenges
@@ -35,18 +35,18 @@ Sequel.migration do
       # like it should be in the 40-60 character region at absolute most,
       # since this is a human label and, honestly, not a novella.
       column :name, :varchar, :size => 250, :null => false
-      index  Sequel.function(:lower, :name), :unique => true, :name => 'images_name_index'
+      index  Sequel.function(:lower, :name), :unique => true, :name => 'repos_name_index'
 
-      column :image_url, :varchar, :size => 1000, :null => false
+      column :repo_url, :varchar, :size => 1000, :null => false
 
       # Our temporary working directory, used while actively downloading and
       # unpacking content.
       column :tmpdir, :varchar, :size => 4096, :null => true
 
       validate do
-        format NAME_RX, :name, :name => 'image_name_is_simple'
+        format NAME_RX, :name, :name => 'repo_name_is_simple'
 
-        format URL_RX, :image_url, :name => 'image_url_is_simple'
+        format URL_RX, :repo_url, :name => 'repo_url_is_simple'
       end
     end
 
@@ -96,7 +96,7 @@ Sequel.migration do
     create_table :policies do
       primary_key :id
       String      :name, :null => false, :unique => true
-      foreign_key :image_id, :images, :null => false
+      foreign_key :repo_id, :repos, :null => false
       # FIXME: this needs to become an FK as soon as we have an installers table
       String      :installer_name, :null => false
       String      :hostname_pattern, :null => false
@@ -172,8 +172,8 @@ Sequel.migration do
 
     drop_table :models
 
-    drop_constraint_validations_for :table => :images
-    drop_table :images
+    drop_constraint_validations_for :table => :repos
+    drop_table :repos
 
     drop_table :nodes
   end

@@ -15,27 +15,27 @@ describe Razor::Messaging::Sequel do
     it "should return nil if no instance is found" do
       # Ensure we don't just, say, return the first instance of an object
       # regardless of the input.
-      saved = Razor::Data::Image.new(:name => 'some', :image_url => 'file:///').save
-      handler.find_instance_in_class(Razor::Data::Image, { :name => 'nonesuch' }).
+      saved = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save
+      handler.find_instance_in_class(Razor::Data::Repo, { :name => 'nonesuch' }).
         should be_nil
     end
 
     it "should raise an error if the PK is not a map" do
       expect {
-        handler.find_instance_in_class(Razor::Data::Image, ['nonesuch'])
+        handler.find_instance_in_class(Razor::Data::Repo, ['nonesuch'])
       }.to raise_error MessageViolatesConsistencyChecks
     end
 
     it "should raise if the PK is nil" do
       expect {
-        handler.find_instance_in_class(Razor::Data::Image, nil)
+        handler.find_instance_in_class(Razor::Data::Repo, nil)
       }.to raise_error MessageViolatesConsistencyChecks
     end
 
     it "should return an instance if the object exists" do
-      saved = Razor::Data::Image.new(:name => 'some', :image_url => 'file:///').save
+      saved = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save
       # This may not be identity, but is equality.
-      handler.find_instance_in_class(Razor::Data::Image, saved.pk_hash).
+      handler.find_instance_in_class(Razor::Data::Repo, saved.pk_hash).
         should == saved
     end
   end
@@ -59,7 +59,7 @@ describe Razor::Messaging::Sequel do
 
     it "should fail if the name isn't directly under Razor::Data" do
       expect {
-        handler.find_razor_data_class("Razor::Data::Image::Hack")
+        handler.find_razor_data_class("Razor::Data::Repo::Hack")
       }.to raise_error MessageViolatesConsistencyChecks, /is not under Razor::Data namespace/
     end
 
@@ -92,7 +92,7 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should return the constant" do
-      handler.find_razor_data_class("Razor::Data::Image").should eq Razor::Data::Image
+      handler.find_razor_data_class("Razor::Data::Repo").should eq Razor::Data::Repo
     end
   end
 
@@ -118,7 +118,7 @@ describe Razor::Messaging::Sequel do
 
     let :message do
       {
-        'class'     => 'Razor::Data::Image',
+        'class'     => 'Razor::Data::Repo',
         'instance'  => {'name' => 'pecan pie'},
         'message'   => 'test_message',
         'arguments' => [1, 3, 2]
@@ -242,7 +242,7 @@ describe Razor::Messaging::Sequel do
 
     it "should queue a retry if the instance is not found" do
       content = {
-        'class'     => 'Razor::Data::Image',
+        'class'     => 'Razor::Data::Repo',
         'instance'  => {'name' => 'nonesuch'},
         'message'   => 'to_s',
         'arguments' => []
@@ -261,9 +261,9 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should not queue a retry if the instance is found" do
-      pk = Razor::Data::Image.new(:name => 'some', :image_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
       content = {
-        'class'     => 'Razor::Data::Image',
+        'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
         'message'   => 'to_s',
         'arguments' => []
@@ -274,9 +274,9 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should deliver the message if 'arguments' is missing" do
-      pk = Razor::Data::Image.new(:name => 'some', :image_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
       content = {
-        'class'     => 'Razor::Data::Image',
+        'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
         'message'   => 'to_s',
       }
@@ -286,9 +286,9 @@ describe Razor::Messaging::Sequel do
     end
 
     it "should deliver the message if 'arguments' is nil" do
-      pk = Razor::Data::Image.new(:name => 'some', :image_url => 'file:///').save.pk_hash
+      pk = Razor::Data::Repo.new(:name => 'some', :repo_url => 'file:///').save.pk_hash
       content = {
-        'class'     => 'Razor::Data::Image',
+        'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
         'message'   => 'to_s',
         'arguments' => nil
@@ -300,85 +300,85 @@ describe Razor::Messaging::Sequel do
   end
 
   describe "Sequel::Model#publish" do
-    subject(:image) do
-      image = Razor::Data::Image.new(:name => 'test', :image_url => 'file:///').save
+    subject(:repo) do
+      repo = Razor::Data::Repo.new(:name => 'test', :repo_url => 'file:///').save
       queue.remove_messages # saving produces messages, which we are not testing.
-      image
+      repo
     end
 
     [1, Object.method(:to_s), Object.new].each do |message|
       it "should fail if the message is a #{message.class}" do
         stub_const("Razor::Data::Test", Class.new(Sequel::Model))
         expect {
-          image.publish(message)
+          repo.publish(message)
         }.to raise_error TypeError, /where String or Symbol was expected/
       end
     end
 
     it "should fail if the instance does not respond to the message" do
       expect {
-        image.publish('no_method_exists_by_this_name')
+        repo.publish('no_method_exists_by_this_name')
       }.to raise_error NameError, /undefined method/
     end
 
     it "should fail if the message has variable arity" do
-      image.instance_eval <<EOT
+      repo.instance_eval <<EOT
 def variable_arity(one, two, *rest)
   true
 end
 EOT
       expect {
-        image.publish('variable_arity', 1, 2, 3, 4)
+        repo.publish('variable_arity', 1, 2, 3, 4)
       }.to raise_error ArgumentError, /variable number of arguments/
     end
 
     it "should fail if the message takes optional arguments" do
-      image.instance_eval <<EOT
+      repo.instance_eval <<EOT
 def optional_argument(one, two = 2)
   true
 end
 EOT
       expect {
-        image.publish('optional_argument', 1)
+        repo.publish('optional_argument', 1)
       }.to raise_error ArgumentError, /variable number of arguments/
 
       expect {
-        image.publish('optional_argument', 1, 2)
+        repo.publish('optional_argument', 1, 2)
       }.to raise_error ArgumentError, /variable number of arguments/
     end
 
     it "should fail if too few arguments are passed" do
       expect {
-        image.publish('set')
+        repo.publish('set')
       }.to raise_error ArgumentError, /wrong number of arguments/
     end
 
     it "should fail if too many arguments are passed" do
       expect {
-        image.publish('to_s', 1)
+        repo.publish('to_s', 1)
       }.to raise_error ArgumentError, /wrong number of arguments/
     end
 
     it "should fail if a block is given" do
       expect {
-        image.publish('to_s') { true }
+        repo.publish('to_s') { true }
       }.to raise_error ArgumentError, /blocks cannot be published/
     end
 
     it "should publish the message" do
-      image.publish('to_s')
+      repo.publish('to_s')
       queue.count_messages.should == 1
     end
 
     context "message format" do
       context "no arguments" do
         subject do
-          image.publish('to_s')
+          repo.publish('to_s')
           queue.receive
         end
 
-        its(["class"])     { should == image.class.name }
-        its(["instance"])  { should == image.pk_hash }
+        its(["class"])     { should == repo.class.name }
+        its(["instance"])  { should == repo.pk_hash }
         its(["message"])   { should == 'to_s' }
         its(["arguments"]) { should == [] }
       end
@@ -405,15 +405,15 @@ EOT
         end
 
         subject do
-          image.instance_eval <<EOT
+          repo.instance_eval <<EOT
 def complex_message(hash, array, symbol, string, number); end
 EOT
-          image.publish('complex_message', hash, array, symbol, string, number)
+          repo.publish('complex_message', hash, array, symbol, string, number)
           queue.receive
         end
 
-        its(["class"])     { should == image.class.name }
-        its(["instance"])  { should == image.pk_hash }
+        its(["class"])     { should == repo.class.name }
+        its(["instance"])  { should == repo.pk_hash }
         its(["message"])   { should == 'complex_message' }
         its(["arguments"]) { should == [hash, array, symbol, string, number] }
       end

@@ -29,20 +29,20 @@ Accepted on success. The `url` property of the response generally refers to
 an entity that is affected by the command and can be queried to determine
 when the command has finished.
 
-### Create new image
+### Create new repo
 
-Load an image into the server
+Load an repo into the server
 
     {
       "name": "fedora19",
-      "image-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "repo-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
     }
 
-Both name and image-url must be supplied
+Both name and repo-url must be supplied
 
-### Delete an image
+### Delete an repo
 
-The `delete-image` command accepts a single image name:
+The `delete-repo` command accepts a single repo name:
 
     {
       "name": "fedora16"
@@ -115,7 +115,7 @@ The `name` of the tag must be unique; the `rule` is a match expression.
 
     {
       "name": "a policy",
-      "image": { "name": "some_image" },
+      "repo": { "name": "some_repo" },
       "installer": { "name": "redhat6" },
       "broker": { "name": "puppet" },
       "hostname": "host${id}.example.com",
@@ -128,7 +128,7 @@ The `name` of the tag must be unique; the `rule` is a match expression.
 
 Policies are matched in the order of ascending line numbers.
 
-Tags, brokers, installers and images are referenced by their name. Tags can
+Tags, brokers, installers and repos are referenced by their name. Tags can
 also be created by providing a rule; if a tag with that name already
 exists, the rule must be equal to the rule of the existing tag.
 

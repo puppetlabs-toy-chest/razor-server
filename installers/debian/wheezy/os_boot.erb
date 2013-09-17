@@ -4,7 +4,7 @@ exec >> /var/log/razor.log 2>&1
 
 <%= render_template("set_hostname") %>
 
-sed -i 's_<%= image_url("archive.ubuntu.com/ubuntu_g")%>' /etc/apt/sources.list
+sed -i 's_<%= repo_url("archive.ubuntu.com/ubuntu_g")%>' /etc/apt/sources.list
 apt-get -y update
 [ "$?" -eq 0 ] || curl -s <%= log_url("apt_update_fail", :error) %>
 

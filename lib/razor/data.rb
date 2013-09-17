@@ -18,7 +18,7 @@ Sequel::Model.plugin :auto_validations
 Sequel::Model.plugin Razor::Messaging::Sequel::Plugin
 
 require_relative 'data/installer'
-require_relative 'data/image'
+require_relative 'data/repo'
 require_relative 'data/policy'
 require_relative 'data/tag'
 require_relative 'data/node_log_entry'
