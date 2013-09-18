@@ -1,4 +1,5 @@
 require 'rake'
+require 'torquebox-rake-support'
 
 namespace :bundler do
   task :setup do
@@ -71,4 +72,27 @@ task :console do
 
   ARGV.clear
   IRB.start
+end
+
+desc "Build an archive"
+task :archive do
+  unless ENV["VERSION"]
+    puts "Specify the version for the archive with VERSION="
+    exit 1
+  end
+  topdir = Pathname.new(File::expand_path(File::dirname(__FILE__)))
+  pkgdir = topdir + "pkg"
+  pkgdir.mkpath
+  full_archive = "razor-server-#{ENV["VERSION"]}-full.knob"
+  Dir.mktmpdir("razor-server-archive") do |tmp|
+    puts "Cloning into #{tmp}"
+    system("git clone -q #{topdir} #{tmp}")
+    puts "Create archive #{full_archive}"
+    TorqueBox::DeployUtils.create_archive(
+      name: full_archive,
+      app_dir: tmp,
+      dest_dir: pkgdir.to_s,
+      package_without: %w[development test doc],
+      package_gems: true)
+  end
 end
