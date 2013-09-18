@@ -444,6 +444,7 @@ describe Razor::Data::Repo do
 
         (root + repo.filesystem_safe_name).should exist
         (root + repo.filesystem_safe_name + 'content.txt').should exist
+        (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
       end
     end
 

@@ -2,6 +2,7 @@ require 'tmpdir'
 require 'open-uri'
 require 'uri'
 require 'fcntl'
+require 'archive'
 
 # Manage our unpacked OS repos on disk.  This is a relatively stateful class,
 # because it is a proxy for data physically stored outside our database.
@@ -148,7 +149,7 @@ module Razor::Data
     def unpack_repo(path)
       destination = repo_store_root + filesystem_safe_name
       destination.mkpath        # in case it didn't already exist
-      Razor::ISO.unpack(path, destination)
+      Archive.extract(path, destination)
       self.publish('release_temporary_repo')
     end
 

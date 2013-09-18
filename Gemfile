@@ -27,6 +27,7 @@ gem 'torquebox'
 gem 'sinatra'
 gem 'sequel'
 gem 'jdbc-postgres'
+gem 'archive'
 
 group :doc do
   gem 'yard'
