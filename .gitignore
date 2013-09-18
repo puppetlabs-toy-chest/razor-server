@@ -1,5 +1,6 @@
 config.yaml
 log/*
+/pkg/
 /.yardoc
 /Gemfile.local*
 /coverage
