@@ -24,7 +24,10 @@ module Razor
     end
 
     def logger
-      @@logger ||= Logger.new(File::join(Razor.root, "log", "#{Razor.env}.log"))
+      # @todo lutter 2013-09-18: the logdir should be settable in config.yaml
+      logdir = Pathname.new(Razor.root) + "log"
+      logdir.mkpath
+      @@logger ||= Logger.new((logdir + "#{Razor.env}.log").to_s)
     end
 
     def config
