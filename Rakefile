@@ -56,11 +56,6 @@ namespace :spec do
   RSpec::Core::RakeTask.new(:all => :reset_tests) do |t|
     t.pattern = 'spec/**/*_spec.rb'
   end
-
-  desc "Run CLI specs"
-  RSpec::Core::RakeTask.new(:cli => :reset_tests) do |t|
-    t.pattern = 'spec/cli/**/*_spec.rb'
-  end
 end
 
 desc "Open a preloaded irb session"
