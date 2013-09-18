@@ -7,6 +7,8 @@
 # The *database_url* setting must be a connection URL for
 # (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
 
+production:
+  database_url: 'jdbc:postgresql:razor_prd?user=razor&password=mypass'
 development:
   database_url: 'jdbc:postgresql:razor_dev'
 test:
