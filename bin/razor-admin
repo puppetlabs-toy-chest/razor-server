@@ -1,0 +1,60 @@
+#! /usr/bin/env jruby
+
+require 'optparse'
+require 'bundler/setup'
+
+MIGRATION_DIR=File::expand_path(File::join(File::dirname(__FILE__),
+                                           "../db/migrate"))
+show_help=false
+optparse = OptionParser.new do |opts|
+  opts.banner = <<EOS
+Usage: razor-admin [options] command
+
+Perform an administrative task on the Razor server.
+
+Options:
+EOS
+  opts.on "-e", "--environment ENV", "which environment to affect" do |env|
+    ENV['RACK_ENV'] = env
+  end
+  opts.on "-h", "--help", "print this help message" do
+    show_help = true
+  end
+end
+
+COMMANDS = {
+  "migrate-database" => Proc.new do
+    Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
+  end,
+  "reset-database" => Proc.new do
+    Razor.database.tables.each do |table|
+      Razor.database.run("DROP TABLE #{table} CASCADE")
+    end
+    Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
+  end
+}
+
+rest = optparse.parse(ARGV)
+ENV['RACK_ENV'] ||= "development"
+
+if show_help or rest.size != 1 or COMMANDS[rest[0]].nil?
+  puts optparse
+  puts <<EOS
+
+Available commands:
+
+    migrate-database  migrate the database to the latest schema version.
+                      Use this also for initial schema installation.
+
+    reset-database    delete all data in the database, then install schema
+                      the same way that migrate-database does
+EOS
+  exit 1
+end
+
+# It is very important that razor/initialize isn't loaded until after
+# RACK_ENV has been set
+require_relative '../lib/razor/initialize'
+require 'sequel/extensions/migration'
+
+COMMANDS[rest[0]].call
