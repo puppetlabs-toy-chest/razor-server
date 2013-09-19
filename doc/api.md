@@ -1,7 +1,23 @@
 # API Overview
 
-Some boilerplate on how URL's in this doc are only as examples, how we only
-support JSON, ...
+The Razor API tries to follow REST ideas as much as possible; in
+particular, it presents a single entry point (usually at
+`http://razor:8080/api`) from which the rest of the API can and should be
+discovered by following links.
+
+While this document might contain some URL's on the server, clients should
+make no assumptions that the URL's the server uses follow the same
+structure as the ones in this document.
+
+## Compatibility
+
+The Razor API is not in a stable state yet. While we try our best to not
+make any incompatible changes, we can't guarantee that we won't.
+
+Even after we declare the API stable, clients will have to be able to deal
+with additional items anywhere in the API that are not mentioned yet - that
+is how we will evolve the API: by adding new things at various levels in
+the existing API.
 
 ## Conventions
 
