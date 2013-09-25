@@ -58,7 +58,7 @@ module Razor
 
     def facts_blacklist_rx
       @facts_blacklist_rx ||=
-        Regexp.compile("\\A((" + self["facts.blacklist"].map do |s|
+        Regexp.compile("\\A((" + Array(self["facts.blacklist"]).map do |s|
                          if s =~ %r{\A/(.*)/\Z}
                            $1
                          else
