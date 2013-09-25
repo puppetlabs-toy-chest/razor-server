@@ -55,8 +55,14 @@ end
 FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
 INST_PATH = File::join(FIXTURES_PATH, "installers")
 
+BROKER_FIXTURE_PATH = File.join(FIXTURES_PATH, 'brokers')
+
 def use_installer_fixtures
   Razor.config["installer_path"] = INST_PATH
+end
+
+def use_broker_fixtures
+  Razor.config["broker_path"] = BROKER_FIXTURE_PATH
 end
 
 # Restore the config after each test
