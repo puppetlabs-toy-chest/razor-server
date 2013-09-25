@@ -23,7 +23,10 @@ set dhcp_mac <%= net_id %>$${<%= net_id %>/mac:hexhyp}
 
 :chain_boot
 chain <%= ipxe_boot_url %> || goto error
+echo successfully completed the chain-loaded script; booting locally with 'exit'
+exit
 
 :error
+echo error handler invoked; waiting one minute and rebooting
 sleep 60
 reboot

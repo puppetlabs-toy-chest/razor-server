@@ -8,5 +8,4 @@ EOF
 
 sed -i '/razor_postinstall/d' /etc/rc.local
 
-<%# @todo lutter 2013-09-16: The broker installation via URL does not work yet %>
-<%# curl -s <% broker_install_url % > | bash %>
+curl -s <%= broker_install_url %> | /bin/bash

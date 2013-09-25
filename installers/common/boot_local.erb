@@ -12,7 +12,9 @@ sleep 3
 
 echo Continuing local boot
 <% if node.facts["virtual"] == "kvm" %>
+echo booting with sanboot
 sanboot --no-describe --drive 0x80
-<% else %>
-exit
 <% end %>
+
+# exiting here with success will cause a globally successful boot
+exit 0
