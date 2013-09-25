@@ -437,14 +437,16 @@ describe Razor::Data::Repo do
     end
 
     it "should unpack the repo into the filesystem_safe_name under root" do
-      Dir.mktmpdir do |root|
-        root = Pathname(root)
-        Razor.config['repo_store_root'] = root
-        repo.unpack_repo(tiny_iso)
+      pending("libarchive ISO support on OSX", :if => ::FFI::Platform.mac?) do
+        Dir.mktmpdir do |root|
+          root = Pathname(root)
+          Razor.config['repo_store_root'] = root
+          repo.unpack_repo(tiny_iso)
 
-        (root + repo.filesystem_safe_name).should exist
-        (root + repo.filesystem_safe_name + 'content.txt').should exist
-        (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
+          (root + repo.filesystem_safe_name).should exist
+          (root + repo.filesystem_safe_name + 'content.txt').should exist
+          (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
+        end
       end
     end
 
