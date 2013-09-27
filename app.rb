@@ -72,8 +72,7 @@ class Razor::App < Sinatra::Base
     end
 
     def broker_install_url
-      # FIXME: figure out how we handle serving the broker install script
-      "http://example.org/FILL-IN-BROKER-INSTALL"
+      url "/svc/broker/#{@node.id}/install"
     end
 
     def node_url
@@ -229,6 +228,17 @@ class Razor::App < Sinatra::Base
                      :url => request.url)
 
     render_template(params[:template])
+  end
+
+  # If we support more than just the `install` script in brokers, this should
+  # expand to take the template identifier like the file service does.
+  get '/svc/broker/:node_id/install' do
+    node = Razor::Data::Node[params[:node_id]]
+    halt 404 unless node
+    halt 409 unless node.policy
+
+    content_type 'text/plain'   # @todo danielp 2013-09-24: ...or?
+    node.policy.broker.install_script_for(node)
   end
 
   get '/svc/log/:node_id' do
