@@ -28,6 +28,7 @@ gem 'sinatra'
 gem 'sequel'
 gem 'jdbc-postgres'
 gem 'archive'
+gem 'hashie', '~> 2.0.5'
 
 group :doc do
   gem 'yard'

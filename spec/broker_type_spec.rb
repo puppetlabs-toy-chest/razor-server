@@ -308,7 +308,7 @@ describe Razor::BrokerType do
 
     it "should pass an immutable broker configuration to the template" do
       broker = {'test' =>
-        {'install.erb' => "<%= broker.foo = 'bar' %>"}}
+        {'install.erb' => "<%= broker[:foo] = 'bar' %>"}}
       with_brokers_in(paths.first => broker) do
         node     = Razor::Data::Node.new
         broker   = Razor::BrokerType.find('test')
