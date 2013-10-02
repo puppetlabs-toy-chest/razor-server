@@ -20,42 +20,50 @@ describe Razor::BrokerType.find('puppet') do
 
   it "should work without any configuration" do
     script.should be_an_instance_of String
-    script.should =~ /gem\b.+\binstall/s
-    script.should =~ /puppet\b.+\bagent/s # don't match . == newline
-  end
-
-  it "should not specify the gem version when no version in configuration" do
-    broker.configuration = {}
-    script.should_not =~ /^gem.*-(?:v|-version)/
-  end
-
-  it "should install the specified version of the puppet gem" do
-    broker.configuration = {'version' => '2.7.34'}
-    script.should =~ /-(?:v|-version)[ =]2.7.34\b/
-  end
-
-  it "should escape the version string if it has spaces" do
-    version = '~> 3.1.0'
-    broker.configuration = {'version' => version}
-
-    # We do this the "hard", or at least long, way because we want to ensure
-    # that it is correctly shell escaped, and this is better than trying to
-    # write up the whole regular expression for that. :)
-    line = script.lines.grep(/^gem install/).first
-    word = line.shellsplit.find {|x| x =~ /-(v|-version)/}
-    word.should =~ /#{Regexp.escape(version)}/
+    script.should =~ /yum -y install puppet/s
+    script.should =~ /service puppet start/s # don't match . == newline
+    script.should_not =~ /puppet resource ini_setting/
   end
 
   it "should not specify the server if not in configuration" do
     broker.configuration = {}
-    script.should_not =~ /^puppet.*--server/
+    script.should_not =~ /setting=server/
   end
 
   it "should specify the server if one is given" do
     server = "puppet.#{Faker::Internet.domain_name}"
     broker.configuration = {'server' => server}
 
-    script.should =~ /^puppet agent .*--server.#{Regexp.escape(server)}\b/
+    script.should =~ /setting=server value=#{Regexp.escape(server)}/
+  end
+
+  it "should set the certname if given" do
+    certname = "agent.#{Faker::Internet.domain_name}"
+    broker.configuration = {'certname' => certname}
+
+    script.should =~ /setting=certname value=#{Regexp.escape(certname)}/
+  end
+
+  it "should set the environment if given" do
+    environment = "bananafudge"
+    broker.configuration = {'environment' => environment}
+
+    script.should =~ /setting=environment value=#{Regexp.escape(environment)}/
+  end
+
+  it "should set multiple configuration values if given" do
+    server = "puppet.#{Faker::Internet.domain_name}"
+    certname = "agent.#{Faker::Internet.domain_name}"
+    environment = "bananafudge"
+    broker.configuration = {
+      'server'      => server,
+      'certname'    => certname,
+      'environment' => environment
+    }
+
+    script.should =~ /setting=server value=#{Regexp.escape(server)}/
+    script.should =~ /setting=certname value=#{Regexp.escape(certname)}/
+    script.should =~ /setting=environment value=#{Regexp.escape(environment)}/
   end
 
   # This is not the most robust check for correctness in the world, but it

@@ -2,7 +2,18 @@ require 'erb'
 require 'pathname'
 require 'tilt'
 require 'yaml'
-require 'ostruct'
+require 'hashie'
+
+# A convenient, relaxed hash-like object for use in template rendering
+class TemplateHash < Hash
+  # initialize by merging another hash
+  include Hashie::Extensions::MergeInitializer
+  # read keys as methods
+  include Hashie::Extensions::MethodReader
+  # ...and indifferent access as a hash
+  include Hashie::Extensions::IndifferentAccess
+end
+
 
 # Signal that a broker was not found when requested by name.
 class Razor::BrokerTypeNotFoundError < RuntimeError; end
@@ -86,7 +97,7 @@ class Razor::BrokerType
       # This is an openstruct instance because that gives a nice "function"
       # accessor interface rather than a hash interface -- with the
       # same semantics of "nil if not present".
-      :broker => OpenStruct.new(broker.configuration).freeze
+      :broker => TemplateHash.new(broker.configuration).freeze
     )
   end
 

@@ -1,5 +1,7 @@
 ---
+certname:
+  description: "The locally unique name for this node."
 server:
-  description: "The hostname for the Puppet master to contact"
-version:
-  description: "The Puppet (gem) version to install on the machine"
+  description: "The puppet master server to request configurations from."
+environment:
+  description: "On agent nodes, the environment to request configuration in."
