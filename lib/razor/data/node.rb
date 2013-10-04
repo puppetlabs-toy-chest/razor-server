@@ -228,7 +228,7 @@ module Razor::Data
         # independent of the order in which the BIOS enumerates NICs. We
         # also don't care about case
         k = "mac" if k =~ /net[0-9]+/
-        [k.downcase, v.downcase]
+        [k.downcase, v.strip.downcase]
       end.select do |k, v|
         (HW_INFO_KEYS + ["mac"]).include?(k) && v && v != ""
       end.sort do |a, b|

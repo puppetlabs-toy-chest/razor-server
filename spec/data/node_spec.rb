@@ -26,6 +26,11 @@ describe Razor::Data::Node do
       canonicalize("uuid" => "1", "serial" => "2", "asset" => "asset").should ==
         ["asset=asset", "serial=2", "uuid=1"]
     end
+
+    it "should ignore empty and whitespace-only values" do
+      info = canonicalize("uuid" => "", "serial" => "  ", "asset" => "  \t \n ")
+      info.should == []
+    end
   end
 
   context "hw_hash=" do
