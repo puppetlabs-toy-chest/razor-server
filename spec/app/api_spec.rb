@@ -177,6 +177,19 @@ describe "command and query API" do
   end
 
   context "/api/collections/installers/:name" do
+    # @todo lutter 2013-10-08: I would like to pull the schema for the base
+    # property out into a ObjectReferenceSchema and make the base property
+    # a $ref to that. My attempts at doing that have failed so far, because
+    # json-schema fails when we validate against the resulting
+    # InstallerItemSchema, complaining that the schema for base is not
+    # valid
+    #
+    # Note that to use a separate ObjectReferenceSchema, we have to
+    # register it first with the Validator:
+    #   url = "http://api.puppetlabs.com/razor/v1/reference"
+    #   ObjectReferenceSchema['id'] = url
+    #   sch = JSON::Schema::new(ObjectReferenceSchema, url)
+    #   JSON::Validator.add_schema(sch)
     InstallerItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Installer Item JSON Schema",
@@ -194,6 +207,27 @@ describe "command and query API" do
         'name'     => {
           'type'     => 'string',
           'pattern'  => '^[a-zA-Z0-9_]+$'
+        },
+        'base'     => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'title'    => "Object Reference Schema",
+          'type'     => 'object',
+          'required' => %w[spec id name],
+          'properties' => {
+            'spec' => {
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'id'       => {
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'name'     => {
+              'type'     => 'string',
+              'pattern'  => '^[a-zA-Z0-9_]+$'
+            }
+          },
+          'additionalProperties' => false
         },
         'description' => {
           'type'     => 'string'
@@ -254,6 +288,17 @@ describe "command and query API" do
       data = last_response.json
       data["name"].should == "dbinst"
       data["boot_seq"].keys.should =~ %w[1 default]
+      validate! InstallerItemSchema, last_response.body
+    end
+
+    it "includes a reference to the base installer" do
+      get "/api/collections/installers/some_os_derived"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data["name"].should == "some_os_derived"
+      data["os"]["version"].should == "4"
+      data["base"]["name"].should == "some_os"
       validate! InstallerItemSchema, last_response.body
     end
   end

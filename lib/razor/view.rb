@@ -90,9 +90,15 @@ module Razor
     def installer_hash(installer)
       return nil unless installer
 
+      if installer.base
+        base = { :base => view_object_reference(installer.base) }
+      else
+        base = {}
+      end
+
       # FIXME: also return templates, requires some work for file-based
       # installers
-      view_object_hash(installer).merge({
+      view_object_hash(installer).merge(base).merge({
         :os => {
           :name => installer.os,
           :version => installer.os_version }.delete_if {|k,v| v.nil? },
