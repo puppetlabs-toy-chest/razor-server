@@ -102,7 +102,7 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags]
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
@@ -177,23 +177,103 @@ describe "command and query API" do
   end
 
   context "/api/collections/installers/:name" do
+    # @todo lutter 2013-10-08: I would like to pull the schema for the base
+    # property out into a ObjectReferenceSchema and make the base property
+    # a $ref to that. My attempts at doing that have failed so far, because
+    # json-schema fails when we validate against the resulting
+    # InstallerItemSchema, complaining that the schema for base is not
+    # valid
+    #
+    # Note that to use a separate ObjectReferenceSchema, we have to
+    # register it first with the Validator:
+    #   url = "http://api.puppetlabs.com/razor/v1/reference"
+    #   ObjectReferenceSchema['id'] = url
+    #   sch = JSON::Schema::new(ObjectReferenceSchema, url)
+    #   JSON::Validator.add_schema(sch)
+    InstallerItemSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Installer Item JSON Schema",
+      'type'     => 'object',
+      'required' => %w[spec id name os boot_seq],
+      'properties' => {
+        'spec' => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'id'       => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'name'     => {
+          'type'     => 'string',
+          'pattern'  => '^[a-zA-Z0-9_]+$'
+        },
+        'base'     => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'title'    => "Object Reference Schema",
+          'type'     => 'object',
+          'required' => %w[spec id name],
+          'properties' => {
+            'spec' => {
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'id'       => {
+              'type'     => 'string',
+              'pattern'  => '^https?://'
+            },
+            'name'     => {
+              'type'     => 'string',
+              'pattern'  => '^[a-zA-Z0-9_]+$'
+            }
+          },
+          'additionalProperties' => false
+        },
+        'description' => {
+          'type'     => 'string'
+        },
+        'os' => {
+          'type'    => 'object',
+          'properties' => {
+            'name' => {
+              'type' => 'string'
+            },
+            'version' => {
+              'type' => 'string'
+            }
+          }
+        },
+        'boot_seq' => {
+          'type' => 'object',
+          'required' => %w[default],
+          'patternProperties' => {
+            "^([0-9]+|default)$" => {}
+          },
+          'additionalProperties' => false,
+        }
+      },
+      'additionalProperties' => false,
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
     before(:each) do
       use_installer_fixtures
     end
-
-    ROOT_KEYS = %w[spec id name os description boot_seq]
-    OS_KEYS = %w[name version]
 
     it "works for file-based installers" do
       get "/api/collections/installers/some_os"
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ ROOT_KEYS
       data["name"].should == "some_os"
-      data["os"].keys.should =~ OS_KEYS
       data["boot_seq"].keys.should =~ %w[1 2 default]
       data["boot_seq"]["2"].should == "boot_again"
+      validate! InstallerItemSchema, last_response.body
     end
 
     it "works for DB-backed installers" do
@@ -206,10 +286,20 @@ describe "command and query API" do
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ ROOT_KEYS
       data["name"].should == "dbinst"
-      data["os"].keys.should =~ OS_KEYS
       data["boot_seq"].keys.should =~ %w[1 default]
+      validate! InstallerItemSchema, last_response.body
+    end
+
+    it "includes a reference to the base installer" do
+      get "/api/collections/installers/some_os_derived"
+      last_response.status.should == 200
+
+      data = last_response.json
+      data["name"].should == "some_os_derived"
+      data["os"]["version"].should == "4"
+      data["base"]["name"].should == "some_os"
+      validate! InstallerItemSchema, last_response.body
     end
   end
 
