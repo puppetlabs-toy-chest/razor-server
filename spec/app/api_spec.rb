@@ -177,23 +177,69 @@ describe "command and query API" do
   end
 
   context "/api/collections/installers/:name" do
+    InstallerItemSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Installer Item JSON Schema",
+      'type'     => 'object',
+      'required' => %w[spec id name os boot_seq],
+      'properties' => {
+        'spec' => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'id'       => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'name'     => {
+          'type'     => 'string',
+          'pattern'  => '^[a-zA-Z0-9_]+$'
+        },
+        'description' => {
+          'type'     => 'string'
+        },
+        'os' => {
+          'type'    => 'object',
+          'properties' => {
+            'name' => {
+              'type' => 'string'
+            },
+            'version' => {
+              'type' => 'string'
+            }
+          }
+        },
+        'boot_seq' => {
+          'type' => 'object',
+          'required' => %w[default],
+          'patternProperties' => {
+            "^([0-9]+|default)$" => {}
+          },
+          'additionalProperties' => false,
+        }
+      },
+      'additionalProperties' => false,
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
     before(:each) do
       use_installer_fixtures
     end
-
-    ROOT_KEYS = %w[spec id name os description boot_seq]
-    OS_KEYS = %w[name version]
 
     it "works for file-based installers" do
       get "/api/collections/installers/some_os"
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ ROOT_KEYS
       data["name"].should == "some_os"
-      data["os"].keys.should =~ OS_KEYS
       data["boot_seq"].keys.should =~ %w[1 2 default]
       data["boot_seq"]["2"].should == "boot_again"
+      validate! InstallerItemSchema, last_response.body
     end
 
     it "works for DB-backed installers" do
@@ -206,10 +252,9 @@ describe "command and query API" do
       last_response.status.should == 200
 
       data = last_response.json
-      data.keys.should =~ ROOT_KEYS
       data["name"].should == "dbinst"
-      data["os"].keys.should =~ OS_KEYS
       data["boot_seq"].keys.should =~ %w[1 default]
+      validate! InstallerItemSchema, last_response.body
     end
   end
 

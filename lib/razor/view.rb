@@ -95,10 +95,10 @@ module Razor
       view_object_hash(installer).merge({
         :os => {
           :name => installer.os,
-          :version => installer.os_version },
+          :version => installer.os_version }.delete_if {|k,v| v.nil? },
         :description => installer.description,
         :boot_seq => installer.boot_seq
-      })
+      }).delete_if {|k,v| v.nil? }
     end
 
     def node_hash(node)
