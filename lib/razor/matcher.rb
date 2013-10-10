@@ -28,6 +28,7 @@ class Razor::Matcher
 
   Boolean = [TrueClass, FalseClass]
   Mixed = [String, *Boolean, Numeric, NilClass]
+  Number = [Numeric]
 
   class RuleEvaluationError < ArgumentError
     def rule=(rule)
@@ -56,7 +57,7 @@ class Razor::Matcher
         "eq"   => {:expects => [Mixed],           :returns => Boolean },
         "neq"  => {:expects => [Mixed],           :returns => Boolean },
         "in"   => {:expects => [Mixed],           :returns => Boolean },
-        "num"  => {:expects => [Mixed],           :returns => Numeric },
+        "num"  => {:expects => [Mixed],           :returns => Number  },
         "gte"  => {:expects => [[Numeric]],       :returns => Boolean },
         "gt"   => {:expects => [[Numeric]],       :returns => Boolean },
         "lte"  => {:expects => [[Numeric]],       :returns => Boolean },

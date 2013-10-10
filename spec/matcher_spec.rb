@@ -218,6 +218,10 @@ describe Razor::Matcher do
       Matcher.new(["fact","three"]).should_not be_valid
     end
 
+    it "should type the return of num as Numeric" do
+      Matcher.new([">", ["num", "7"], 3]). should be_valid
+    end
+
     it "should validate nested functions" do
       Matcher.new(
         ["and",
