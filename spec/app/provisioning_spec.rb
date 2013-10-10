@@ -159,6 +159,30 @@ describe "provisioning API" do
       assert_url_response("/api/nodes/#{@node.id}")
     end
 
+    describe "repo_url" do
+      ["/foo", "foo"].each do |path|
+        it "should work with repo.iso_url and path #{path}" do
+          policy.repo.iso_url.should_not be_nil
+          get "/svc/file/#{@node.id}/repo_url?path=#{path}"
+          assert_url_response("/svc/repo/#{URI::escape(policy.repo.name)}/foo")
+        end
+      end
+
+      ["http://example.org/repo", "http://example.org/repo/"].each do |url|
+        ["/foo", "foo"].each do |path|
+          it "should work with repo.url #{url} and path #{path}" do
+            policy.repo.iso_url = nil
+            policy.repo.url = url
+            policy.repo.save
+
+            get "/svc/file/#{@node.id}/repo_url?path=#{path}"
+            assert_url_response("/repo/foo")
+            last_response.body.should == "http://example.org/repo/foo"
+          end
+        end
+      end
+    end
+
     it "should provide config" do
       get "/svc/file/#{@node.id}/config"
       assert_template_body("Razor::Util::TemplateConfig")

@@ -79,8 +79,18 @@ class Razor::App < Sinatra::Base
       url "/api/nodes/#{@node.id}"
     end
 
+    # Produce a URL to +path+ within the current repo; this is done by
+    # appending +path+ to the repo's URL. Note that that this is simply a
+    # string append, and does not do proper URI concatenation in the sense
+    # of +URI::join+
     def repo_url(path = "")
-      url "/svc/repo/#{@repo.name}#{path}"
+      if @repo.url
+        url = URI::parse(@repo.url)
+        url.path = (url.path + "/" + path).gsub(%r'//+', '/')
+        url.to_s
+      else
+        compose_url "/svc/repo", @repo.name, path
+      end
     end
 
     # @todo lutter 2013-08-21: all the installers need to be adapted to do

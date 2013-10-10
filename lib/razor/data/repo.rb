@@ -21,7 +21,7 @@ module Razor::Data
     # The only columns that may be set through "mass assignment", which is
     # typically through the constructor.  Only enforced at the Ruby layer, but
     # since we direct everything through the model that is acceptable.
-    set_allowed_columns :name, :iso_url
+    set_allowed_columns :name, :iso_url, :url
 
     # When a new instance is saved, we need to make the repo accessible as a
     # local file.
@@ -41,6 +41,14 @@ module Razor::Data
       self.tmpdir and FileUtils.remove_entry_secure(self.tmpdir, true)
     end
 
+    def validate
+      super
+      if url and iso_url
+        errors.add(:urls, "either url or iso_url must be given")
+      elsif url.nil? and iso_url.nil?
+        errors.add(:urls, "only one of url and iso_url can be used")
+      end
+    end
 
     # Make the repo accessible on the local system, and then generate
     # a notification.  In the event the repo is remote, it will be downloaded

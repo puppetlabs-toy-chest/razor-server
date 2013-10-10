@@ -193,42 +193,56 @@ describe Razor::Data::Repo do
     end
   end
 
-  context "iso_url" do
-    [
-      'http://example.com/foobar',
-      'http://example/foobar',
-      'http://example.com/',
-      'http://example.com',
-      'https://foo.example.com/repo.iso',
-      'file:/dev/null',
-      'file:///dev/null'
-    ].each do |url|
-      it "should accept a basic URL: #{url.inspect}" do
-        # save to push validation through the database, too.
-        Repo.new(:name => 'foo', :iso_url => url).save.should be_valid
+
+  [:url, :iso_url].each do |url_name|
+    context url_name.to_s do
+      [
+       'http://example.com/foobar',
+       'http://example/foobar',
+       'http://example.com/',
+       'http://example.com',
+       'https://foo.example.com/repo.iso',
+       'file:/dev/null',
+       'file:///dev/null'
+      ].each do |url|
+        it "should accept a basic URL #{url.inspect}" do
+          # save to push validation through the database, too.
+          Repo.new(:name => 'foo', url_name => url).save.should be_valid
+        end
+      end
+
+      [
+       'ftp://example.com/foo.iso',
+       'file://example.com/dev/null',
+       'file://localhost/dev/null',
+       'http:///vmware.iso',
+       'https:///vmware.iso',
+       "http://example.com/foo\tbar",
+       "http://example.com/foo\nbar",
+       "http://example.com/foo\n",
+       'http://example.com/foo bar'
+      ].each do |url|
+        it "Ruby should reject invalid URL #{url.inspect}" do
+          Repo.new(:name => 'foo', :iso_url => url).should_not be_valid
+        end
+
+        it "PostgreSQL should reject invalid URL #{url.inspect}" do
+          expect {
+            Repo.dataset.insert(:name => 'foo', :iso_url => url)
+          }.to raise_error Sequel::CheckConstraintViolation
+        end
       end
     end
+  end
 
-    [
-      'ftp://example.com/foo.iso',
-      'file://example.com/dev/null',
-      'file://localhost/dev/null',
-      'http:///vmware.iso',
-      'https:///vmware.iso',
-      "http://example.com/foo\tbar",
-      "http://example.com/foo\nbar",
-      "http://example.com/foo\n",
-      'http://example.com/foo bar'
-    ].each do |url|
-      it "Ruby should reject invalid URL: #{url.inspect}" do
-        Repo.new(:name => 'foo', :iso_url => url).should_not be_valid
-      end
+  context "url and iso_url" do
+    it "should reject setting both" do
+      Repo.new(:name => 'foo', :url => 'http://example.org/',
+               :iso_url => 'http://example.com').should_not be_valid
+    end
 
-      it "PostgreSQL should reject invalid URL: #{url.inspect}" do
-        expect {
-          Repo.dataset.insert(:name => 'foo', :iso_url => url)
-        }.to raise_error Sequel::CheckConstraintViolation
-      end
+    it "should require setting one of them" do
+      Repo.new(:name => 'foo').should_not be_valid
     end
   end
 
