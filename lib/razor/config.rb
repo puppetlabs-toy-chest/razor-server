@@ -10,9 +10,9 @@ module Razor
     def initialize(env, fname = nil)
       fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
-      yaml = File::open(fname, "r") { |fp| YAML::load(fp) }
+      yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
       @values = yaml["all"] || {}
-      @values.merge!(yaml[Razor.env])
+      @values.merge!(yaml[Razor.env] || {})
     end
 
     # Lookup an entry. To look up a nested value, you can pass in the

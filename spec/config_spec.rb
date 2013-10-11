@@ -2,6 +2,29 @@ require 'spec_helper'
 require 'pathname'
 
 describe Razor::Config do
+  def with_config(content, &block)
+    Dir.mktmpdir do |dir|
+      fname = Pathname(dir) + "config.yaml"
+      if content
+        fname.open('w') { |fh| fh.write content.to_yaml }
+      end
+      config = Razor::Config.new(Razor.env, fname.to_s)
+      yield(config) if block_given?
+    end
+  end
+
+  describe "loading config" do
+    it "should raise ENOENT for nonexistant config" do
+      expect { with_config(nil) }.to raise_error(Errno::ENOENT)
+    end
+
+    it "should tolerate an empty config file" do
+      with_config({}) do |config|
+        config.should be_an_instance_of(Razor::Config)
+      end
+    end
+  end
+
   shared_examples "expanding paths" do |setting|
     let :setting_name    do setting + '_path' end
     let :setting_default do File.join(Razor.root, setting + 's') end
