@@ -93,6 +93,16 @@ class Razor::App < Sinatra::Base
       end
     end
 
+    def repo_file(path = "")
+      root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
+      if path.empty?
+        root
+      else
+        TorqueBox::Logger.new.info("repo_file(#{path.inspect})")
+        Razor::Data::Repo.find_file_ignoring_case(root, path)
+      end
+    end
+
     # @todo lutter 2013-08-21: all the installers need to be adapted to do
     # a 'curl <%= stage_done_url %> to signal that they are ready to
     # proceed to the next stage in the boot sequence
@@ -226,6 +236,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/file/:node_id/:template' do
+    TorqueBox::Logger.new.info("request from #{params[:node_id]} for #{params[:template]}")
     @node = Razor::Data::Node[params[:node_id]]
     halt 404 unless @node
 
@@ -280,12 +291,19 @@ class Razor::App < Sinatra::Base
 
   get '/svc/repo/*' do |path|
     root = File.expand_path(Razor.config['repo_store_root'])
-    fpath = File.join(root, path)
-    fpath.start_with?(root) and File.file?(path) or
-      [404, { :error => "File #{path} not found" }.to_json ]
 
-    content_type nil
-    send_file fpath, :disposition => nil
+    # Unfortunately, we face some complexities.  The ISO9660 format only
+    # supports upper-case filenames, but some installers assume they will be
+    # mapped to lower-case automatically.  If that doesn't happen, we can
+    # hit trouble.  So, to make this more user friendly we look for a
+    # case-insensitive match on the file.
+    fpath = Razor::Data::Repo.find_file_ignoring_case(root, path)
+    if fpath and fpath.start_with?(root) and File.file?(fpath)
+      content_type nil
+      send_file fpath, :disposition => nil
+    else
+      [404, { :error => "File #{path} not found" }.to_json ]
+    end
   end
 
   # The collections we advertise in the API

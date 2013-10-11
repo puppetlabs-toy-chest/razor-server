@@ -162,5 +162,40 @@ module Razor::Data
         self.save
       end
     end
+
+
+    def self.find_file_ignoring_case(root, path)
+      # We split the path into segments and dispatch to our recursive worker,
+      # which will return the first completely matching file, or nil.  This is
+      # just a nicer way of invoking the recursive function...
+      path = path.sub(%r{^/+}, '').split(%r{/+})
+      TorqueBox::Logger.new.info("find_file_ignoring_case(#{root}, #{path})")
+      _find_file_ignoring_case_recursively(root.to_s, *path)
+    end
+
+    def self._find_file_ignoring_case_recursively(root, segment, *rest)
+      # Find matching files in the root, if any, and retain the
+      # case-insensitively matching entries from it.
+      entries = Dir.entries(root).select {|x| x.downcase == segment.downcase } rescue nil
+      return nil unless entries and not entries.empty?
+
+      # Are we looking for the actual file, or another directory?
+      if rest.empty?
+        entries.each do |try|
+          file = File.join(root, try)
+          TorqueBox::Logger.new.info("checking for #{file}: #{File.exist?(file)}")
+          return file if File.exist?(file)
+        end
+      else
+        # We are looking for something deeper, so map through these
+        # possibilities and see if we have a match down there.
+        entries.each do |try|
+          found = _find_file_ignoring_case_recursively(File.join(root, try), *rest)
+          return found if found
+        end
+      end
+
+      return nil
+    end
   end
 end
