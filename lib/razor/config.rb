@@ -3,14 +3,12 @@ require 'yaml'
 
 module Razor
   class Config
-    include Singleton
-
     # The config paths that templates have access to
     TEMPLATE_PATHS = [ "microkernel.debug_level", "microkernel.kernel_args",
                        "checkin_interval" ]
 
-    def initialize
-      fname = ENV["RAZOR_CONFIG"] ||
+    def initialize(env, fname = nil)
+      fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
       yaml = File::open(fname, "r") { |fp| YAML::load(fp) }
       @values = yaml["all"] || {}

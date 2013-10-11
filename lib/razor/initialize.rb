@@ -31,7 +31,7 @@ module Razor
     end
 
     def config
-      Config.instance
+      @@config ||= Config.new(env)
     end
   end
 
