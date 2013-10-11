@@ -1,0 +1,5 @@
+DEFAULT esxi
+LABEL esxi
+  KERNEL <%= repo_url('/mboot.c32') %>
+  APPEND -c <%= file_url('boot.cfg') %>
+  IPAPPEND 2

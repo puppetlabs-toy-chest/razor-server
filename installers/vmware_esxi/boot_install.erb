@@ -1,0 +1,16 @@
+#!ipxe
+echo Razor <%= installer.label %> model boot_call
+echo Installation node: <%= node_url  %>
+echo Installation repo: <%= repo_url %>
+
+echo Booting ESXi installer via pxelinux to support COMBOOT modules fully
+echo Unfortunately, this double bootloader is necessary to run the ESXi installer
+
+sleep 3
+# These are the magic that direct pxelinux.0 to our HTTP based config...
+set 209:string pxelinux_esxi.cfg
+set 210:string <%= file_url('') %>
+imgexec <%= file_url('pxelinux.0', true) %>
+
+:error
+prompt --key s --timeout 60000 ERROR, hit 's' for the iPXE shell, reboot in 60 seconds && shell || reboot

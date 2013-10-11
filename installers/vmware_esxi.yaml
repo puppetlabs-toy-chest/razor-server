@@ -1,0 +1,7 @@
+---
+os_version: 5.5
+label: VMWare ESXi 5.5
+description: VMWare ESXi 5.5
+boot_sequence:
+  1: boot_install
+  default: boot_local

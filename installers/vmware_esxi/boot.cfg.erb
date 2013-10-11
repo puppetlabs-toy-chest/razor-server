@@ -1,0 +1,31 @@
+<%=
+    # This code finds the `boot.cfg` file in the repository, parses it, and
+    # makes a set of modifications intended to make it net-boot from Razor.
+    #
+    # I chose this path because the boot.cfg file varies between releases of
+    # ESXi (such as 5.0 to 5.5), and could quite legitimately vary between
+    # smaller jumps than that -- after all, it is inside their boot loader,
+    # and they can change the construction of the installer CD without
+    # breaking anything...
+    #
+    # The alternative was to copy in the boot.cfg, modify it the way this code
+    # will do on the fly, and then use that.  That is actually the exact
+    # process documented for setting up ESXi PXE boot -- statically make this
+    # change -- too.
+    #
+    # Given the changes are purely mechanical and well understood, this will
+    # do for the majority of cases without the risk / cost that a slight
+    # variant in the CD breaks everything, I think. --daniel 2013-10-14
+    (File.read(repo_file('/boot.cfg')) rescue '').split("\n").map do |line|
+      case line
+        when /^kernel=/
+          'kernel=' + repo_url(line.sub('kernel=', ''))
+        when /^modules=/
+          line.gsub('/', repo_url('/'))
+        when /^kernelopt=/
+          "kernelopt=ks=#{file_url('ks.cfg')}"
+        else
+          line
+      end
+    end.join("\n")
+%>
