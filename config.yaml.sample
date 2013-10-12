@@ -14,8 +14,6 @@ development:
 test:
   database_url: 'jdbc:postgresql:razor?user=razor&password=mypass'
 all:
-  repo_service_uri:
-    'http://razor.example.com/razor/repo'
   microkernel:
     debug_level: debug
     kernel_args:
