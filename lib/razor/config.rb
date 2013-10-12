@@ -2,19 +2,25 @@ require 'singleton'
 require 'yaml'
 
 module Razor
-  class Config
-    include Singleton
+  class InvalidConfigurationError < RuntimeError
+    attr_reader :key
+    def initialize(key, msg = "setting is invalid")
+      super("entry #{key}: #{msg}")
+      @key = key
+    end
+  end
 
+  class Config
     # The config paths that templates have access to
     TEMPLATE_PATHS = [ "microkernel.debug_level", "microkernel.kernel_args",
                        "checkin_interval" ]
 
-    def initialize
-      fname = ENV["RAZOR_CONFIG"] ||
+    def initialize(env, fname = nil)
+      fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
-      yaml = File::open(fname, "r") { |fp| YAML::load(fp) }
+      yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
       @values = yaml["all"] || {}
-      @values.merge!(yaml[Razor.env])
+      @values.merge!(yaml[Razor.env] || {})
     end
 
     # Lookup an entry. To look up a nested value, you can pass in the
@@ -36,10 +42,10 @@ module Razor
       !! facts_blacklist_rx.match(name)
     end
 
-    # @todo lutter 2013-09-08: validate the config on server startup and
-    # produce useful error if anything is fishy. Things to validate:
-    #   - facts.blacklist compiles to a valid regexp
-    #   - repo_store_root is an existing writable directory
+    def validate!
+      validate_facts_blacklist_rx
+      validate_repo_store_root
+    end
 
     private
     def expand_paths(what)
@@ -65,6 +71,33 @@ module Razor
                            Regexp.quote(s)
                          end
                        end.join(")|(") + "))\\Z")
+    end
+
+    # Validations
+    def raise_ice(key, msg)
+      raise InvalidConfigurationError.new(key, msg)
+    end
+
+    def validate_facts_blacklist_rx
+      list = Array(self["facts.blacklist"])
+      list.map { |s| s =~ %r{\A/(.*)/\Z} and $1 }.compact.each do |s|
+        begin
+          Regexp.compile(s)
+        rescue RegexpError => e
+          raise_ice("facts.blacklist",
+                    "entry #{s} is not a valid regular expression: #{e.message}")
+        end
+      end
+    end
+
+    def validate_repo_store_root
+      key = 'repo_store_root'
+      root = self[key] or
+        raise_ice(key, "must be set in the configuration file")
+      root = Pathname(root)
+      root.absolute? or raise_ice key, "must be an absolute path"
+      root.directory? and root.writable? or
+        raise_ice key, "must be a writable directory"
     end
   end
 end

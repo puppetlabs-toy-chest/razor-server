@@ -403,21 +403,6 @@ describe Razor::Data::Repo do
   end
 
   context "repo_store_root" do
-    it "should raise if no repo store root is configured" do
-      Razor.config.stub(:[]).with('repo_store_root').and_return(nil)
-
-      expect {
-        Repo.new(:name => "foo", :iso_url => 'file:///').repo_store_root
-      }.to raise_error RuntimeError, /repo_store_root/
-    end
-
-    it "should raise if the path is not absolute" do
-      Razor.config.stub(:[]).with('repo_store_root').and_return('hoobly-goobly')
-      expect {
-        Repo.new(:name => "foo", :iso_url => 'file:///').repo_store_root
-      }.to raise_error RuntimeError, /repo_store_root/
-    end
-
     it "should return a Pathname if the path is valid" do
       path = '/no/such/repo-store'
       Razor.config.stub(:[]).with('repo_store_root').and_return(path)
