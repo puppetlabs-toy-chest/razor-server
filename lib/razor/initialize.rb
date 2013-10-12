@@ -35,6 +35,8 @@ module Razor
     end
   end
 
+  Razor.config.validate!
+
   # Establish a database connection now and load extensions
   Razor.database
   Razor.database.extension :pg_array

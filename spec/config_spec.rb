@@ -2,25 +2,69 @@ require 'spec_helper'
 require 'pathname'
 
 describe Razor::Config do
-  def with_config(content, &block)
+  def make_config(content)
     Dir.mktmpdir do |dir|
       fname = Pathname(dir) + "config.yaml"
       if content
-        fname.open('w') { |fh| fh.write content.to_yaml }
+        hash = { 'all' => {} }
+        # Break the paths in content into nested hashes
+        content.each do |key, value|
+          path = key.to_s.split(".")
+          last = path.pop
+          path.inject(hash['all']) { |v, k| v[k] ||= {}; v[k] if v }[last] = value
+        end
+        # Write the resulting YAML file
+        fname.open('w') { |fh| fh.write hash.to_yaml }
       end
-      config = Razor::Config.new(Razor.env, fname.to_s)
-      yield(config) if block_given?
+      Razor::Config.new(Razor.env, fname.to_s)
     end
   end
 
-  describe "loading config" do
+  describe "loading" do
     it "should raise ENOENT for nonexistant config" do
-      expect { with_config(nil) }.to raise_error(Errno::ENOENT)
+      expect { make_config(nil) }.to raise_error(Errno::ENOENT)
     end
 
     it "should tolerate an empty config file" do
-      with_config({}) do |config|
-        config.should be_an_instance_of(Razor::Config)
+      make_config({}).should be_an_instance_of(Razor::Config)
+    end
+  end
+
+  describe "validating" do
+    def validate(content)
+      # repo_store_root is mandatory, populate it with a default unless
+      # it is set to :none to indicate we want it not set in our test
+      if content["repo_store_root"] == :none
+        content.delete("repo_store_root")
+      else
+        content["repo_store_root"] ||= Dir.tmpdir
+      end
+      make_config(content).validate!
+      true
+    rescue Razor::InvalidConfigurationError => e
+      # The first key in content is the one we are testing; if we get an
+      # error about any other key, something strange is happening
+      raise e if e.key != content.keys.first
+      false
+    end
+
+    describe "facts.blacklist" do
+      [ "id", "uptime.*" ].each do |s|
+        it "should accept /#{s}/" do
+          validate("facts.blacklist" => ["/#{s}/"]).should be_true
+        end
+      end
+
+      [ "*", "[a-z*" ].each do |s|
+        it "should reject /#{s}/" do
+          validate("facts.blacklist" => ["/#{s}/"]).should be_false
+        end
+      end
+
+      [ "*", "[a-z*" ].each do |s|
+        it "should accept a literal #{s}" do
+          validate("facts.blacklist" => [s]).should be_true
+        end
       end
     end
   end
