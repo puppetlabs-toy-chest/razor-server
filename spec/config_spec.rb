@@ -67,6 +67,34 @@ describe Razor::Config do
         end
       end
     end
+
+    describe "repo_store_root" do
+      it "should require that repo_store_root is set" do
+        validate("repo_store_root" => :none).should be_false
+      end
+
+      it "should reject a non existing root" do
+        Dir.mktmpdir do |dir|
+          root = Pathname(dir) + "not_there"
+          validate('repo_store_root' => root.to_s).should be_false
+        end
+      end
+
+      it "should accept an existing directory" do
+        Dir.mktmpdir do |dir|
+          validate('repo_store_root' => dir).should be_true
+        end
+      end
+
+      it "should reject a relative path" do
+        Dir.mktmpdir do |dir|
+          (Pathname(dir) + "sub").mkpath
+          Dir.chdir(dir) do
+            validate('repo_store_root' => "sub").should be_false
+          end
+        end
+      end
+    end
   end
 
   shared_examples "expanding paths" do |setting|

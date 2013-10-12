@@ -44,6 +44,7 @@ module Razor
 
     def validate!
       validate_facts_blacklist_rx
+      validate_repo_store_root
     end
 
     private
@@ -87,6 +88,16 @@ module Razor
                     "entry #{s} is not a valid regular expression: #{e.message}")
         end
       end
+    end
+
+    def validate_repo_store_root
+      key = 'repo_store_root'
+      root = self[key] or
+        raise_ice(key, "must be set in the configuration file")
+      root = Pathname(root)
+      root.absolute? or raise_ice key, "must be an absolute path"
+      root.directory? and root.writable? or
+        raise_ice key, "must be a writable directory"
     end
   end
 end

@@ -132,14 +132,7 @@ module Razor::Data
     # Return the path on disk for our repo store root; each repo is unpacked
     # into a directory immediately below this root.
     def repo_store_root
-      # @todo danielp 2013-07-24: this should be lifted into some more global
-      # validation of our configuration file.  When we figure that out, we
-      # should pull it up to there.
-      root = Razor.config['repo_store_root'] or
-        raise "`repo_store_root` is not set in the configuration file"
-      root = Pathname(root)
-      root.absolute? or raise "`repo_store_root` was not an absolute path"
-      root
+      Pathname(Razor.config['repo_store_root'])
     end
 
     # Return the name of the repo, made file-system safe by URL-encoding it
