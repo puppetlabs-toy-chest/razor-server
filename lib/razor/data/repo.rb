@@ -166,11 +166,21 @@ module Razor::Data
 
     def self.find_file_ignoring_case(root, path)
       TorqueBox::Logger.new.info("find_file_ignoring_case(#{root}/#{path})")
-      # We split the path into segments and dispatch to our recursive worker,
-      # which will return the first completely matching file, or nil.  This is
-      # just a nicer way of invoking the recursive function...
-      path = path.sub(%r{^/+}, '').split(%r{/+})
-      _find_file_ignoring_case_recursively(root.to_s, *path)
+
+      # Do we have a file with matching case?  If so, return it.  This should
+      # help address the situation if we ever have a case-sensitive installer
+      # that expects different files with the same name but not the same case,
+      # because we will default to the "right" one first.  Hopefully.
+      clean = File.join(root, path)
+      if File.exist? clean
+        clean
+      else
+        # We split the path into segments and dispatch to our recursive worker,
+        # which will return the first completely matching file, or nil.  This is
+        # just a nicer way of invoking the recursive function...
+        path = path.sub(%r{^/+}, '').split(%r{/+})
+        _find_file_ignoring_case_recursively(root.to_s, *path)
+      end
     end
 
     def self._find_file_ignoring_case_recursively(root, segment, *rest)
