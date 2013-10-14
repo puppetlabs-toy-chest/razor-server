@@ -121,6 +121,7 @@ module Razor::Data
       # (otherwise we could have symbols, which will turn into strings on
       # reloading)
       entry = JSON::parse(entry.to_json)
+      TorqueBox::Logger.new.info("#{name}: #{entry.inspect}")
       add_node_log_entry(:entry => entry)
     end
 
