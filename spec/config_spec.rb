@@ -32,6 +32,7 @@ describe Razor::Config do
 
   describe "validating" do
     def validate(content)
+      key = content.keys.first
       # repo_store_root is mandatory, populate it with a default unless
       # it is set to :none to indicate we want it not set in our test
       if content["repo_store_root"] == :none
@@ -44,7 +45,7 @@ describe Razor::Config do
     rescue Razor::InvalidConfigurationError => e
       # The first key in content is the one we are testing; if we get an
       # error about any other key, something strange is happening
-      raise e if e.key != content.keys.first
+      raise e if e.key != key
       false
     end
 
