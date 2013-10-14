@@ -52,9 +52,10 @@ module Razor::Data
     def find_template(template)
       if body = templates[template.to_s]
         [body, {}]
-      elsif ((bi = base_installer) and (result = bi.find_template(template))) or
-          result = Razor::Installer.find_common_template(template)
+      elsif ((bi = base_installer) and (result = bi.find_template(template)))
         result
+      elsif result = Razor::Installer.find_common_file(template + '.erb')
+        [template.to_sym, { :views => File::dirname(result) }]
       else
         raise Razor::TemplateNotFoundError,
           "Installer #{name}: no template '#{template}' for this installer or its base installers"

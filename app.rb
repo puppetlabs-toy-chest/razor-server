@@ -55,8 +55,12 @@ class Razor::App < Sinatra::Base
       url escaped.gsub(%r'//+', '/')
     end
 
-    def file_url(template)
-      url "/svc/file/#{@node.id}/#{URI::escape(template)}"
+    def file_url(template, raw = false)
+      if raw
+        url "/svc/file/#{@node.id}/raw/#{URI::escape(template)}"
+      else
+        url "/svc/file/#{@node.id}/#{URI::escape(template)}"
+      end
     end
 
     def log_url(msg, severity=:info)
@@ -233,6 +237,27 @@ class Razor::App < Sinatra::Base
                      :template => template, :repo => @repo.name)
     @node.save
     render_template(template)
+  end
+
+  get '/svc/file/:node_id/raw/:filename' do
+    TorqueBox::Logger.new.info("#{params[:node_id]}: raw file #{params[:filename]}")
+
+    halt 404 if params[:filename] =~ /\.erb$/i # no raw template access
+
+    @node = Razor::Data::Node[params[:node_id]]
+    halt 404 unless @node
+
+    halt 409 unless @node.policy
+
+    @installer = @node.installer
+    @repo = @node.policy.repo
+
+    @node.log_append(:event => :get_raw_file, :template => params[:filename],
+                     :url => request.url)
+
+    fpath = @installer.find_file(params[:filename]) or halt 404
+    content_type nil
+    send_file fpath, :disposition => nil
   end
 
   get '/svc/file/:node_id/:template' do
