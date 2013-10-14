@@ -190,6 +190,7 @@ class Razor::App < Sinatra::Base
   # by other means, we'd need to convince facter to send us the same
   # hw_info that iPXE does and identify the node via +Node.lookup+
   post '/svc/checkin/:id' do
+    TorqueBox::Logger.new.info("checkin by node #{params[:id]}")
     return 400 if request.content_type != 'application/json'
     begin
       json = JSON::parse(request.body.read)
