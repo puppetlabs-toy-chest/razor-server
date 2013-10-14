@@ -55,19 +55,20 @@ module Razor
       @boot_seq[node.boot_count] || @boot_seq["default"]
     end
 
+    def find_file(filename)
+      candidates = [File::join(name, os_version, filename), File::join(name, filename)]
+      self.class.find_on_installer_paths(*candidates) or
+        (@base and @base.find_file(filename)) or
+        self.class.find_common_file(filename) or
+        raise TemplateNotFoundError, "Installer #{name}: #{filename} not on the search path"
+    end
+
     def find_template(template)
       template = template.sub(/\.erb$/, "")
-      erb = template + ".erb"
-      erb += ".erb" unless erb =~ /\.erb$/
-      candidates = [ File::join(name, os_version, erb),
-                     File::join(name, erb) ]
-      if file = self.class.find_on_installer_paths(*candidates)
+      erb      = template + ".erb"
+
+      if file = find_file(erb)
         [template.to_sym, { :views => File::dirname(file) }]
-      elsif result = ((@base and @base.find_template(erb)) or
-                      self.class.find_common_template(template, erb))
-        result
-      else
-        raise TemplateNotFoundError, "Installer #{name}: #{template} not on the search path"
       end
     end
 
@@ -96,11 +97,8 @@ module Razor
       find('microkernel')
     end
 
-    def self.find_common_template(template, erb = nil)
-      erb ||= template + ".erb"
-      if path = find_on_installer_paths(File::join("common", erb))
-        [template.to_sym, { :views => File::dirname(path) }]
-      end
+    def self.find_common_file(filename)
+      find_on_installer_paths(File::join("common", filename))
     end
 
     private
