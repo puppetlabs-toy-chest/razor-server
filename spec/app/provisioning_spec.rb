@@ -285,7 +285,8 @@ describe "provisioning API" do
       post "/svc/checkin/#{node.id}", body
 
       last_response.status.should == 200
-      last_response.json.should == { "messages" => [] }
+      # the 'action' part is a backward compatibility shim
+      last_response.json.should == { "messages" => [], "action" => "none" }
 
       node.reload
       node.log.last["severity"].should == "error"
@@ -301,7 +302,8 @@ describe "provisioning API" do
       post "/svc/checkin/#{node.id}", body
 
       last_response.status.should == 200
-      last_response.json.should == { "messages" => [['reboot']] }
+      # the 'action' part is a backward compatibility shim
+      last_response.json.should == { "messages" => [['reboot']], "action" => "reboot" }
     end
   end
 

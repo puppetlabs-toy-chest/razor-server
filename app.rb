@@ -206,11 +206,20 @@ class Razor::App < Sinatra::Base
       # the node has accumulated.  This is the *only* time we try to deliver
       # them; if the client fails to obtain this data, the content is lost
       # forever, alas.
-      { :messages => node.messages }.to_json
+      {
+        # this part is the actual communication to the node
+        :messages => node.messages,
+        # this part is a backward compatibility "hack", more or less, which
+        # will cause an old-style microkernel to reboot -- and either have the
+        # machine that was running it load a new style Microkernel, or enter a
+        # cycle of constant reboots which should lead the end user to
+        # discovering that they need to upgrade.
+        :action   => 'reboot'
+      }.to_json
     rescue Razor::Matcher::RuleEvaluationError => e
       Razor.logger.error("during checkin of #{node.name}: " + e.message)
       # return a (new style) empty set of commands to the node
-      { :messages => [] }.to_json
+      { :messages => [], :action => :none }.to_json
     end
   end
 
