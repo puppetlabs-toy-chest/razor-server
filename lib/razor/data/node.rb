@@ -202,14 +202,12 @@ module Razor::Data
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
-      action = :none
       match_and_bind unless policy
       if policy
         log_append(:action => :reboot, :policy => policy.name)
-        action = :reboot
+        send_message('reboot')
       end
       save_changes
-      { :action => action }
     end
 
     def self.find_by_name(name)

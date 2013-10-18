@@ -200,10 +200,17 @@ class Razor::App < Sinatra::Base
     return 400 unless json['facts']
     begin
       node = Razor::Data::Node[params["id"]] or return 404
-      node.checkin(json).to_json
+      node.checkin(json)
+
+      # Now, return the set of queued actions to the MK client, if any, that
+      # the node has accumulated.  This is the *only* time we try to deliver
+      # them; if the client fails to obtain this data, the content is lost
+      # forever, alas.
+      { :messages => node.messages }.to_json
     rescue Razor::Matcher::RuleEvaluationError => e
       Razor.logger.error("during checkin of #{node.name}: " + e.message)
-      { :action => :none }.to_json
+      # return a (new style) empty set of commands to the node
+      { :messages => [] }.to_json
     end
   end
 

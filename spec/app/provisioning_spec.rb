@@ -285,10 +285,23 @@ describe "provisioning API" do
       post "/svc/checkin/#{node.id}", body
 
       last_response.status.should == 200
-      last_response.json.should == { "action" => "none" }
+      last_response.json.should == { "messages" => [] }
 
       node.reload
       node.log.last["severity"].should == "error"
+    end
+
+    it "should include a 'reboot' message if the node bound to a policy" do
+      node   = Fabricate(:node)
+      tag    = Fabricate(:tag, :rule => ["=", ["fact", "arch"], "i960"])
+      policy = Fabricate(:policy).add_tag(tag).save
+
+      header 'Content-Type', 'application/json'
+      body = { :facts => { :arch => "i960" } }.to_json
+      post "/svc/checkin/#{node.id}", body
+
+      last_response.status.should == 200
+      last_response.json.should == { "messages" => [['reboot']] }
     end
   end
 
