@@ -346,4 +346,60 @@ describe Razor::Data::Node do
       expect { n.save }.to raise_error /frozen/
     end
   end
+
+  describe "messages" do
+    subject(:node) { Fabricate(:node) }
+    its(:messages) { should be_empty }
+
+    it "should be able to add a message" do
+      node.send_message('hello')
+      node.messages.should == [['hello']]
+    end
+
+    it "should timestamp the message added" do
+      node.send_message('hello')
+      node.node_messages.first.timestamp.should be_an_instance_of Time
+      # five seconds is high tolerance, but should detect major failures
+      # such as "timestamp zero" without being prone to false positives
+      # because of random slowness or minor clock drift
+      node.node_messages.first.timestamp.should be_within(5).of(Time.now)
+    end
+
+    it "should order messages by timestamp" do
+      # I don't feel like this is a strong test, but what else can we do?
+      # There isn't a meaningful way I can think of to force the database to
+      # return out-of-order results, rather than hope maybe it might.
+      Razor::Data::NodeMessage.create(:node => node, :timestamp => Time.now, :message => ['baz'])
+      Razor::Data::NodeMessage.create(:node => node, :timestamp => Time.now - 10, :message => ['bar'])
+      Razor::Data::NodeMessage.create(:node => node, :timestamp => Time.now - 1000, :message => ['foo'])
+
+      node.messages.should == [['foo'], ['bar'], ['baz']]
+    end
+
+    it "should destroy the message after reading it" do
+      node.send_message('foo')
+      node.messages.should == [['foo']]
+      node.messages.should == [] # and now there are none!
+    end
+
+    it "should pass arguments to the message also" do
+      msg = %w{foo bar baz}
+      node.send_message(*msg)
+      node.messages.should == [msg]
+    end
+
+    it "should fail to send if the message or any argument is not a string" do
+      original = %w{one two three four five six seven eight nine ten}
+      original.each_index do |n|
+        msg = original.dup
+        msg[n] = n
+        expect { node.send_message(*msg) }.to raise_error ArgumentError, /only strings/
+        node.messages.should == []
+      end
+    end
+
+    it "should fail if no arguments are given" do
+      expect { node.send_message }.to raise_error ArgumentError, /0 for/
+    end
+  end
 end
