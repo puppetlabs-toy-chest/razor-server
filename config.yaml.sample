@@ -32,12 +32,16 @@ all:
     # enclosed in /../ where any fact that matches the regexp will be
     # dropped
     blacklist:
+      - domain
+      - filesystems
+      - fqdn
+      - hostname
       - id
       - /kernel.*/
-      - memorysize
       - memoryfree
-      - operatingsystem
-      - operatingsystemrelease
+      - memorysize
+      - memorytotal
+      - /operatingsystem.*/
       - osfamily
       - path
       - ps
@@ -45,8 +49,8 @@ all:
       - rubyversion
       - selinux
       - sshdsakey
+      - /sshfp_[dr]sa/
       - sshrsakey
-      - swapfree
-      - swapsize
+      - /swap.*/
       - timezone
       - /uptime.*/
