@@ -244,8 +244,12 @@ module Razor::Data
       dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
 
       hw_info = canonicalize_hw_info(params)
-
-      nodes = self.where(:hw_info.pg_array.overlaps(hw_info)).all
+      # For matching nodes, we only consider the +hw_info+ values named in
+      # the 'match_nodes_on' config setting
+      hw_match = hw_info.select do |p|
+        Razor.config['match_nodes_on'].include?(p.split("=")[0])
+      end
+      nodes = self.where(:hw_info.pg_array.overlaps(hw_match)).all
       if nodes.size == 0
         self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
       elsif nodes.size == 1

@@ -49,6 +49,7 @@ class Razor::Config
 
   def reset!
     @facts_blacklist_rx = nil
+    @values['match_nodes_on'] = Razor::Config::HW_INFO_KEYS
   end
 end
 

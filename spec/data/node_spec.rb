@@ -87,6 +87,18 @@ describe Razor::Data::Node do
       }.to raise_error(Razor::Data::DuplicateNodeError)
     end
 
+    it "should disregard hw_info entries not mentioned in match_nodes_on" do
+      hw1 = { "serial" => "1", "asset" => "no asset tag" }
+      hw2 = { "serial" => "2", "asset" => "no asset tag" }
+      Razor.config['match_nodes_on'] = ['serial', 'mac', 'uuid']
+      n1 = Fabricate(:node, :hw_hash => hw1)
+      n2 = Fabricate(:node, :hw_hash => hw2)
+
+      n1.should_not == n2
+      Node.lookup(hw1).should == n1
+      Node.lookup(hw2).should == n2
+    end
+
     it "should update hw_info when it changes" do
       hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
       n1 = Node.lookup(hw_hash)
