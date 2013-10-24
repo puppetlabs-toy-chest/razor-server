@@ -29,9 +29,6 @@ module Razor::Data
   end
 
   class Node < Sequel::Model
-    # The possible keys we allow in hw_info,
-    HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
-
     plugin :serialization, :json, :facts
     plugin :typecast_on_load, :hw_info
 
@@ -159,7 +156,7 @@ module Razor::Data
             errors.add(:hw_info, "entry '#{p}' is not in the format 'key=value'")
           (pair[1].nil? or pair[1] == "") and
             errors.add(:hw_info, "entry '#{p}' does not have a value")
-          HW_INFO_KEYS.include?(pair[0]) or
+          Razor::Config::HW_INFO_KEYS.include?(pair[0]) or
             errors.add(:hw_info, "entry '#{p}' uses an unknown key #{pair[0]}")
           # @todo lutter 2013-09-03: we should do more checking, e.g. that
           # MAC addresses are sane
@@ -231,7 +228,7 @@ module Razor::Data
         k = "mac" if k =~ /net[0-9]+/
         [k.downcase, v.strip.downcase]
       end.select do |k, v|
-        (HW_INFO_KEYS + ["mac"]).include?(k) && v && v != ""
+        Razor::Config::HW_INFO_KEYS.include?(k) && v && v != ""
       end.sort do |a, b|
         # Sort the [key, value] pairs lexicographically
         a[0] == b[0] ? a[1] <=> b[1] : a[0] <=> b[0]

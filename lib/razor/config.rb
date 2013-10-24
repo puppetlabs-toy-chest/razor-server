@@ -15,6 +15,9 @@ module Razor
     TEMPLATE_PATHS = [ "microkernel.debug_level", "microkernel.kernel_args",
                        "checkin_interval" ]
 
+    # The possible keys we allow in hw_info,
+    HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
+
     def initialize(env, fname = nil)
       fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
