@@ -17,6 +17,25 @@ all:
   microkernel:
     debug_level: debug
     kernel_args:
+
+  # How to match nodes to possibly existing nodes in the database. The node
+  # sends us the MAC addresses of its network interfaces, serial number,
+  # asset tag, and UUID. We consider two nodes to be the same if they agree
+  # on any of the values named in the array +match_nodes_on+. Array entries
+  # can be any of 'mac', 'serial', 'asset', or 'uuid', in any order.
+  #
+  # Note that if you have nodes that have dummy values for one of these,
+  # e.g. that all have an asset tag of 'No asset tag' and +match_nodes_on+
+  # contains 'asset', all these nodes will be assumed to be the
+  # same. Better yet: make sure that +match_nodes_on+ does not contain
+  # 'asset' in that situation
+  #
+  # By default, we only match on MAC's, which is generally safe, but will
+  # cause trouble if the NIC's in a node are ever completely
+  # replaced. Consider adding one of the other possible values, e.g. 'uuid'
+  # to the array
+  match_nodes_on:
+    - mac
   checkin_interval: 15
   # Colon-separated list of paths; each entry must be a directory in which
   # we should look for installers
@@ -32,12 +51,16 @@ all:
     # enclosed in /../ where any fact that matches the regexp will be
     # dropped
     blacklist:
+      - domain
+      - filesystems
+      - fqdn
+      - hostname
       - id
       - /kernel.*/
-      - memorysize
       - memoryfree
-      - operatingsystem
-      - operatingsystemrelease
+      - memorysize
+      - memorytotal
+      - /operatingsystem.*/
       - osfamily
       - path
       - ps
@@ -45,8 +68,8 @@ all:
       - rubyversion
       - selinux
       - sshdsakey
+      - /sshfp_[dr]sa/
       - sshrsakey
-      - swapfree
-      - swapsize
+      - /swap.*/
       - timezone
       - /uptime.*/

@@ -15,6 +15,9 @@ module Razor
     TEMPLATE_PATHS = [ "microkernel.debug_level", "microkernel.kernel_args",
                        "checkin_interval" ]
 
+    # The possible keys we allow in hw_info,
+    HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
+
     def initialize(env, fname = nil)
       fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
@@ -45,6 +48,7 @@ module Razor
     def validate!
       validate_facts_blacklist_rx
       validate_repo_store_root
+      validate_match_nodes_on
     end
 
     private
@@ -98,6 +102,17 @@ module Razor
       root.absolute? or raise_ice key, "must be an absolute path"
       root.directory? and root.writable? or
         raise_ice key, "must be a writable directory"
+    end
+
+    def validate_match_nodes_on
+      key = 'match_nodes_on'
+      match_on = self[key] or
+        raise_ice(key, "must be set in the configuration file")
+      (match_on.is_a?(Array) and match_on.size > 0) or
+        raise_ice(key, "must be a nonempty array")
+      (match_on - HW_INFO_KEYS).empty? or
+        raise_ice(key,
+        "must only contain '#{HW_INFO_KEYS.join("', '")}'")
     end
   end
 end

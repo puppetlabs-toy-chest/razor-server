@@ -31,15 +31,24 @@ describe Razor::Config do
   end
 
   describe "validating" do
+    CONFIG_DEFAULTS = {
+      "repo_store_root" => Dir.tmpdir,
+      "match_nodes_on" => ["mac"]
+    }
+
     def validate(content)
       key = content.keys.first
-      # repo_store_root is mandatory, populate it with a default unless
-      # it is set to :none to indicate we want it not set in our test
-      if content["repo_store_root"] == :none
-        content.delete("repo_store_root")
-      else
-        content["repo_store_root"] ||= Dir.tmpdir
+      # For the mandatroy keys, fill htem in with default values, unless
+      # they are set to :none which indicates that the test wants to test a
+      # config where that entry is entirely missing
+      CONFIG_DEFAULTS.keys.each do |k|
+        if content[k] == :none
+          content.delete(k)
+        elsif not content.key?(k)
+          content[k] = CONFIG_DEFAULTS[k]
+        end
       end
+
       make_config(content).validate!
       true
     rescue Razor::InvalidConfigurationError => e
@@ -94,6 +103,25 @@ describe Razor::Config do
             validate('repo_store_root' => "sub").should be_false
           end
         end
+      end
+    end
+
+    describe "match_nodes_on" do
+      it "should require that it is set" do
+        validate('match_nodes_on' => :none).should be_false
+      end
+
+      it "should require that it is a nonempty array" do
+        validate('match_nodes_on' => "xxmac").should be_false
+        validate('match_nodes_on' => []).should be_false
+      end
+
+      it "should only accept entries from HW_INFO_KEYS" do
+        (1..Razor::Config::HW_INFO_KEYS.size-1).each do |i|
+          keys = Razor::Config::HW_INFO_KEYS.take(i)
+          validate('match_nodes_on' => keys).should be_true
+        end
+        validate('match_nodes_on' => ['net0', 'net1']).should be_false
       end
     end
   end

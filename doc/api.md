@@ -163,6 +163,22 @@ Hostname is a pattern for the host names of the nodes bound to the policy;
 eventually you'll be able to use facts and other fun stuff there. For now,
 you get to say ${id} and get the node's DB id.
 
+The `max_count` determines how many nodes can be bound at any given point
+to this policy at the most. This can either be set to `nil`, indicating
+that an unbounded number of nodes can be bound to this policy, or a
+positive integer to set an upper bound.
+
+### Enable/disable policy
+
+Policies can be enabled or disabled. Only enabled policies are used when
+matching nodes against policies. There are two commands to toggle a
+policy's `enabled` flag: `enable-policy` and `disable-policy`, which both
+accept the same body, consisting of the name of the policy in question:
+
+    {
+      "name": "a policy"
+    }
+
 ### Delete node
 
 A single node can be removed from the database with the `delete-node`
