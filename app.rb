@@ -207,6 +207,39 @@ class Razor::App < Sinatra::Base
     end
   end
 
+  # Take a hardware ID bundle, match it to a node, and return the unique
+  # node ID.  This is for the benefit of the Windows installer client, which
+  # can't take any dynamic content from the boot loader, and potentially any
+  # future installer (or other utility) which can identify the hardware
+  # details, but not the node ID, to get that ID.
+  #
+  # GET the URL, with `netN` keys for your network cards, and optionally a
+  # `dhcp_mac`, serial, asset, and uuid DMI data arguments.  These are used
+  # for the same node matching as done in the `/svc/boot` process.
+  #
+  # The return value is a JSON object with one key, `id`, containing the
+  # unique node ID used for further transactions.
+  #
+  # Typically this will then be used to access `/srv/file/$node_id/...`
+  # content from the service.
+  get '/svc/nodeid' do
+    return 400 if params.empty?
+    begin
+      if node = Razor::Data::Node.lookup(params)
+        TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} mapped to #{node.id}")
+        { :id => node.id }.to_json
+      else
+        TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} not found")
+        404
+      end
+    rescue Razor::Data::DuplicateNodeError => e
+      TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} multiple nodes")
+      e.log_to_nodes!
+      Razor.logger.error(e.message)
+      return 400
+    end
+  end
+
   get '/svc/boot' do
     begin
       @node = Razor::Data::Node.lookup(params)
