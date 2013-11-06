@@ -14,9 +14,11 @@ if (test-path $configfile) {
     # @todo danielp 2013-10-29: is there a better way to handle multiple
     # network adapters with DHCP addresses than I have here?
     write-host "guessing that DHCP server == Razor server!"
-    $server = Get-WmiObject Win32_NetworkAdapterConfiguration -namespace "root\CIMV2" | `
-                  where { $_.IPAddress -and $_.DHCPEnabled -eq "True" } | `
-                  select -uniq -first 1 -expandproperty DHCPServer
+    $server = get-wmiobject win32_networkadapterconfiguration |
+                  where { $_.ipaddress -and
+                          $_.dhcpenabled -eq "true" -and
+                          $_.dhcpleaseobtained } |
+                  select -uniq -first 1 -expandproperty dhcpserver
 
 }
 
