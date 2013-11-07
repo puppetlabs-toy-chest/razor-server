@@ -97,6 +97,16 @@ class Razor::App < Sinatra::Base
       end
     end
 
+    def repo_url_host_with_port
+      uri = URI::parse(repo_url)
+      host_with_port = uri.host + ":" + uri.port.to_s
+    end
+
+    def repo_url_path
+      uri = URI::parse(repo_url)
+      path = uri.path
+    end
+
     def repo_file(path = "")
       root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
       if path.empty?
@@ -112,11 +122,6 @@ class Razor::App < Sinatra::Base
     # proceed to the next stage in the boot sequence
     def stage_done_url(name = "")
       url "/svc/stage-done/#{@node.id}?name=#{name}"
-    end
-
-    def svc_host_with_port
-      uri = URI::parse(url "")
-      host_with_port = uri.host + ":" + uri.port.to_s
     end
 
     def config
