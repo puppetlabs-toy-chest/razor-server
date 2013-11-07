@@ -100,6 +100,10 @@ class Razor::App < Sinatra::Base
       end
     end
 
+    def repo_uri(path = "")
+      URI::parse(repo_url(path))
+    end
+
     def repo_file(path = "")
       root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
       if path.empty?
