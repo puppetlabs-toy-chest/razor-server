@@ -244,7 +244,6 @@ class Razor::App < Sinatra::Base
     end
   end
 
-
   get '/svc/boot' do
     begin
       @node = Razor::Data::Node.lookup(params)
@@ -552,25 +551,6 @@ class Razor::App < Sinatra::Base
     policy.save
 
     policy
-  end
-
-  def toggle_policy_enabled(data, enabled, verb)
-    data['name'] or error 400,
-      :error => "Supply 'name' to indicate which policy to #{verb}"
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => "Policy #{data['name']} does not exist"
-    policy.enabled = enabled
-    policy.save
-
-    { :result => "Policy #{policy.name} #{verb}d" }
-  end
-
-  command :enable_policy do |data|
-    toggle_policy_enabled(data, true, 'enable')
-  end
-
-  command :disable_policy do |data|
-    toggle_policy_enabled(data, false, 'disable')
   end
 
   #
