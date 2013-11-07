@@ -1,0 +1,1 @@
+powershell -NoProfile -Command "$ip = @(@(Get-WmiObject -class win32_NetworkAdapterConfiguration -Filter 'ipenabled = "true"')[0].ipaddress);$url = '<%= store_url("ip" => "{0}") %>' -f $ip[0];((new-object net.webclient).DownloadString($url))"

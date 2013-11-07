@@ -1,0 +1,20 @@
+#!ipxe
+echo Razor <%= installer.label %> model boot_call
+echo Installation node: <%= node_url  %>
+echo Installation repo: <%= repo_url %>
+
+sleep 3
+echo unattended.ps1=<%= file_url("unattended.ps1") %>
+kernel <%= file_url('wimboot', true) %> || goto error
+initrd <%= repo_url("/bootmgr") %> bootmgr || goto error
+initrd <%= repo_url("/boot/bcd") %> BCD || goto error
+initrd <%= repo_url("/boot/fonts/segmono_boot.ttf") %> segmono_boot.ttf || goto error
+initrd <%= repo_url("/boot/fonts/segoe_slboot.ttf") %> segoe_slboot.ttf || goto error
+initrd <%= repo_url("/boot/fonts/wgl4_boot.ttf") %> wgl4_boot.ttf || goto error
+initrd <%= repo_url("/boot/boot.sdi") %> boot.sdi || goto error
+initrd <%= repo_url("/sources/boot.wim") %> boot.wim || goto error
+
+boot
+
+:error
+prompt --key s --timeout 60 ERROR, hit 's' for the iPXE shell; reboot in 60 seconds && shell || reboot

@@ -1,0 +1,12 @@
+Function WriteLog([string]$message){
+  $message | out-file -append c:\razor.log
+}
+
+WriteLog "Installed by Razor using <%= installer.label %> - <%= installer.description %>"
+WriteLog "Repo: <%= repo_url %>"
+WriteLog "Node: <%= node_url %>"
+WriteLog "Install log: c:\razor.log"
+Set-ExecutionPolicy Unrestricted
+
+invoke-expression ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+invoke-expression ((new-object net.webclient).DownloadString('<%= broker_install_url %>'))
