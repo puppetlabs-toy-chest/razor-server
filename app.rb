@@ -114,6 +114,11 @@ class Razor::App < Sinatra::Base
       url "/svc/stage-done/#{@node.id}?name=#{name}"
     end
 
+    def svc_host_with_port
+      uri = URI::parse(url "")
+      host_with_port = uri.host + ":" + uri.port.to_s
+    end
+
     def config
       @config ||= Razor::Util::TemplateConfig.new
     end

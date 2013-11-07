@@ -1,0 +1,8 @@
+---
+
+name: ubuntu
+os_version: precise
+description: Ubuntu Generic Installer
+boot_sequence:
+  1: boot_install
+  default: boot_local
