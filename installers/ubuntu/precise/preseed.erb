@@ -4,7 +4,7 @@ d-i netcfg/choose_interface select auto
 d-i netcfg/get_hostname string <%= node.hostname %>
 d-i netcfg/get_domain string puppetlabs.lan
 d-i netcfg/no_default_route boolean true
-d-i mirror/protocol string http
+d-i mirror/protocol string <%= repo_url_scheme %>
 d-i mirror/country string manual
 d-i mirror/http/hostname string <%= repo_url_host_with_port %>
 d-i mirror/http/directory string <%= repo_url_path %>
