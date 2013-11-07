@@ -1,2 +1,1 @@
-<% bootif = node.dhcp_mac ? "ksdevice=bootif BOOTIF=#{node.dhcp_mac} " : "" %>
-ks=<%= file_url("kickstart") %> <%= bootif %>
+ks=<%= file_url("kickstart") %> network ksdevice=bootif BOOTIF=01-${netX/mac}
