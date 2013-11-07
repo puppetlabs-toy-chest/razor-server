@@ -6,8 +6,8 @@ d-i netcfg/get_domain string puppetlabs.lan
 d-i netcfg/no_default_route boolean true
 d-i mirror/protocol string http
 d-i mirror/country string manual
-d-i mirror/http/hostname string <%= svc_host_with_port %>
-d-i mirror/http/directory string /svc/repo/<%= repo.name %>/
+d-i mirror/http/hostname string <%= repo_url_host_with_port %>
+d-i mirror/http/directory string <%= repo_url_path %>
 #d-i mirror/http/proxy string http://example.com:3128/
 d-i clock-setup/utc boolean true
 d-i time/zone string UTC
