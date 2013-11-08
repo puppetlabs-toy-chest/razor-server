@@ -1,0 +1,34 @@
+# -*- powershell -*-
+write-host "Razor second-stage Windows installer script starting"
+
+# @todo danielp 2013-11-06: configuration data -- right now we hard-code /
+# guess these because we don't have a way to set this when creating the
+# installer.  That will, I guess, have to change some time soon.  Look to see
+# something akin to the way that brokers work implemented.
+$server = '<%= URI.parse(repo_url).host %>'
+$share  = 'razor'
+$repo   = '<%= repo_url.split('/').last %>'
+$installer = "\\${server}\${share}\${repo}\setup.exe"
+
+write-host "fetching the unattended.xml file to feed the installer"
+$unattended_src = '<%= file_url('unattended.xml') %>'
+$unattended = "${env:SYSTEMDRIVE}\unattended.xml"
+(new-object System.Net.WebClient).DownloadFile($unattended_src, $unattended)
+
+
+write-host "mapping SMB share \\${server}\${share} for installer access"
+# As far as I can tell, if we don't persist, we don't connect the SMB share,
+# and that means we can't actually run stuff off it.
+new-psdrive -name 'i' -psprovider filesystem -root "\\${server}\${share}" -persist
+start-sleep 10                  # time to settle -- needed on my VM :/
+
+write-host "starting installer ${installer}"
+dir ${installer}
+start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -wait
+
+write-host "notify Razor that the installer completed"
+(new-object System.Net.WebClient).DownloadString('<%= stage_done_url("winpe") %>')
+
+write-host "restarting the system to complete installation"
+restart-computer
+start-sleep 30                  # wait for the reboot to complete before exiting
