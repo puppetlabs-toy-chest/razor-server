@@ -1,7 +1,14 @@
 ---
+<<<<<<< HEAD
 os_version: 8-pro
 label: Microsoft Windows 8 Professional
 description: Microsoft Windows 8 Professional
+=======
+
+os_version: 6.3
+label: Windows Server 2012 R2
+description: Windows Generic Model
+>>>>>>> Add Windows Installer and Puppet Broker
 boot_sequence:
   1: boot_wim
   default: boot_local
