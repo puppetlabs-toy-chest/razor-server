@@ -33,3 +33,6 @@ puppet resource ini_setting ensure=present path=C:/ProgramData/PuppetLabs/puppet
 
 <% end %>
 
+Write-ToConsole "Installation done: Restart Node now!"
+
+Restart-Computer -force
