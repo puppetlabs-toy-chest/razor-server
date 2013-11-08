@@ -295,7 +295,10 @@ Function Write-ToConsole([string]$text,[string]$value){
 $RazorDir = "$env:SystemDrive\Razor"
 write-host -foreground green "Starting Discover Razor Server"
 
-$hwid = (get-wmiobject Win32_NetworkAdapter -filter "netenabled='true'" | select -expandproperty macaddress) -join '_' -replace(":", "")
+$hwid = get-wmiobject Win32_NetworkAdapter -filter "netenabled='true'" | `
+            select -expandproperty macaddress | `
+            foreach-object -begin { $n = 0 } -process { $n++; "net${n}=${_}"; }
+            $hwid = $hwid -join '&' -replace ':', '-'
 Write-ToConsole "HWID: " $hwid
 
 $macaddressesarrays = @((get-wmiobject Win32_NetworkAdapter -filter "netenabled='true'" | select -expandproperty macaddress) -replace ":","-")
@@ -303,6 +306,7 @@ $macaddressesarrays = @((get-wmiobject Win32_NetworkAdapter -filter "netenabled=
 for ($cnt=0; $cnt -le $macaddressesarrays.Length; $cnt++) {
     New-Variable -name  "net$cnt" -value $macaddressesarrays[$cnt]
 }
+
 $dhcp_mac = $net0
 Write-ToConsole "DHCP MAC: " $dhcp_mac
 $uuid = $hwid 
@@ -336,27 +340,26 @@ if ($dhcpresponse -ne $null){
         $ipxecontent = get-content $fulllocalfilename
         if ($ipxecontent[0] -eq "#!ipxe"){
             $chainline = $ipxecontent | where{$_.Startswith("chain http")}
-            $parsedrazorserver = $chainline -replace "{|}|/mac:hexhyp", ""
-            $parsedrazorserver = $parsedrazorserver.replace("|| goto error","")
-            $parsedrazorserver =  $ExecutionContext.InvokeCommand.ExpandString($parsedrazorserver.trim())
-            $parsedrazorserver = $parsedrazorserver.substring(6)
-            Write-ToConsole "Razor SVC Boot URL: " $parsedrazorserver
-            $bootstrap2 = HTTPRequest $parsedrazorserver
-            if ($bootstrap2[0] -eq "#!ipxe"){
-                $kfilename = "unattended.ps1"
-                $kickoffilename = join-path $RazorDir $kfilename
-                $kickoffps1 = $bootstrap2 | where{$_.Contains($kfilename)}
-                $kickoffps1 = $kickoffps1.substring($kickoffps1.indexof("=")+1).trim()
-                $webclient = New-Object System.Net.WebClient
-                try{
-                    $webclient.DownloadFile($kickoffps1,$kickoffilename)
-                    Write-ToConsole "Razor-Client downloaded $kfilename File, invoke File now: " $kickoffilename
-                    Invoke-Expression $kickoffilename
-                }catch [Exception]{
-                    write-error $_
-                }
-
-            }
+            $baseurl = $chainline.Substring($chainline.IndexOf("http://"),$chainline.IndexOf("svc")-3)
+	    $querynodeidurl = "${baseurl}/nodeid?${hwid}"
+            Write-ToConsole "Contacting Razor for ID mapping: " $querynodeidurl
+	    try{
+	      $data = invoke-restmethod "${baseurl}/nodeid?${hwid}"
+	      $nodeid = $data.id
+	      Write-ToConsole "mapped myself to node ID: " $nodeid
+	      # Finally, fetch down our next stage of script and evaluate it.
+	      # Apparently this is the best way to just get the string; certainly, it beats
+	      # the results from `invoke-webrequest` and friends for sanity.
+	      $scriptfilename = "unattended.ps1"
+	      $urlunattened = "${baseurl}/file/${nodeid}/${scriptfilename}"
+	      $localfilename = join-path $RazorDir $scriptfilename
+	      $webclient = New-Object System.Net.WebClient
+	      $webclient.DownloadFile($urlunattened,$localfilename)
+	      Write-ToConsole "Razor-Client downloaded $scriptfilename File, invoke File now: " $localfilename
+	      Invoke-Expression $localfilename
+	    }catch[Exception]{
+	      write-error $_
+	    }
 
         }
     }
@@ -365,3 +368,4 @@ if ($dhcpresponse -ne $null){
     write-error "No DHCP offer received!"
 }
 write-host -foreground green "Deployment Done"
+exit

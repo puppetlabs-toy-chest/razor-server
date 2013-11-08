@@ -9,7 +9,6 @@ imgfree
 echo ======================================================================
 
 sleep 3
-echo unattended.ps1=<%= file_url("unattended.ps1") %>
 kernel <%= file_url('wimboot', true) %> || goto error
 initrd <%= repo_url("/bootmgr") %> bootmgr || goto error
 initrd <%= repo_url("/boot/bcd") %> BCD || goto error
