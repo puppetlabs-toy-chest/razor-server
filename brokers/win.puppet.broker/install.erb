@@ -10,9 +10,13 @@ Function Write-ToConsole([string]$text,[string]$value){
 
     "$text $value" | out-file "c:\Razor.log" -Append
 }
+# Required to invoke CAPI2 API to download the RootCA from GeoTrust otherwise the Puppet Module install will failed
+$webclient = New-Object System.Net.WebClient
+$webclient.DownloadString("https://forge.puppetlabs.com")
+
 
 $chocolateyps1 = "C:\Chocolatey\chocolateyinstall\chocolatey.ps1"
-Write-ToConsole "Install Puppet: " $chocolateyps1
+Write-ToConsole "Install Puppet: " "$chocolateyps1 install puppet"
 $installvalue = Invoke-Expression "$chocolateyps1 install puppet"
 $env:Path="$env:Path;C:\Program Files (x86)\Puppet Labs\Puppet\bin"
 <% unless broker.empty? %>
