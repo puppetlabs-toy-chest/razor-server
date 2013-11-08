@@ -1,10 +1,22 @@
 #!Powershell
 <% require 'shellwords' %>
-$chocolateyps1 = "C:\Chocolatey\chocolateyinstall\chocolatey.ps1"
-$installvalue = Invoke-Expression "$chocolateyps1 install puppet"
+Function Write-ToConsole([string]$text,[string]$value){
+    if ($value -ne $null){
+        Write-Host -NoNewline -ForegroundColor White $text
+        Write-Host -ForegroundColor Yellow $value
+    }else{
+        Write-Host -ForegrounColor White $text
+    }
 
+    "$text $value" | out-file "c:\Razor.log" -Append
+}
+
+$chocolateyps1 = "C:\Chocolatey\chocolateyinstall\chocolatey.ps1"
+Write-ToConsole "Install Puppet: " $chocolateyps1
+$installvalue = Invoke-Expression "$chocolateyps1 install puppet"
+$env:Path="$env:Path;C:\Program Files (x86)\Puppet Labs\Puppet\bin"
 <% unless broker.empty? %>
-write-host "Configure Puppet"
+Write-ToConsole "Configure Puppet: " "Master / Enviroment"
 # Now, configuration.  Much as I love the idea of editing an ini file with
 # basic Unix tools like sed and awk, this seems much less worse, even if it
 # puts a puppet module you might not expect into place on disk.
@@ -15,7 +27,5 @@ puppet module install puppetlabs/inifile
 puppet resource ini_setting ensure=present path=C:/ProgramData/PuppetLabs/puppet/etc/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
 <% end %>
 
-<% else %>
-write-host
 <% end %>
 
