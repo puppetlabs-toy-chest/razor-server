@@ -1,14 +1,20 @@
 ---
 <<<<<<< HEAD
+<<<<<<< HEAD
 os_version: 8-pro
 label: Microsoft Windows 8 Professional
 description: Microsoft Windows 8 Professional
 =======
+=======
+>>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
 
 os_version: 6.3
 label: Windows Server 2012 R2
 description: Windows Generic Model
+<<<<<<< HEAD
 >>>>>>> Add Windows Installer and Puppet Broker
+=======
+>>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
 boot_sequence:
   1: boot_wim
   default: boot_local
