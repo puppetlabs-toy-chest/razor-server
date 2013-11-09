@@ -1,62 +1,28 @@
 #!ipxe
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 echo Razor <%= installer.label %> model boot_call
 echo Installation node: <%= node_url  %>
 echo Installation repo: <%= repo_url %>
-
->>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
 echo ======================================================================
 echo freeing all loaded images to ensure wimboot works
 imgfree
 echo ======================================================================
 
-<<<<<<< HEAD
+sleep 3
 set base <%= repo_url.sub(%r{/$}, '') %>
-kernel <%= file_url('wimboot', true) %>
-initrd ${base}/bootmgr				bootmgr
-initrd ${base}/boot/bcd				BCD
-initrd ${base}/boot/fonts/segmono_boot.ttf	segmono_boot.ttf
-initrd ${base}/boot/fonts/segoe_slboot.ttf	segoe_slboot.ttf
-initrd ${base}/boot/fonts/wgl4_boot.ttf		wgl4_boot.ttf
-initrd ${base}/boot/boot.sdi			boot.sdi
-initrd ${base}/razor-winpe.wim			boot.wim
-
-echo ======================================================================
-imgstat
-echo now booting WinPE client
-boot
-=======
-echo Razor <%= installer.label %> model boot_call
-echo Installation node: <%= node_url  %>
-echo Installation repo: <%= repo_url %>
-
-sleep 3
-echo unattended.ps1=<%= file_url("unattended.ps1") %>
-=======
-sleep 3
->>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
 kernel <%= file_url('wimboot', true) %> || goto error
-initrd <%= repo_url("/bootmgr") %> bootmgr || goto error
-initrd <%= repo_url("/boot/bcd") %> BCD || goto error
-initrd <%= repo_url("/boot/fonts/segmono_boot.ttf") %> segmono_boot.ttf || goto error
-initrd <%= repo_url("/boot/fonts/segoe_slboot.ttf") %> segoe_slboot.ttf || goto error
-initrd <%= repo_url("/boot/fonts/wgl4_boot.ttf") %> wgl4_boot.ttf || goto error
-initrd <%= repo_url("/boot/boot.sdi") %> boot.sdi || goto error
-initrd <%= repo_url("/sources/boot.wim") %> boot.wim || goto error
+initrd ${base}/bootmgr				bootmgr || goto error
+initrd ${base}/boot/bcd				BCD || goto error
+initrd ${base}/boot/fonts/segmono_boot.ttf	segmono_boot.ttf || goto error
+initrd ${base}/boot/fonts/segoe_slboot.ttf	segoe_slboot.ttf || goto error
+initrd ${base}/boot/fonts/wgl4_boot.ttf		wgl4_boot.ttf || goto error
+initrd ${base}/boot/boot.sdi			boot.sdi || goto error
+initrd ${base}/razor-winpe.wim			boot.wim || goto error
 
-<<<<<<< HEAD
-=======
 echo ======================================================================
 imgstat
 echo now booting WinPE client
->>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
 boot
 
 :error
 prompt --key s --timeout 60 ERROR, hit 's' for the iPXE shell; reboot in 60 seconds && shell || reboot
-<<<<<<< HEAD
->>>>>>> Add Windows Installer and Puppet Broker
-=======
->>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
+~

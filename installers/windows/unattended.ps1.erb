@@ -1,8 +1,20 @@
-<<<<<<< HEAD
-# Kickoff Razor Client PS1 Script
-=======
-# -*- powershell -*-
->>>>>>> 205164f3741caff07d97571b5a58d60bedcf92e2
+<#
+
+.SYNOPSIS
+second-stage Windows installer script
+
+.DESCRIPTION
+second-stage Windows installer script
+
+.NOTES
+second-stage Windows installer script
+
+.LINK
+https://github.com/puppetlabs/razor-server
+
+#>
+[cmdletbinding()]param()
+
 Function Write-ToConsole([string]$text,[string]$value){
     if ($value -ne $null){
     	Write-Host -NoNewline -ForegroundColor White $text
@@ -19,13 +31,13 @@ $strunattendedxml = @'
 '@
 
 Invoke-WebRequest -UseBasicParsing "<%= log_url("unattended.ps1 started") %>" | out-null
-$RazorDir = "$env:SystemDrive\Razor"
-$unalocalfilename= join-path $RazorDir "unattended.xml"
+$RazorDir = "$env:SystemDrive"
+$unalocalfilename = join-path $RazorDir "unattended.xml"
 write-ToConsole "Razor model: " <%= installer.label %>
 Write-ToConsole "Installation node: " <%= node_url  %>
 write-ToConsole "Installation repo: " <%= repo_url %>
 
-
+$repo   = '<%= repo_url.split('/').last %>'
 $letter = Get-Childitem function:[d-z]: -n | ?{ !(test-path $_) } | random
 $cmdLine = "use $letter <%= unc_path %>"
 
@@ -36,7 +48,7 @@ if ($LastExitCode -eq 0){
 	Invoke-WebRequest -UseBasicParsing "<%= log_url("networkdrive mappend") %>" | out-null
 	Write-ToConsole "Networkdrive Succesfully mappend as: " $letter
 	Set-Content -Value $strunattendedxml -Path $unalocalfilename -Encoding "UTF8"	
-        $installcommand = "$letter\windows\sources\setup.exe"
+        $installcommand = "$letter\$repo\setup.exe"
 	$installargs = "/noreboot /unattend:$unalocalfilename"
 	Write-ToConsole "Start command $installcommand $installargs"
         Invoke-WebRequest -UseBasicParsing "<%= log_url("invoke setup.exe") %>" | out-null

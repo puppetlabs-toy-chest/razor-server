@@ -41,7 +41,7 @@ all:
   # we should look for installers
   installer_path: installers
   repo_store_root: /var/lib/razor/repo-store
-  unc_path: \\192.168.3.187\razor
+  unc_path: \\<ipadress>\razor
   # The *broker_path* is a colon separated list of directories containing
   # broker types
   broker_path: brokers

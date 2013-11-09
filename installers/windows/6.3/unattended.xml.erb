@@ -63,14 +63,14 @@
                     <Key>D2N9P-3P6X9-2R39C-7RTCD-MDVJX</Key>
                 </ProductKey>
                 <AcceptEula>true</AcceptEula>
-                <FullName>Tecbiz</FullName>
-                <Organization>Tecbiz</Organization>
+                <FullName>Razor</FullName>
+                <Organization>Razor</Organization>
             </UserData>
             <RunSynchronous>
                 <RunSynchronousCommand wcm:action="add">
                     <Description>Call Setup reached phase windowsPE </Description>
                     <Order>1</Order>
-                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "((new-object net.webclient).DownloadString('<%= log_url('setup.exe reached phase windowsPE') %>'))"</Path>
+                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('setup.exe reached phase windowsPE') %>' | out-null"</Path>
                 </RunSynchronousCommand>
             </RunSynchronous>
         </component>
@@ -79,16 +79,16 @@
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ComputerName><%= node.hostname[/(.+?)(?=\.)/] %></ComputerName>
             <ProductKey>D2N9P-3P6X9-2R39C-7RTCD-MDVJX</ProductKey>
-            <RegisteredOrganization>Tecbiz</RegisteredOrganization>
+            <RegisteredOrganization>Razor</RegisteredOrganization>
             <TimeZone>W. Europe Standard Time</TimeZone>
-            <RegisteredOwner>Tecbiz</RegisteredOwner>
+            <RegisteredOwner>Razor</RegisteredOwner>
         </component>
         <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <RunSynchronous>
                 <RunSynchronousCommand wcm:action="add">
                     <Order>1</Order>
                     <Description>Call Setup reached phase specialize</Description>
-                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "((new-object net.webclient).DownloadString('<%= log_url('unattended reached phase specialize') %>'))"</Path>
+                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('unattended reached phase specialize') %>' | out-null"</Path>
                     <WillReboot>OnRequest</WillReboot>
                 </RunSynchronousCommand>
             </RunSynchronous>
@@ -122,14 +122,14 @@
                     <PlainText>true</PlainText>
                 </AdministratorPassword>
             </UserAccounts>
-            <RegisteredOwner>Bedag</RegisteredOwner>
-            <RegisteredOrganization>Bedag</RegisteredOrganization>
+            <RegisteredOwner>Razor</RegisteredOwner>
+            <RegisteredOrganization>Razor</RegisteredOrganization>
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
                     <Order>1</Order>
                     <Description>Call Setup reached phase oobeSystem</Description>
                     <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "((new-object net.webclient).DownloadString('<%= log_url('unattended reached phase oobeSystem') %>'))"</CommandLine>
+                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('unattended reached phase oobeSystem') %>' | out-null"</CommandLine>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Order>2</Order>
@@ -147,7 +147,7 @@
                     <Order>4</Order>
                     <Description>Done setup completed</Description>
                     <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "((new-object net.webclient).DownloadString('<%= stage_done_url('finished') %>'))"</CommandLine>
+                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= stage_done_url('finished') %>' | out-null"</CommandLine>
                 </SynchronousCommand>
             </FirstLogonCommands>
             <OOBE>
