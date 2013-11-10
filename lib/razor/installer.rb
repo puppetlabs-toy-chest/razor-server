@@ -48,6 +48,7 @@ module Razor
       @os_version = metadata["os_version"].to_s
       @label = metadata["label"] || "#{@name} #{@os_version}"
       @description = metadata["description"] || ""
+      @architecture = metadata["architecture"] || ""
       @boot_seq = metadata["boot_sequence"]
     end
 
