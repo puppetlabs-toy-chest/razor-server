@@ -5,13 +5,6 @@ exec >> /var/log/razor.log 2>&1
 <%= render_template("set_hostname") %>
 
 
-# proxy setting
-#echo "http_proxy=http://example.com:3128/" >> /etc/environment
-#echo "https_proxy=http://example.com:3128/" >> /etc/environment
-#export http_proxy=http://example.com:3128/ 
-#export https_proxy=http://example.com:3128/
-
-
 # APT configuration and system update
 sed -i 's_<%= repo_url %>_http://gb.archive.ubuntu.com/ubuntu_' /etc/apt/sources.list
 

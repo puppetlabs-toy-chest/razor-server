@@ -1,8 +1,8 @@
 d-i console-setup/ask_detect boolean false
-d-i keyboard-configuration/layoutcode string uk
+d-i keyboard-configuration/layoutcode string us
 d-i netcfg/choose_interface select auto
 d-i netcfg/get_hostname string <%= node.hostname %>
-d-i netcfg/get_domain string puppetlabs.lan
+d-i netcfg/get_domain string <%= node.domainname %>
 d-i netcfg/no_default_route boolean true
 d-i mirror/protocol string <%= repo_uri.scheme %>
 d-i mirror/country string manual
