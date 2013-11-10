@@ -1,2 +1,0 @@
-<% @bootif = node.dhcp_mac ? "BOOTIF=01-#{node.dhcp_mac}" : "" %>
-<%= @bootif%> preseed/url=<%= file_url("preseed") %> debian-installer/locale=en_US netcfg/no_default_route=true netcfg/choose_interface=auto priority=critical

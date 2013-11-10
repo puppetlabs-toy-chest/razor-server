@@ -32,7 +32,7 @@ module Razor
   # of the base installer (and then its base installers), and finally in
   # the +common+ directory
   class Installer
-    attr_reader :name, :os, :os_version, :boot_seq, :label, :description, :base
+    attr_reader :name, :os, :os_version, :boot_seq, :label, :description, :base, :architecture
 
     def initialize(name, metadata)
       if metadata["base"]

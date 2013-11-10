@@ -4,3 +4,4 @@ log/*
 /.yardoc
 /Gemfile.local*
 /coverage
+/.project
