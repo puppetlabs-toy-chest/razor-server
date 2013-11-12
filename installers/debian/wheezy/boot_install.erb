@@ -2,8 +2,44 @@
 echo Razor <%= installer.label %> model boot_call
 echo Installation node: <%= node_url  %>
 echo Installation repo: <%= repo_url %>
-
 sleep 3
-kernel <%= repo_url("/linux") %> <%= render_template("kernel_args").strip %> || goto error
-initrd <%= repo_url("/initrd.gz") %> || goto error
+
+set cmdline <%= render_template("kernel_args").strip %>
+
+<%
+    # Is this a new-style combined installer build, or one with only
+    # one architecture present in the files we discover?  If so, we
+    # want to use that.  This also allows us to handle architecture
+    # nicely for installation.
+    if repo_file('install.amd') or repo_file('install.386')
+%>
+# check for 64-bit CPU support and boot the AMD64 installer.
+cpuid --ext 29 || goto i386
+
+# AMD64 support in CPU, boot the AMD64 installer.
+<% if repo_file('install.amd') %>
+echo detected AMD64 CPU support, booting AMD64 installer
+kernel <%= repo_url('install.amd/vmlinuz') %> ${cmdline}        || goto error
+initrd <%= repo_url('install.amd/initrd.gz') %>                 || goto error
 boot
+<% else %>
+echo No AMD64 installer present, expected install.amd directory
+<% end %>
+
+:i386
+<% if repo_file('install.386') %>
+kernel <%= repo_url('install.386/vmlinuz') %> ${cmdline}        || goto error
+initrd <%= repo_url('install.386/initrd.gz') %>                 || goto error
+<% else %>
+echo No i386 installer present, expected install.386 directory
+<% end %>
+
+:fail
+echo Unable to find a suitable installer to boot, sorry
+goto error
+<% else %>
+# fallback to classic boot mode, hope your arch matches...
+kernel <%= repo_url("/linux") %>  ${cmdline}                    || goto error
+initrd <%= repo_url("/initrd.gz") %>                            || goto error
+boot
+<% end %>
