@@ -133,9 +133,14 @@ echo ========================================================================
 
 # Finally, set Puppet to auto-start, and run the daemon.
 case "${flavour}" in
-    centos|redhat*|fedora)
+    centos|redhat*)
         chkconfig puppet on
         service puppet start
+        ;;
+
+    fedora)
+        systemctl enable puppetagent
+        systemctl start puppetagent
         ;;
 
     debian|ubuntu)
