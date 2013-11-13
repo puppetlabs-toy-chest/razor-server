@@ -35,6 +35,12 @@ module Razor::Data
     many_to_one :policy
     one_to_many :node_log_entries
 
+    # Our relationship to our message "queue" table; this is private, and you
+    # should use the `send_message` and `messages` API to access this data.
+    one_to_many :node_messages, :order => :timestamp
+    private :add_node_message, :remove_node_message, :remove_all_node_messages
+
+
     # The tags that were applied to this node the last time it did a
     # checkin with the microkernel. These are not necessarily the same tags
     # that would apply if the node was matched right now
@@ -193,14 +199,12 @@ module Razor::Data
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
-      action = :none
       match_and_bind unless policy
       if policy
         log_append(:action => :reboot, :policy => policy.name)
-        action = :reboot
+        send_message('reboot')
       end
       save_changes
-      { :action => action }
     end
 
     def self.find_by_name(name)
@@ -275,6 +279,33 @@ module Razor::Data
       node.log_append(:event => :stage_done, :stage => name || node.boot_count)
       node.boot_count += 1
       node.save
+    end
+
+    # Methods for handling the node message queue
+
+    # Queue a message to be sent to the agent on the node for processing; this
+    # is only handled by the Microkernel, rather than being a general-purpose
+    # method for sending messages to the final node.
+    def send_message(*message)
+      message.empty? and raise ArgumentError, "send_message: wrong number of arguments (0 for 1+)"
+      unless message.all? {|x| x.is_a? String }
+        raise ArgumentError, "only strings can be sent as the message or arguments"
+      end
+
+      TorqueBox::Logger.new.info("#{name}: queue message #{message.to_s}")
+      add_node_message(:message => message)
+    end
+
+    # Read the set of messages from the node, removing them from the queue in
+    # the process.  This is a "read-and-delete" operation.
+    def messages
+      self.class.db.transaction do
+        # force reload even if cached, and turn into just the messages; our
+        # relationship declaration ensures these are ordered by time,
+        # ascending, so the order is correct.  We then delete the rows,
+        # extract their juicy messages, and return those (only) to the caller.
+        node_messages(true).map(&:destroy).map(&:message)
+      end
     end
   end
 end

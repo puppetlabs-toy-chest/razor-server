@@ -198,12 +198,56 @@ class Razor::App < Sinatra::Base
       return 400
     end
     return 400 unless json['facts']
-    begin
-      node = Razor::Data::Node[params["id"]] or return 404
-      node.checkin(json).to_json
-    rescue Razor::Matcher::RuleEvaluationError => e
-      Razor.logger.error("during checkin of #{node.name}: " + e.message)
-      { :action => :none }.to_json
+    node = Razor::Data::Node[params["id"]] or return 404
+
+    # We are effectively bootstrapping here, and we had an incompatible rev
+    # of the MK<=>server protocol along the way.  This is where we check
+    # for, and handle, outdated nodes.
+    case json['protocol-version']
+    when nil
+      # This is the first cut of the MK<=>server protocol, which includes
+      # some versioning information in the user-agent header, but none in
+      # the message sent to the server.
+      #
+      # In order to get it to upgrade, we log the event and ask the node to
+      # reboot which -- fingers crossed -- will get it running a newer
+      # version of the client/server protocol.
+      node.log_append(
+        :severity => :warn,
+        :action   => :reboot,
+        :event    => :checkin,
+        :msg      => 'old MK client version detected, forcing a reboot')
+
+      # Instruct the client to reboot in the hope that it fixes the versioning
+      # issues for us.
+      { :action => :reboot }.to_json
+
+    when 1
+      begin
+        node.checkin(json)
+
+        # Now, return the set of queued actions to the MK client, if any, that
+        # the node has accumulated.  This is the *only* time we try to deliver
+        # them; if the client fails to obtain this data, the content is lost
+        # forever, alas.
+        { :messages => node.messages }.to_json
+      rescue Razor::Matcher::RuleEvaluationError => e
+        Razor.logger.error("during checkin of #{node.name}: " + e.message)
+        # return a (new style) empty set of commands to the node, which should
+        # check in again, and hopefully will get a better response next time.
+        { :messages => [] }.to_json
+      end
+
+    else
+      node.log_append(
+        :severity => :warn,
+        :action   => :none,
+        :event    => :checkin,
+        :msg      => "unknown and incompatible MK client version #{json['protocol-version']} detected, trying to do nothing")
+
+      # Return "do nothing" in the newest style of message that we understand;
+      # this should hopefully result in the agent doing something sensible...
+      { :messages => [] }.to_json
     end
   end
 
