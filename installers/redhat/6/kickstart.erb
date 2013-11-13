@@ -33,7 +33,15 @@ reboot
 %post --log=/var/log/razor.log
 echo Kickstart post
 curl -s -o /root/razor_postinstall.sh <%= file_url("post_install") %>
-echo bash /root/razor_postinstall.sh >> /etc/rc.local
+
+# Run razor_postinstall.sh on next boot via rc.local
+if [ ! -f /etc/rc.d/rc.local ]; then
+  # On systems using systemd /etc/rc.d/rc.local does not exist at all
+  # though systemd is set up to run the file if it exists
+  touch /etc/rc.d/rc.local
+  chmod a+x /etc/rc.d/rc.local
+fi
+echo bash /root/razor_postinstall.sh >> /etc/rc.d/rc.local
 chmod +x /root/razor_postinstall.sh
 
 curl -s <%= stage_done_url("kickstart") %>

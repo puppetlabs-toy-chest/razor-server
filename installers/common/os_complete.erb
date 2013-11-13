@@ -6,6 +6,6 @@ Node: <%= node_url %>
 Install log: /var/log/razor.log
 EOF
 
-sed -i '/razor_postinstall/d' /etc/rc.local
+sed -i '/razor_postinstall/d' /etc/rc.d/rc.local
 
 curl -s <%= broker_install_url %> | /bin/bash
