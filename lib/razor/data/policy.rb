@@ -24,10 +24,8 @@ module Razor::Data
       end
     end
     
-    def find_by_name(name)
-      sql = <<SQL
-name = "#{name}"      
-SQL
+    def self.find_by_name(name)
+      sql = "name = '#{name}'"      
       policy = Policy.where(sql).first
     end 
     
