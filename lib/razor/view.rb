@@ -38,17 +38,20 @@ module Razor
     def view_object_hash(obj)
       return nil unless obj
       
+      extra_data = Hash.new
+
       #Add some extra stuff if its a node
-      node_data = Hash.new
-      node_data[:hostname]   = obj.hostname   if obj.hostname
-      node_data[:ip_address] = obj.ip_address if obj.ip_address
+      if obj.is_a? Razor::Data::Node
+        extra_data[:hostname]   = obj.hostname   if obj.hostname
+        extra_data[:ip_address] = obj.ip_address if obj.ip_address
+      end
 
       {
         :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name,
 
-      }.merge(node_data)
+      }.merge(extra_data)
     end
 
     def policy_hash(policy)
