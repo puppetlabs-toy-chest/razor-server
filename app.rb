@@ -476,10 +476,8 @@ class Razor::App < Sinatra::Base
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which policy to delete"
     if policy = Razor::Data::Policy.find_by_name(data['name'])
-      policy.nodes.each { |node|
-        node.policy = nil
-        node.save
-      }
+      policy.remove_all_nodes
+      policy.remove_all_tags
       policy.destroy
       action = "policy destroyed"
     else
