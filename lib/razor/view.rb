@@ -51,6 +51,7 @@ module Razor
       view_object_hash(policy).merge({
         :repo => view_object_reference(policy.repo),
         :installer => view_object_reference(policy.installer),
+        :broker => view_object_reference(policy.broker),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
         :configuration => {
