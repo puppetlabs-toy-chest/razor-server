@@ -5,7 +5,7 @@ Sequel.migration do
     extension(:constraint_validations)
 
     alter_table :installers do
-      add_column            :architecture, :varchar, :size => 1000
+      add_column            :architecture, :varchar, :size => 16
     end
   end
 

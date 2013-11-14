@@ -97,19 +97,8 @@ class Razor::App < Sinatra::Base
       end
     end
 
-    def repo_url_host_with_port
-      uri = URI::parse(repo_url)
-      host_with_port = uri.host + ":" + uri.port.to_s
-    end
-
-    def repo_url_path
-      uri = URI::parse(repo_url)
-      path = uri.path
-    end
-
-    def repo_url_scheme
-      uri = URI::parse(repo_url)
-      path = uri.scheme
+    def repo_uri(path = "")
+      URI::parse(repo_url(path))
     end
 
     def repo_file(path = "")
