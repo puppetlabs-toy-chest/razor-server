@@ -39,15 +39,15 @@ module Razor
       return nil unless obj
       
       #Add some extra stuff if its a node
-      node_hash[:hostname]   = obj.hostmame   if obj.hostname
-      node_hash[:ip_address] = obj.ip_address if obj.ip_address
+      node_data[:hostname]   = obj.hostmame   if obj.hostname
+      node_data[:ip_address] = obj.ip_address if obj.ip_address
 
       {
         :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name,
 
-      }.merge(node_hash)
+      }.merge(node_data)
     end
 
     def policy_hash(policy)
