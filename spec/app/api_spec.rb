@@ -102,11 +102,12 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer]
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer broker]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
       policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
+      policy["broker"].keys.should =~ %w[id name spec]
     end
   end
 
