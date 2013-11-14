@@ -468,6 +468,25 @@ class Razor::App < Sinatra::Base
     end
     { :result => action }
   end
+  
+  command :delete_policy do |data|
+    #deleting a policy will first remove the policy from any node
+    #associated with it.  The node will remain bound, resulting in the
+    #noop installer being associated on boot (causing a local boot)
+    data['name'] or error 400,
+      :error => "Supply 'name' to indicate which policy to delete"
+    if policy = Razor::Data::Policy.find_by_name(data['name'])
+      policy.nodes.each { |node|
+        node.policy = nil
+        node.save
+      }
+      policy.destroy
+      action = "policy destroyed"
+    else
+      action = "no changes; policy #{data['name']} does not exist"
+    end
+    { :result => action }  
+  end
 
   command :unbind_node do |data|
     data['name'] or error 400,
@@ -477,6 +496,7 @@ class Razor::App < Sinatra::Base
         policy_name = node.policy.name
         node.log_append(:event => :unbind, :policy => policy_name)
         node.policy = nil
+        node.bound = false
         node.save
         action = "node unbound from #{policy_name}"
       else
