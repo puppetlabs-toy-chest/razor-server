@@ -153,6 +153,11 @@ module Razor::Data
       Archive.extract(path, destination)
       self.publish('release_temporary_repo')
     end
+    
+    #short cut to iso_url
+    def url
+      iso_url
+    end
 
     # Release any temporary repo previously downloaded.
     def release_temporary_repo
