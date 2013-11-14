@@ -484,7 +484,7 @@ class Razor::App < Sinatra::Base
     end
     { :result => action }
   end
-  
+
   command :delete_policy do |data|
     #deleting a policy will first remove the policy from any node
     #associated with it.  The node will remain bound, resulting in the
@@ -499,7 +499,7 @@ class Razor::App < Sinatra::Base
     else
       action = "no changes; policy #{data['name']} does not exist"
     end
-    { :result => action }  
+    { :result => action }
   end
 
   command :unbind_node do |data|
