@@ -37,12 +37,17 @@ module Razor
     # :spec, and that contains type-specific fields.
     def view_object_hash(obj)
       return nil unless obj
+      
+      #Add some extra stuff if its a node
+      node_hash[:hostname]   = obj.hostmame   if obj.hostname
+      node_hash[:ip_address] = obj.ip_address if obj.ip_address
 
       {
         :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
-        :name => obj.name
-      }
+        :name => obj.name,
+
+      }.merge(node_hash)
     end
 
     def policy_hash(policy)
@@ -112,10 +117,11 @@ module Razor
       # @todo lutter 2013-09-09: if there is a policy, use boot_count to
       # provide a useful status about progress
       last_checkin_s = node.last_checkin.xmlschema if node.last_checkin
+      policy = node.policy ? view_object_reference(node.policy) : 'Previously bound to policy since removed or changed such that it no longer matches.'
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
-        :policy        => view_object_reference(node.policy),
+        :policy        => policy,
         :log           => { :id => view_object_url(node) + "/log",
                             :name => "log" },
         :tags          => node.tags.map { |t| view_object_reference(t) },
@@ -123,6 +129,7 @@ module Razor
         :hostname      => node.hostname,
         :root_password => node.root_password,
         :ip_address    => node.ip_address,
+        :bound         => node.bound,
         :last_checkin  => last_checkin_s
       ).delete_if {|k,v| v.nil? }
     end
