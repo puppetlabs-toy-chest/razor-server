@@ -69,7 +69,7 @@ module Razor::Data
     end
 
     def installer
-      policy ? policy.installer : bound  ? Razor::Installer.noop : Razor::Installer.mk_installer
+      policy ? policy.installer : bound  ? Razor::Installer.find('noop') : Razor::Installer.mk_installer
     end
 
     def domainname
