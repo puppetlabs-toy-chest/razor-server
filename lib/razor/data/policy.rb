@@ -23,7 +23,14 @@ module Razor::Data
                    "installer '#{installer_name}' does not exist")
       end
     end
-
+    
+    def find_by_name(name)
+      sql = <<SQL
+name = "#{name}"      
+SQL
+      policy = Policy.where(sql).first
+    end 
+    
     def self.bind(node)
       node_tags = node.tags
       # The policies that could be bound must
