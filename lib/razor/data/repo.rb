@@ -154,11 +154,6 @@ module Razor::Data
       self.publish('release_temporary_repo')
     end
     
-    #short cut to iso_url
-    def url
-      iso_url
-    end
-
     # Release any temporary repo previously downloaded.
     def release_temporary_repo
       if self.tmpdir
