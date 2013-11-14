@@ -40,7 +40,7 @@ module Razor
       
       #Add some extra stuff if its a node
       node_data = Hash.new
-      node_data[:hostname]   = obj.hostmame   if obj.hostname
+      node_data[:hostname]   = obj.hostname   if obj.hostname
       node_data[:ip_address] = obj.ip_address if obj.ip_address
 
       {
