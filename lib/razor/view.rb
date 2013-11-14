@@ -39,6 +39,7 @@ module Razor
       return nil unless obj
       
       #Add some extra stuff if its a node
+      node_data = Hash.new
       node_data[:hostname]   = obj.hostmame   if obj.hostname
       node_data[:ip_address] = obj.ip_address if obj.ip_address
 
