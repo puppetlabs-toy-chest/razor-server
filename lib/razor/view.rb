@@ -121,7 +121,12 @@ module Razor
       # @todo lutter 2013-09-09: if there is a policy, use boot_count to
       # provide a useful status about progress
       last_checkin_s = node.last_checkin.xmlschema if node.last_checkin
-      policy = node.policy ? view_object_reference(node.policy) : 'Previously bound to policy since removed or changed such that it no longer matches.'
+      
+      policy = nil
+      if node.bound
+        policy = node.policy ? view_object_reference(node.policy) : 'Previously bound to policy since removed or changed such that it no longer matches.'
+      end
+      
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
