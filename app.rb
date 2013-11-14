@@ -490,13 +490,14 @@ class Razor::App < Sinatra::Base
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
     if node = Razor::Data::Node.find_by_name(data['name'])
-      if node.policy
-        policy_name = node.policy.name
+      if node.bound
+        policy = node.policy
+        policy_name = policy ? node.policy.name : 'no policy as policy since deleted or modified such that it no longer matches node'
         node.log_append(:event => :unbind, :policy => policy_name)
         node.policy = nil
         node.bound = false
         node.save
-        action = "node unbound from #{policy_name}"
+        action = "node unbound. policy was #{policy_name}"
       else
         action = "no changes; node #{data['name']} is not bound"
       end
