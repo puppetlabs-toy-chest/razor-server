@@ -30,6 +30,12 @@ gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 
+## support for various installers and utility
+# This allows us to encrypt plain-text-in-the-DB passwords when they travel,
+# unencrypted, over the wire during kickstart phases, etc.
+gem "unix-crypt", "~> 1.1.1"
+
+
 group :doc do
   gem 'yard'
   gem 'kramdown'

@@ -44,7 +44,7 @@ fi
 # consequence of taking the action.
 flavour="$(lsb_release -i | cut -f 2 | tr '[:upper:]' '[:lower:]')"
 case "${flavour}" in
-    centos|redhat)
+    centos|redhat*)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
         # @todo danielp 2013-09-30: this should be updated to reflect the
         # portable names once https://jira.puppetlabs.com/browse/RE-359 is
@@ -133,9 +133,14 @@ echo ========================================================================
 
 # Finally, set Puppet to auto-start, and run the daemon.
 case "${flavour}" in
-    centos|redhat|fedora)
+    centos|redhat*)
         chkconfig puppet on
         service puppet start
+        ;;
+
+    fedora)
+        systemctl enable puppetagent
+        systemctl start puppetagent
         ;;
 
     debian|ubuntu)

@@ -1,6 +1,16 @@
 # Thanks to William Lam for being the guru
 accepteula
-rootpw bananaman
+rootpw --iscrypted <%=
+  if node.root_password =~ /^\$\d+\$[^$]*\$/
+    node.root_password
+  else
+    require 'unix_crypt'
+    # @todo danielp 2013-11-07: if ESXi supports a stronger algorithm, we
+    # should probably upgrade to using it in preference to MD5.  SHA512 is
+    # current state-of-the-art practice, elsewhere.
+    UnixCrypt::MD5.build(node.root_password)
+  end
+%>
 clearpart --firstdisk --overwritevmfs
 install --firstdisk --overwritevmfs
 # Set the network to DHCP on the first network adapater

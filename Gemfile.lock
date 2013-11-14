@@ -82,6 +82,7 @@ GEM
     torquebox-transactions (3.0.0)
       torquebox-core (= 3.0.0)
     torquebox-web (3.0.0-java)
+    unix-crypt (1.1.1)
     yard (0.8.7.2)
 
 PLATFORMS
@@ -106,4 +107,5 @@ DEPENDENCIES
   timecop
   torquebox
   torquebox-server
+  unix-crypt (~> 1.1.1)
   yard
