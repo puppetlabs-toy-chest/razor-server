@@ -100,6 +100,18 @@ RSpec.configure do |c|
   end
 end
 
+# @todo lutter 2013-11-15: this works around a bug in
+# TorqueBox::FallbackLogger and should be removed once
+# https://issues.jboss.org/browse/TORQUE-1177 has been fixed
+class TorqueBox::FallbackLogger
+  def flush
+  end
+
+  def write(message)
+    info(message.strip)
+  end
+end
+
 # Conveniences for dealing with model objects
 Node   = Razor::Data::Node
 Tag    = Razor::Data::Tag
