@@ -382,6 +382,12 @@ class Razor::App < Sinatra::Base
     # knowing the URL, we get this nastiness.  At least we can turn it into
     # something useful by putting documentation about how to use the
     # command or query interface behind it, I guess. --daniel 2013-06-26
+    #
+    # @todo danielp 2013-11-15: we should use `href` or similar rather than
+    # `id` to point to the URL you end up following.  That makes way
+    # more sense.  See https://github.com/puppetlabs/razor-server/issues/96
+    # for discussion and compatibility concerns; we also want to preserve the
+    # `id` key for some time so we don't break older clients.
     {
       "commands" => @@commands.dup.map { |c| c.update("id" => url(c["id"])) },
       "collections" => COLLECTIONS.map do |coll|
