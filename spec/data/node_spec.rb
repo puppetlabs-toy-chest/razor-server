@@ -54,6 +54,19 @@ describe Razor::Data::Node do
   end
 
   context "lookup" do
+    describe "raises an ArgumentError" do
+      it "when no match criteria are provided" do
+        expect { Node.lookup({}) }.to raise_error(ArgumentError)
+      end
+
+      it "when none of the configured match criteria are provided" do
+        Razor.config['match_nodes_on'] = ['serial', 'uuid']
+        hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+        Fabricate(:node, :hw_hash => hw_hash)
+        expect { Node.lookup(hw_hash) }.to raise_error(ArgumentError)
+      end
+    end
+
     it "should find node by hw_info" do
       hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
       nc = Fabricate(:node, :hw_hash => hw_hash)

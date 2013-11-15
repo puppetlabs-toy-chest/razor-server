@@ -249,6 +249,7 @@ module Razor::Data
       hw_match = hw_info.select do |p|
         Razor.config['match_nodes_on'].include?(p.split("=")[0])
       end
+      hw_match.empty? and raise ArgumentError, "Lookup was given #{params.keys}, none of which are configured as match criteria in match_nodes_on (#{Razor.config['match_nodes_on']})"
       nodes = self.where(:hw_info.pg_array.overlaps(hw_match)).all
       if nodes.size == 0
         self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)

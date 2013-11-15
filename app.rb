@@ -247,6 +247,9 @@ class Razor::App < Sinatra::Base
       e.log_to_nodes!
       Razor.logger.error(e.message)
       return 400
+    rescue ArgumentError => e
+      Razor.logger.error(e.message)
+      return 400
     end
 
     @installer = @node.installer
