@@ -23,7 +23,7 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
   end
 
   def initialize
-    @logger = TorqueBox::Logger.new(self.class)
+    @logger = TorqueBox::Logger.new('razor.messaging.sequel')
   end
 
   # Handle receipt of a new message, destined for some instance or other of

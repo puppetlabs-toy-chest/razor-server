@@ -1,5 +1,5 @@
 require 'sequel'
-require 'logger'
+require 'torquebox/logger'
 require_relative 'config'
 
 # Load Sequel extensions
@@ -20,14 +20,11 @@ module Razor
 
     def database
       @@database ||= Sequel.connect(Razor.config["database_url"],
-                                :loggers => [Razor.logger])
+                       :loggers => [TorqueBox::Logger.new("razor.sequel")])
     end
 
     def logger
-      # @todo lutter 2013-09-18: the logdir should be settable in config.yaml
-      logdir = Pathname.new(Razor.root) + "log"
-      logdir.mkpath
-      @@logger ||= Logger.new((logdir + "#{Razor.env}.log").to_s)
+      @@logger ||= TorqueBox::Logger.new("razor")
     end
 
     def config

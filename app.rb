@@ -11,6 +11,9 @@ class Razor::App < Sinatra::Base
     # hopefully can enable template caching (which does not happen in
     # development mode anyway)
     set :reload_templates, true
+
+    use Razor::Middleware::Logger
+    use Rack::CommonLogger, TorqueBox::Logger.new("razor.web.log")
   end
 
   before do
@@ -102,7 +105,7 @@ class Razor::App < Sinatra::Base
       if path.empty?
         root
       else
-        TorqueBox::Logger.new.info("repo_file(#{path.inspect})")
+        logger.info("repo_file(#{path.inspect})")
         Razor::Data::Repo.find_file_ignoring_case(root, path)
       end
     end
@@ -190,7 +193,7 @@ class Razor::App < Sinatra::Base
   # by other means, we'd need to convince facter to send us the same
   # hw_info that iPXE does and identify the node via +Node.lookup+
   post '/svc/checkin/:id' do
-    TorqueBox::Logger.new.info("checkin by node #{params[:id]}")
+    logger.info("checkin by node #{params[:id]}")
     return 400 if request.content_type != 'application/json'
     begin
       json = JSON::parse(request.body.read)
@@ -202,7 +205,7 @@ class Razor::App < Sinatra::Base
       node = Razor::Data::Node[params["id"]] or return 404
       node.checkin(json).to_json
     rescue Razor::Matcher::RuleEvaluationError => e
-      Razor.logger.error("during checkin of #{node.name}: " + e.message)
+      logger.error("during checkin of #{node.name}: " + e.message)
       { :action => :none }.to_json
     end
   end
@@ -226,16 +229,16 @@ class Razor::App < Sinatra::Base
     return 400 if params.empty?
     begin
       if node = Razor::Data::Node.lookup(params)
-        TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} mapped to #{node.id}")
+        logger.info("/svc/nodeid: #{params.inspect} mapped to #{node.id}")
         { :id => node.id }.to_json
       else
-        TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} not found")
+        logger.info("/svc/nodeid: #{params.inspect} not found")
         404
       end
     rescue Razor::Data::DuplicateNodeError => e
-      TorqueBox::Logger.new.info("/svc/nodeid: #{params.inspect} multiple nodes")
+      logger.info("/svc/nodeid: #{params.inspect} multiple nodes")
       e.log_to_nodes!
-      Razor.logger.error(e.message)
+      logger.error(e.message)
       return 400
     end
   end
@@ -245,7 +248,10 @@ class Razor::App < Sinatra::Base
       @node = Razor::Data::Node.lookup(params)
     rescue Razor::Data::DuplicateNodeError => e
       e.log_to_nodes!
-      Razor.logger.error(e.message)
+      logger.error(e.message)
+      return 400
+    rescue ArgumentError => e
+      logger.error(e.message)
       return 400
     end
 
@@ -274,7 +280,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/file/:node_id/raw/:filename' do
-    TorqueBox::Logger.new.info("#{params[:node_id]}: raw file #{params[:filename]}")
+    logger.info("#{params[:node_id]}: raw file #{params[:filename]}")
 
     halt 404 if params[:filename] =~ /\.erb$/i # no raw template access
 
@@ -295,7 +301,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/file/:node_id/:template' do
-    TorqueBox::Logger.new.info("request from #{params[:node_id]} for #{params[:template]}")
+    logger.info("request from #{params[:node_id]} for #{params[:template]}")
     @node = Razor::Data::Node[params[:node_id]]
     halt 404 unless @node
 

@@ -41,6 +41,19 @@ describe "provisioning API" do
     assert_booting("Microkernel")
   end
 
+  describe "/svc/boot complains with a 400" do
+    it "when no parameters are passed" do
+      get "/svc/boot"
+      last_response.status.should == 400
+    end
+
+    it "when none of the parameters are in match_nodes_on" do
+      Razor.config['match_nodes_on'] = ['mac']
+      get "/svc/boot?serial=X1"
+      last_response.status.should == 400
+    end
+  end
+
   describe "booting known nodes" do
     before(:each) do
       @node = Fabricate(:node)
