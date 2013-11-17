@@ -123,7 +123,6 @@ Sequel.migration do
       String      :ip_address
       Integer     :boot_count, :default => 0
       column      :last_checkin, 'timestamp with time zone'
-      FalseClass  :bound, default => false, :null => false
     end
 
     create_table :node_log_entries do
