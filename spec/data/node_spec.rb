@@ -371,4 +371,80 @@ describe Razor::Data::Node do
       expect { n.save }.to raise_error /frozen/
     end
   end
+
+  context "ipmi" do
+    context "validation" do
+      it "should work with only hostname set" do
+        # expect this to raise no errors
+        node.update(
+          :ipmi_hostname => Faker::Internet.ip_v4_address,
+          :ipmi_username => nil,
+          :ipmi_password => nil)
+      end
+
+      it "should work with implicit null username and password" do
+        # expect this to raise no errors
+        node.update(:ipmi_hostname => Faker::Internet.ip_v4_address)
+      end
+
+      it "should accept an IPv4 address for hostname" do
+        node.update(:ipmi_hostname => Faker::Internet.ip_v4_address)
+      end
+
+      it "should accept a hostname for address" do
+        node.update(:ipmi_hostname => Faker::Internet.domain_name)
+      end
+
+      it "should work with hostname and username" do
+        # expect this to raise no errors
+        node.update(
+          :ipmi_hostname => Faker::Internet.ip_v4_address,
+          :ipmi_username => Faker::Internet.user_name,
+          :ipmi_password => nil)
+      end
+
+      it "should work with hostname and password" do
+        # expect this to raise no errors
+        node.update(
+          :ipmi_hostname => Faker::Internet.ip_v4_address,
+          :ipmi_username => nil,
+          :ipmi_password => Faker::Internet.password[0..19])
+      end
+
+      it "should work with hostname, username, and password" do
+        # expect this to raise no errors
+        node.update(
+          :ipmi_hostname => Faker::Internet.ip_v4_address,
+          :ipmi_username => Faker::Internet.user_name,
+          :ipmi_password => Faker::Internet.password[0..19])
+      end
+
+      it "should fail with no hostname, but username" do
+        expect {
+        node.update(
+          :ipmi_hostname => nil,
+          :ipmi_username => Faker::Internet.user_name,
+          :ipmi_password => nil)
+        }.to raise_error Sequel::ValidationFailed, /also set an IPMI hostname/
+      end
+
+      it "should fail with no hostname, but password" do
+        expect {
+        node.update(
+          :ipmi_hostname => nil,
+          :ipmi_username => nil,
+          :ipmi_password => Faker::Internet.password[0..19])
+        }.to raise_error Sequel::ValidationFailed, /also set an IPMI hostname/
+      end
+
+      it "should fail with no hostname, but username, and password" do
+        expect {
+        node.update(
+          :ipmi_hostname => nil,
+          :ipmi_username => Faker::Internet.user_name,
+          :ipmi_password => Faker::Internet.password[0..19])
+        }.to raise_error Sequel::ValidationFailed, /also set an IPMI hostname/
+      end
+    end
+  end
 end
