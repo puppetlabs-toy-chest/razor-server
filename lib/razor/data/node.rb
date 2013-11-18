@@ -162,6 +162,11 @@ module Razor::Data
           # MAC addresses are sane
         end
       end
+
+      if ipmi_hostname.nil?
+        ipmi_username and errors.add(:ipmi_username, 'you must also set an IPMI hostname')
+        ipmi_password and errors.add(:ipmi_password, 'you must also set an IPMI hostname')
+      end
     end
 
     # Update the tags for this node and try to bind a policy.
