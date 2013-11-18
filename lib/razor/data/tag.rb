@@ -45,6 +45,30 @@ class Razor::Data::Tag < Sequel::Model
     end
   end
 
+  def update_rule(rule)
+    self.rule = rule
+    self.save
+    publish 'eval_nodes'
+  end
+
+  def eval_nodes
+    Razor::Data::Node.all.each do |node|
+      node_tags = node.tags
+
+      if self.match?(node)
+        unless node_tags.include?(self)
+          node.add_tag(self)
+        end
+      else
+        if node_tags.include?(self)
+          node.remove_tag(self)
+        end
+      end
+
+    end
+    self
+  end
+
   # Find an existing tag or create a new one from the Hash in +data+. If a
   # tag with +data["name"] already exists, and +data["rule"]+ is present,
   # it must equal the rule of the existing tag.
@@ -63,7 +87,9 @@ class Razor::Data::Tag < Sequel::Model
     else
       data["rule"] or
         raise ArgumentError, "A rule must be provided for new tag '#{name}'"
-      create(data)
+      tag = create(data)
+      tag.publish 'eval_nodes'
+      tag
     end
   end
 end

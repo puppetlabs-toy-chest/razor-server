@@ -216,9 +216,10 @@ The rule for a tag can be changed by posting the following to the
       "force": true
     }
 
-This will change the rule of the given tag to the new rule. Existing
-matches of this tag will not be affected by the change. The new tag rule
-will only be used once a node checks in after the update happened.
+This will change the rule of the given tag to the new rule. The tag will be
+reevaluated against all nodes and each node's tag attribute will be updated
+to reflect whether the tag now matches or not, i.e., the tag will be added
+to/removed from each node's tag as appropriate.
 
 If the tag is used by any policies, the update will only be performed if
 the optional parameter `force` is set to `true`. Otherwise, the command
