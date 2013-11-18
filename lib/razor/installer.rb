@@ -98,6 +98,19 @@ module Razor
       find('microkernel')
     end
 
+    #Hard coded bound installer for booting bound machines without a policy
+    def self.bound_installer
+      metadata = {
+        'os_version'    => 'none',
+        'label'         => 'Bound installer',
+        'description'   => 'This installer does nothing - it simply boots a system locally',
+        'boot_sequence' => {
+          'default' => 'boot_local'
+        }
+      }
+      new('bound', metadata)
+    end
+
     def self.find_common_file(filename)
       find_on_installer_paths(File::join("common", filename))
     end

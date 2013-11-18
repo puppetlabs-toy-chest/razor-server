@@ -24,11 +24,6 @@ module Razor::Data
       end
     end
 
-    def self.find_by_name(name)
-      sql = "name = '#{name}'"
-      policy = Policy.where(sql).first
-    end
-
     def self.bind(node)
       node_tags = node.tags
       # The policies that could be bound must

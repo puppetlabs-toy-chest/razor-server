@@ -38,19 +38,11 @@ module Razor
     def view_object_hash(obj)
       return nil unless obj
 
-      extra_data = Hash.new
-
-      #Add some extra stuff if its a node
-      if obj.is_a? Razor::Data::Node
-        extra_data[:hostname]   = obj.hostname   if obj.hostname
-        extra_data[:ip_address] = obj.ip_address if obj.ip_address
-      end
-
       {
         :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name
-      }.merge(extra_data)
+      }
     end
 
     def policy_hash(policy)
@@ -122,15 +114,10 @@ module Razor
       # provide a useful status about progress
       last_checkin_s = node.last_checkin.xmlschema if node.last_checkin
 
-      policy = nil
-      if node.bound
-        policy = node.policy ? view_object_reference(node.policy) : 'Previously bound to policy since removed or changed such that it no longer matches.'
-      end
-
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
-        :policy        => policy,
+        :policy        => view_object_reference(node.policy),
         :log           => { :id => view_object_url(node) + "/log",
                             :name => "log" },
         :tags          => node.tags.map { |t| view_object_reference(t) },

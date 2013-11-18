@@ -491,7 +491,7 @@ class Razor::App < Sinatra::Base
     #noop installer being associated on boot (causing a local boot)
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which policy to delete"
-    if policy = Razor::Data::Policy.find_by_name(data['name'])
+    if policy = Razor::Data::Policy[:name => data['name']]
       policy.remove_all_nodes
       policy.remove_all_tags
       policy.destroy
@@ -506,14 +506,18 @@ class Razor::App < Sinatra::Base
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
     if node = Razor::Data::Node.find_by_name(data['name'])
-      if node.bound
-        policy = node.policy
-        policy_name = policy ? node.policy.name : 'no policy as policy since deleted or modified such that it no longer matches node'
+      if node.policy
+        policy_name = node.policy.name
         node.log_append(:event => :unbind, :policy => policy_name)
         node.policy = nil
         node.bound = false
         node.save
         action = "node unbound. policy was #{policy_name}"
+      elsif node.bound
+        node.log_append(:event => :unbind)
+        node.bound = false
+        node.save
+        action = "node unbound"
       else
         action = "no changes; node #{data['name']} is not bound"
       end

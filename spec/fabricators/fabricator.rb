@@ -80,6 +80,7 @@ Fabricator(:bound_node, from: :node) do
 
   ip_address { Faker::Internet.ip_v4_address }
   boot_count { Random.rand(10) }
+  bound      'true'
 
   # normally the node would be created before binding, so we always have an ID
   # assigned; while we are faking one up that doesn't hold, so this helps us
