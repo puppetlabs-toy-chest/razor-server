@@ -192,6 +192,30 @@ command:
 
 The `name` of the tag must be unique; the `rule` is a match expression.
 
+### Delete tag
+
+To delete a tag use the `delete-tag` command.  Provide the name:
+
+    {
+      "name": "my-tag"
+    }
+
+The tag will be removed and no longer appear on any nodes.
+
+### Update tag rule
+
+The rule of a tag can be replaced with a new one.  Use the `update-tag-rule`
+command with the following data:
+
+    {
+      "name": "my-tag-to-update",
+      "rule": "new-match-expression"
+    }
+
+The rule will be updated on the tag and the tag will be re-evaluated on
+all nodes to see if it now applies.  It will be added/removed from nodes
+as appropriate.
+
 ### Create policy
 
     {

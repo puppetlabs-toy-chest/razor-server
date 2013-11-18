@@ -485,6 +485,20 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  command :delete_tag do |data|
+    data['name'] or error 400,
+      :error => "Must supply the name of the tag to delete"
+
+    if tag = Razor::Data::Tag[:name => data['name']]
+      tag.remove_all_policies
+      tag.destroy
+      action = "tag destroyed"
+    else
+      action = "no changes; tag #{data['name']} does not exst"
+    end
+    { :result => action }
+  end
+
   command :unbind_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
@@ -563,6 +577,25 @@ class Razor::App < Sinatra::Base
     policy.save
 
     policy
+  end
+
+  command :update_tag_rule do |data|
+    data['name'] or error 400,
+      :error => "Must supply the name of the tag to update"
+    data['rule'] or error 400,
+      :error => "Must supply a replacement rule to update on the tag"
+
+    if tag = Razor::Data::Tag[:name => data['name']]
+      unless tag.rule == data['rule']
+        tag.update_rule(data["rule"])
+        action = "Tag '#{data['name']}' updated with new rule"
+      else
+        action = "no changes; the new rule is the same as the existing rule on tag '#{data['name']}'"
+      end
+    else
+      action = "no changes; no tags named '#{data['name']}' exists"
+    end
+    { :result => action }
   end
 
   def toggle_policy_enabled(data, enabled, verb)
