@@ -20,7 +20,6 @@ reboot
 
 # %include /tmp/networkconfig
 %pre --interpreter=busybox
-wget <%= stage_done_url("kickstart") %>
 
 # echo 'network --bootproto=static --addvmportgroup=false --device=vmnic0 --ip=<%= @node_ip_address %> --netmask=<%= @ip_range_subnet %> --gateway=<%= @gateway %> --nameserver=<%= @nameserver %> --hostname=<%= @node_hostname %>' > /tmp/networkconfig
 
@@ -28,6 +27,7 @@ wget <%= stage_done_url("kickstart") %>
 
 %firstboot --interpreter=busybox
 
+wget <%= stage_done_url("kickstart") %>
 # wget <%= @api_svc_uri %>/policy/callback/<%= @policy_uuid %>/postinstall/end
 # enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
 grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config
