@@ -504,6 +504,25 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  command :set_node_ipmi_credentials do |data|
+    data['name'] or
+      error 400, :error => "Supply 'name' to indicate which node to edit"
+    node = Razor::Data::Node.find_by_name(data['name']) or
+      error 404, :error => "node #{data['name']} does not exist"
+
+    # Finally, save the changes.  This is using the unrestricted update
+    # method because we carefully manually constructed our input above,
+    # effectively doing our own input validation manually.  If you ever
+    # change that (because, say, we fix the -/_ thing globally, make sure
+    # you restrict this to changing the specific attributes only.
+    node.update(
+      :ipmi_hostname => data['ipmi-hostname'],
+      :ipmi_username => data['ipmi-username'],
+      :ipmi_password => data['ipmi-password'])
+
+    { :result => 'updated IPMI details' }
+  end
+
   command :create_installer do |data|
     # If boot_seq is not a Hash, the model validation for installers
     # will catch that, and will make saving the installer fail

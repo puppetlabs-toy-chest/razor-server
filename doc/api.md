@@ -289,6 +289,34 @@ unbind by sending the node's name in the body of the request
       'name': 'node17'
     }
 
+### Set node IPMI credentials
+
+Razor can store IPMI credentials on a per-node basis.  These are the hostname
+(or IP address), the username, and the password to use when contacting the
+BMC/LOM/IPMI lan or lanplus service to check or update power state and other
+node data.
+
+This is an atomic operation: all three data items are set or reset in a single
+operation.  Partial updates must be handled client-side.  This eliminates
+conflicting update and partial update combination surprises for users.
+
+The structure of a request is:
+
+    {
+      'name': 'node17',
+      'ipmi-hostname': 'bmc17.example.com',
+      'ipmi-username': null,
+      'ipmi-password': 'sekretskwirrl'
+    }
+
+The various IPMI fields can be null (representing no value, or the NULL
+username/password as defined by IPMI), and if omitted are implicitly set to
+the NULL value.
+
+You *must* provide an IPMI hostname if you provide either a username or
+password, since we only support remote, not local, communication with the
+IPMI target.
+
 ## Collections
 
 Along with the list of supported commands, a `GET /api` request returns a list
