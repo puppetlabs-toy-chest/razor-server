@@ -8,6 +8,7 @@ class Razor::Data::Tag < Sequel::Model
 
 
   many_to_many :policies
+  many_to_many :nodes
 
   def rule
     matcher.rule if matcher

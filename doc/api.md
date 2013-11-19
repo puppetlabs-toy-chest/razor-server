@@ -192,6 +192,33 @@ command:
 
 The `name` of the tag must be unique; the `rule` is a match expression.
 
+### Delete tag
+
+A tag can be deleted by posting its name to the `/spec/delete_tag` command:
+
+    {
+      "name": "small",
+      "force": true
+    }
+
+If the tag is used by a policy, the attempt to delete the tag will fail
+unless the optional parameter `force` is set to `true`; in that case the
+tag will be removed from all policies that use it and then deleted.
+
+### Update tag
+
+The rule for a tag can be changed by posting the following to the
+`/spec/update_tag_rule` command:
+
+    {
+      "name": "small",
+      "rule": ["<=", ["fact", "processorcount"], "2"]
+    }
+
+This will change the rule of the given tag to the new rule. Existing
+matches of this tag will not be affected by the change. The new tag rule
+will only be used once a node checks in after the update happened.
+
 ### Create policy
 
     {
