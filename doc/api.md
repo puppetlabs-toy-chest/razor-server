@@ -121,7 +121,7 @@ nothing will be downloaded onto the Razor server:
       "url": "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
     }
 
-### Delete an repo
+### Delete a repo
 
 The `delete-repo` command accepts a single repo name:
 
@@ -187,7 +187,7 @@ command:
 
     {
       "name": "small",
-      "rule": ["=", ["facts", "f1"], "42"]
+      "rule": ["=", ["fact", "processorcount"], "2"]
     }
 
 The `name` of the tag must be unique; the `rule` is a match expression.
