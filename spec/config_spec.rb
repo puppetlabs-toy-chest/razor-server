@@ -21,8 +21,8 @@ describe Razor::Config do
   end
 
   describe "loading" do
-    it "should raise ENOENT for nonexistant config" do
-      expect { make_config(nil) }.to raise_error(Errno::ENOENT)
+    it "should raise InvalidConfigurationError for nonexistant config" do
+      expect { make_config(nil) }.to raise_error(Razor::InvalidConfigurationError)
     end
 
     it "should tolerate an empty config file" do
