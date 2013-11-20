@@ -21,7 +21,15 @@ module Razor
     def initialize(env, fname = nil)
       fname ||= ENV["RAZOR_CONFIG"] ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
-      yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
+      begin
+        yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
+      rescue Errno::ENOENT
+        raise InvalidConfigurationError,
+          "The configuration file #{fname} does not exist"
+      rescue Errno::EACCES
+        raise InvalidConfigurationError,
+          "The configuration file #{fname} is not readable"
+      end
       @values = yaml["all"] || {}
       @values.merge!(yaml[Razor.env] || {})
     end
