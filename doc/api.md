@@ -212,12 +212,17 @@ The rule for a tag can be changed by posting the following to the
 
     {
       "name": "small",
-      "rule": ["<=", ["fact", "processorcount"], "2"]
+      "rule": ["<=", ["fact", "processorcount"], "2"],
+      "force": true
     }
 
 This will change the rule of the given tag to the new rule. Existing
 matches of this tag will not be affected by the change. The new tag rule
 will only be used once a node checks in after the update happened.
+
+If the tag is used by any policies, the update will only be performed if
+the optional parameter `force` is set to `true`. Otherwise, the command
+will return with status code 400.
 
 ### Create policy
 
