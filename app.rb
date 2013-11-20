@@ -490,7 +490,13 @@ class Razor::App < Sinatra::Base
       :error => "Must supply the name of the tag to delete"
 
     if tag = Razor::Data::Tag[:name => data['name']]
+      #Require force if the tag is currently used on policies.
+      data["force"] or tag.policies.empty? or
+        error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+
+      #Remove the tag.
       tag.remove_all_policies
+      tag.remove_all_nodes
       tag.destroy
       action = "tag destroyed"
     else
@@ -586,6 +592,10 @@ class Razor::App < Sinatra::Base
       :error => "Must supply a replacement rule to update on the tag"
 
     if tag = Razor::Data::Tag[:name => data['name']]
+      #Require force if the tag is currently used on policies.
+      data["force"] or tag.policies.empty? or
+        error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+
       unless tag.rule == data['rule']
         tag.update_rule(data["rule"])
         action = "Tag '#{data['name']}' updated with new rule"
