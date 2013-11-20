@@ -48,7 +48,7 @@ class Razor::Data::Tag < Sequel::Model
   def update_rule(rule)
     self.rule = rule
     self.save
-    self.eval_nodes
+    publish 'eval_nodes'
   end
 
   def eval_nodes
@@ -87,7 +87,9 @@ class Razor::Data::Tag < Sequel::Model
     else
       data["rule"] or
         raise ArgumentError, "A rule must be provided for new tag '#{name}'"
-      create(data).eval_nodes
+      tag = create(data)
+      tag.publish 'eval_nodes'
+      tag
     end
   end
 end
