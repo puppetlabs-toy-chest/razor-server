@@ -1,0 +1,9 @@
+#!ipxe
+echo Razor <%= installer.label %> model boot_call
+echo Installation node: <%= node_url  %>
+echo Installation repo: <%= repo_url %>
+sleep 3
+
+kernel <%= repo_url("/install/netboot/ubuntu-installer/#{installer.architecture}/linux") %> <%= render_template("kernel_args").strip %> || goto error
+initrd <%= repo_url("/install/netboot/ubuntu-installer/#{installer.architecture}/initrd.gz") %> || goto error
+boot

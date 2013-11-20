@@ -1,0 +1,26 @@
+#!/bin/bash
+
+exec >> /var/log/razor.log 2>&1
+
+<%= render_template("set_hostname") %>
+
+
+# APT configuration and system update
+sed -i 's_<%= repo_url %>_http://gb.archive.ubuntu.com/ubuntu_' /etc/apt/sources.list
+
+apt-get -y update
+[ "$?" -eq 0 ] || curl -s <%= log_url("apt_update_fail", :error) %>
+
+apt-get -y upgrade
+[ "$?" -eq 0 ] || curl -s <%= log_url("apt_upgrade_fail", :error) %>
+
+apt-get -y dist-upgrade
+[ "$?" -eq 0 ] || curl -s <%= log_url("apt_dist_upgrade_fail", :error) %>
+
+
+<%= render_template("store_ip") %>
+
+<%= render_template("os_complete") %>
+
+# Send final state
+curl -s <%= stage_done_url("finished") %>

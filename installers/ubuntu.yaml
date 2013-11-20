@@ -1,0 +1,9 @@
+---
+
+os_version: precise
+architecture: amd64
+label: Ubuntu Precice 12.04
+description: Ubuntu Generic Installer
+boot_sequence:
+  1: boot_install
+  default: boot_local
