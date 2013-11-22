@@ -45,10 +45,13 @@ class Razor::Data::Tag < Sequel::Model
     end
   end
 
-  def update_rule(rule)
-    self.rule = rule
-    self.save
-    publish 'eval_nodes'
+  def around_save
+    # We need to defer publishing eval_nodes until after self has been
+    # saved so that for newly created nodes the message inlcudes the actual
+    # id
+    need_eval_nodes = new? or changed_columns.include?(:matcher)
+    super
+    publish('eval_nodes') if need_eval_nodes
   end
 
   def eval_nodes
@@ -64,7 +67,6 @@ class Razor::Data::Tag < Sequel::Model
           node.remove_tag(self)
         end
       end
-
     end
     self
   end
@@ -87,9 +89,7 @@ class Razor::Data::Tag < Sequel::Model
     else
       data["rule"] or
         raise ArgumentError, "A rule must be provided for new tag '#{name}'"
-      tag = create(data)
-      tag.publish 'eval_nodes'
-      tag
+      create(data)
     end
   end
 end
