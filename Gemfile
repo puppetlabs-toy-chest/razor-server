@@ -1,10 +1,5 @@
+# Only using the SSL interface, please.
 source 'https://rubygems.org'
-
-# Unfortunately, the `torquebox-server` gem is too large for rubygems.org to
-# host, so we use the upstream repository.  They also don't offer an HTTPS
-# backed source of gems.  Until that is fixed...
-source 'http://torquebox.org/rubygems'
-
 
 # For the sake of RVM, this overrides the engine line below, which is too
 # complicated for the simple shell parser to handle.  This ensures that RVM
@@ -19,11 +14,11 @@ source 'http://torquebox.org/rubygems'
 # at the present time, so better to learn about bugs early, no?
 #
 # Note that the lack of whitespace matters in those two lines:
-#ruby=jruby-1.7.4
+#ruby=jruby-1.7.8
 #ruby-gemset=razor-server
-ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.4'
+ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.8'
 
-gem 'torquebox'
+gem 'torquebox', '~> 3.0.1'
 gem 'sinatra'
 gem 'sequel'
 gem 'jdbc-postgres'
@@ -63,7 +58,7 @@ group :development do
   #
   # For production you can use this, or deploy to a distinct installation of
   # TorqueBox, as you prefer.
-  gem 'torquebox-server'
+  gem 'torquebox-server', '~> 3.0.1'
 end
 
 # This allows you to create `Gemfile.local` and have it loaded automatically;
