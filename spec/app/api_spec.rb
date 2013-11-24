@@ -599,6 +599,10 @@ describe "command and query API" do
           'type'     => 'integer',
           'minimum'  => 0
         },
+        'bound' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'boolean'
+        },
       },
       'additionalProperties' => false,
     }.freeze

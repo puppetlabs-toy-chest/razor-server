@@ -69,7 +69,13 @@ module Razor::Data
     end
 
     def installer
-      policy ? policy.installer : Razor::Installer.mk_installer
+      if policy
+        policy.installer
+      elsif bound
+        Razor::Installer.bound_installer
+      else
+        Razor::Installer.mk_installer
+      end
     end
 
     def domainname
@@ -127,6 +133,7 @@ module Razor::Data
       self.boot_count = 1
       self.root_password = policy.root_password
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
+      self.bound = true
     end
 
     # This is a hack around the fact that the auto_validates plugin does

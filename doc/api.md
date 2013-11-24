@@ -121,7 +121,7 @@ nothing will be downloaded onto the Razor server:
       "url": "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
     }
 
-### Delete an repo
+### Delete a repo
 
 The `delete-repo` command accepts a single repo name:
 
@@ -232,6 +232,20 @@ accept the same body, consisting of the name of the policy in question:
     {
       "name": "a policy"
     }
+
+### Delete policy
+
+Policies can be deleted with the `delete-policy` command.  It accepts the
+name of a single policy:
+
+    {
+      'name': 'my-policy'
+    }
+
+Nodes that were previously bound to this policy will remain in a bound
+state as indicated by the nodes `bound` flag (boolean).  Nodes that are
+bound with NO policy, will always perform a local-boot until such time as
+they are unboud with the `unbind-node` command.
 
 ### Delete node
 
