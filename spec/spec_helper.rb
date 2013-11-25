@@ -1,7 +1,6 @@
 require 'simplecov'
 SimpleCov.start do
-  add_filter "/spec/"
-  add_filter ".erb"
+  %w{/spec/ .erb vendor/}.map {|f| add_filter f }
 end
 
 require 'fabrication'
