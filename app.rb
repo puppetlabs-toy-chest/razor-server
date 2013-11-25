@@ -520,6 +520,39 @@ class Razor::App < Sinatra::Base
     Razor::Data::Tag.find_or_create_with_rule(data)
   end
 
+  command :delete_tag do |data|
+    data["name"] or
+      error 400, :error => "Supply a name to indicate which tag to delete"
+    if tag = Razor::Data::Tag[:name => data["name"]]
+      data["force"] or tag.policies.empty? or
+        error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+      tag.remove_all_policies
+      tag.remove_all_nodes
+      tag.destroy
+      { :result => "Tag #{data["name"]} deleted" }
+    else
+      { :result => "No change. Tag #{data["name"]} does not exist." }
+    end
+  end
+
+  command :update_tag_rule do |data|
+    data["name"] or
+      error 400, :error => "Supply a name to indicate which tag to delete"
+    data["rule"] or
+      error 400, :error => "Supply a new rule for tag #{data["name"]}"
+    tag = Razor::Data::Tag[:name => data["name"]] or
+      error 404, :error => "Tag '#{data["name"]}' does not exist"
+    data["force"] or tag.policies.empty? or
+      error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+    if tag.rule != data["rule"]
+      tag.rule = data["rule"]
+      tag.save
+      { :result => "Tag #{data["name"]} updated" }
+    else
+      { :result => "No change; new rule is the same as the existing rule for #{data["name"]}" }
+    end
+  end
+
   command :create_broker do |data|
     if type = data.delete("broker-type")
       begin

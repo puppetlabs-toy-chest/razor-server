@@ -8,6 +8,7 @@ class Razor::Data::Tag < Sequel::Model
 
 
   many_to_many :policies
+  many_to_many :nodes
 
   def rule
     matcher.rule if matcher
@@ -42,6 +43,32 @@ class Razor::Data::Tag < Sequel::Model
         errors.add(:matcher, "is not a matcher object")
       end
     end
+  end
+
+  def around_save
+    # We need to defer publishing eval_nodes until after self has been
+    # saved so that for newly created nodes the message inlcudes the actual
+    # id
+    need_eval_nodes = new? or changed_columns.include?(:matcher)
+    super
+    publish('eval_nodes') if need_eval_nodes
+  end
+
+  def eval_nodes
+    Razor::Data::Node.all.each do |node|
+      node_tags = node.tags
+
+      if self.match?(node)
+        unless node_tags.include?(self)
+          node.add_tag(self)
+        end
+      else
+        if node_tags.include?(self)
+          node.remove_tag(self)
+        end
+      end
+    end
+    self
   end
 
   # Find an existing tag or create a new one from the Hash in +data+. If a

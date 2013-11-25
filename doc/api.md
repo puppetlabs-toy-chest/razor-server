@@ -121,7 +121,7 @@ nothing will be downloaded onto the Razor server:
       "url": "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
     }
 
-### Delete an repo
+### Delete a repo
 
 The `delete-repo` command accepts a single repo name:
 
@@ -187,10 +187,43 @@ command:
 
     {
       "name": "small",
-      "rule": ["=", ["facts", "f1"], "42"]
+      "rule": ["=", ["fact", "processorcount"], "2"]
     }
 
 The `name` of the tag must be unique; the `rule` is a match expression.
+
+### Delete tag
+
+A tag can be deleted by posting its name to the `/spec/delete_tag` command:
+
+    {
+      "name": "small",
+      "force": true
+    }
+
+If the tag is used by a policy, the attempt to delete the tag will fail
+unless the optional parameter `force` is set to `true`; in that case the
+tag will be removed from all policies that use it and then deleted.
+
+### Update tag
+
+The rule for a tag can be changed by posting the following to the
+`/spec/update_tag_rule` command:
+
+    {
+      "name": "small",
+      "rule": ["<=", ["fact", "processorcount"], "2"],
+      "force": true
+    }
+
+This will change the rule of the given tag to the new rule. The tag will be
+reevaluated against all nodes and each node's tag attribute will be updated
+to reflect whether the tag now matches or not, i.e., the tag will be added
+to/removed from each node's tag as appropriate.
+
+If the tag is used by any policies, the update will only be performed if
+the optional parameter `force` is set to `true`. Otherwise, the command
+will return with status code 400.
 
 ### Create policy
 

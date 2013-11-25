@@ -1,6 +1,8 @@
 require_relative '../spec_helper'
 
 describe Razor::Data::Tag do
+  include TorqueBox::Injectors
+
   class MockNode
     attr_reader :facts
 
@@ -15,6 +17,8 @@ describe Razor::Data::Tag do
   }
 
   let (:tag0) { Tag.create(tag0_hash) }
+
+  let(:node) { Fabricate(:node, :facts => { "a" => 42 }) }
 
   describe "::match" do
     it "matches on the right facts" do
@@ -79,5 +83,74 @@ describe Razor::Data::Tag do
     it "must raise an error when a new tag has no rule" do
       expect { that_method("name" => "new_tag") }.to raise_error ArgumentError
     end
+
+    it "must tag an existing matching node" do
+      node # Cause node to be created
+      tag = that_method("name" => "aTag",
+                        "rule" => ["=", ["fact", "a"], 42])
+      check_and_process_eval_nodes(tag)
+
+      node.tags.should include(tag)
+    end
+
+    it "must not tag an existing node that does not match" do
+      node # Cause node to be created
+
+      tag = that_method("name" => "aTag",
+                        "rule" => ["!=", ["fact", "a"], 42])
+      check_and_process_eval_nodes(tag)
+
+      node.tags.should_not include(tag)
+    end
+  end
+
+  describe "updating the tag's rule" do
+
+    let(:tag) { Fabricate(:tag, :name => "aTag", :rule => ["=", 1, 1]) }
+
+    it "should tag a matching existing node" do
+      node # Cause node to be created
+
+      tag.rule = ["=", ["fact", "a"], 42]
+      tag.save
+
+      check_and_process_eval_nodes(tag)
+
+      node.tags.should include(tag)
+    end
+
+    it "should not tag an existing node that does not match" do
+      node # Cause node to be created
+
+      tag.rule = ["!=", ["fact", "a"], 42]
+      tag.save
+
+      check_and_process_eval_nodes(tag)
+
+      node.tags.should_not include(tag)
+    end
+  end
+
+  it "should not publish 'eval_nodes' if the rule hasn't changed" do
+    queue = fetch('/queues/razor/sequel-instance-messages')
+    tag = Fabricate(:tag, :name => "aTag", :rule => ["=", 1, 1])
+
+    queue.remove_messages
+
+    tag.name = "aTag_changed"
+    tag.save
+
+    queue.count_messages.should == 0
+  end
+
+  def check_and_process_eval_nodes(tag)
+    queue = fetch('/queues/razor/sequel-instance-messages')
+
+    expect{}.to have_published(
+     'class'  => tag.class.name,
+     'instance' => include(:id => tag.id),
+     'message' => 'eval_nodes').on(queue)
+
+    tag.public_send('eval_nodes')
   end
 end
