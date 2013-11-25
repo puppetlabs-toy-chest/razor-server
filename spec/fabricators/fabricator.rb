@@ -39,6 +39,11 @@ Fabricator(:installer, :class_name => Razor::Data::Installer) do
   boot_seq      {{'default' => 'boot_local'}}
 end
 
+Fabricator(:tag, :class_name => Razor::Data::Tag) do
+  name { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
+  rule { ["=", "1", "1"] }
+end
+
 Fabricator(:policy, :class_name => Razor::Data::Policy) do
   name             { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   enabled          true
@@ -51,6 +56,9 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   broker
 end
 
+Fabricator(:policy_with_tag, from: :policy) do
+  tags(count: 3) { Fabricate(:tag) }
+end
 
 Fabricator(:node, :class_name => Razor::Data::Node) do
   hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
@@ -120,9 +128,4 @@ Fabricator(:bound_node, from: :node) do
     node.hostname = node.policy.hostname_pattern.gsub('${id}', node.id.to_s)
     node.save
   end
-end
-
-Fabricator(:tag, :class_name => Razor::Data::Tag) do
-  name { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
-  rule { ["=", "1", "1"] }
 end
