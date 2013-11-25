@@ -266,6 +266,20 @@ accept the same body, consisting of the name of the policy in question:
       "name": "a policy"
     }
 
+### Add/remove tags to/from Policy
+
+You can add or remove tags from policies with `policy-add-tag` and 
+ `policy-remove-tag` respectively.  In both cases suply the name of a
+policy and the name of the tag.  When adding a tag, you can trigger a
+new tag in the process by specifing a name for the tag that doesn't 
+already exist and a rule:
+
+    {
+      "name": "a-policy-name",
+      "tag" : "a-tag-name",
+      "rule": "new-match-expression" #Only for `policy-add-tag`
+    }
+
 ### Delete node
 
 A single node can be removed from the database with the `delete-node`
