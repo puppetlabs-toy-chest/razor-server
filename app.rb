@@ -617,7 +617,7 @@ class Razor::App < Sinatra::Base
     toggle_policy_enabled(data, false, 'disable')
   end
 
-  command :policy_add_tag do |data|
+  command :add_policy_tag do |data|
     data['name'] or error 400,
       :error => "Supply policy name to which the tag is to be added"
     data['tag'] or error 400,
@@ -628,7 +628,7 @@ class Razor::App < Sinatra::Base
     tag = Razor::Data::Tag.find_or_create_with_rule(
         { 'name' => data['tag'], 'rule' => data['rule'] }
       ) or error 404,
-      :error => "Tag #{data['tag']} does not exist and no rule to create it suplpied."
+      :error => "Tag #{data['tag']} does not exist and no rule to create it supplied."
 
     unless policy.tags.include?(tag)
       policy.add_tag(tag)
@@ -639,7 +639,7 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :policy_remove_tag do |data|
+  command :remove_policy_tag do |data|
     data['name'] or error 400,
       :error => "Supply policy name to which the tag is to be added"
     data['tag'] or error 400,
@@ -647,12 +647,16 @@ class Razor::App < Sinatra::Base
 
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
       :error => "Policy #{data['name']} does not exist"
-    tag = Razor::Data::Tag[:name => data['tag']] or error 404,
-      :error => "Tag #{data['tag']} does not exist"
+    tag = Razor::Data::Tag[:name => data['tag']]
 
-    if policy.tags.include?(tag)
-      policy.remove_tag(tag)
-      policy
+    if tag
+      if policy.tags.include?(tag)
+        policy.remove_tag(tag)
+        policy
+      else
+        action = "Tag #{data['tag']} was not on policy #{data['name']}"
+        { :result => action }
+      end
     else
       action = "Tag #{data['tag']} was not on policy #{data['name']}"
       { :result => action }

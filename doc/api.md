@@ -268,16 +268,16 @@ accept the same body, consisting of the name of the policy in question:
 
 ### Add/remove tags to/from Policy
 
-You can add or remove tags from policies with `policy-add-tag` and 
- `policy-remove-tag` respectively.  In both cases suply the name of a
-policy and the name of the tag.  When adding a tag, you can trigger a
-new tag in the process by specifing a name for the tag that doesn't 
-already exist and a rule:
+You can add or remove tags from policies with `add-policy-tag` and 
+ `remove-policy-tag` respectively.  In both cases supply the name of a
+policy and the name of the tag.  When adding a tag, you can specify an 
+existing tag, or create a new one by supplying a name and rule for the 
+new tag:
 
     {
       "name": "a-policy-name",
       "tag" : "a-tag-name",
-      "rule": "new-match-expression" #Only for `policy-add-tag`
+      "rule": "new-match-expression" #Only for `add-policy-tag`
     }
 
 ### Delete node

@@ -6,8 +6,8 @@ describe "policy-add-tag" do
 
   let(:app) { Razor::App }
 
-  def policy_add_tag(name=nil, tag=nil, rule=nil)
-    post '/api/commands/policy-add-tag', { "name" => name, "tag" => tag, "rule" => rule }.to_json
+  def add_policy_tag(name=nil, tag=nil, rule=nil)
+    post '/api/commands/add-policy-tag', { "name" => name, "tag" => tag, "rule" => rule }.to_json
   end
 
   context "/api/commands/policy-add-tag" do
@@ -20,7 +20,7 @@ describe "policy-add-tag" do
 
     it "should advise that that tag is already on policy" do
       count = policy.tags.count
-      policy_add_tag(policy.name, policy.tags.first.name)
+      add_policy_tag(policy.name, policy.tags.first.name)
       policy.tags(true).count.should == count
       last_response.status.should == 202
       last_response.json?.should be_true
@@ -30,7 +30,7 @@ describe "policy-add-tag" do
 
     it "should add a tag to a policy" do
       count = policy.tags.count
-      policy_add_tag(policy.name, tag.name)
+      add_policy_tag(policy.name, tag.name)
       policy.tags(true).count.should == count + 1
       last_response.status.should == 202
     end
@@ -39,7 +39,7 @@ describe "policy-add-tag" do
       count = policy.tags.count
       tag_name = 'new_tag'
       matcher  = [ "eq", 1, 1 ]
-      policy_add_tag(policy.name, tag_name, matcher)
+      add_policy_tag(policy.name, tag_name, matcher)
       policy.tags(true).count.should == count + 1
       last_response.status.should == 202
     end
@@ -47,21 +47,21 @@ describe "policy-add-tag" do
     it "should fail to add a new tag with no matcher" do
       count = policy.tags.count
       tag_name = 'another_tag'
-      policy_add_tag(policy.name, tag_name)
+      add_policy_tag(policy.name, tag_name)
       policy.tags(true).count.should == count
       last_response.status.should == 400
     end
 
-    it "should fail to with no policy name" do
-      policy_add_tag(nil, tag.name)
+    it "should fail with no policy name" do
+      add_policy_tag(nil, tag.name)
       last_response.status.should == 400
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
       last_response.json["error"].should =~ /Supply policy name/
     end
 
-    it "should fail to with no tag name" do
-      policy_add_tag(policy.name)
+    it "should fail with no tag name" do
+      add_policy_tag(policy.name)
       last_response.status.should == 400
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]

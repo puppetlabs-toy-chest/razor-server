@@ -6,8 +6,8 @@ describe "policy-remove-tag" do
 
   let(:app) { Razor::App }
 
-  def policy_remove_tag(name=nil, tag=nil)
-    post '/api/commands/policy-remove-tag', { "name" => name, "tag" => tag }.to_json
+  def remove_policy_tag(name=nil, tag=nil)
+    post '/api/commands/remove-policy-tag', { "name" => name, "tag" => tag }.to_json
   end
 
   context "/api/commands/policy-remove-tag" do
@@ -20,14 +20,14 @@ describe "policy-remove-tag" do
 
     it "should remove a tag from a policy" do
       count = policy.tags.count
-      policy_remove_tag(policy.name, policy.tags.first.name)
+      remove_policy_tag(policy.name, policy.tags.first.name)
       policy.tags(true).count.should == count-1
       last_response.status.should == 202
     end
 
     it "should advise that that tag wasnt on policy" do
       count = policy.tags.count
-      policy_remove_tag(policy.name, tag.name)
+      remove_policy_tag(policy.name, tag.name)
       policy.tags(true).count.should == count
       last_response.status.should == 202
       last_response.json?.should be_true
@@ -36,7 +36,7 @@ describe "policy-remove-tag" do
     end
 
     it "should fail to with no policy name" do
-      policy_remove_tag(nil, tag.name)
+      remove_policy_tag(nil, tag.name)
       last_response.status.should == 400
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
@@ -44,7 +44,7 @@ describe "policy-remove-tag" do
     end
 
     it "should fail to with no tag name" do
-      policy_remove_tag(policy.name)
+      remove_policy_tag(policy.name)
       last_response.status.should == 400
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
