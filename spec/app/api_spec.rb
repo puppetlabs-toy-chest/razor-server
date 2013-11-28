@@ -149,7 +149,11 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
+<<<<<<< HEAD
       policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags recipe broker nodes]
+=======
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer broker match_tags]
+>>>>>>> Adding match_tags field to policies
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty

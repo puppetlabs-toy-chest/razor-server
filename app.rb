@@ -766,6 +766,15 @@ class Razor::App < Sinatra::Base
     if data["recipe"]
       data["recipe_name"] = data.delete("recipe")["name"]
     end
+
+    if data["match_tags"]
+      data["match_tags"].match(/^(AllOf|AnyOf|NoneOf)$/) or
+        error 400,
+        :error => 'match_tags must be one of AllOf, AnyOf or NoneOf'
+    else
+      data["match_tags"] = 'AllOf'
+    end
+
     data["hostname_pattern"] = data.delete("hostname")
 
     policy = Razor::Data::Policy.new(data).save

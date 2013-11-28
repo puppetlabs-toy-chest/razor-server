@@ -36,9 +36,15 @@ module Razor::Data
       sql = <<SQL
 enabled is true
 and
-exists (select count(*) from policies_tags pt where pt.policy_id = policies.id)
+exists (select 1 from policies_tags pt where pt.policy_id = policies.id)
 and
-(select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) <@ array[#{tag_ids}]::integer[]
+(
+  ( match_tags = 'AllOf' and (select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) <@ array[#{tag_ids}]::integer[] )
+  or
+  ( match_tags = 'AnyOf' and (select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) && array[#{tag_ids}]::integer[] )
+  or
+  ( match_tags = 'NoneOf' and NOT (select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) && array[#{tag_ids}]::integer[] )
+)
 and
 (max_count is NULL or (select count(*) from nodes n where n.policy_id = policies.id) < max_count)
 SQL
