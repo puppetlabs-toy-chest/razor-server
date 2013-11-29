@@ -102,7 +102,7 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer broker]
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags nodes installer broker]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
@@ -548,7 +548,7 @@ describe "command and query API" do
             },
           },
         },
-        'policy'   => {
+        'bound_policy'   => {
           '$schema'    => 'http://json-schema.org/draft-04/schema#',
           'type'       => 'object',
           'required'   => %w[spec id name],

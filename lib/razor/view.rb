@@ -59,6 +59,7 @@ module Razor
           :root_password => policy.root_password,
         },
         :rule_number => policy.rule_number,
+        :nodes => policy.nodes.map { |n| view_object_reference(n) }.compact,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
       })
     end
@@ -116,7 +117,7 @@ module Razor
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
-        :policy        => view_object_reference(node.policy),
+        :bound_policy  => view_object_reference(node.bound_policy),
         :log           => { :id => view_object_url(node) + "/log",
                             :name => "log" },
         :tags          => node.tags.map { |t| view_object_reference(t) },

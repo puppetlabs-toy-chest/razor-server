@@ -1,9 +1,10 @@
 module Razor::Data
   class Policy < Sequel::Model
 
-    one_to_many  :nodes
+    one_to_many  :bound_nodes, :class=>"Razor::Data::Node", :key=>:policy_id
     many_to_one  :repo
     many_to_many :tags
+    many_to_many :nodes, :join_table => :policies_nodes
     many_to_one  :broker
 
     def installer
@@ -36,9 +37,15 @@ module Razor::Data
       sql = <<SQL
 enabled is true
 and
-exists (select count(*) from policies_tags pt where pt.policy_id = policies.id)
-and
-(select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) <@ array[#{tag_ids}]::integer[]
+(
+  (select array(select pn.node_id from policies_nodes pn where pn.policy_id = policies.id)) @> array[#{node.id}]::integer[]
+  or
+  (
+    exists (select count(*) from policies_tags pt where pt.policy_id = policies.id)
+    and
+    (select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) <@ array[#{tag_ids}]::integer[]
+  )
+)
 and
 (max_count is NULL or (select count(*) from nodes n where n.policy_id = policies.id) < max_count)
 SQL

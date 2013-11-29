@@ -62,7 +62,7 @@ Fabricator(:node_with_facts, :class_name => Razor::Data::Node) do
 end
 
 Fabricator(:bound_node, from: :node) do
-  policy
+  bound_policy { Fabricate(:policy) }
 
   facts do
     data = {}
@@ -90,11 +90,11 @@ Fabricator(:bound_node, from: :node) do
   after_build do |node, _|
     # @todo danielp 2013-08-19: this seems to highlight some data duplication
     # that, frankly, doesn't seem like a good thing to me.
-    node.root_password = node.policy.root_password
+    node.root_password = node.bound_policy.root_password
   end
 
   after_save do |node, _|
-    node.hostname = node.policy.hostname_pattern.gsub('${id}', node.id.to_s)
+    node.hostname = node.bound_policy.hostname_pattern.gsub('${id}', node.id.to_s)
     node.save
   end
 end

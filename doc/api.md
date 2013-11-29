@@ -255,6 +255,31 @@ to this policy at the most. This can either be set to `nil`, indicating
 that an unbounded number of nodes can be bound to this policy, or a
 positive integer to set an upper bound.
 
+### Adding Nodes to Policies
+
+Nodes can be directly associated to a policy, bypassing the use of tags
+where static associations are appropriate.  This is done with the
+ `add-policy-node` command with the following data:
+
+    {
+      "name": "a_policy_name",
+      "node": "node1" || "1"
+    }
+
+The value for node can be in the form "node<id>" or just "<id>".
+
+### Removing Nodes from a Policy
+
+Nodes statically associated with a policy are removed with the
+ `remove-policy-node` command and takes the same data as the add command:
+
+    {
+      "name": "a_policy_name",
+      "node": "node1" || "1"
+    }
+
+The value for node can be in the form "node<id>" or just "<id>".
+
 ### Enable/disable policy
 
 Policies can be enabled or disabled. Only enabled policies are used when
