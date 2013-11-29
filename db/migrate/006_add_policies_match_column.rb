@@ -12,7 +12,7 @@ Sequel.migration do
 
     alter_table :policies do
       #Policy match can be one of 'AllOf', 'AnyOf' or 'NoneOf'
-      add_constraint :valid_policy_match_tags_values,
+      add_constraint :valid_policy_tags_match_values,
         "(match_tags = 'AllOf' OR match_tags = 'AnyOf' OR match_tags = 'NoneOf')"
     end
   end
