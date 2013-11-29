@@ -641,9 +641,9 @@ class Razor::App < Sinatra::Base
 
   command :remove_policy_tag do |data|
     data['name'] or error 400,
-      :error => "Supply policy name to which the tag is to be added"
+      :error => "Supply policy name to which the tag is to be removed"
     data['tag'] or error 400,
-      :error => "Supply the name of the tag you which to add"
+      :error => "Supply the name of the tag you which to remove"
 
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
       :error => "Policy #{data['name']} does not exist"
