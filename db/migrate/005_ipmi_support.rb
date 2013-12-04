@@ -17,6 +17,12 @@ Sequel.migration do
 (ipmi_hostname IS NOT NULL)
 SQL
 
+      # This is the classic tri-state field: true, false, unknown
+      # We maintain the timestamp from the application, because that is where
+      # we draw the information from; this is just a cache reflecting history.
+      add_column :last_known_power_state, :boolean, :null => true
+      add_column :last_power_state_update_at, 'timestamp with time zone', :null => true
+
       validate do
         # these all validate the same way.
         [:ipmi_hostname, :ipmi_username, :ipmi_password].each do |column|
@@ -33,6 +39,9 @@ SQL
       drop_column :ipmi_hostname
       drop_column :ipmi_username
       drop_column :ipmi_password
+
+      drop_column :last_known_power_state
+      drop_column :last_power_state_update_at
     end
   end
 end

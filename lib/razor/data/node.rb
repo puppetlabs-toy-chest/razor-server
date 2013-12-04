@@ -282,5 +282,12 @@ module Razor::Data
       node.boot_count += 1
       node.save
     end
+
+    ########################################################################
+    # IPMI and power management support code
+    def last_known_power_state=(what)
+      self.last_power_state_update_at = Time.now()
+      super(what)
+    end
   end
 end

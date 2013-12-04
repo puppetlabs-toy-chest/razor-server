@@ -446,5 +446,23 @@ describe Razor::Data::Node do
         }.to raise_error Sequel::ValidationFailed, /also set an IPMI hostname/
       end
     end
+
+    describe "last_known_power_state" do
+      [true, false, nil].each do |value|
+        it "should update the timestamp when the power state is set to #{value.inspect}" do
+          Timecop.freeze do
+            # Make sure that we are not mis-detecting a previously set value
+            # on create or something like that as a pass.
+            Razor::Data::Node[:id => node.id].
+              last_power_state_update_at.should be_nil
+
+            node.update(:last_known_power_state => value).save
+
+            Razor::Data::Node[:id => node.id].
+              last_power_state_update_at.should == Time.now()
+          end
+        end
+      end
+    end
   end
 end
