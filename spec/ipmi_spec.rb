@@ -74,39 +74,72 @@ describe Razor::IPMI do
 
 
   context "with fake execution" do
-    it "should raise if the host is not reachable" do
-      fake_run(
-        'bmc guid',
-        'Get GUID command failed',
-        "Address lookup for #{ipmi_node.ipmi_hostname} failed")
+    context "guid" do
+      it "should raise if the host is not reachable" do
+        fake_run(
+          'bmc guid',
+          'Get GUID command failed',
+          "Address lookup for #{ipmi_node.ipmi_hostname} failed")
 
-      expect {
-        Razor::IPMI.guid(ipmi_node)
-      }.to raise_error Razor::IPMI::IPMIError, /unable to find BMC GUID/
-    end
+        expect {
+          Razor::IPMI.guid(ipmi_node)
+        }.to raise_error Razor::IPMI::IPMIError, /unable to find BMC GUID/
+      end
 
-    it "should return the GUID if it is present on stdout" do
-      fake_run(
-        'bmc guid',
-        "System GUID  : 31303043-534d-2500-90d8-7a5100000000\nTimestamp    : 02/25/1996 01:47:47",
-        '')
+      it "should return the GUID if it is present on stdout" do
+        fake_run(
+          'bmc guid',
+          "System GUID  : 31303043-534d-2500-90d8-7a5100000000\nTimestamp    : 02/25/1996 01:47:47",
+          '')
 
-      Razor::IPMI.guid(ipmi_node).should == '31303043-534d-2500-90d8-7a5100000000'
-    end
+        Razor::IPMI.guid(ipmi_node).should == '31303043-534d-2500-90d8-7a5100000000'
+      end
 
-    it "should handle multiple GUID matches in the output sanely" do
-      # I don't think this should ever, ever trigger, but better to test the
-      # code that handles the oddity. :)
-      fake_run('bmc guid', <<EOT, '')
+      it "should handle multiple GUID matches in the output sanely" do
+        # I don't think this should ever, ever trigger, but better to test the
+        # code that handles the oddity. :)
+        fake_run('bmc guid', <<EOT, '')
 System GUID  : 31303043-534d-2500-90d8-7a5100000000
 System GUID  : 76859f93-b6fc-4cb7-8166-42aa5b40cd1c
 Timestamp    : 02/25/1996 01:47:47
 EOT
 
 
-      expect {
-        Razor::IPMI.guid(ipmi_node)
-      }.to raise_error Razor::IPMI::IPMIError, /confused by finding multiple BMC GUID values/
+        expect {
+          Razor::IPMI.guid(ipmi_node)
+        }.to raise_error Razor::IPMI::IPMIError, /confused by finding multiple BMC GUID values/
+      end
+    end
+
+    context "power state" do
+      it "should return on correctly" do
+        fake_run('power status', <<EOT, '')
+Chassis Power is on
+EOT
+        Razor::IPMI.power_state(ipmi_node).should == 'on'
+        Razor::IPMI.on?(ipmi_node).should be_true
+      end
+
+      it "should return off correctly" do
+        fake_run('power status', <<EOT, '')
+Chassis Power is off
+EOT
+        Razor::IPMI.power_state(ipmi_node).should == 'off'
+        Razor::IPMI.on?(ipmi_node).should be_false
+      end
+
+      it "should fail if the string is unknown" do
+        fake_run('power status', <<EOT, '')
+Chassis Power is strange
+EOT
+        expect {
+          Razor::IPMI.power_state(ipmi_node)
+        }.to raise_error Razor::IPMI::IPMIError, /output did not include power state/
+
+        expect {
+          Razor::IPMI.on?(ipmi_node)
+        }.to raise_error Razor::IPMI::IPMIError, /output did not include power state/
+      end
     end
 
     ########################################################################

@@ -53,6 +53,22 @@ module Razor::IPMI
     guids.first.split(':').last.strip
   end
 
+  # query the current power state of the node; this does not track in-progress
+  # changes in state, which is a limitation of the IPMI tools, so will still
+  # show "on" while shutting down, or "off" while powering on.
+  def self.power_state(node)
+    output = run(node, 'power', 'status')
+    if match = /Chassis Power is (on|off)/.match(output)
+      match[1]
+    else
+      raise IPMIError(node, 'on?', "output did not include power state:\n#{output}")
+    end
+  end
+
+  def self.on?(node)
+    power_state(node) == 'on'
+  end
+
 
   private
   # given a node, execute the IPMI command, and either return the output, or
