@@ -142,6 +142,31 @@ EOT
       end
     end
 
+    describe "boot_from_device" do
+      it "should raise an error if a bad device name is passed" do
+        expect {
+          Razor::IPMI.boot_from_device(ipmi_node, 'cloud')
+        }.to raise_error Razor::IPMI::IPMIError, /device "cloud" is not valid/
+      end
+
+      Razor::IPMI::ValidBootDevices.each do |dev|
+        it "should return true if the boot device was set to #{dev}" do
+          fake_run("chassis bootdev #{dev}", "Set Boot Device to #{dev}\n", '')
+          Razor::IPMI.boot_from_device(ipmi_node, dev).should be_true
+        end
+      end
+
+      it "should report an error if the boot device is not set as expected" do
+        # I have no hardware that causes this report, and just made it up to
+        # exercise the code path; it may never happen, but I don't want to
+        # depend on that, because firmware.
+        fake_run("chassis bootdev pxe", "Set Boot Device to Network\n", '')
+        expect {
+          Razor::IPMI.boot_from_device(ipmi_node, 'pxe')
+        }.to raise_error Razor::IPMI::IPMIError, /system responded with boot device "Network" not "pxe"/
+      end
+    end
+
     ########################################################################
     # Support infrastructure for our external command execution.  Fun.
     FakeRunData = {}

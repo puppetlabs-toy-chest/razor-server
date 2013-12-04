@@ -61,7 +61,7 @@ module Razor::IPMI
     if match = /Chassis Power is (on|off)/.match(output)
       match[1]
     else
-      raise IPMIError(node, 'on?', "output did not include power state:\n#{output}")
+      raise IPMIError(node, 'power_state', "output did not include power state:\n#{output}")
     end
   end
 
@@ -70,8 +70,32 @@ module Razor::IPMI
   end
 
 
+  # This list is hard-coded from the set of boot device types that IPMItool
+  # knows about, which in turn comes from (and matches) the IPMI spec, so it
+  # shouldn't change any time soon.
+  ValidBootDevices = %w{none pxe disk safe diag cdrom bios floppy}
+
+  # Force a temporary boot device on the next restart; this can be used to
+  # request a system boot via PXE, or other targets.
+  def self.boot_from_device(node, device)
+    unless ValidBootDevices.include? device
+      raise IPMIError(node, 'boot_from_device', "device #{device.inspect} is not valid: #{ValidBootDevices.join(', ')}")
+    end
+
+    # @todo danielp 2013-12-04: we should probably support options here,
+    # I guess, like EFI boot, password bypass or lock, and verbose.
+    output = run(node, 'chassis', 'bootdev', device)
+    match = /Set Boot Device to (.+)/.match(output)
+    unless match[1] == device
+      raise IPMIError(node, 'boot_from_device', "system responded with boot device #{match[1].inspect} not #{device.inspect}")
+    end
+
+    return true
+  end
+
+
   private
-  # given a node, execute the IPMI command, and either return the output, or
+  # Given a node, execute the IPMI command, and either return the output, or
   # raise an exception if the command fails.  This handles all the setup, and
   # in future things like "retry with a fancier protocol", or "enable
   # automatic work-arounds", or whatever, required to make the command
