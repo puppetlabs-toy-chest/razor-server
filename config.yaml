@@ -1,0 +1,75 @@
+---
+# This is the configuration file for the Razor server. For each
+# environment, the file contains a hash of configuration values. The
+# special environment 'all' is used to set configuration values for all
+# environments
+#
+# The *database_url* setting must be a connection URL for
+# (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
+
+production:
+  database_url: 'jdbc:postgresql:razor_prd?user=razor&password=Password123'
+development:
+  database_url: 'jdbc:postgresql:razor_dev?user=razor&password=Password123'
+test:
+  database_url: 'jdbc:postgresql:razor_test?user=razor&password=Password123'
+all:
+  microkernel:
+    debug_level: debug
+    kernel_args:
+
+  # How to match nodes to possibly existing nodes in the database. The node
+  # sends us the MAC addresses of its network interfaces, serial number,
+  # asset tag, and UUID. We consider two nodes to be the same if they agree
+  # on any of the values named in the array +match_nodes_on+. Array entries
+  # can be any of 'mac', 'serial', 'asset', or 'uuid', in any order.
+  #
+  # Note that if you have nodes that have dummy values for one of these,
+  # e.g. that all have an asset tag of 'No asset tag' and +match_nodes_on+
+  # contains 'asset', all these nodes will be assumed to be the
+  # same. Better yet: make sure that +match_nodes_on+ does not contain
+  # 'asset' in that situation
+  #
+  # By default, we only match on MAC's, which is generally safe, but will
+  # cause trouble if the NIC's in a node are ever completely
+  # replaced. Consider adding one of the other possible values, e.g. 'uuid'
+  # to the array
+  match_nodes_on:
+    - mac
+  checkin_interval: 15
+  # Colon-separated list of paths; each entry must be a directory in which
+  # we should look for installers
+  installer_path: installers
+  repo_store_root: /var/lib/razor/repo-store
+  # The *broker_path* is a colon separated list of directories containing
+  # broker types
+  broker_path: brokers
+  facts:
+    # Facts that we should always ignore. These are stripped out before we
+    # do anything else with facts coming in from a node. Each entry in this
+    # array can either be a string (literal name of a fact) or a regexp
+    # enclosed in /../ where any fact that matches the regexp will be
+    # dropped
+    blacklist:
+      - domain
+      - filesystems
+      - fqdn
+      - hostname
+      - id
+      - /kernel.*/
+      - memoryfree
+      - memorysize
+      - memorytotal
+      - /operatingsystem.*/
+      - osfamily
+      - path
+      - ps
+      - rubysitedir
+      - rubyversion
+      - selinux
+      - sshdsakey
+      - /sshfp_[dr]sa/
+      - sshrsakey
+      - /swap.*/
+      - timezone
+      - /uptime.*/
