@@ -1,0 +1,20 @@
+#!ipxe
+echo <%= installer.label %> (Installed by Razor)
+echo Installation node: <%= node_url %>
+echo Installation repo: <%= repo_url %>
+
+sleep 3
+<%# FIXME: On most machines, doing exit here works best to boot locally, on %>
+<%# some it's necessary to say 'sanboot --no-describe --drive 0x80'; we     %>
+<%# need to figure out how to conditionalize the template to pick one or    %>
+<%# the other, depending on the node and the bugs in its BIOS (see          %>
+<%# http://ipxe.org/cmd/sanboot)                                            %>
+
+echo Continuing local boot
+<% if node.facts["virtual"] == "kvm" %>
+echo booting with sanboot
+sanboot --no-describe --drive 0x80
+<% end %>
+
+# exiting here with success will cause a globally successful boot
+exit 0

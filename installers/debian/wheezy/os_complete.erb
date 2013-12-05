@@ -1,0 +1,9 @@
+#!/bin/bash
+echo Razor policy successfully applied > /tmp/razor_complete.log
+echo Installed using <%= installer.label %> - <%= installer.description %> >> /tmp/razor_complete.log
+echo Repo: <%= repo_url %> >> /tmp/razor_complete.log
+echo Node: <%= node_url %> >> /tmp/razor_complete.log
+
+sed -i '/razor_postinstall/d' /etc/rc.local
+
+curl <%= broker_install_url %> | bash

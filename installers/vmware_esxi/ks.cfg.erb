@@ -1,0 +1,84 @@
+# Thanks to William Lam for being the guru
+accepteula
+rootpw --iscrypted <%=
+  if node.root_password =~ /^\$\d+\$[^$]*\$/
+    node.root_password
+  else
+    require 'unix_crypt'
+    # @todo danielp 2013-11-07: if ESXi supports a stronger algorithm, we
+    # should probably upgrade to using it in preference to MD5.  SHA512 is
+    # current state-of-the-art practice, elsewhere.
+    UnixCrypt::MD5.build(node.root_password)
+  end
+%>
+clearpart --firstdisk --overwritevmfs
+install --firstdisk --overwritevmfs
+# Set the network to DHCP on the first network adapater
+# @todo danielp 2013-10-11: this needs to support static mode too...
+network --bootproto=dhcp --device=vmnic0
+reboot
+
+# %include /tmp/networkconfig
+%pre --interpreter=busybox
+wget <%= stage_done_url("kickstart") %>
+
+# echo 'network --bootproto=static --addvmportgroup=false --device=vmnic0 --ip=<%= @node_ip_address %> --netmask=<%= @ip_range_subnet %> --gateway=<%= @gateway %> --nameserver=<%= @nameserver %> --hostname=<%= @node_hostname %>' > /tmp/networkconfig
+
+
+
+%firstboot --interpreter=busybox
+
+# wget <%= @api_svc_uri %>/policy/callback/<%= @policy_uuid %>/postinstall/end
+# enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
+grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config
+vim-cmd hostsvc/enable_ssh
+vim-cmd hostsvc/start_ssh
+
+# enable & start ESXi Shell (TSM)
+vim-cmd hostsvc/enable_esx_shell
+vim-cmd hostsvc/start_esx_shell
+
+esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1
+
+# rename local datastore to something more meaningful
+vim-cmd hostsvc/datastore/rename datastore1 "$(hostname -s)-local-storage-1"
+
+# assign license
+# vim-cmd vimsvc/license --set <%= @esx_license %>
+
+
+# change the individual syslog rotation count
+esxcli system syslog config logger set --id=hostd --rotate=20 --size=2048
+esxcli system syslog config logger set --id=vmkernel --rotate=20 --size=2048
+esxcli system syslog config logger set --id=fdm --rotate=20
+esxcli system syslog config logger set --id=vpxa --rotate=20
+
+### NTP CONFIGURATIONS ###
+# cat > /etc/ntp.conf << __NTP_CONFIG__
+# restrict default kod nomodify notrap noquerynopeer
+# restrict 127.0.0.1
+# server <%= @ntpserver %>
+# __NTP_CONFIG__
+# /sbin/chkconfig --level 345 ntpd on
+
+### FIREWALL CONFIGURATION ###
+
+# enable firewall
+esxcli network firewall set --default-action false --enabled yes
+
+# services to enable by default
+FIREWALL_SERVICES='syslog sshClient ntpClient updateManager httpClient netdump'
+for SERVICE in ${FIREWALL_SERVICES}; do
+    esxcli network firewall ruleset set --ruleset-id ${SERVICE} --enabled yes
+done
+
+# backup ESXi configuration to persist changes
+/sbin/auto-backup.sh
+
+# enter maintenance mode
+vim-cmd hostsvc/maintenance_mode_enter
+
+# copy %first boot script logs to persisted datastore
+cp /var/log/hostd.log "/vmfs/volumes/$(hostname -s)-local-storage-1/firstboot-hostd.log"
+cp /var/log/esxi_install.log "/vmfs/volumes/$(hostname -s)-local-storage-1/firstboot-esxi_install.log"
+reboot

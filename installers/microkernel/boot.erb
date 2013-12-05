@@ -1,0 +1,10 @@
+#!ipxe
+initrd <%= repo_url("/initrd0.img") %> || goto error
+
+kernel <%= repo_url("/vmlinuz0") %> rootflags=loop initrd=initrd0.img root=live:/microkernel.iso rootfstype=auto ro rd.live.image quiet acpi=force rd.luks=0 rd.md=0 rd.dm=0 <%= microkernel_kernel_args %> || goto error
+boot || goto error
+
+:error
+
+# timeout = <%= timeout = config["checkin_interval"] * 1000 %>
+prompt --key s --timeout <%= timeout %> ERROR, hit 's' for the iPXE shell; reboot in <%= timeout %> seconds && shell || reboot

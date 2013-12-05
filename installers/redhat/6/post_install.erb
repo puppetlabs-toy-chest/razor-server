@@ -1,0 +1,24 @@
+#!/bin/bash
+
+exec >> /var/log/razor.log 2>&1
+
+echo "Starting post_install"
+
+# Wait for network to come up when using NetworkManager.
+if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
+    nm-online -q --timeout=10 || nm-online -q -x --timeout=30
+    [ "$?" -eq 0 ] || exit 1
+fi
+
+<%= render_template("set_hostname") %>
+
+<%= render_template("store_ip") %>
+
+# @todo lutter 2013-09-12: we should register the system with RHN; be
+# careful though, since this file is also used by the CentOS installer, for
+# which there is no RHN registration
+
+<%= render_template("os_complete") %>
+
+# We are done
+curl -s <%= stage_done_url("finished") %>

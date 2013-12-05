@@ -1,0 +1,7 @@
+---
+
+os_version: none
+label: Noop installer
+description: This installer does nothing - it simply boots a system locally
+boot_sequence:
+  default: boot_local

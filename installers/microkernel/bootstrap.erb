@@ -1,0 +1,32 @@
+#!ipxe
+
+<%# There is no need to DHCP again if networking is up already. In certain %>
+<%# cases, it's outright problematic                                       %>
+<%# (see https://bugzilla.redhat.com/show_bug.cgi?id=1002734)              %>
+isset ${ip} || goto dhcp_net0
+set dhcp_mac ${mac:hexhyp}
+goto chain_boot
+
+<% @nic_max ||= 4 %>
+<% (1..@nic_max).each do |index| %>
+<% net_id = "net#{index - 1}" %>
+:dhcp_<%= net_id %>
+<% if index == @nic_max %>
+isset ${<%= net_id %>/mac} && dhcp <%= net_id %> || goto chain_boot
+<% else %>
+isset ${<%= net_id %>/mac} && dhcp <%= net_id %> || goto dhcp_net<%= index %>
+<% end %>
+echo <%= net_id %> has DHCP
+set dhcp_mac <%= net_id %>$${<%= net_id %>/mac:hexhyp}
+
+<% end %>
+
+:chain_boot
+chain <%= ipxe_boot_url %> || goto error
+echo successfully completed the chain-loaded script; booting locally with 'exit'
+exit
+
+:error
+echo error handler invoked; waiting one minute and rebooting
+sleep 60
+reboot

@@ -1,0 +1,7 @@
+<%# -*- shell-script -*- %>
+# Get current IP
+node_ip=$(ip addr show eth0 | awk '/inet / { sub("/[0-9]+$", "", $2); print $2 }')
+echo IP is $node_ip
+
+# Send IP up
+curl -s <%= store_url("ip" => "$node_ip") %>
