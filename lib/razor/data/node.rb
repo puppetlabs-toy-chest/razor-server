@@ -29,7 +29,12 @@ module Razor::Data
   end
 
   class Node < Sequel::Model
+
+    #See the method schema_type_class() for some special considerations
+    #regarding the use of serialization.
     plugin :serialization, :json, :facts
+    plugin :serialization, :json, :metadata
+
     plugin :typecast_on_load, :hw_info
 
     many_to_one :policy
@@ -39,6 +44,15 @@ module Razor::Data
     # checkin with the microkernel. These are not necessarily the same tags
     # that would apply if the node was matched right now
     many_to_many :tags
+
+    def around_save
+      #Re-eval the nodes tags if the metadata has changed.  We dont need
+      #this for new nodes or fact changes as they only occur/change on checkin
+      #which already triggers tag evaluation.
+      need_eval_tags = changed_columns.include?(:metadata)
+      super
+      publish('eval_tags') if need_eval_tags
+    end
 
     # Return a 'name'; for now this is a fixed generated string
     # @todo lutter 2013-08-30: figure out a way for users to control how
@@ -134,10 +148,13 @@ module Razor::Data
     # happens in the before_save hook, which runs after validation)
     #
     # To avoid spurious error messages, we tell the validation machinery to
-    # expect a Hash resp. an Array
+    # expect a Hash resp.
+    #
+    # Add the fields to be serialized to the 'serialized_fields' array
+    #
     # FIXME: Figure out a way to address this issue upstream
     def schema_type_class(k)
-      if k == :facts
+      if [ :facts, :metadata ].include?(k)
         Hash
       else
         super
@@ -169,16 +186,47 @@ module Razor::Data
       end
     end
 
-    # Update the tags for this node and try to bind a policy.
-    def match_and_bind
+    def eval_tags
       new_tags = Tag.match(self)
       (self.tags - new_tags).each { |t| self.remove_tag(t) }
       (new_tags - self.tags).each { |t| self.add_tag(t) }
+    end
+
+    # Update the tags for this node and try to bind a policy.
+    def match_and_bind
+      eval_tags
       Policy.bind(self)
     rescue Razor::Matcher::RuleEvaluationError => e
       log_append :severity => "error", :msg => e.message
       save
       raise e
+    end
+
+    # Modify metadata the API reciever does alot of sanity checking.
+    # Lets not do to much here and assume that internal use is done with
+    # intent.
+    def modify_metadata(data)
+      new_metadata = metadata
+
+      if data['update']
+        data['update'].is_a? Hash or raise ArgumentError, 'update must be a hash'
+        data['update'].each do |k,v|
+          new_metadata[k] = v
+        end
+      end
+      if data['remove']
+        data['remove'].is_a? Array or raise ArgumentError, 'remove must be an array'
+        data['remove'].each do |k,v|
+          new_metadata.delete(k)
+        end
+      end
+      if data['clear'] == true or data['clear'] == 'true'
+        new_metadata = Hash.new
+      end
+
+      self.metadata = new_metadata
+      save_changes
+      self
     end
 
     # Process a checkin for this node; +body+ must be a hash where

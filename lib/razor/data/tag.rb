@@ -19,7 +19,7 @@ class Razor::Data::Tag < Sequel::Model
   end
 
   def match?(node)
-    matcher.match?("facts" => node.facts)
+    matcher.match?("facts" => node.facts, "metadata" => node.metadata)
   end
 
   def self.match(node)

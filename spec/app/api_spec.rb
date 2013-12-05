@@ -585,6 +585,16 @@ describe "command and query API" do
             'minLength' => 0
           }
         },
+        'metadata' => {
+          '$schema'       => 'http://json-schema.org/draft-04/schema#',
+          'type'          => 'object',
+          'minProperties' => 0,
+          'additionalProperties' => {
+            '$schema'   => 'http://json-schema.org/draft-04/schema#',
+            'type'      => 'string',
+            'minLength' => 0
+          }
+        },
         'hostname' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',

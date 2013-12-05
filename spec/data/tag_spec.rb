@@ -5,6 +5,7 @@ describe Razor::Data::Tag do
 
   class MockNode
     attr_reader :facts
+    attr_reader :metadata
 
     def initialize(facts)
       @facts = facts

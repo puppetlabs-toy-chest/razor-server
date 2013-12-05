@@ -320,6 +320,38 @@ You *must* provide an IPMI hostname if you provide either a username or
 password, since we only support remote, not local, communication with the
 IPMI target.
 
+### Modify Node Metadata
+
+Node metadata is similar to a nodes facts except metadata is what the
+administrators tell Razor about the node rather than what the node tells
+Razor about itself.
+
+Metadata is a collection of key => value pairs (like facts).  Use the
+ `modify-node-metadata` command to add/update, remove or clear a node's
+metadata.  The request should look like:
+
+    {
+        'node': 'node1',
+        'update': {                         # Add or update these keys
+            'key1': 'value1',
+            'key2': 'value2',
+            ...
+        }
+        'remove': [ 'key3', 'key4', ... ],  # Remove these keys
+    }
+
+or
+
+    {
+        'node': 'node1',
+        'clear': true                       # Clear all metadata
+    }
+
+As above, multiple update and/or removes can be done in the one command,
+however, clear can only be done on its own (it doesnt make sense to
+update some details and then clear everything).  An error will also be
+returned if an attempt is made to update and remove the same key.
+
 ## Collections
 
 Along with the list of supported commands, a `GET /api` request returns a list

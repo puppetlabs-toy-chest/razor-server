@@ -518,6 +518,33 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  command :modify_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['update'] or data['remove'] or data['clear'] or error 400,
+      :error => 'must supply at least one opperation'
+
+    if data['clear'] and (data['update'] or data['remove'])
+      error 400, :error => 'clear cannot be used with update or remove'
+    end
+
+    if data['clear']
+      data['clear'] == true or data['clear'] == 'true' or error 400,
+        :error => "clear must be boolean true or string 'true'"
+    end
+
+    if data['update'] and data['remove']
+      data['update'].keys.concat(data['remove']).uniq! and error 400,
+        :error => 'cannot update and remove the same key'
+    end
+
+    if node = Razor::Data::Node.find_by_name(data.delete('node'))
+      node.modify_metadata(data)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
   command :unbind_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"

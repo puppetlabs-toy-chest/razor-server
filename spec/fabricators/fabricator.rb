@@ -65,10 +65,29 @@ Fabricator(:node_with_facts, :class_name => Razor::Data::Node) do
   facts   { { "f1" => "a" } }
 end
 
+Fabricator(:node_with_metadata, :class_name => Razor::Data::Node) do
+  hw_info  { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+  metadata { { "m1" => "a" } }
+end
+
 Fabricator(:bound_node, from: :node) do
   policy
 
   facts do
+    data = {}
+    20.times do
+      data[Faker::Lorem.word] = case Random.rand(4)
+                                when 0 then Faker::Lorem.word
+                                when 1 then Random.rand(2**34).to_s
+                                when 2 then random_version
+                                when 3 then 'true'
+                                else raise "unexpected random number!"
+                                end
+    end
+    data
+  end
+
+  metadata do
     data = {}
     20.times do
       data[Faker::Lorem.word] = case Random.rand(4)

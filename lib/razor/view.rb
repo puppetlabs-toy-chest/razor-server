@@ -121,11 +121,12 @@ module Razor
                             :name => "log" },
         :tags          => node.tags.map { |t| view_object_reference(t) },
         :facts         => node.facts,
+        :metadata      => node.metadata,
         :hostname      => node.hostname,
         :root_password => node.root_password,
         :ip_address    => node.ip_address,
         :last_checkin  => last_checkin_s
-      ).delete_if {|k,v| v.nil? }
+      ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
   end
 end
