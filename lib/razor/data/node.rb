@@ -289,5 +289,23 @@ module Razor::Data
       self.last_power_state_update_at = Time.now()
       super(what)
     end
+
+    # Poll for the IPMI power state of this node, and update the last
+    # known state.  This is a synchronous function, and is expected to be
+    # called from a background processing queue.
+    #
+    # We update our power state regardless of the outcome, including setting
+    # it to "unknown" on failures of the IPMI code, though not on failures
+    # like command execution blowing up.
+    def update_power_state!
+      begin
+        self.last_known_power_state = Razor::IPMI.on?(self)
+      rescue Razor::IPMI::IPMIError
+        self.last_known_power_state = nil
+        raise
+      ensure
+        self.save_changes
+      end
+    end
   end
 end

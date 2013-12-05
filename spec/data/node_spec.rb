@@ -464,5 +464,108 @@ describe Razor::Data::Node do
         end
       end
     end
+
+    describe "update_power_state!" do
+      before :each do
+        node.update(:ipmi_hostname => Faker::Internet.domain_name).save
+      end
+
+      let :prehistory do Time.at(-446061360) end
+      let :thefuture  do Time.at(1445480880) end
+
+
+      # @todo danielp 2013-12-05: this stubs the IPMI on? question, which is
+      # kinda tied to implementation.  The alternative would be to stub out
+      # run, or the power state query mechanism, both of which are about as
+      # tied to implementation, so I don't feel too bad about this...
+
+      { 'on' => true, 'off' => false }.each do |name, value|
+        it "should update the power state if the machine is #{name}" do
+          Razor::IPMI.stub(:on?).and_return(value)
+
+          Timecop.freeze(prehistory) do
+            node.last_known_power_state.should be_nil
+            node.last_power_state_update_at.should be_nil
+
+            node.update_power_state!
+
+            node.last_known_power_state.should(value ? be_true : be_false)
+            node.last_power_state_update_at.should == prehistory
+          end
+        end
+      end
+
+      it "should update the power state if the same answer is gotten twice" do
+        Razor::IPMI.stub(:on?).and_return(true)
+
+        Timecop.freeze(prehistory) do
+          node.last_known_power_state.should be_nil
+          node.last_power_state_update_at.should be_nil
+
+          node.update_power_state!
+
+          node.last_known_power_state.should be_true
+          node.last_power_state_update_at.should == prehistory
+
+          Timecop.freeze(thefuture) do
+            node.update_power_state!
+            node.last_known_power_state.should be_true
+            node.last_power_state_update_at.should == thefuture
+          end
+        end
+      end
+
+      it "should update the power state to unknown and reraise if an IPMI error occurs" do
+        Razor::IPMI.stub(:on?).and_return(true)
+
+        Timecop.freeze(prehistory) do
+          node.last_known_power_state.should be_nil
+          node.last_power_state_update_at.should be_nil
+
+          node.update_power_state!
+
+          node.last_known_power_state.should be_true
+          node.last_power_state_update_at.should == prehistory
+
+          Timecop.freeze(thefuture) do
+            exception = Razor::IPMI::IPMIError(node, 'power_state', 'fake failure mode')
+            Razor::IPMI.stub(:on?).and_raise(exception)
+
+            expect {
+              node.update_power_state!
+            }.to raise_error exception.class, exception.message
+
+            node.last_known_power_state.should be_nil
+            node.last_power_state_update_at.should == thefuture
+          end
+        end
+      end
+
+      it "should not update the power state if a non-IPMI error occurs" do
+        Razor::IPMI.stub(:on?).and_return(true)
+
+        Timecop.freeze(prehistory) do
+          node.last_known_power_state.should be_nil
+          node.last_power_state_update_at.should be_nil
+
+          node.update_power_state!
+
+          node.last_known_power_state.should be_true
+          node.last_power_state_update_at.should == prehistory
+
+          Timecop.freeze(thefuture) do
+            exception = RuntimeError.new('this is your banana flavoured friend')
+            Razor::IPMI.stub(:on?).and_raise(exception)
+
+            expect {
+              node.update_power_state!
+            }.to raise_error exception.class, exception.message
+
+            node.last_known_power_state.should be_true
+            node.last_power_state_update_at.should == prehistory
+          end
+        end
+      end
+    end
   end
 end
