@@ -56,6 +56,10 @@ Fabricator(:node, :class_name => Razor::Data::Node) do
   hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
 end
 
+Fabricator(:node_with_ipmi, class_name: Razor::Data::Node, from: :node) do
+  ipmi_hostname { Faker::Internet.domain_name }
+end
+
 Fabricator(:node_with_facts, :class_name => Razor::Data::Node) do
   hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
   facts   { { "f1" => "a" } }
