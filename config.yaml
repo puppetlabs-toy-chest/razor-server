@@ -8,11 +8,11 @@
 # (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
 
 production:
-  database_url: 'jdbc:postgresql:razor_prd?user=razor&password=Password123'
+  database_url: 'jdbc:postgresql:razor_prd?user=razor&password=Password123$'
 development:
-  database_url: 'jdbc:postgresql:razor_dev?user=razor&password=Password123'
+  database_url: 'jdbc:postgresql:razor_dev?user=razor&password=Password123$'
 test:
-  database_url: 'jdbc:postgresql:razor_test?user=razor&password=Password123'
+  database_url: 'jdbc:postgresql:razor_test?user=razor&password=Password123$'
 all:
   microkernel:
     debug_level: debug
