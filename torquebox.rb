@@ -22,4 +22,12 @@ TorqueBox.configure do
       xa           false
     end
   end
+
+  # The naming is because we want the filename to be `ipmi.rb`.
+  job Razor::ScheduledJobs::Ipmi do
+    description 'IPMI power state poller'
+    cron        '0 */5 * * * ?'
+    # Only run on one node across a cluster, if you set one up.
+    singleton    true
+  end
 end
