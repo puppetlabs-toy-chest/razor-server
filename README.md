@@ -21,7 +21,7 @@ of ESX systems).
 This is a [0.x release](http://semvber.org); that means that we might make
 backwards incompatible changes, especially to the database schema which
 would force you to rebuild all the machines that Razor is managing. The
-current code base is perfectlt suitable for evaluation and smaller lab
+current code base is perfectly suitable for evaluation and smaller lab
 setups but not for production use.
 
 ## Getting in touch
