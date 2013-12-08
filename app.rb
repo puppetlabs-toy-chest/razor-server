@@ -102,6 +102,24 @@ class Razor::App < Sinatra::Base
       url "/svc/store/#{@node.id}?#{q}"
     end
 
+    def store_metadata_url(vars)
+      #vars should be a hash with update and remove keys.
+      q = vars.map { |k,v| 
+        if k == 'update' and v.is_a? Hash
+          v.map { |key,val|
+           "#{key}=#{val}"
+          }.join("&")
+        elsif k == 'remove' and v.is_a? Array
+          v.map { |r|
+            "remove[]=#{r}" 
+          }.join("&")
+        else
+          halt 404, "store_metadata_url must include update and/or remove keys"
+        end
+      }.join("&")
+      url "/svc/store_metadata/#{@node.id}?#{q}"
+    end
+
     def broker_install_url
       url "/svc/broker/#{@node.id}/install"
     end
@@ -374,6 +392,24 @@ class Razor::App < Sinatra::Base
     node.ip_address = params[:ip]
     node.log_append(:event => :store, :vars => { :ip => params[:ip] })
     node.save
+    [204, {}]
+  end
+
+  get '/svc/store_metadata/:node_id' do
+    #Clean the params.
+    params.delete('splat')
+    params.delete('captures')
+
+    id = params.delete('node_id')
+    node = Razor::Data::Node[id]
+    halt 404 unless node
+
+    modify_data = Hash.new
+    modify_data['remove'] = params.delete('remove') unless params['delete'].nil?
+    modify_data['update'] = params unless params.nil?
+    
+    node.modify_metadata(modify_data)
+    node.log_append(:event => :store_metadata, :vars => modify_data )
     [204, {}]
   end
 
