@@ -554,6 +554,43 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  # Update/add specific metadata key (works with GET)
+  command :update_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['key'] or error 400,
+      :error => 'must supply key'
+    data['value'] or error 400,
+      :error => 'must supply value'
+
+    if node = Razor::Data::Node.find_by_name( data['node'] )
+      operation = { 'update' => { data['key'] => data['value'] } }
+      node.modify_metadata(operation)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
+  # Remove a specific key or remove all (works with GET)
+  command :remove_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
+      :error => 'must supply key or set all to true'
+
+    if node = Razor::Data::Node.find_by_name( data['node'] )
+      if data['key']
+        operation = { 'remove' => [ data['key'] ] }
+      else
+        operation = { 'clear' => true }
+      end
+      node.modify_metadata(operation)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
+  # Take a bulk operation via POST'ed JSON
   command :modify_node_metadata do |data|
     data['node'] or error 400,
       :error => 'must supply node'
