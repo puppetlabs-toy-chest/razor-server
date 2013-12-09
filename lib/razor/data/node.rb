@@ -32,13 +32,16 @@ module Razor::Data
     plugin :serialization, :json, :facts
     plugin :typecast_on_load, :hw_info
 
-    many_to_one :policy
+    many_to_one :bound_policy, :class=>"Razor::Data::Policy", :key=>:policy_id
     one_to_many :node_log_entries
 
     # The tags that were applied to this node the last time it did a
     # checkin with the microkernel. These are not necessarily the same tags
     # that would apply if the node was matched right now
     many_to_many :tags
+
+    #Policies to which this node is directly matchable.
+    many_to_many :policies, :join_table => :policies_nodes
 
     # Return a 'name'; for now this is a fixed generated string
     # @todo lutter 2013-08-30: figure out a way for users to control how
@@ -69,7 +72,7 @@ module Razor::Data
     end
 
     def installer
-      policy ? policy.installer : Razor::Installer.mk_installer
+      bound_policy ? bound_policy.installer : Razor::Installer.mk_installer
     end
 
     def domainname
@@ -80,6 +83,13 @@ module Razor::Data
     def shortname
       return nil if hostname.nil?
       hostname.split(".").first
+    end
+
+    #Support backwards compatibility after renaming model association for
+    #one-to-many with policies to bound_policy. This is mostly for installer
+    #templates.  The internal code should be referencing bound_node direct
+    def policy
+      bound_policy
     end
 
     # Retrive the entire log for this node as an array of hashes, ordered
@@ -123,7 +133,7 @@ module Razor::Data
     end
 
     def bind(policy)
-      self.policy = policy
+      self.bound_policy = policy
       self.boot_count = 1
       self.root_password = policy.root_password
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
@@ -194,9 +204,9 @@ module Razor::Data
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
       action = :none
-      match_and_bind unless policy
-      if policy
-        log_append(:action => :reboot, :policy => policy.name)
+      match_and_bind unless bound_policy
+      if bound_policy
+        log_append(:action => :reboot, :policy => bound_policy.name)
         action = :reboot
       end
       save_changes

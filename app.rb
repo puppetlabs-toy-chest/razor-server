@@ -261,8 +261,8 @@ class Razor::App < Sinatra::Base
 
     @installer = @node.installer
 
-    if @node.policy
-      @repo = @node.policy.repo
+    if @node.bound_policy
+      @repo = @node.bound_policy.repo
     else
       # @todo lutter 2013-08-19: We have no policy on the node, and will
       # therefore boot into the MK. This is a gigantic hack; all we need is
@@ -291,10 +291,10 @@ class Razor::App < Sinatra::Base
     @node = Razor::Data::Node[params[:node_id]]
     halt 404 unless @node
 
-    halt 409 unless @node.policy
+    halt 409 unless @node.bound_policy
 
     @installer = @node.installer
-    @repo = @node.policy.repo
+    @repo = @node.bound_policy.repo
 
     @node.log_append(:event => :get_raw_file, :template => params[:filename],
                      :url => request.url)
@@ -309,10 +309,10 @@ class Razor::App < Sinatra::Base
     @node = Razor::Data::Node[params[:node_id]]
     halt 404 unless @node
 
-    halt 409 unless @node.policy
+    halt 409 unless @node.bound_policy
 
     @installer = @node.installer
-    @repo = @node.policy.repo
+    @repo = @node.bound_policy.repo
 
     @node.log_append(:event => :get_file, :template => params[:template],
                      :url => request.url)
@@ -325,10 +325,10 @@ class Razor::App < Sinatra::Base
   get '/svc/broker/:node_id/install' do
     node = Razor::Data::Node[params[:node_id]]
     halt 404 unless node
-    halt 409 unless node.policy
+    halt 409 unless node.bound_policy
 
     content_type 'text/plain'   # @todo danielp 2013-09-24: ...or?
-    node.policy.broker.install_script_for(node)
+    node.bound_policy.broker.install_script_for(node)
   end
 
   get '/svc/log/:node_id' do
@@ -489,10 +489,10 @@ class Razor::App < Sinatra::Base
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
     if node = Razor::Data::Node.find_by_name(data['name'])
-      if node.policy
-        policy_name = node.policy.name
+      if node.bound_policy
+        policy_name = node.bound_policy.name
         node.log_append(:event => :unbind, :policy => policy_name)
-        node.policy = nil
+        node.bound_policy = nil
         node.save
         action = "node unbound from #{policy_name}"
       else
@@ -572,6 +572,14 @@ class Razor::App < Sinatra::Base
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
 
+    nodes = (data.delete("nodes") || []).map do |n|
+      if id = n.match(/^\s*(?:node)?(\d+)\s*$/i)[1].to_i
+        Razor::Data::Node[ :id => id ]
+      else
+        error 400, :error => 'Nodes to be assigned directly to a policy must be in the form of node{id} or just {id}'
+      end
+    end
+
     if data["repo"]
       name = data["repo"]["name"] or
         error 400, :error => "The repo reference must have a 'name'"
@@ -592,6 +600,7 @@ class Razor::App < Sinatra::Base
     data["hostname_pattern"] = data.delete("hostname")
 
     policy = Razor::Data::Policy.new(data).save
+    nodes.each { |n| policy.add_node(n) }
     tags.each { |t| policy.add_tag(t) }
     policy.save
 
@@ -607,6 +616,56 @@ class Razor::App < Sinatra::Base
     policy.save
 
     { :result => "Policy #{policy.name} #{verb}d" }
+  end
+
+  command :add_policy_node do |data|
+    data['name'] or error 400,
+      :error => "Supply policy name to which the node is to be added"
+    data['node'] or error 400,
+      :error => "Supply the node you which to add"
+
+    node_id = data['node'].match(/^\s*(?:node)?(\d+)\s*$/i)[1].to_i or
+      error 400, :error => "Node must be supplied as 'node{id}' or simply {id}"
+
+    policy = Razor::Data::Policy[:name => data['name']] or error 404,
+      :error => "Policy #{data['name']} does not exist"
+    node = Razor::Data::Node[ :id => node_id ] or error 404,
+      :error => "Node #{data['node']} does not exist"
+
+    unless policy.nodes.include?(node)
+      policy.add_node(node)
+      policy
+    else
+      action = "Node #{data['node']} already on policy #{data['name']}"
+      { :result => action }
+    end
+  end
+
+  command :remove_policy_node do |data|
+    data['name'] or error 400,
+      :error => "Supply policy name to which the tag is to be added"
+    data['node'] or error 400,
+      :error => "Supply the node you which to remove"
+
+    node_id = data['node'].match(/^\s*(?:node)?(\d+)\s*$/i)[1].to_i or
+      error 400, :error => "Node must be supplied as 'node{id}' or simply {id}"
+
+    policy = Razor::Data::Policy[:name => data['name']] or error 404,
+      :error => "Policy #{data['name']} does not exist"
+    node = Razor::Data::Node[ :id => node_id ]
+
+    if node
+      if policy.nodes.include?(node)
+        policy.remove_node(node)
+        policy
+      else
+        action = "Node #{data['node']} was not on policy #{data['name']}"
+        { :result => action }
+      end
+    else
+      action = "Node #{data['node']} was not on policy #{data['name']}"
+      { :result => action }
+    end
   end
 
   command :enable_policy do |data|
