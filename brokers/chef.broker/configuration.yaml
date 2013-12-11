@@ -1,0 +1,17 @@
+---
+install_sh:
+  description: "Omnibus installer script URL. (example: http://mirror.example.com/install.sh) default: http://opscode.com/chef/install.sh"
+version_string:
+  description: "Chef version (used in gem install). (example: 11.4.4)"
+validation_key:
+  description: "Contents of the validation.pem file. Since this is json file, please make it one line no spaces..."
+chef_server_url:
+  description: "URL for the Chef server. (example: https://mychefserver.com:443)"
+validation_client_name:
+  description: "Validation client name. (example: myorg-validator) default: chef-validator"
+run_list:
+  descriptoin: "Optional run_list of common base roles. (example: role[base],role[another])"
+environment:
+  description: "Chef environment in which the chef-client will run. (example: production). Use _default if not using any specific envirenments."
+chef_client:
+  description: "An alternate path to the chef-client binary. (example: /usr/local/bin/chef-client) default: chef-client"

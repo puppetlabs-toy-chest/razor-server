@@ -1,0 +1,15 @@
+{
+    "name": "openstack_chef_broker",
+    "configuration": {
+        "install_sh": "http://opscode.com/chef/install.sh",
+        "version_string": "11.4.4",
+        "chef_server_url": "https://chef.example.com:443",
+        "validation_client_name": "chef-validator",
+        "run_list": "role[allinone]",
+        "environment": "openstack",
+        "chef_client": "chef-client",
+	"validation_key": "MIIok0h+mSHr1Pbi+v2950H1/7mzd71hXAcRHbmrdytAR+RjgtyibkkZTdSxjLP6o2qEuji0I7DL8cckHG56AvuAKhYoadu+9J/2ahmYr18CSqOmg4Sbh6CPm5edpqaAVTbE3Ec+1wN0IMl8KWtmGCrjpXzH1MDdaLZpIIYqC9DUVgLbd/i61hbiiYlky5wPdIKlKwilRl7alfsGKTUrVq1DuYiIZsDYrnYoLOERbzZU6yUxWSIasfVPJGpT9LvstChFjyjv/73etmhXwwIDAQABAoIBAHH1p1upllVJNMSAhSmLZfTe6Q9nT8unRFH1egcsni8dPXYyVzDQ1ztV3RFNDLjP01ZThqkjoA4TnkHvRnC90yR049eQNxn+7pctcTNW61aAglomMhBcFt7LlcDiiXfD3dVhoIDv4ijpfsNCDvEVain9Dv+krjGVP+dWKLKr2azZbrAnyJKJjKb8DkwFET7UADFgUiCwJCW7RyAAxL40WE1hyYGq03cum5+M+2MGTcCiiAumqIRjYyTioNl73zf/ckBKRBNb6DkVGa1drAwXqMtA0MAaJlQBoJJF9SehSf7rAKVMvQ+esS9kNXZhECgYEA28FKbU3K4mU2khZ8lJgomfelWV48sjeIH3OEuLK7WdKg2LAnNajiLAOHYi0egKiMJPnNyZ8uvOY0JABLHQXv10QKaNlHGqy+aRiRSb1Ya6SlbCg8hMoT29yWGa8k7AclLJSn20/dg0GAEQtegi/k3EEZq0CgYEA148QtVh4ng80d9P81rJEDkraAkKUNJPHBSKFqo1rNwSDsyxxTEXIzZSPYS1mjsdB4IxraiNm3WDhb+EldcSlXvmBDjYJck1WyLCw1JuyAS2VCEtdc38aPWGYZ157decuzkR8CU2TKw48KGSRTtwL8yYqTknqpAmnqf/KkWfVNi8CgYEA1a0AnX+Cwtf/U9UhlarN78fosxj6k5+DcHF2n9DKcvBnDctalMZ+BKX5wfB1NEyu2FU9T8rEO1DragYPA01+hCXYqVJ73OgSzUXiH31IuIID9u/0LyseTWOWoIxWJzdTh44xJ+wJlwNuYXxgjgVGaVZk2niXWTLxtTNEdCz0RpECgYAlholhGIq+8WSv656bfaMtXciAFjkYwhUmhrEAVOgyRr3qpjT/EzL23wLq5u1ws617OtbEPm984I2+XVKZIuerFgJqh+uzE1WlUGUoTgZ6AAZu0DfvkFPwFZpjfGY/y0QxsmhpcjDJkQvV+FP3h4UpCh7ZTDLl5axjgt0v3QSYDwKBgFde/5TO8N8U6lHr1YX+yY8wbQ9sVWPU8qruL5Qx11an1tm9Ja1Wbg8Sn0/A7h7Y331V4cDmVraUreULiTQwSO7N26IxQ3Rg/MQG3szUgP0MWYmjuG0c8zaFB73rnBpZ8xakF/xcRTt2Pb62dkw1VqFhzNc50bN+QvGmtEosIB9z"
+
+},
+    "broker-type": "chef"
+}
