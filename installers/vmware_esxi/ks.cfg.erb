@@ -27,10 +27,13 @@ wget <%= stage_done_url("kickstart") %>
 
 
 %firstboot --interpreter=busybox
+# set the hostname correctly before we do anythig else
+esxcli system hostname set --fqdn <%= node.hostname %>
 
-# wget <%= @api_svc_uri %>/policy/callback/<%= @policy_uuid %>/postinstall/end
 # enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
 grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config
+
+# enable SSH support
 vim-cmd hostsvc/enable_ssh
 vim-cmd hostsvc/start_ssh
 
