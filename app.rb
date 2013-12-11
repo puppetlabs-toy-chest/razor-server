@@ -702,7 +702,7 @@ class Razor::App < Sinatra::Base
     check_permissions! "commands:update-tag-rule:#{data['name']}"
 
     data["name"] or
-      error 400, :error => "Supply a name to indicate which tag to delete"
+      error 400, :error => "Supply a name to indicate which tag to update"
     data["rule"] or
       error 400, :error => "Supply a new rule for tag #{data["name"]}"
     tag = Razor::Data::Tag[:name => data["name"]] or
