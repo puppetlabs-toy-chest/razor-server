@@ -381,7 +381,7 @@ class Razor::App < Sinatra::Base
     halt 404 unless node
 
     modify_data = Hash.new
-    modify_data['remove'] = params.delete('remove') unless params['delete'].nil?
+    modify_data['remove'] = params.delete('remove') unless params['remove'].nil?
     modify_data['update'] = params unless params.nil?
     
     node.modify_metadata(modify_data)
@@ -530,8 +530,15 @@ class Razor::App < Sinatra::Base
     data['value'] or error 400,
       :error => 'must supply value'
 
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
+    end
+
     if node = Razor::Data::Node.find_by_name( data['node'] )
       operation = { 'update' => { data['key'] => data['value'] } }
+      operation['no_replace'] = true unless operation['no_replace'].nil?
+
       node.modify_metadata(operation)
     else
       error 400, :error => "Node #{data['node']} not found"
@@ -571,6 +578,11 @@ class Razor::App < Sinatra::Base
     if data['clear']
       data['clear'] == true or data['clear'] == 'true' or error 400,
         :error => "clear must be boolean true or string 'true'"
+    end
+
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
     end
 
     if data['update'] and data['remove']
@@ -694,7 +706,6 @@ class Razor::App < Sinatra::Base
     policy = Razor::Data::Policy.new(data).save
     tags.each { |t| policy.add_tag(t) }
     policy.save
-
     policy
   end
 

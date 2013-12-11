@@ -5,6 +5,27 @@ module Razor::Data
     many_to_one  :repo
     many_to_many :tags
     many_to_one  :broker
+    
+    plugin :serialization, :json, :node_metadata
+
+    # This is a hack around the fact that the auto_validates plugin does
+    # not play nice with the JSON serialization plugin (the serializaton
+    # happens in the before_save hook, which runs after validation)
+    #
+    # To avoid spurious error messages, we tell the validation machinery to
+    # expect a Hash resp.
+    #
+    # Add the fields to be serialized to the 'serialized_fields' array
+    #
+    # FIXME: Figure out a way to address this issue upstream
+    def schema_type_class(k)
+      if [ :node_metadata ].include?(k)
+        Hash
+      else
+        super
+      end
+    end
+
 
     def installer
       Razor::Installer.find(installer_name)

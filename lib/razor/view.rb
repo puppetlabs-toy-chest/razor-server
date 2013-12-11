@@ -60,7 +60,8 @@ module Razor
         },
         :rule_number => policy.rule_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
-      })
+        :node_metadata => policy.node_metadata || {}
+      }).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
 
     def tag_hash(tag)
