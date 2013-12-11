@@ -78,6 +78,24 @@ class Razor::App < Sinatra::Base
       url "/svc/store/#{@node.id}?#{q}"
     end
 
+    def store_metadata_url(vars)
+      #vars should be a hash with update and remove keys.
+      q = vars.map { |k,v| 
+        if k == 'update' and v.is_a? Hash
+          v.map { |key,val|
+           "#{key}=#{val}"
+          }.join("&")
+        elsif k == 'remove' and v.is_a? Array
+          v.map { |r|
+            "remove[]=#{r}" 
+          }.join("&")
+        else
+          halt 404, "store_metadata_url must include update and/or remove keys"
+        end
+      }.join("&")
+      url "/svc/store_metadata/#{@node.id}?#{q}"
+    end
+
     def broker_install_url
       url "/svc/broker/#{@node.id}/install"
     end
@@ -353,6 +371,24 @@ class Razor::App < Sinatra::Base
     [204, {}]
   end
 
+  get '/svc/store_metadata/:node_id' do
+    #Clean the params.
+    params.delete('splat')
+    params.delete('captures')
+
+    id = params.delete('node_id')
+    node = Razor::Data::Node[id]
+    halt 404 unless node
+
+    modify_data = Hash.new
+    modify_data['remove'] = params.delete('remove') unless params['remove'].nil?
+    modify_data['update'] = params unless params.nil?
+    
+    node.modify_metadata(modify_data)
+    node.log_append(:event => :store_metadata, :vars => modify_data )
+    [204, {}]
+  end
+
   get '/svc/stage-done/:node_id' do
     Razor::Data::Node.stage_done(params[:node_id], params[:name])
     [204, {}]
@@ -485,6 +521,82 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  # Update/add specific metadata key (works with GET)
+  command :update_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['key'] or error 400,
+      :error => 'must supply key'
+    data['value'] or error 400,
+      :error => 'must supply value'
+
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
+    end
+
+    if node = Razor::Data::Node.find_by_name( data['node'] )
+      operation = { 'update' => { data['key'] => data['value'] } }
+      operation['no_replace'] = true unless operation['no_replace'].nil?
+
+      node.modify_metadata(operation)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
+  # Remove a specific key or remove all (works with GET)
+  command :remove_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
+      :error => 'must supply key or set all to true'
+
+    if node = Razor::Data::Node.find_by_name( data['node'] )
+      if data['key']
+        operation = { 'remove' => [ data['key'] ] }
+      else
+        operation = { 'clear' => true }
+      end
+      node.modify_metadata(operation)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
+  # Take a bulk operation via POST'ed JSON
+  command :modify_node_metadata do |data|
+    data['node'] or error 400,
+      :error => 'must supply node'
+    data['update'] or data['remove'] or data['clear'] or error 400,
+      :error => 'must supply at least one opperation'
+
+    if data['clear'] and (data['update'] or data['remove'])
+      error 400, :error => 'clear cannot be used with update or remove'
+    end
+
+    if data['clear']
+      data['clear'] == true or data['clear'] == 'true' or error 400,
+        :error => "clear must be boolean true or string 'true'"
+    end
+
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
+    end
+
+    if data['update'] and data['remove']
+      data['update'].keys.concat(data['remove']).uniq! and error 400,
+        :error => 'cannot update and remove the same key'
+    end
+
+    if node = Razor::Data::Node.find_by_name(data.delete('node'))
+      node.modify_metadata(data)
+    else
+      error 400, :error => "Node #{data['node']} not found"
+    end
+  end
+
   command :unbind_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
@@ -594,7 +706,6 @@ class Razor::App < Sinatra::Base
     policy = Razor::Data::Policy.new(data).save
     tags.each { |t| policy.add_tag(t) }
     policy.save
-
     policy
   end
 

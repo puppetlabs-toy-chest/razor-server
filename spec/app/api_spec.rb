@@ -99,10 +99,14 @@ describe "command and query API" do
     end
 
     it "should have the right keys" do
+      pl.max_count = 10
+      pl.node_metadata = { "key1" => "val1" }
+      pl.save
+
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer broker]
+      policy.keys.should =~ %w[name id spec configuration enabled max_count rule_number repo tags installer broker node_metadata]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
@@ -575,6 +579,16 @@ describe "command and query API" do
           '$schema'       => 'http://json-schema.org/draft-04/schema#',
           'type'          => 'object',
           'minProperties' => 1,
+          'additionalProperties' => {
+            '$schema'   => 'http://json-schema.org/draft-04/schema#',
+            'type'      => 'string',
+            'minLength' => 0
+          }
+        },
+        'metadata' => {
+          '$schema'       => 'http://json-schema.org/draft-04/schema#',
+          'type'          => 'object',
+          'minProperties' => 0,
           'additionalProperties' => {
             '$schema'   => 'http://json-schema.org/draft-04/schema#',
             'type'      => 'string',

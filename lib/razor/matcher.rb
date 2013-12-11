@@ -51,17 +51,18 @@ class Razor::Matcher
       }.freeze
 
     ATTRS = {
-        "and"  => {:expects => [Boolean],         :returns => Boolean },
-        "or"   => {:expects => [Boolean],         :returns => Boolean },
-        "fact" => {:expects => [[String], Mixed], :returns => Mixed   },
-        "eq"   => {:expects => [Mixed],           :returns => Boolean },
-        "neq"  => {:expects => [Mixed],           :returns => Boolean },
-        "in"   => {:expects => [Mixed],           :returns => Boolean },
-        "num"  => {:expects => [Mixed],           :returns => Number  },
-        "gte"  => {:expects => [[Numeric]],       :returns => Boolean },
-        "gt"   => {:expects => [[Numeric]],       :returns => Boolean },
-        "lte"  => {:expects => [[Numeric]],       :returns => Boolean },
-        "lt"   => {:expects => [[Numeric]],       :returns => Boolean },
+        "and"      => {:expects => [Boolean],         :returns => Boolean },
+        "or"       => {:expects => [Boolean],         :returns => Boolean },
+        "fact"     => {:expects => [[String], Mixed], :returns => Mixed   },
+        "metadata" => {:expects => [[String], Mixed], :returns => Mixed   },
+        "eq"       => {:expects => [Mixed],           :returns => Boolean },
+        "neq"      => {:expects => [Mixed],           :returns => Boolean },
+        "in"       => {:expects => [Mixed],           :returns => Boolean },
+        "num"      => {:expects => [Mixed],           :returns => Number  },
+        "gte"      => {:expects => [[Numeric]],       :returns => Boolean },
+        "gt"       => {:expects => [[Numeric]],       :returns => Boolean },
+        "lte"      => {:expects => [[Numeric]],       :returns => Boolean },
+        "lt"       => {:expects => [[Numeric]],       :returns => Boolean },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -86,7 +87,15 @@ class Razor::Matcher
       case
       when @values["facts"].include?(args[0]) then @values["facts"][args[0]]
       when args.length > 1 then args[1]
-      else raise RuleEvaluationError.new "Couldn't find fact '#{args[0]}'"
+      else raise RuleEvaluationError.new "Couldn't find fact '#{args[0]}' and no default supplied"
+      end
+    end
+
+    def metadata(*args)
+      case
+      when @values["metadata"].include?(args[0]) then @values["metadata"][args[0]]
+      when args.length > 1 then args[1]
+      else raise RuleEvaluationError.new "Couldn't find metadata '#{args[0]}' and no default supplied"
       end
     end
 
