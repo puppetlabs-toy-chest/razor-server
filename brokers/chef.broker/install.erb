@@ -1,0 +1,74 @@
+#!/bin/bash
+<% require 'shellwords' %>
+set -u
+set -e
+
+# Some utility functions.
+fail() { echo >&2 "$@"; exit 1; }
+warn() { echo >&2 "$@"; }
+cmd() { hash "$1" >&/dev/null; } # portable 'which'
+
+exists() {
+  if command -v $1 &>/dev/null
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+<% unless broker.empty? %>
+install_sh="<%= broker.install_sh %>"
+version_string="-v <%= broker.version_string %>"
+if ! exists /usr/bin/chef-client; then
+  if exists wget; then
+    bash <(wget ${install_sh} -O -) ${version_string}
+  elif exists curl; then
+    bash <(curl -L ${install_sh}) ${version_string}
+  else
+    echo ">> wget or curl must be installed, bootstrap failed"
+    exit 1
+  fi
+fi
+
+mkdir -p /etc/chef
+
+prefix="-----BEGIN RSA PRIVATE KEY-----"
+postfix="-----END RSA PRIVATE KEY-----"
+stringz=<%= broker.validation_key %>
+stringz=${stringz#$prefix}
+stringz=${stringz%$postfix}
+rsa_key=""
+rsa_key=${prefix}
+for ((i=0; i<${#stringz}; i=i+64)) 
+do
+	rsa_key=$rsa_key$'\n'${stringz:$i:64}
+done
+rsa_key=$rsa_key$'\n'${postfix}
+printf '%s\n' "$rsa_key" >> /etc/chef/validation.pem
+# write validation key and ensure file ends with a newline
+# (
+# cat << $rsa_key
+# ) | awk NF > /etc/chef/validation.pem
+# chmod 0600 /etc/chef/validation.pem
+
+(
+cat <<'EOP'
+	log_level :info
+	log_location STDOUT
+	chef_server_url "<%= broker.chef_server_url %>"
+	validation_client_name "<%= broker.validation_client_name %>"
+EOP
+) > /etc/chef/client.rb
+
+(
+cat <<'EOFFIRSTRUN'
+{
+	"run_list": ["<%= broker.run_list %>"]
+}	
+EOFFIRSTRUN
+) > /etc/chef/first-boot.json
+
+<%= broker.chef_client %> chef-client -j /etc/chef/first-boot.json -E <%= broker.environment %>
+
+# <% end %>
