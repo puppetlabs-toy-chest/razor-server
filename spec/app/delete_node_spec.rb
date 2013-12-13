@@ -5,6 +5,9 @@ describe "delete-node" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   def delete_node(name)
     post '/api/commands/delete-node', { "name" => name }.to_json

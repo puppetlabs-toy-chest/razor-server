@@ -5,6 +5,9 @@ describe "unbind-node" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   def unbind_node(name)
     post '/api/commands/unbind-node', { "name" => name }.to_json

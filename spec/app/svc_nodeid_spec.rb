@@ -12,6 +12,10 @@ describe "/svc/nodeid" do
     Fabricate(:node)
   end
 
+  before :each do
+    authorize 'fred', 'dead'
+  end
+
   it "should 400 if no parameters are passed" do
     get '/svc/nodeid'
     last_response.status.should == 400

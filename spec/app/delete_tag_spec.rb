@@ -5,6 +5,9 @@ describe "delete-tag" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   def delete_tag(name, force=nil)
     params = { "name" => name }

@@ -5,6 +5,9 @@ describe "update-tag-rule" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   def update_tag_rule(name, rule=nil, force=nil)
     params = { "name" => name }

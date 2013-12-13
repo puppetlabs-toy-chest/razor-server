@@ -14,6 +14,12 @@ class Razor::App < Sinatra::Base
 
     use Razor::Middleware::Logger
     use Rack::CommonLogger, TorqueBox::Logger.new("razor.web.log")
+
+    # We add the authentication middleware all the time, so that our calls to,
+    # eg, get the subject work.  The middleware is responsible for binding
+    # into place our security manager and subject instance.  We only protect
+    # paths if security is enabled, though.
+    use Razor::Middleware::Auth, %r{/api($|/)}i
   end
 
   before do

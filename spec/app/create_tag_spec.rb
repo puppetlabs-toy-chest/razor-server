@@ -5,6 +5,9 @@ describe "create tag command" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   context "/api/commands/create-tag" do
     before :each do

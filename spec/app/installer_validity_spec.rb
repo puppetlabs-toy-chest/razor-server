@@ -16,6 +16,10 @@ describe "stock installer" do
     Razor::App
   end
 
+  before :each do
+    authorize 'fred', 'dead'
+  end
+
   INSTALLER_NAMES.each do |name|
     describe name do
       before(:each) do

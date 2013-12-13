@@ -8,6 +8,10 @@ describe "create broker command" do
 
   let(:app) { Razor::App }
 
+  before :each do
+    authorize 'fred', 'dead'
+  end
+
   context "/api/commands/create-broker" do
     before :each do
       header 'content-type', 'application/json'

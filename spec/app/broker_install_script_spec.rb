@@ -5,6 +5,9 @@ describe "provisioning API" do
   include Rack::Test::Methods
 
   let :app do Razor::App end
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   before :each do
     use_installer_fixtures

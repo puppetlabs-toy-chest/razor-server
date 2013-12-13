@@ -5,6 +5,9 @@ describe "create installer command" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   context "/api/commands/create-installer" do
     before :each do

@@ -9,6 +9,7 @@
 
 production:
   database_url: 'jdbc:postgresql:razor_prd?user=razor&password=mypass'
+  auth_config:  shiro.ini
 development:
   database_url: 'jdbc:postgresql:razor_dev'
 test:
