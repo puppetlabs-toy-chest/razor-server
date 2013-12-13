@@ -22,9 +22,9 @@ install_sh="<%= broker.install_sh %>"
 version_string="-v <%= broker.version_string %>"
 if ! exists /usr/bin/chef-client; then
   if exists wget; then
-    bash <(wget ${install_sh} -O -) ${version_string}
+    bash <(wget ${install_sh} -O -) -v ${version_string}
   elif exists curl; then
-    bash <(curl -L ${install_sh}) ${version_string}
+    bash <(curl -L ${install_sh}) -v ${version_string}
   else
     echo ">> wget or curl must be installed, bootstrap failed"
     exit 1
