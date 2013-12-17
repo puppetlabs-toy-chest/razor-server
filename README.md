@@ -26,6 +26,7 @@ setups but not for production use.
 
 ## Getting in touch
 
+* bug/issue tracker: [RAZOR project in JIRA](https://tickets.puppetlabs.com/browse/RAZOR)
 * on IRC: `#puppet-razor` on [freenode](http://freenode.net/)
 * mailing list: [puppet-razor@googlegroups.com](http://groups.google.com/group/puppet-razor)
 
