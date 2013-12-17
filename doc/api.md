@@ -170,7 +170,10 @@ To create a broker, clients post the following to the `create-broker` URL:
 
     {
       "name": "puppet",
-      "configuration": { "server": "puppet.example.org", "version": "3.0.0" },
+      "configuration": {
+         "server": "puppet.example.org",
+         "environment": "production"
+      },
       "broker-type": "puppet"
     }
 
