@@ -39,6 +39,7 @@ vim-cmd hostsvc/enable_esx_shell
 vim-cmd hostsvc/start_esx_shell
 
 esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1
+esxcli system hostname set --fqdn <%= node.hostname %>
 
 # rename local datastore to something more meaningful
 vim-cmd hostsvc/datastore/rename datastore1 "$(hostname -s)-local-storage-1"
