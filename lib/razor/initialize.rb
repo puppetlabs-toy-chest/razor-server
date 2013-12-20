@@ -55,7 +55,7 @@ module Razor
           # authentication magic work.  In future we should consider replacing
           # this with a thread-per-request local, or even our own, to integrate
           # nicely with the model ... but this will do, for now.  I hope.
-          path = File.expand_path(Razor.config['auth_config'] || 'shiro.ini', root)
+          path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', root)
           logger.info("about to create the shiro factory from #{path}")
           factory = org.apache.shiro.config.IniSecurityManagerFactory.new(path)
           logger.info("about to create the security manager")

@@ -17,6 +17,10 @@ class Razor::Middleware::Auth
     @logger ||= TorqueBox::Logger.new('razor.auth')
   end
 
+  def enabled?
+    Razor.config['auth.enabled']
+  end
+
   def protected_path?(req)
     @patterns.any? {|p| p === req.path_info }
   end
@@ -32,7 +36,7 @@ class Razor::Middleware::Auth
 
     # @todo danielp 2013-12-17: at the moment we trust either authenticated
     # or remembered credentials, even though we don't support the later.
-    if protected_path?(req) and not authenticated?(subject)
+    if enabled? and protected_path?(req) and not authenticated?(subject)
       # Auth was required, but we were neither authenticated or remembered.
       [401, {'WWW-Authenticate' => 'Basic realm="Razor"'}, ["Access Denied\n"]]
     else

@@ -75,7 +75,8 @@ RSpec.configure do |c|
   c.around(:each) do |example|
     config_values = Razor.config.values.dup
     Razor.config.reset!
-    Razor.config['auth_config'] = File.expand_path('shiro.ini', File.dirname(__FILE__))
+    Razor.config['auth.config'] = File.expand_path('shiro.ini', File.dirname(__FILE__))
+    Razor.config['auth.enabled'] = true
     example.run
     Razor.config.values = config_values
   end

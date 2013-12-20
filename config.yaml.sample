@@ -9,12 +9,32 @@
 
 production:
   database_url: 'jdbc:postgresql:razor_prd?user=razor&password=mypass'
-  auth_config:  shiro.ini
 development:
   database_url: 'jdbc:postgresql:razor_dev'
 test:
   database_url: 'jdbc:postgresql:razor?user=razor&password=mypass'
 all:
+  # This section configures authentication for the Razor server.
+  # Authentication applies to access to the `/api` URL path only.
+  auth:
+    # You can enable or disable authentication support.  When disabled, all
+    # authentication is ignored and access to `/api` is unrestricted.
+    # When enabled a valid username and password must be present in all
+    # requests to `/api`.
+    enabled: false
+    # The path to the authentication configuration file.  We use Apache Shiro
+    # to manage authentication, since it provides a solid and effective
+    # abstraction over common third party sources of authentication and role
+    # management information.
+    #
+    # You can learn more about the content of this file in their documentation:
+    # http://shiro.apache.org/configuration.html
+    #
+    # If this is an absolute path it will be used as-is, but if you give a
+    # relative path it is relative to the root directory of the
+    # Razor installation.
+    config: shiro.ini
+
   microkernel:
     debug_level: debug
     kernel_args:
