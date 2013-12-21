@@ -5,7 +5,7 @@ require_relative './lib/razor'
 
 class Razor::App < Sinatra::Base
   configure do
-    # FIXME: This turns off template caching alltogether since I am not
+    # FIXME: This turns off template caching all together since I am not
     # sure that the caching won't interfere with how we lookup
     # templates. Need to investigate whether this really is an issue, and
     # hopefully can enable template caching (which does not happen in
@@ -45,6 +45,24 @@ class Razor::App < Sinatra::Base
   # Server/node API
   #
   helpers do
+    # Return the current user of our service, a Shiro object.
+    #
+    # If authentication is disabled this will always be the null user, neither
+    # authentication nor remembered, and with no permissions.
+    def user
+      org.apache.shiro.SecurityUtils.subject
+    end
+
+    # Assert that the current user has (all of) the specified permissions, and
+    # raise an exception if they do not.  We handle that exception generically
+    # at the top level.
+    #
+    # If security is disabled then this simply succeeds.
+    def check_permissions!(*which)
+      Razor.config['auth.enabled'] and user.check_permissions(*which)
+      true
+    end
+
     def error(status, body = {})
       halt status, body.to_json
     end
@@ -444,6 +462,7 @@ class Razor::App < Sinatra::Base
       # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
       # (recursively) so that we do not use '_' in the API (i.e., this also
       # requires fixing up view.rb)
+
       begin
         result = instance_exec(data, &block)
       rescue => e
@@ -455,6 +474,8 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_repo do |data|
+    check_permissions! "commands:create-repo:#{data['name']}"
+
     # Create our shiny new repo.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
@@ -470,6 +491,9 @@ class Razor::App < Sinatra::Base
   command :delete_repo do |data|
     data["name"] or error 400,
       :error => "Supply 'name' to indicate which repo to delete"
+
+    check_permissions! "commands:delete-repo:#{data['name']}"
+
     if repo = Razor::Data::Repo[:name => data['name']]
       repo.destroy
       action = "repo destroyed"
@@ -482,6 +506,9 @@ class Razor::App < Sinatra::Base
   command :delete_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to delete"
+
+    check_permissions! "commands:delete-node:#{data['name']}"
+
     if node = Razor::Data::Node.find_by_name(data['name'])
       node.destroy
       action = "node destroyed"
@@ -494,6 +521,9 @@ class Razor::App < Sinatra::Base
   command :unbind_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
+
+    check_permissions! "commands:unbind-node:#{data['name']}"
+
     if node = Razor::Data::Node.find_by_name(data['name'])
       if node.policy
         policy_name = node.policy.name
@@ -513,6 +543,9 @@ class Razor::App < Sinatra::Base
   command :set_node_ipmi_credentials do |data|
     data['name'] or
       error 400, :error => "Supply 'name' to indicate which node to edit"
+
+    check_permissions! "commands:set-node-ipmi-credentials:#{data['name']}"
+
     node = Razor::Data::Node.find_by_name(data['name']) or
       error 404, :error => "node #{data['name']} does not exist"
 
@@ -530,6 +563,8 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_installer do |data|
+    check_permissions! "commands:create-installer:#{data['name']}"
+
     # If boot_seq is not a Hash, the model validation for installers
     # will catch that, and will make saving the installer fail
     if (boot_seq = data["boot_seq"]).is_a?(Hash)
@@ -542,10 +577,13 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_tag do |data|
+    check_permissions! "commands:create-tag:#{data['name']}"
     Razor::Data::Tag.find_or_create_with_rule(data)
   end
 
   command :delete_tag do |data|
+    check_permissions! "commands:delete-tag:#{data['name']}"
+
     data["name"] or
       error 400, :error => "Supply a name to indicate which tag to delete"
     if tag = Razor::Data::Tag[:name => data["name"]]
@@ -561,6 +599,8 @@ class Razor::App < Sinatra::Base
   end
 
   command :update_tag_rule do |data|
+    check_permissions! "commands:update-tag-rule:#{data['name']}"
+
     data["name"] or
       error 400, :error => "Supply a name to indicate which tag to delete"
     data["rule"] or
@@ -579,6 +619,8 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_broker do |data|
+    check_permissions! "commands:create-broker:#{data['name']}"
+
     if type = data.delete("broker-type")
       begin
         data["broker_type"] = Razor::BrokerType.find(type)
@@ -593,6 +635,8 @@ class Razor::App < Sinatra::Base
   end
 
   command :create_policy do |data|
+    check_permissions! "commands:create-policy:#{data['name']}"
+
     tags = (data.delete("tags") || []).map do |t|
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
@@ -635,10 +679,12 @@ class Razor::App < Sinatra::Base
   end
 
   command :enable_policy do |data|
+    check_permissions! "commands:enable-policy:#{data['name']}"
     toggle_policy_enabled(data, true, 'enable')
   end
 
   command :disable_policy do |data|
+    check_permissions! "commands:disable-policy:#{data['name']}"
     toggle_policy_enabled(data, false, 'disable')
   end
 
