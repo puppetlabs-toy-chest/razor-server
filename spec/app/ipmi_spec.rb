@@ -10,6 +10,7 @@ describe "set-node-ipmi-credentials" do
 
   before :each do
     header 'content-type', 'application/json'
+    authorize 'fred', 'dead'
   end
 
   it "should fail if the node name is not given" do

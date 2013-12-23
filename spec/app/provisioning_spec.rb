@@ -10,6 +10,7 @@ describe "provisioning API" do
 
   before(:each) do
     use_installer_fixtures
+    authorize 'fred', 'dead'
   end
 
   let (:policy) do

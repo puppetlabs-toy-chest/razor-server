@@ -5,6 +5,9 @@ describe "delete-repo" do
   include Rack::Test::Methods
 
   let(:app) { Razor::App }
+  before :each do
+    authorize 'fred', 'dead'
+  end
 
   def delete_repo(name)
     post '/api/commands/delete-repo', { "name" => name }.to_json

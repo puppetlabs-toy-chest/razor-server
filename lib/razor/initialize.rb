@@ -2,33 +2,66 @@ require 'sequel'
 require 'torquebox/logger'
 require_relative 'config'
 
+require 'monitor'
+
+require 'java'
+require_relative '../../jars/shiro-core-1.2.2.jar'
+require_relative '../../jars/commons-beanutils-1.8.3.jar'
+
 # Load Sequel extensions
 Sequel.extension :core_extensions, :inflector
 Sequel.extension :pg_array_ops
 require 'sequel/plugins/serialization'
 
 module Razor
+  extend MonitorMixin
+
   class << self
     def env
-      @@env ||= ENV["RACK_ENV"] || "development"
+      synchronize do
+        @@env ||= ENV["RACK_ENV"] || "development"
+      end
     end
 
     def root
-      dir = File::dirname(__FILE__)
-      @@root ||= File::expand_path(File::join(dir, "..", ".."))
+      synchronize do
+        @@root ||= File::expand_path(File::join(File::dirname(__FILE__), "..", ".."))
+      end
     end
 
     def database
-      @@database ||= Sequel.connect(Razor.config["database_url"],
-                       :loggers => [TorqueBox::Logger.new("razor.sequel")])
+      synchronize do
+        @@database ||= Sequel.connect(Razor.config["database_url"],
+          :loggers => [TorqueBox::Logger.new("razor.sequel")])
+      end
     end
 
     def logger
-      @@logger ||= TorqueBox::Logger.new("razor")
+      synchronize do
+        @@logger ||= TorqueBox::Logger.new("razor")
+      end
     end
 
     def config
-      @@config ||= Config.new(env)
+      synchronize do
+        @@config ||= Config.new(env)
+      end
+    end
+
+    def security_manager
+      synchronize do
+        @@security_manager ||= synchronize do
+          # Make available an application-specific SecurityManager, to make the
+          # authentication magic work.  In future we should consider replacing
+          # this with a thread-per-request local, or even our own, to integrate
+          # nicely with the model ... but this will do, for now.  I hope.
+          path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', root)
+          logger.info("about to create the shiro factory from #{path}")
+          factory = org.apache.shiro.config.IniSecurityManagerFactory.new(path)
+          logger.info("about to create the security manager")
+          factory.get_instance
+        end
+      end
     end
   end
 

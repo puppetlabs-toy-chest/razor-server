@@ -8,6 +8,10 @@ describe "command and query API" do
 
   let(:app) { Razor::App }
 
+  before :each do
+    authorize 'fred', 'dead'
+  end
+
   context "/ - API navigation index" do
     %w[text/plain text/html text/* application/js].each do |type|
       it "should reject #{type.inspect} content requests" do

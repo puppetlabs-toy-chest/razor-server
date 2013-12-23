@@ -10,6 +10,11 @@ require 'rack/test'
 require 'json'
 require 'timecop'
 
+# This is provided inside TorqueBox, but is not available by default in our
+# spec runner.  Without it some of our dependencies fail to load. :(
+require_relative '../jars/slf4j-api-1.6.4.jar'
+
+
 ENV["RACK_ENV"] ||= "test"
 
 require_relative '../lib/razor/initialize'
@@ -70,6 +75,8 @@ RSpec.configure do |c|
   c.around(:each) do |example|
     config_values = Razor.config.values.dup
     Razor.config.reset!
+    Razor.config['auth.config'] = File.expand_path('shiro.ini', File.dirname(__FILE__))
+    Razor.config['auth.enabled'] = true
     example.run
     Razor.config.values = config_values
   end
