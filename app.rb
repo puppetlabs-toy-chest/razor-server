@@ -691,8 +691,18 @@ class Razor::App < Sinatra::Base
   #
   # Query/collections API
   #
+
+  # We can generically permission check "any read at all" on the
+  # collection entries, thankfully.
+  before %r{^/api/collections/([^/]+)/?([^/]+)?$}i do |collection, item|
+    check_permissions!("query:#{collection}" + (item ? ":#{item}" : ''))
+  end
+
   get '/api/collections/tags' do
-    Razor::Data::Tag.all.map {|t| view_object_reference(t)}.to_json
+    Razor::Data::Tag.all.
+      map {|t| view_object_reference(t)}.
+      select {|o| check_permissions!("query:tags:#{o[:name]}") rescue nil }.
+      to_json
   end
 
   get '/api/collections/tags/:name' do
@@ -702,7 +712,10 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/brokers' do
-    Razor::Data::Broker.all.map {|t| view_object_reference(t)}.to_json
+    Razor::Data::Broker.all.
+      map {|t| view_object_reference(t)}.
+      select {|o| check_permissions!("query:brokers:#{o[:name]}") rescue nil }.
+      to_json
   end
 
   get '/api/collections/brokers/:name' do
@@ -712,9 +725,10 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/policies' do
-    Razor::Data::Policy.order(:rule_number).all.map do |p|
-      view_object_reference(p)
-    end.to_json
+    Razor::Data::Policy.order(:rule_number).all.
+      map {|p| view_object_reference(p) }.
+      select {|o| check_permissions!("query:brokers:#{o[:name]}") rescue nil }.
+      to_json
   end
 
   get '/api/collections/policies/:name' do
@@ -736,7 +750,10 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/repos' do
-    Razor::Data::Repo.all.map { |repo| view_object_reference(repo)}.to_json
+    Razor::Data::Repo.all.
+      map { |repo| view_object_reference(repo)}.
+      select {|o| check_permissions!("query:repos:#{o[:name]}") rescue nil }.
+      to_json
   end
 
   get '/api/collections/repos/:name' do
@@ -746,7 +763,10 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes' do
-    Razor::Data::Node.all.map {|node| view_object_reference(node) }.to_json
+    Razor::Data::Node.all.
+      map {|node| view_object_reference(node) }.
+      select {|o| check_permissions!("query:nodes:#{o[:name]}") rescue nil }.
+      to_json
   end
 
   get '/api/collections/nodes/:name' do
@@ -756,6 +776,8 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes/:name/log' do
+    check_permissions!("query:nodes:#{params[:name]}:log")
+
     # @todo lutter 2013-08-20: There are no tests for this handler
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
     node = Razor::Data::Node.find_by_name(params[:name]) or

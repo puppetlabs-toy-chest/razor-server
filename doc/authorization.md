@@ -15,3 +15,21 @@ All the commands authorize in this structure:
 
 When a command applies to multiple subjects, we will assert the permission
 required for *all* of them.
+
+
+## Queries -- reading data from the system
+
+Queries authenticate in the structure:
+
+    query:${collection}:${name}
+
+The one exception is the node logs:
+
+    query:${collection}:${name}:logs
+
+`collection` is the name of the collection (eg: `tags`, `brokers`).
+
+`name` is the name of the entity (eg: `tags:virtual`, `brokers:puppet`).
+
+Reading node logs requires does not require reading data for the node, but
+reading data for the node implicitly grants reading logs.
