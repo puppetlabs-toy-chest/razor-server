@@ -10,11 +10,11 @@ sleep 3
 <%# the other, depending on the node and the bugs in its BIOS (see          %>
 <%# http://ipxe.org/cmd/sanboot)                                            %>
 
-echo Continuing local boot
 <% if node.facts["virtual"] == "kvm" %>
-echo booting with sanboot
+echo forcing local booting with sanboot 0x80
 sanboot --no-describe --drive 0x80
 <% end %>
 
 # exiting here with success will cause a globally successful boot
+echo exiting iPXE and continuing to next firmware boot device
 exit 0
