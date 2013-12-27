@@ -53,6 +53,7 @@ class Razor::Matcher
     ATTRS = {
         "and"      => {:expects => [Boolean],         :returns => Boolean },
         "or"       => {:expects => [Boolean],         :returns => Boolean },
+        "not"      => {:expects => [Boolean],         :returns => Boolean },
         "fact"     => {:expects => [[String], Mixed], :returns => Mixed   },
         "metadata" => {:expects => [[String], Mixed], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
@@ -77,6 +78,10 @@ class Razor::Matcher
 
     def or(*args)
       args.any? { |a| a }
+    end
+
+    def not(*args)
+      not args[0]
     end
 
     # Returns the fact named #{args[0]}
