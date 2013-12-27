@@ -55,6 +55,12 @@ describe Razor::Matcher do
       match("or", false, false, false).should == false
     end
 
+    it "not should behave" do
+      match("not", 1).should == false
+      match("not", false).should == true
+      match("not", true).should == false
+    end
+
     it "fact should behave" do
       match("fact", "f1", { "f1" => "true" }).should == true
       match("fact", "f1", { "f1" => false  }).should == false
