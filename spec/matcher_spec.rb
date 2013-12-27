@@ -77,6 +77,24 @@ describe Razor::Matcher do
       match("fact", "f2", false, { "f1" => true }).should == false
     end
 
+    describe "tag function" do
+      it "should complain when tag does not exist" do
+        expect do
+          match("tag", "t1")
+        end.to raise_error Razor::Matcher::RuleEvaluationError
+      end
+
+      it "should return true when tag matches" do
+        tag = Fabricate(:tag, :rule => ["=", "1", "1"])
+        match("tag", tag.name).should be_true
+      end
+
+      it "should return false when tag does not match" do
+        tag = Fabricate(:tag, :rule => ["=", "1", "0"])
+        match("tag", tag.name).should be_false
+      end
+    end
+
     it "eq should behave" do
       match("=", 1, 1).should == true
       match("=", 1, 2).should == false
