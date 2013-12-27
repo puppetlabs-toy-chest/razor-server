@@ -1,0 +1,71 @@
+<#
+
+.SYNOPSIS
+second-stage Windows installer script
+
+.DESCRIPTION
+second-stage Windows installer script
+
+.NOTES
+second-stage Windows installer script
+
+.LINK
+https://github.com/puppetlabs/razor-server
+
+#>
+[cmdletbinding()]param()
+
+Function Write-ToConsole([string]$text,[string]$value){
+    if ($value -ne $null){
+    	Write-Host -NoNewline -ForegroundColor White $text
+    	Write-Host -ForegroundColor Yellow $value
+    }else{
+	Write-Host -ForegrounColor White $text
+    }
+
+    #"$text $value" | out-file "c:\Razor.log" -Append
+}
+
+$strunattendedxml = @'
+<%= render_template("unattended.xml") %>
+'@
+
+Invoke-WebRequest -UseBasicParsing "<%= log_url("unattended.ps1 started") %>" | out-null
+$RazorDir = "$env:SystemDrive"
+$unalocalfilename = join-path $RazorDir "unattended.xml"
+write-ToConsole "Razor model: " <%= installer.label %>
+Write-ToConsole "Installation node: " <%= node_url  %>
+write-ToConsole "Installation repo: " <%= repo_url %>
+
+$repo   = '<%= repo_url.split('/').last %>'
+$letter = Get-Childitem function:[d-z]: -n | ?{ !(test-path $_) } | random
+$cmdLine = "use $letter <%= unc_path %>"
+
+$LastExitCode = 0
+
+$returnvalue = Invoke-Expression "net $cmdLine 2>&1"
+if ($LastExitCode -eq 0){
+	Invoke-WebRequest -UseBasicParsing "<%= log_url("networkdrive mappend") %>" | out-null
+	Write-ToConsole "Networkdrive Succesfully mappend as: " $letter
+	Set-Content -Value $strunattendedxml -Path $unalocalfilename -Encoding "UTF8"	
+        $installcommand = "$letter\$repo\setup.exe"
+	$installargs = "/noreboot /unattend:$unalocalfilename"
+	Write-ToConsole "Start command $installcommand $installargs"
+        Invoke-WebRequest -UseBasicParsing "<%= log_url("invoke setup.exe") %>" | out-null
+	$instprocess = start-process -wait -PassThru -FilePath $installcommand -ArgumentList $installargs
+	$instexitcode = $instprocess.ExitCode
+	if ($instexitcode -eq 0){
+	   Invoke-WebRequest -UseBasicParsing "<%= log_url("setup.exe ended") %>" | out-null
+           Invoke-WebRequest -UseBasicParsing "<%= stage_done_url("first install phase completed. Node will now be restarted") %>" | out-null 	
+	   Write-ToConsole "Setup sucessfully completed Computer will automatically restarted in 5 Seconds!"
+	   start-sleep -Seconds 5
+	   restart-computer -force
+	}else{
+	   Invoke-WebRequest -UseBasicParsing "<%= log_url("setup.exe returncode error", :error) %>" | out-null	
+	   write-error $instexitcode
+	}
+}else{
+	Invoke-WebRequest -UseBasicParsing "<%= log_url("fail to map Networkdrive", :error) %>" | out-null
+        write-error $returnvalue
+}
+

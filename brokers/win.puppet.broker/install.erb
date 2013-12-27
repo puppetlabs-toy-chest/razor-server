@@ -1,0 +1,39 @@
+#!Powershell
+<% require 'shellwords' %>
+Function Write-ToConsole([string]$text,[string]$value){
+    if ($value -ne $null){
+        Write-Host -NoNewline -ForegroundColor White $text
+        Write-Host -ForegroundColor Yellow $value
+    }else{
+        Write-Host -ForegrounColor White $text
+    }
+
+    "$text $value" | out-file "c:\Razor.log" -Append
+}
+# Required to invoke CAPI2 API to download the RootCA.
+# otherwise the Puppet Module install will failed
+$webclient = New-Object System.Net.WebClient
+$webclient.DownloadString("https://forge.puppetlabs.com") | out-null
+
+
+$chocolateyps1 = "C:\Chocolatey\chocolateyinstall\chocolatey.ps1"
+Write-ToConsole "Install Puppet: " "$chocolateyps1 install puppet"
+$installvalue = Invoke-Expression "$chocolateyps1 install puppet"
+$env:Path = "$env:Path;C:\Program Files (x86)\Puppet Labs\Puppet\bin"
+<% unless broker.empty? %>
+Write-ToConsole "Configure Puppet: " "Master / Enviroment"
+# Now, configuration.  Much as I love the idea of editing an ini file with
+# basic Unix tools like sed and awk, this seems much less worse, even if it
+# puts a puppet module you might not expect into place on disk.
+puppet module install puppetlabs/inifile
+
+# Update the ini file with the resource tool.
+<% broker.each do |setting, value| %>
+puppet resource ini_setting ensure=present path=C:/ProgramData/PuppetLabs/puppet/etc/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
+<% end %>
+
+<% end %>
+
+Write-ToConsole "Installation done: Restart Node now!"
+start-sleep -seconds 3
+Restart-Computer -force

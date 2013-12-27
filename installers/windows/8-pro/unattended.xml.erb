@@ -42,6 +42,14 @@
           <WillShowUI>OnError</WillShowUI>
         </OSImage>
       </ImageInstall>
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Description>Call Setup reached phase windowsPE </Description>
+                    <Order>1</Order>
+                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('setup.exe reached phase windowsPE') %>' | out-null"</Path>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+
     </component>
     <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <SetupUILanguage>
@@ -56,12 +64,48 @@
   </settings>
   <settings pass="oobeSystem">
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <UserAccounts>
-        <AdministratorPassword>
-          <Value>razor</Value>
-          <PlainText>true</PlainText>
-        </AdministratorPassword>
-      </UserAccounts>
+            <AutoLogon>
+                <Password>
+                    <Value><%= node.root_password %></Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <LogonCount>1</LogonCount>
+                <Username>Administrator</Username>
+            </AutoLogon>
+            <UserAccounts>
+                <AdministratorPassword>
+                    <Value><%= node.root_password %></Value>
+                    <PlainText>true</PlainText>
+                </AdministratorPassword>
+            </UserAccounts>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Description>Call Setup reached phase oobeSystem</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('unattended reached phase oobeSystem') %>' | out-null"</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <Description>Store IP</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine><%= render_template("win_store_ip") %></CommandLine>
+                </SynchronousCommand>
+               <SynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <Description>LogToFile start broker</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('<%= file_url("os_complete") %>'))"</CommandLine>
+                </SynchronousCommand>
+               <SynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <Description>Done setup completed</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= stage_done_url('finished') %>' | out-null"</CommandLine>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+
       <OOBE>
         <HideEULAPage>true</HideEULAPage>
         <NetworkLocation>Home</NetworkLocation>
@@ -71,12 +115,23 @@
     </component>
   </settings>
   <settings pass="specialize">
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-      <OEMInformation>
-        <HelpCustomized>false</HelpCustomized>
-      </OEMInformation>
-      <!-- Rename computer here. -->
-    </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ComputerName><%= node.hostname[/(.+?)(?=\.)/] %></ComputerName>
+            <ProductKey>D2N9P-3P6X9-2R39C-7RTCD-MDVJX</ProductKey>
+            <RegisteredOrganization>Razor</RegisteredOrganization>
+            <TimeZone>W. Europe Standard Time</TimeZone>
+            <RegisteredOwner>Razor</RegisteredOwner>
+        </component>
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Description>Call Setup reached phase specialize</Description>
+                    <Path>powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -UseBasicParsing '<%= log_url('unattended reached phase specialize') %>' | out-null"</Path>
+                    <WillReboot>OnRequest</WillReboot>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
     <component name="Microsoft-Windows-OutOfBoxExperience" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <DoNotOpenInitialConfigurationTasksAtLogon>true</DoNotOpenInitialConfigurationTasksAtLogon>
     </component>

@@ -90,6 +90,10 @@ class Razor::App < Sinatra::Base
       end
     end
 
+    def unc_path
+      Razor.config['unc_path']
+    end
+
     def log_url(msg, severity=:info)
       q = ::URI::encode_www_form(:msg => msg, :severity => severity)
       url "/svc/log/#{@node.id}?#{q}"
