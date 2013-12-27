@@ -53,8 +53,10 @@ class Razor::Matcher
     ATTRS = {
         "and"      => {:expects => [Boolean],         :returns => Boolean },
         "or"       => {:expects => [Boolean],         :returns => Boolean },
+        "not"      => {:expects => [Boolean],         :returns => Boolean },
         "fact"     => {:expects => [[String], Mixed], :returns => Mixed   },
         "metadata" => {:expects => [[String], Mixed], :returns => Mixed   },
+        "tag"      => {:expects => [[String]],        :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
@@ -79,6 +81,10 @@ class Razor::Matcher
       args.any? { |a| a }
     end
 
+    def not(*args)
+      not args[0]
+    end
+
     # Returns the fact named #{args[0]}
     #
     # If no fact with the specified name exists, args[1] is returned if given.
@@ -97,6 +103,16 @@ class Razor::Matcher
       when args.length > 1 then args[1]
       else raise RuleEvaluationError.new "Couldn't find metadata '#{args[0]}' and no default supplied"
       end
+    end
+
+    def tag(*args)
+      unless t = Razor::Data::Tag[:name => args[0]]
+        raise RuleEvaluationError.new "Tag '#{args[0]}' does not exist"
+      end
+      # This is a bit ugly: we really just want to call t.match? but that
+      # takes a node, and we only have the values Hash here. So we peek a
+      # little too deeply into the tag.
+      t.matcher.match?(@values)
     end
 
     def eq(*args)
