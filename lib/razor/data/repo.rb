@@ -153,7 +153,7 @@ module Razor::Data
       Archive.extract(path, destination)
       self.publish('release_temporary_repo')
     end
-
+    
     # Release any temporary repo previously downloaded.
     def release_temporary_repo
       if self.tmpdir

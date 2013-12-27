@@ -104,14 +104,14 @@ class Razor::App < Sinatra::Base
 
     def store_metadata_url(vars)
       #vars should be a hash with update and remove keys.
-      q = vars.map { |k,v| 
+      q = vars.map { |k,v|
         if k == 'update' and v.is_a? Hash
           v.map { |key,val|
            "#{key}=#{val}"
           }.join("&")
         elsif k == 'remove' and v.is_a? Array
           v.map { |r|
-            "remove[]=#{r}" 
+            "remove[]=#{r}"
           }.join("&")
         else
           halt 404, "store_metadata_url must include update and/or remove keys"
@@ -407,7 +407,7 @@ class Razor::App < Sinatra::Base
     modify_data = Hash.new
     modify_data['remove'] = params.delete('remove') unless params['delete'].nil?
     modify_data['update'] = params unless params.nil?
-    
+
     node.modify_metadata(modify_data)
     node.log_append(:event => :store_metadata, :vars => modify_data )
     [204, {}]
