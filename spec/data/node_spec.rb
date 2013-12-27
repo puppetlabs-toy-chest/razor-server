@@ -568,4 +568,38 @@ describe Razor::Data::Node do
       end
     end
   end
+
+  context "installed state" do
+    it "is empty for new nodes" do
+      node.installed.should be_nil
+      node.installed_at.should be_nil
+    end
+
+    it "stays empty when stage_done is called with a name != 'finished'" do
+      Node.stage_done(node.id, 'some stage').should be_true
+
+      node.reload
+      node.installed.should be_nil
+      node.installed_at.should be_nil
+    end
+
+    it "gets set when stage_done is called with name == 'finished'" do
+      node.bind(policy)
+      node.save
+
+      Node.stage_done(node.id, 'finished').should be_true
+      node.reload
+
+      node.installed.should == policy.name
+      node.installed_at.should_not be_nil
+    end
+
+    it "is reset when an installed node is rebound" do
+      node = Fabricate(:node, :installed => 'old_stuff',
+                              :installed_at => DateTime.now)
+      node.bind(policy)
+      node.installed.should be_nil
+      node.installed_at.should be_nil
+    end
+  end
 end

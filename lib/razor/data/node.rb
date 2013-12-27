@@ -83,7 +83,13 @@ module Razor::Data
     end
 
     def installer
-      policy ? policy.installer : Razor::Installer.mk_installer
+      if policy
+        policy.installer
+      elsif installed
+        Razor::Installer.noop_installer
+      else
+        Razor::Installer.mk_installer
+      end
     end
 
     def domainname
@@ -139,6 +145,19 @@ module Razor::Data
     def bind(policy)
       self.policy = policy
       self.boot_count = 1
+      # @todo lutter 2013-12-31: we mark the node uninstalled as soon as a
+      # policy is bound to it. There's two improvements that could be made:
+      # 1. not every policy will be destructive, and we should preserve the
+      #    'installed' state for non-destructive policies (requires additional
+      #    metadata in installers)
+      # 2. there's a small time window between binding the node and the
+      #    installer booting in which the node technically is still installed.
+      #    We could reset the installed fields only when we boot into the new
+      #    policy for the first time, but it seems like a minor win, and would
+      #    require a flag to remember whether we've already booted into a
+      #    policy or not
+      self.installed = nil
+      self.installed_at = nil
       self.root_password = policy.root_password
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
     end
@@ -328,6 +347,10 @@ module Razor::Data
       name = node.boot_count if name.nil? or name.empty?
       node.log_append(:event => :stage_done, :stage => name || node.boot_count)
       node.boot_count += 1
+      if name == "finished" and node.policy
+        node.installed = node.policy.name
+        node.installed_at = DateTime.now
+      end
       node.save
     end
 

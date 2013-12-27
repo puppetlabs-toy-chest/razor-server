@@ -595,6 +595,16 @@ describe "command and query API" do
             'minLength' => 0
           }
         },
+        'state' => {
+          '$schema'       => 'http://json-schema.org/draft-04/schema#',
+          'type'          => 'object',
+          'minProperties' => 0,
+          'additionalProperties' => {
+            '$schema'   => 'http://json-schema.org/draft-04/schema#',
+            'type'      => 'string',
+            'minLength' => 0
+          }
+        },
         'hostname' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
@@ -602,11 +612,6 @@ describe "command and query API" do
         'root_password' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
-        },
-        'boot_count' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'integer',
-          'minimum'  => 0
         },
       },
       'additionalProperties' => false,
