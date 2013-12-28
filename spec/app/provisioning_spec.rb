@@ -197,6 +197,13 @@ describe "provisioning API" do
       end
     end
 
+    it "should interpolate store_metadata_url" do
+      get "/svc/file/#{@node.id}/store_metadata_url"
+      assert_url_response("/svc/store_metadata/#{@node.id}",
+                          "a" => "v1", "b" => "v2",
+                          "remove" => ["x", "y", "z"])
+    end
+
     it "should provide config" do
       get "/svc/file/#{@node.id}/config"
       assert_template_body("Razor::Util::TemplateConfig")
@@ -257,6 +264,53 @@ describe "provisioning API" do
     it "should return 400 when ip not provided" do
       get "/svc/store/#{@node.id}"
       last_response.status.should == 400
+    end
+  end
+
+  describe "storing node metadata" do
+    before(:each) do
+      @node = Fabricate(:node)
+    end
+
+    it "should store a value" do
+      get "/svc/store_metadata/#{@node.id}?a=v1"
+      last_response.status.should == 204
+
+      node = Node[@node.id]
+      node.metadata.should == { "a" => "v1" }
+    end
+
+    it "should update a value" do
+      @node.metadata["a"] = "old"
+      @node.save
+
+      get "/svc/store_metadata/#{@node.id}?a=v1"
+      last_response.status.should == 204
+
+      node = Node[@node.id]
+      node.metadata.should == { "a" => "v1" }
+    end
+
+    it "should remove a value" do
+      @node.metadata["x"] = "old"
+      @node.save
+
+      get "/svc/store_metadata/#{@node.id}?remove[]=x"
+      last_response.status.should == 204
+
+      node = Node[@node.id]
+      node.metadata.should == { }
+    end
+
+    it "should update and remove values"do
+      @node.metadata["x"] = "old"
+      @node.save
+
+      get "/svc/store_metadata/#{@node.id}?remove[]=x&a=v1"
+      last_response.status.should == 204
+
+      node = Node[@node.id]
+      node.metadata.should == { "a" => "v1" }
     end
   end
 

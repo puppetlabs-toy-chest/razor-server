@@ -271,10 +271,10 @@ accept the same body, consisting of the name of the policy in question:
 
 ### Add/remove tags to/from Policy
 
-You can add or remove tags from policies with `add-policy-tag` and 
+You can add or remove tags from policies with `add-policy-tag` and
  `remove-policy-tag` respectively.  In both cases supply the name of a
-policy and the name of the tag.  When adding a tag, you can specify an 
-existing tag, or create a new one by supplying a name and rule for the 
+policy and the name of the tag.  When adding a tag, you can specify an
+existing tag, or create a new one by supplying a name and rule for the
 new tag:
 
     {
