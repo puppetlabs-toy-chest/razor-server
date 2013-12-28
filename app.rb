@@ -405,7 +405,7 @@ class Razor::App < Sinatra::Base
     halt 404 unless node
 
     modify_data = Hash.new
-    modify_data['remove'] = params.delete('remove') unless params['delete'].nil?
+    modify_data['remove'] = params.delete('remove') unless params['remove'].nil?
     modify_data['update'] = params unless params.nil?
 
     node.modify_metadata(modify_data)
