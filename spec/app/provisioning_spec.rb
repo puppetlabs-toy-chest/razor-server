@@ -165,7 +165,8 @@ describe "provisioning API" do
 
     it "should interpolate store_url" do
       get "/svc/file/#{@node.id}/store_url"
-      assert_url_response("/svc/store/#{@node.id}", "v1" => "42", "v2" => "3")
+      assert_url_response("/svc/store_metadata/#{@node.id}",
+                          "v1" => "42", "v2" => "3")
     end
 
     it "should interpolate node_url" do
@@ -240,30 +241,6 @@ describe "provisioning API" do
       log.size.should == 1
       log[0]["msg"].should == "message"
       log[0]["severity"].should == "warn"
-    end
-  end
-
-  describe "storing node IP" do
-    before(:each) do
-      @node = Fabricate(:node)
-    end
-
-    it "should store an IP" do
-      get "/svc/store/#{@node.id}?ip=8.8.8.8"
-      last_response.status.should == 204
-
-      node = Node[@node.id]
-      node.ip_address.should == "8.8.8.8"
-    end
-
-    it "should return 404 for nonexistent nodes" do
-      get "/svc/store/#{@node.id+1}?ip=8.8.8.8"
-      last_response.status.should == 404
-    end
-
-    it "should return 400 when ip not provided" do
-      get "/svc/store/#{@node.id}"
-      last_response.status.should == 400
     end
   end
 

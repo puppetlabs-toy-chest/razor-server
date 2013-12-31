@@ -603,11 +603,6 @@ describe "command and query API" do
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
         },
-        'ip_address' => {
-          '$schema'  => 'http://json-schema.org/draft-04/schema#',
-          'type'     => 'string',
-          'pattern'  => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
-        },
         'boot_count' => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'integer',

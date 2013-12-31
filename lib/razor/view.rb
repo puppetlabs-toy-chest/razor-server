@@ -124,7 +124,6 @@ module Razor
         :metadata      => node.metadata,
         :hostname      => node.hostname,
         :root_password => node.root_password,
-        :ip_address    => node.ip_address,
         :last_checkin  => last_checkin_s
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end

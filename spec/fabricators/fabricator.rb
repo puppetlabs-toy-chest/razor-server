@@ -96,7 +96,9 @@ Fabricator(:bound_node, from: :node) do
   end
 
   metadata do
-    data = {}
+    data = { }
+    # 25% of nodes will have an IP generated
+    data["ip"] = Faker::Internet.ip_v4_address if Random.rand(4) == 3
     20.times do
       data[Faker::Lorem.word] = case Random.rand(4)
                                 when 0 then Faker::Lorem.word
@@ -109,7 +111,6 @@ Fabricator(:bound_node, from: :node) do
     data
   end
 
-  ip_address { Faker::Internet.ip_v4_address }
   boot_count { Random.rand(10) }
 
   # normally the node would be created before binding, so we always have an ID
