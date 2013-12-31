@@ -96,10 +96,7 @@ class Razor::App < Sinatra::Base
     end
 
     def store_url(vars)
-      # We intentionally do not URL escape here; users need to be able to
-      # say '$node_ip' in the URL vars and have the shell interpolate that.
-      q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
-      url "/svc/store/#{@node.id}?#{q}"
+      store_metadata_url('update' => vars)
     end
 
     def store_metadata_url(vars)
@@ -379,18 +376,6 @@ class Razor::App < Sinatra::Base
 
     node.log_append(:event => :node_log,
                     :msg=> params[:msg], :severity => params[:severity])
-    node.save
-    [204, {}]
-  end
-
-  get '/svc/store/:node_id' do
-    node = Razor::Data::Node[params[:node_id]]
-    halt 404 unless node
-    halt 400 unless params[:ip]
-
-    # We only allow setting the ip address for now
-    node.ip_address = params[:ip]
-    node.log_append(:event => :store, :vars => { :ip => params[:ip] })
     node.save
     [204, {}]
   end
