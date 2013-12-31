@@ -7,7 +7,6 @@ Sequel.migration do
     self[:nodes].all.each do |n|
       metadata = JSON::parse(n[:metadata])
       metadata[:ip] = n[:ip_address] if n[:ip_address]
-      puts metadata.to_json
       self[:nodes].where(:id => n[:id]).update(:metadata => metadata.to_json)
     end
     drop_column :nodes, :ip_address
