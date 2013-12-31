@@ -102,6 +102,17 @@ module Razor
       find_on_installer_paths(File::join("common", filename))
     end
 
+    # List all known installers, both from the DB and the file
+    # system. Return an array of +Razor::Installer+ objects, sorted by
+    # +name+
+    def self.all
+      (Razor.config.installer_paths.map do |ip|
+        Dir.glob(File::join(ip, "*.yaml")).map { |p| File::basename(p, ".yaml") }
+       end + Razor::Data::Installer.all).flatten.uniq.sort.map do |name|
+        find(name)
+      end
+    end
+
     private
     def self.find_on_installer_paths(*paths)
       Razor.config.installer_paths.each do |ip|
