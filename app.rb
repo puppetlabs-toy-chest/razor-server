@@ -439,7 +439,7 @@ class Razor::App < Sinatra::Base
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :installers]
 
   #
   # The main entry point for the public/management API
@@ -883,7 +883,11 @@ class Razor::App < Sinatra::Base
     policy_hash(policy).to_json
   end
 
-  # FIXME: Add a query to list all installers
+  get '/api/collections/installers' do
+    Razor::Installer.all.
+      map { |inst| view_object_reference(inst) }.
+      to_json
+  end
 
   get '/api/collections/installers/:name' do
     begin
