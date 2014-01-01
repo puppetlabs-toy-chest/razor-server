@@ -23,14 +23,19 @@ EOS
 end
 
 COMMANDS = {
+  "check-migrations" => -> do
+    Sequel::Migrator.is_current?(Razor.database, MIGRATION_DIR)
+  end,
   "migrate-database" => Proc.new do
     Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
+    true
   end,
   "reset-database" => Proc.new do
     Razor.database.tables.each do |table|
       Razor.database.run("DROP TABLE #{table} CASCADE")
     end
     Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
+    true
   end
 }
 
@@ -42,6 +47,9 @@ if show_help or rest.size != 1 or COMMANDS[rest[0]].nil?
   puts <<EOS
 
 Available commands:
+
+    check-migrations  check if the database already has the latest schema version.
+                      Exits 0 if up to date, 1 otherwise.
 
     migrate-database  migrate the database to the latest schema version.
                       Use this also for initial schema installation.
@@ -57,4 +65,4 @@ end
 require_relative '../lib/razor/initialize'
 require 'sequel/extensions/migration'
 
-COMMANDS[rest[0]].call
+exit COMMANDS[rest[0]].call
