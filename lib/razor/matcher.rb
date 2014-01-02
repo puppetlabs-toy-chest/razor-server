@@ -57,6 +57,7 @@ class Razor::Matcher
         "fact"     => {:expects => [[String], Mixed], :returns => Mixed   },
         "metadata" => {:expects => [[String], Mixed], :returns => Mixed   },
         "tag"      => {:expects => [[String]],        :returns => Mixed   },
+        "state"    => {:expects => [[String], [String]], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
@@ -105,6 +106,10 @@ class Razor::Matcher
       # takes a node, and we only have the values Hash here. So we peek a
       # little too deeply into the tag.
       t.matcher.match?(@values)
+    end
+
+    def state(*args)
+      value_lookup("state", args)
     end
 
     def eq(*args)
