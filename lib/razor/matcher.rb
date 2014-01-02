@@ -90,19 +90,11 @@ class Razor::Matcher
     # If no fact with the specified name exists, args[1] is returned if given.
     # If no fact exists and args[1] is not given, an ArgumentError is raised.
     def fact(*args)
-      case
-      when @values["facts"].include?(args[0]) then @values["facts"][args[0]]
-      when args.length > 1 then args[1]
-      else raise RuleEvaluationError.new "Couldn't find fact '#{args[0]}' and no default supplied"
-      end
+      value_lookup("facts", args)
     end
 
     def metadata(*args)
-      case
-      when @values["metadata"].include?(args[0]) then @values["metadata"][args[0]]
-      when args.length > 1 then args[1]
-      else raise RuleEvaluationError.new "Couldn't find metadata '#{args[0]}' and no default supplied"
-      end
+      value_lookup("metadata", args)
     end
 
     def tag(*args)
@@ -159,6 +151,18 @@ class Razor::Matcher
 
     def lt(*args)
       args[0] < args[1]
+    end
+
+    private
+    def value_lookup(map_name, args)
+      map = @values[map_name]
+      case
+      when map.include?(args[0]) then map[args[0]]
+      when args.length > 1 then args[1]
+      else
+        name = map_name == "facts" ? "fact" : map_name
+        raise RuleEvaluationError.new "Couldn't find #{name} '#{args[0]}' and no default supplied"
+      end
     end
   end
 
