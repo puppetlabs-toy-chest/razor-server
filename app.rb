@@ -871,6 +871,7 @@ class Razor::App < Sinatra::Base
   get '/api/collections/installers' do
     Razor::Installer.all.
       map { |inst| view_object_reference(inst) }.
+      select {|o| check_permissions!("query:installers:#{o[:name]}") rescue nil }.
       to_json
   end
 
