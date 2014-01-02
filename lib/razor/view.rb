@@ -108,11 +108,15 @@ module Razor
       }).delete_if {|k,v| v.nil? }
     end
 
+    def ts(date)
+      date ? date.xmlschema : nil
+    end
+
     def node_hash(node)
       return nil unless node
-      # @todo lutter 2013-09-09: if there is a policy, use boot_count to
-      # provide a useful status about progress
-      last_checkin_s = node.last_checkin.xmlschema if node.last_checkin
+
+      boot_stage = node.policy ? node.installer.boot_template(node) : nil
+
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
@@ -122,9 +126,14 @@ module Razor
         :tags          => node.tags.map { |t| view_object_reference(t) },
         :facts         => node.facts,
         :metadata      => node.metadata,
+        :state         => {
+          :installed    => node.installed,
+          :installed_at => ts(node.installed_at),
+          :stage        => boot_stage
+        }.delete_if { |k,v| v.nil? },
         :hostname      => node.hostname,
         :root_password => node.root_password,
-        :last_checkin  => last_checkin_s
+        :last_checkin  => ts(node.last_checkin)
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
   end

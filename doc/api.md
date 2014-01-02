@@ -283,6 +283,19 @@ new tag:
       "rule": "new-match-expression" #Only for `add-policy-tag`
     }
 
+### Delete policy
+
+Policies can be deleted with the `delete-policy` command.  It accepts the
+name of a single policy:
+
+    {
+      'name': 'my-policy'
+    }
+
+Note that this does not affect the `installed` status of a node, and
+therefore won't, by itself, cause a node to be bound to another policy upon
+reboot.
+
 ### Delete node
 
 A single node can be removed from the database with the `delete-node`

@@ -1,5 +1,5 @@
 ---
-
+# This installer is a builtin part of Razor. Do not modify it
 os_version: none
 label: Noop installer
 description: This installer does nothing - it simply boots a system locally

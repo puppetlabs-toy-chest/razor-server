@@ -27,7 +27,7 @@ dir ${installer}
 start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -wait
 
 write-host "notify Razor that the installer completed"
-(new-object System.Net.WebClient).DownloadString('<%= stage_done_url("winpe") %>')
+(new-object System.Net.WebClient).DownloadString('<%= stage_done_url("finished") %>')
 
 write-host "restarting the system to complete installation"
 restart-computer

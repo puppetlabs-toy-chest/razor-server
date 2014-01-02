@@ -98,6 +98,10 @@ module Razor
       find('microkernel')
     end
 
+    def self.noop_installer
+      find('noop')
+    end
+
     def self.find_common_file(filename)
       find_on_installer_paths(File::join("common", filename))
     end

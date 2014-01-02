@@ -1,5 +1,5 @@
 ---
-
+# This installer is a builtin part of Razor. Do not modify it
 label: The Discovery Microkernel
 os_version: default
 boot_sequence:

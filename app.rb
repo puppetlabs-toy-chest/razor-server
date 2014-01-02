@@ -539,6 +539,23 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  command :delete_policy do |data|
+    #deleting a policy will first remove the policy from any node
+    #associated with it.  The node will remain bound, resulting in the
+    #noop installer being associated on boot (causing a local boot)
+    data['name'] or error 400,
+      :error => "Supply 'name' to indicate which policy to delete"
+    if policy = Razor::Data::Policy[:name => data['name']]
+      policy.remove_all_nodes
+      policy.remove_all_tags
+      policy.destroy
+      action = "policy destroyed"
+    else
+      action = "no changes; policy #{data['name']} does not exist"
+    end
+    { :result => action }
+  end
+
   # Update/add specific metadata key (works with GET)
   command :update_node_metadata do |data|
     data['node'] or error 400,

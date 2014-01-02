@@ -102,6 +102,17 @@ describe "provisioning API" do
         get "/svc/boot?net0=#{@mac}"
         assert_booting("Boot local")
       end
+
+      it "marks node installed when name is 'finished'" do
+        @node.installed.should be_nil
+
+        get "/svc/stage-done/#{@node.id}?name=finished"
+        last_response.status.should == 204
+
+        @node = Node[@node.id]
+        @node.installed.should == policy.name
+        @node.installed_at.should_not be_nil
+      end
     end
 
 
