@@ -890,6 +890,18 @@ class Razor::App < Sinatra::Base
     tag_hash(tag).to_json
   end
 
+  get '/api/collections/tags/:name/nodes' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      error 404, :error => "no tag matched id=#{params[:name]}"
+    collection_view(tag.nodes, "nodes")
+  end
+
+  get '/api/collections/tags/:name/policies' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      error 404, :error => "no tag matched id=#{params[:name]}"
+    collection_view(tag.policies, "policies")
+  end
+
   get '/api/collections/brokers' do
     collection_view Razor::Data::Broker, 'brokers'
   end
