@@ -12,6 +12,49 @@ describe "command and query API" do
     authorize 'fred', 'dead'
   end
 
+  # JSON schema for collections where we only send back object references;
+  # these are the same no matter what the underlying collection elements
+  # look like
+  ObjectRefCollectionSchema = {
+    '$schema'  => 'http://json-schema.org/draft-04/schema#',
+    'title'    => "Broker Collection JSON Schema",
+    'type'     => 'object',
+    'additionalProperties' => false,
+    'properties' => {
+      "spec" => {
+        '$schema' => 'http://json-schema.org/draft-04/schema#',
+        'type'    => 'string',
+        'pattern' => '^https?://'
+      },
+      "items" => {
+        '$schema' => 'http://json-schema.org/draft-04/schema#',
+        'type'    => 'array',
+        'items'    => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'object',
+          'additionalProperties' => false,
+          'properties' => {
+            "spec" => {
+              '$schema' => 'http://json-schema.org/draft-04/schema#',
+              'type'    => 'string',
+              'pattern' => '^https?://'
+            },
+            "id" => {
+              '$schema' => 'http://json-schema.org/draft-04/schema#',
+              'type'    => 'string',
+              'pattern' => '^https?://'
+            },
+            "name" => {
+              '$schema' => 'http://json-schema.org/draft-04/schema#',
+              'type'    => 'string',
+              'pattern' => '^[^\n]+$'
+            }
+          }
+        }
+      }
+    }
+  }.freeze
+
   context "/ - API navigation index" do
     %w[text/plain text/html text/* application/js].each do |type|
       it "should reject #{type.inspect} content requests" do
@@ -78,7 +121,7 @@ describe "command and query API" do
       pl.add_tag @tag
 
       get '/api/collections/policies'
-      data = last_response.json
+      data = last_response.json['items']
       data.size.should be 1
       data.all? do |policy|
         policy.keys.should =~ %w[id name spec]
@@ -125,7 +168,7 @@ describe "command and query API" do
     it "should list all tags" do
       t = Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
       get '/api/collections/tags'
-      data = last_response.json
+      data = last_response.json['items']
       data.size.should be 1
       data.all? do |tag|
         tag.keys.should =~ %w[id name spec]
@@ -157,7 +200,7 @@ describe "command and query API" do
       get "/api/collections/repos"
       last_response.status.should == 200
 
-      repos = last_response.json
+      repos = last_response.json['items']
       repos.size.should == 2
       repos.map { |repo| repo["name"] }.should =~ %w[ repo1 repo2 ]
       repos.all? { |repo| repo.keys.should =~ %w[id name spec] }
@@ -309,38 +352,6 @@ describe "command and query API" do
   end
 
   context "/api/collections/brokers" do
-    BrokerCollectionSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Broker Collection JSON Schema",
-      'type'     => 'array',
-      'items'    => {
-        '$schema'  => 'http://json-schema.org/draft-04/schema#',
-        'type'     => 'object',
-        'additionalProperties' => false,
-        'properties' => {
-          "spec" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "obj_id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'number'
-          },
-          "name" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^[^\n]+$'
-          }
-        }
-      }
-    }.freeze
-
     BrokerItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Broker Collection JSON Schema",
@@ -405,9 +416,11 @@ describe "command and query API" do
         get "/api/collections/brokers"
 
         last_response.status.should == 200
-        last_response.json.should be_an_instance_of Array
-        last_response.json.count.should == expected
-        validate! BrokerCollectionSchema, last_response.body
+
+        brokers = last_response.json['items']
+        brokers.should be_an_instance_of Array
+        brokers.count.should == expected
+        validate! ObjectRefCollectionSchema, last_response.body
       end
 
       it "should 404 a broker requested that does not exist" do
@@ -448,38 +461,6 @@ describe "command and query API" do
   end
 
   context "/api/collections/nodes" do
-    NodeCollectionSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Node Collection JSON Schema",
-      'type'     => 'array',
-      'items'    => {
-        '$schema'  => 'http://json-schema.org/draft-04/schema#',
-        'type'     => 'object',
-        'additionalProperties' => false,
-        'properties' => {
-          "spec" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^https?://'
-          },
-          "obj_id" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'number'
-          },
-          "name" => {
-            '$schema' => 'http://json-schema.org/draft-04/schema#',
-            'type'    => 'string',
-            'pattern' => '^[^\n]+$'
-          }
-        }
-      }
-    }.freeze
-
     NodeItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
       'title'    => "Node Collection JSON Schema",
@@ -633,9 +614,10 @@ describe "command and query API" do
         get "/api/collections/nodes"
 
         last_response.status.should == 200
-        last_response.json.should be_an_instance_of Array
-        last_response.json.count.should == expected
-        validate! NodeCollectionSchema, last_response.body
+        nodes = last_response.json['items']
+        nodes.should be_an_instance_of Array
+        nodes.count.should == expected
+        validate! ObjectRefCollectionSchema, last_response.body
       end
 
       it "should 404 a node requested that does not exist" do

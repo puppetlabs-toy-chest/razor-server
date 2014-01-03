@@ -136,5 +136,16 @@ module Razor
         :last_checkin  => ts(node.last_checkin)
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
+
+    def collection_view(cursor, name)
+      perm = "query:#{name}"
+      items = cursor.all.
+        map {|t| view_object_reference(t)}.
+        select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
+      {
+        "spec" => spec_url("collections", name),
+        "items" => items
+      }.to_json
+    end
   end
 end
