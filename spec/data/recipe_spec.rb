@@ -1,6 +1,6 @@
 require_relative '../spec_helper'
 
-describe Razor::Data::Installer do
+describe Razor::Data::Recipe do
   class MockNode
     attr_reader :facts
 
@@ -10,11 +10,11 @@ describe Razor::Data::Installer do
   end
 
   before(:each) do
-    use_installer_fixtures
+    use_recipe_fixtures
   end
 
-  subject(:installer) do
-    Razor::Data::Installer.create(
+  subject(:recipe) do
+    Razor::Data::Recipe.create(
       :name => 'test',
       :os => 'SomeOS',
       :templates => {
@@ -29,8 +29,8 @@ describe Razor::Data::Installer do
   end
 
   subject(:derived) do
-    installer  # Must exist for the FK on base
-    Razor::Data::Installer.create(
+    recipe  # Must exist for the FK on base
+    Razor::Data::Recipe.create(
       :name => 'derived',
       :base => 'test',
       :os => 'SomeOS',
@@ -41,16 +41,16 @@ describe Razor::Data::Installer do
 
   describe "persistence" do
     it "initializes templates and boot_seq to an empty hash" do
-      inst = Razor::Data::Installer.new
+      inst = Razor::Data::Recipe.new
       inst.templates.should == {}
       inst.boot_seq.should == {}
     end
 
     def rejects(attr, value)
-      # The simpler installer[attr] = value leads to obscure errors
-      installer.set_fields({ attr => value }, [attr])
+      # The simpler recipe[attr] = value leads to obscure errors
+      recipe.set_fields({ attr => value }, [attr])
       expect {
-        installer.save
+        recipe.save
       }.to raise_error(Sequel::ValidationFailed)
     end
 
@@ -82,9 +82,9 @@ describe Razor::Data::Installer do
       end
 
       it "allows integer keys and 'default'" do
-        installer.boot_seq = { 1 => "one", 2 => "two", 70 => "seventy",
+        recipe.boot_seq = { 1 => "one", 2 => "two", 70 => "seventy",
                                "default" => "default" }
-        installer.save.should be_true
+        recipe.save.should be_true
       end
 
       it "keys can not be symbols" do
@@ -104,19 +104,19 @@ describe Razor::Data::Installer do
   describe "find_template" do
     it "raises TemplateNotFoundError for nonexistent template" do
       expect {
-        installer.find_template('no such template').should_not be_nil
+        recipe.find_template('no such template').should_not be_nil
       }.to raise_error(Razor::TemplateNotFoundError)
     end
 
     it "returns a template as a string" do
-      installer.find_template('simple').should == ["Simple Template", {}]
+      recipe.find_template('simple').should == ["Simple Template", {}]
     end
 
-    it "finds a template in a base installer" do
+    it "finds a template in a base recipe" do
       derived.find_template('simple').should == ["Simple Template", {}]
     end
 
-    it "prefers the template in a derived installer" do
+    it "prefers the template in a derived recipe" do
       derived.find_template('overridden').should == ["Derived", {}]
     end
 
@@ -132,7 +132,7 @@ describe Razor::Data::Installer do
                                    :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|
         node.boot_count += 1
-        installer.boot_template(node).should == t
+        recipe.boot_template(node).should == t
       end
     end
   end

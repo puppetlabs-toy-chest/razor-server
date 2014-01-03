@@ -1,12 +1,12 @@
 module Razor::Data
-  # This class represents installers that are stored in the database, and
+  # This class represents recipes that are stored in the database, and
   # its main responsibility is to manage the persistence. The overall
-  # installer functionality is handled by the class +Razor::Installer+,
-  # which is the one to use for most installer-related functionality.
+  # recipe functionality is handled by the class +Razor::Recipe+,
+  # which is the one to use for most recipe-related functionality.
   #
-  # Note that we duck type this with Razor::Installer so that they can be
-  # used interchangeably for template lookup etc.
-  class Installer < Sequel::Model
+  # Note that we duck type this with Razor::Recipe so that they can be used
+  # interchangeably for template lookup etc.
+  class Recipe < Sequel::Model
     plugin :serialization, :json, :boot_seq
     plugin :serialization, :json, :templates
 
@@ -52,20 +52,20 @@ module Razor::Data
     def find_template(template)
       if body = templates[template.to_s]
         [body, {}]
-      elsif ((bi = base_installer) and (result = bi.find_template(template)))
+      elsif ((br = base_recipe) and (result = br.find_template(template)))
         result
-      elsif result = Razor::Installer.find_common_file(template + '.erb')
+      elsif result = Razor::Recipe.find_common_file(template + '.erb')
         [template.to_sym, { :views => File::dirname(result) }]
       else
         raise Razor::TemplateNotFoundError,
-          "Installer #{name}: no template '#{template}' for this installer or its base installers"
+          "Recipe #{name}: no template '#{template}' for this recipe or its base recipes"
       end
     end
 
     private
 
-    def base_installer
-      Installer[:name => base] if base
+    def base_recipe
+      Recipe[:name => base] if base
     end
   end
 end

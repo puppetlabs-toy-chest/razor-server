@@ -5,16 +5,15 @@ bare-metal and virtual systems. It's aimed at solving the problem of how to
 bring new metal into a state where your existing DevOps/configuration
 management workflows can take it over.
 
-Newly added machines in a Razor deployment will PXE-boot from a special
-Razor Microkernel image, then check in, provide Razor with inventory
-information, and wait for further instructions. Razor will consult
-user-created policy rules to choose which preconfigured model to apply to a
-new node, which will begin to follow the model's directions, giving
-feedback to Razor as it completes various steps. Models can include steps
-for handoff to a DevOps system such as
-[Puppet](https://github.com/puppetlabs/puppet) or to any other system
-capable of controlling the node (such as a vCenter server taking possession
-of ESX systems).
+Newly added machines in a Razor deployment will PXE-boot from a special Razor
+Microkernel image, then check in, provide Razor with inventory information,
+and wait for further instructions. Razor will consult user-created policy
+rules to choose which recpies to apply to a new node, which will begin to
+follow the recipe directions, giving feedback to Razor as it completes various
+steps. Recipes can include steps for handoff to a DevOps system such as
+[Puppet](https://github.com/puppetlabs/puppet) or to any other system capable
+of controlling the node (such as a vCenter server taking possession of ESX
+systems).
 
 ***
 

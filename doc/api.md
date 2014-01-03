@@ -129,16 +129,16 @@ The `delete-repo` command accepts a single repo name:
       "name": "fedora16"
     }
 
-### Create installer
+### Create recipe
 
-Razor supports both installers stored in the filesystem and installers
+Razor supports both recipes stored in the filesystem and recipes
 stored in the database; for development, it is highly recommended that you
-store your installers in the filesystem. Details about that can be found
-[on the Wiki](https://github.com/puppetlabs/razor-server/wiki/Writing-installers)
+store your recipes in the filesystem. Details about that can be found
+[on the Wiki](https://github.com/puppetlabs/razor-server/wiki/Writing-recipes)
 
-For production setups, it is usually better to store your installers in the
-database. To create an installer, clients post the following to the
-`/spec/create_installer` URL:
+For production setups, it is usually better to store your recipes in the
+database. To create an recipe, clients post the following to the
+`/spec/create_recipe` URL:
 
     {
       "name": "redhat6",
@@ -157,7 +157,7 @@ database. To create an installer, clients post the following to the
 
 The possible properties in the request are:
 
-name       | The name of the installer; must be unique
+name       | The name of the recipe; must be unique
 os         | The name of the OS; mandatory
 os_version | The version of the operating system
 description| Human-readable description
@@ -233,7 +233,7 @@ will return with status code 400.
     {
       "name": "a policy",
       "repo": { "name": "some_repo" },
-      "installer": { "name": "redhat6" },
+      "recipe": { "name": "redhat6" },
       "broker": { "name": "puppet" },
       "hostname": "host${id}.example.com",
       "root_password": "secret",
@@ -245,7 +245,7 @@ will return with status code 400.
 
 Policies are matched in the order of ascending line numbers.
 
-Tags, brokers, installers and repos are referenced by their name. Tags can
+Tags, brokers, recipes and repos are referenced by their name. Tags can
 also be created by providing a rule; if a tag with that name already
 exists, the rule must be equal to the rule of the existing tag.
 
