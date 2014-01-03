@@ -269,6 +269,21 @@ accept the same body, consisting of the name of the policy in question:
       "name": "a policy"
     }
 
+### Modify the max-count for a policy
+
+The command `modify-policy-max-count` makes it possible to manipulate how
+many nodes can be bound to a specific policy at the most. The body of the
+request should be of the form:
+
+    {
+      "name": "a policy"
+      "max-count": new-count
+    }
+
+The `new-count` can be an integer, which must be larger than the number of
+nodes that are currently bound to the policy, or `null` to make the policy
+unbounded
+
 ### Add/remove tags to/from Policy
 
 You can add or remove tags from policies with `add-policy-tag` and
