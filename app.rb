@@ -907,7 +907,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node, 'nodes'
+    collection_view Razor::Data::Node.search(params), 'nodes'
   end
 
   get '/api/collections/nodes/:name' do
