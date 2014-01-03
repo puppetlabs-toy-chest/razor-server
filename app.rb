@@ -620,26 +620,32 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :unbind_node do |data|
+  command :reinstall_node do |data|
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which node to unbind"
 
     check_permissions! "commands:unbind-node:#{data['name']}"
 
+    actions = []
     if node = Razor::Data::Node.find_by_name(data['name'])
+      log = { :event => :reinstall }
       if node.policy
-        policy_name = node.policy.name
-        node.log_append(:event => :unbind, :policy => policy_name)
+        log[:policy_name] = node.policy.name
         node.policy = nil
-        node.save
-        action = "node unbound from #{policy_name}"
-      else
-        action = "no changes; node #{data['name']} is not bound"
+        actions << "node unbound from #{log[:policy_name]}"
       end
+      if node.installed
+        log[:installed] = node.installed
+        node.installed = nil
+        node.installed_at = nil
+        actions << "installed flag cleared"
+      end
+      node.log_append(log)
+      node.save
     else
-      action = "no changes; node #{data['name']} does not exist"
+      actions << "no changes; node #{data['name']} does not exist"
     end
-    { :result => action }
+    { :result => actions.join(" and ") }
   end
 
   command :set_node_ipmi_credentials do |data|

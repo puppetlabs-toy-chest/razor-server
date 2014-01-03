@@ -308,12 +308,13 @@ command. It accepts the name of a single node:
 Of course, if that node boots again at some point, it will be automatically
 recreated.
 
-### Unbind node
+### Reinstall node
 
-Unbinding a node removes its association with a policy; once unbound, the
-node will boot back into the Microkernel and go through discovery, tag
-matching and possibly be bound to another policy. Specify which node to
-unbind by sending the node's name in the body of the request
+This command removes a node's association with any policy and clears its
+`installed` flag; once the node reboots, it will boot back into the
+Microkernel and go through discovery, tag matching and possibly be bound to
+another policy. This command does not change its metadata or facts. Specify
+which node to unbind by sending the node's name in the body of the request
 
     {
       'name': 'node17'
