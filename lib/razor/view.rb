@@ -60,6 +60,9 @@ module Razor
         },
         :rule_number => policy.rule_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
+        :nodes => { :id => view_object_url(policy) + "/nodes",
+                    :count => policy.nodes.count,
+                    :name => "nodes" }
       })
     end
 

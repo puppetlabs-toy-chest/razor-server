@@ -922,6 +922,12 @@ class Razor::App < Sinatra::Base
     policy_hash(policy).to_json
   end
 
+  get '/api/collections/policies/:name/nodes' do
+    policy = Razor::Data::Policy[:name => params[:name]] or
+      error 404, :error => "no policy matched id=#{params[:name]}"
+    collection_view(policy.nodes, "nodes")
+  end
+
   get '/api/collections/recipes' do
     collection_view Razor::Recipe, 'recipes'
   end
