@@ -50,7 +50,7 @@ module Razor
 
       view_object_hash(policy).merge({
         :repo => view_object_reference(policy.repo),
-        :installer => view_object_reference(policy.installer),
+        :recipe => view_object_reference(policy.recipe),
         :broker => view_object_reference(policy.broker),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
@@ -88,23 +88,23 @@ module Razor
         :"broker-type"   => broker.broker_type)
     end
 
-    def installer_hash(installer)
-      return nil unless installer
+    def recipe_hash(recipe)
+      return nil unless recipe
 
-      if installer.base
-        base = { :base => view_object_reference(installer.base) }
+      if recipe.base
+        base = { :base => view_object_reference(recipe.base) }
       else
         base = {}
       end
 
       # FIXME: also return templates, requires some work for file-based
-      # installers
-      view_object_hash(installer).merge(base).merge({
+      # recipes
+      view_object_hash(recipe).merge(base).merge({
         :os => {
-          :name => installer.os,
-          :version => installer.os_version }.delete_if {|k,v| v.nil? },
-        :description => installer.description,
-        :boot_seq => installer.boot_seq
+          :name => recipe.os,
+          :version => recipe.os_version }.delete_if {|k,v| v.nil? },
+        :description => recipe.description,
+        :boot_seq => recipe.boot_seq
       }).delete_if {|k,v| v.nil? }
     end
 
@@ -115,7 +115,7 @@ module Razor
     def node_hash(node)
       return nil unless node
 
-      boot_stage = node.policy ? node.installer.boot_template(node) : nil
+      boot_stage = node.policy ? node.recipe.boot_template(node) : nil
 
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,

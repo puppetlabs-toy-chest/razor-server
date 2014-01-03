@@ -10,7 +10,7 @@ describe "provisioning API" do
   end
 
   before :each do
-    use_installer_fixtures
+    use_recipe_fixtures
     use_broker_fixtures
   end
 

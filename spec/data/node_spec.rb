@@ -2,7 +2,7 @@ require_relative "../spec_helper"
 
 describe Razor::Data::Node do
   before(:each) do
-    use_installer_fixtures
+    use_recipe_fixtures
   end
 
   let (:policy) { Fabricate(:policy) }

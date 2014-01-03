@@ -1,5 +1,8 @@
 # Razor Server Release Notes
 
++ "installers" are renamed to "recipes" across the board
+  + this reflects their ability to do more than just install things
+
 ## 0.11.0 - 2013-11-26
 
 ### Public API changes

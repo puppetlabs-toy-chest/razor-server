@@ -6,21 +6,21 @@ module Razor::Data
     many_to_many :tags
     many_to_one  :broker
 
-    def installer
-      Razor::Installer.find(installer_name)
+    def recipe
+      Razor::Recipe.find(recipe_name)
     end
 
     def validate
       super
 
-      # Because we allow installers in the file system, we do not have a fk
-      # constraint on +installer_name+; this check only helps spot simple
+      # Because we allow recipes in the file system, we do not have a fk
+      # constraint on +recipe_name+; this check only helps spot simple
       # typos etc.
       begin
-        self.installer
-      rescue Razor::InstallerNotFoundError
-        errors.add(:installer_name,
-                   "installer '#{installer_name}' does not exist")
+        self.recipe
+      rescue Razor::RecipeNotFoundError
+        errors.add(:recipe_name,
+                   "recipe '#{recipe_name}' does not exist")
       end
     end
 

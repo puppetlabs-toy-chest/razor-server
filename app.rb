@@ -153,9 +153,9 @@ class Razor::App < Sinatra::Base
       end
     end
 
-    # @todo lutter 2013-08-21: all the installers need to be adapted to do
-    # a 'curl <%= stage_done_url %> to signal that they are ready to
-    # proceed to the next stage in the boot sequence
+    # @todo lutter 2013-08-21: all the recipes need to be adapted to do a
+    # 'curl <%= stage_done_url %> to signal that they are ready to proceed to
+    # the next stage in the boot sequence
     def stage_done_url(name = "")
       url "/svc/stage-done/#{@node.id}?name=#{name}"
     end
@@ -199,9 +199,9 @@ class Razor::App < Sinatra::Base
 
   # Convenience for /svc/boot and /svc/file
   def render_template(name)
-    locals = { :installer => @installer, :node => @node, :repo => @repo }
+    locals = { :recipe => @recipe, :node => @node, :repo => @repo }
     content_type 'text/plain'
-    template, opts = @installer.find_template(name)
+    template, opts = @recipe.find_template(name)
     erb template, opts.merge(locals: locals, layout: false)
   end
 
@@ -232,9 +232,9 @@ class Razor::App < Sinatra::Base
   #
   # @todo lutter 2013-09-04: this code assumes that we can tell an MK its
   # unique checkin URL, which is true for MK's that boot through
-  # +installers/microkernel/boot.erb+. If we need to allow booting of MK's
-  # by other means, we'd need to convince facter to send us the same
-  # hw_info that iPXE does and identify the node via +Node.lookup+
+  # +recipes/microkernel/boot.erb+. If we need to allow booting of MK's by
+  # other means, we'd need to convince facter to send us the same hw_info that
+  # iPXE does and identify the node via +Node.lookup+
   post '/svc/checkin/:id' do
     logger.info("checkin by node #{params[:id]}")
     return 400 if request.content_type != 'application/json'
@@ -253,11 +253,11 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  # Take a hardware ID bundle, match it to a node, and return the unique
-  # node ID.  This is for the benefit of the Windows installer client, which
-  # can't take any dynamic content from the boot loader, and potentially any
-  # future installer (or other utility) which can identify the hardware
-  # details, but not the node ID, to get that ID.
+  # Take a hardware ID bundle, match it to a node, and return the unique node
+  # ID.  This is for the benefit of the Windows installer client, which can't
+  # take any dynamic content from the boot loader, and potentially any future
+  # recipe (or other utility) which can identify the hardware details, but not
+  # the node ID, to get that ID.
   #
   # GET the URL, with `netN` keys for your network cards, and optionally a
   # `dhcp_mac`, serial, asset, and uuid DMI data arguments.  These are used
@@ -298,7 +298,7 @@ class Razor::App < Sinatra::Base
       return 400
     end
 
-    @installer = @node.installer
+    @recipe = @node.recipe
 
     if @node.policy
       @repo = @node.policy.repo
@@ -314,9 +314,9 @@ class Razor::App < Sinatra::Base
       @repo = Razor::Data::Repo.new(:name => "microkernel",
                                     :iso_url => "file:///dev/null")
     end
-    template = @installer.boot_template(@node)
+    template = @recipe.boot_template(@node)
 
-    @node.log_append(:event => :boot, :installer => @installer.name,
+    @node.log_append(:event => :boot, :recipe => @recipe.name,
                      :template => template, :repo => @repo.name)
     @node.save
     render_template(template)
@@ -332,13 +332,13 @@ class Razor::App < Sinatra::Base
 
     halt 409 unless @node.policy
 
-    @installer = @node.installer
+    @recipe = @node.recipe
     @repo = @node.policy.repo
 
     @node.log_append(:event => :get_raw_file, :template => params[:filename],
                      :url => request.url)
 
-    fpath = @installer.find_file(params[:filename]) or halt 404
+    fpath = @recipe.find_file(params[:filename]) or halt 404
     content_type nil
     send_file fpath, :disposition => nil
   end
@@ -350,7 +350,7 @@ class Razor::App < Sinatra::Base
 
     halt 409 unless @node.policy
 
-    @installer = @node.installer
+    @recipe = @node.recipe
     @repo = @node.policy.repo
 
     @node.log_append(:event => :get_file, :template => params[:template],
@@ -407,7 +407,7 @@ class Razor::App < Sinatra::Base
     root = File.expand_path(Razor.config['repo_store_root'])
 
     # Unfortunately, we face some complexities.  The ISO9660 format only
-    # supports upper-case filenames, but some installers assume they will be
+    # supports upper-case filenames, but some recipes assume they will be
     # mapped to lower-case automatically.  If that doesn't happen, we can
     # hit trouble.  So, to make this more user friendly we look for a
     # case-insensitive match on the file.
@@ -424,7 +424,7 @@ class Razor::App < Sinatra::Base
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :installers]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :recipes]
 
   #
   # The main entry point for the public/management API
@@ -542,7 +542,7 @@ class Razor::App < Sinatra::Base
   command :delete_policy do |data|
     #deleting a policy will first remove the policy from any node
     #associated with it.  The node will remain bound, resulting in the
-    #noop installer being associated on boot (causing a local boot)
+    #noop recipe being associated on boot (causing a local boot)
     data['name'] or error 400,
       :error => "Supply 'name' to indicate which policy to delete"
     if policy = Razor::Data::Policy[:name => data['name']]
@@ -664,18 +664,18 @@ class Razor::App < Sinatra::Base
     { :result => 'updated IPMI details' }
   end
 
-  command :create_installer do |data|
-    check_permissions! "commands:create-installer:#{data['name']}"
+  command :create_recipe do |data|
+    check_permissions! "commands:create-recipe:#{data['name']}"
 
-    # If boot_seq is not a Hash, the model validation for installers
-    # will catch that, and will make saving the installer fail
+    # If boot_seq is not a Hash, the model validation for recipes
+    # will catch that, and will make saving the recipe fail
     if (boot_seq = data["boot_seq"]).is_a?(Hash)
       # JSON serializes integers as strings, undo that
       boot_seq.keys.select { |k| k.is_a?(String) and k =~ /^[0-9]+$/ }.
         each { |k| boot_seq[k.to_i] = boot_seq.delete(k) }
     end
 
-    Razor::Data::Installer.new(data).save.freeze
+    Razor::Data::Recipe.new(data).save.freeze
   end
 
   command :create_tag do |data|
@@ -757,8 +757,8 @@ class Razor::App < Sinatra::Base
         halt [400, "Broker '#{name}' not found"]
     end
 
-    if data["installer"]
-      data["installer_name"] = data.delete("installer")["name"]
+    if data["recipe"]
+      data["recipe_name"] = data.delete("recipe")["name"]
     end
     data["hostname_pattern"] = data.delete("hostname")
 
@@ -885,21 +885,21 @@ class Razor::App < Sinatra::Base
     policy_hash(policy).to_json
   end
 
-  get '/api/collections/installers' do
-    Razor::Installer.all.
+  get '/api/collections/recipes' do
+    Razor::Recipe.all.
       map { |inst| view_object_reference(inst) }.
-      select {|o| check_permissions!("query:installers:#{o[:name]}") rescue nil }.
+      select {|o| check_permissions!("query:recipes:#{o[:name]}") rescue nil }.
       to_json
   end
 
-  get '/api/collections/installers/:name' do
+  get '/api/collections/recipes/:name' do
     begin
-      installer = Razor::Installer.find(params[:name])
-    rescue Razor::InstallerNotFoundError => e
-      error 404, :error => "Installer #{params[:name]} does not exist",
+      recipe = Razor::Recipe.find(params[:name])
+    rescue Razor::RecipeNotFoundError => e
+      error 404, :error => "Recipe #{params[:name]} does not exist",
         :details => e.to_s
     end
-    installer_hash(installer).to_json
+    recipe_hash(recipe).to_json
   end
 
   get '/api/collections/repos' do
@@ -948,7 +948,7 @@ class Razor::App < Sinatra::Base
     # How many NICs ipxe should probe for DHCP
     @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i
 
-    @installer = Razor::Installer.mk_installer
+    @recipe = Razor::Recipe.mk_recipe
 
     render_template("bootstrap")
   end

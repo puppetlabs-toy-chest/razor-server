@@ -60,7 +60,7 @@ describe "command and query API" do
     # `before` is used instead of `let` since the database gets rolled
     # back after every test
     before(:each) do
-      use_installer_fixtures
+      use_recipe_fixtures
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
@@ -74,7 +74,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  Fabricate(:policy, :repo => @repo, :installer_name => "some_os")
+      pl =  Fabricate(:policy, :repo => @repo, :recipe_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -88,14 +88,14 @@ describe "command and query API" do
 
   context "/api/collections/policies/ID - get policy" do
     before(:each) do
-      use_installer_fixtures
+      use_recipe_fixtures
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @repo = Fabricate(:repo)
     end
 
-    subject(:pl){ Fabricate(:policy, :repo => @repo, :installer_name => "some_os")}
+    subject(:pl){ Fabricate(:policy, :repo => @repo, :recipe_name => "some_os")}
 
     it "should exist" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
@@ -106,7 +106,7 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags installer broker]
+      policy.keys.should =~ %w[name id spec configuration enabled rule_number max_count repo tags recipe broker]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
@@ -181,12 +181,12 @@ describe "command and query API" do
     end
   end
 
-  context "/api/collections/installers/:name" do
+  context "/api/collections/recipes/:name" do
     # @todo lutter 2013-10-08: I would like to pull the schema for the base
     # property out into a ObjectReferenceSchema and make the base property
     # a $ref to that. My attempts at doing that have failed so far, because
     # json-schema fails when we validate against the resulting
-    # InstallerItemSchema, complaining that the schema for base is not
+    # RecipeItemSchema, complaining that the schema for base is not
     # valid
     #
     # Note that to use a separate ObjectReferenceSchema, we have to
@@ -195,9 +195,9 @@ describe "command and query API" do
     #   ObjectReferenceSchema['id'] = url
     #   sch = JSON::Schema::new(ObjectReferenceSchema, url)
     #   JSON::Validator.add_schema(sch)
-    InstallerItemSchema = {
+    RecipeItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Installer Item JSON Schema",
+      'title'    => "Recipe Item JSON Schema",
       'type'     => 'object',
       'required' => %w[spec id name os boot_seq],
       'properties' => {
@@ -267,44 +267,44 @@ describe "command and query API" do
     end
 
     before(:each) do
-      use_installer_fixtures
+      use_recipe_fixtures
     end
 
-    it "works for file-based installers" do
-      get "/api/collections/installers/some_os"
+    it "works for file-based recipes" do
+      get "/api/collections/recipes/some_os"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "some_os"
       data["boot_seq"].keys.should =~ %w[1 2 default]
       data["boot_seq"]["2"].should == "boot_again"
-      validate! InstallerItemSchema, last_response.body
+      validate! RecipeItemSchema, last_response.body
     end
 
-    it "works for DB-backed installers" do
-      inst = Razor::Data::Installer.create(:name => 'dbinst',
+    it "works for DB-backed recipes" do
+      inst = Razor::Data::Recipe.create(:name => 'dbinst',
                                            :os => 'SomeOS',
                                            :os_version => '6',
-                                           :boot_seq => { 1 => "install",
+                                           :boot_seq => { 1 => "recipe",
                                                           "default" => "local"})
-      get "/api/collections/installers/dbinst"
+      get "/api/collections/recipes/dbinst"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "dbinst"
       data["boot_seq"].keys.should =~ %w[1 default]
-      validate! InstallerItemSchema, last_response.body
+      validate! RecipeItemSchema, last_response.body
     end
 
-    it "includes a reference to the base installer" do
-      get "/api/collections/installers/some_os_derived"
+    it "includes a reference to the base recipe" do
+      get "/api/collections/recipes/some_os_derived"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "some_os_derived"
       data["os"]["version"].should == "4"
       data["base"]["name"].should == "some_os"
-      validate! InstallerItemSchema, last_response.body
+      validate! RecipeItemSchema, last_response.body
     end
   end
 
