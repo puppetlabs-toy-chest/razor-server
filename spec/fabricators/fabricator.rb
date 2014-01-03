@@ -7,12 +7,12 @@ end
 def random_mac
   # not strictly a legal MAC, but the shape is correct.  (eg: could be a
   # broadcast MAC, or some other invalid value.)
-  6.times.map { Random.rand(256).to_s(16) }.join("-")
+  6.times.map { Random.rand(256).to_s(16).downcase }.join("-")
 end
 
 ASSET_CHARS=('A'..'Z').to_a + ('0'..'9').to_a
 def random_asset
-  ASSET_CHARS.sample(6).join
+  ASSET_CHARS.sample(6).join.downcase
 end
 
 Fabricator(:broker, :class_name => Razor::Data::Broker) do
