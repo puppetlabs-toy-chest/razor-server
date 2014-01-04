@@ -60,6 +60,9 @@ module Razor
         },
         :rule_number => policy.rule_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
+        :nodes => { :id => view_object_url(policy) + "/nodes",
+                    :count => policy.nodes.count,
+                    :name => "nodes" }
       })
     end
 
@@ -67,7 +70,13 @@ module Razor
       return nil unless tag
 
       view_object_hash(tag).merge({
-        :rule => tag.rule
+        :rule => tag.rule,
+        :nodes => { :id => view_object_url(tag) + "/nodes",
+                    :count => tag.nodes.count,
+                    :name => "nodes" },
+        :policies => { :id => view_object_url(tag) + "/policies",
+                       :count => tag.policies.count,
+                       :name => "policies" }
       })
     end
 
@@ -139,7 +148,8 @@ module Razor
 
     def collection_view(cursor, name)
       perm = "query:#{name}"
-      items = cursor.all.
+      cursor = cursor.all if cursor.respond_to?(:all)
+      items = cursor.
         map {|t| view_object_reference(t)}.
         select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
       {

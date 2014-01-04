@@ -602,4 +602,30 @@ describe Razor::Data::Node do
       node.installed_at.should be_nil
     end
   end
+
+  context "search" do
+    before(:each) do
+      @node1 = Fabricate(:node, :hostname => "host1.example.com")
+      @node2 = Fabricate(:node, :hostname => "host2.example.com")
+    end
+
+    it "should look for hostnames as a regexp" do
+      Node.search("hostname" => "host1.*").all.should == [ @node1 ]
+      Node.search("hostname" => "host.*").all.should =~ [ @node1, @node2 ]
+    end
+
+    it "should look for MACs case-insensitively" do
+      mac = @node1.hw_hash["mac"].first
+      Node.search("mac" => mac).all.should == [ @node1 ]
+      Node.search("mac" => mac.upcase).all.should == [ @node1 ]
+      Node.search("mac" => mac.upcase).all.should == [ @node1 ]
+      Node.search("mac" => mac.upcase.gsub("-", ":")).all.should == [ @node1 ]
+    end
+
+    it "should look for asset tags" do
+      asset = @node1.hw_hash["asset"]
+      Node.search("asset" => asset).all.should == [ @node1 ]
+      Node.search("asset" => asset.upcase).all.should == [ @node1 ]
+    end
+  end
 end

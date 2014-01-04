@@ -289,6 +289,8 @@ module Razor::Data
     # +hw_hash+, implying that +mac+ might be an array of MAC addresses
     def self.canonicalize_hw_info(hw_info)
       if macs = hw_info["mac"]
+        macs = [ macs ] unless macs.is_a? Array
+        macs = macs.map { |mac| mac.gsub(":", "-") }
         # hw_info might contain an array of mac's; spread that out
         hw_info = hw_info.to_a.reject! {|k,v| k == "mac" } +
                   ["mac"].product(macs)
@@ -352,6 +354,28 @@ module Razor::Data
         node.installed_at = DateTime.now
       end
       node.save
+    end
+
+    def self.search(params)
+      nodes = self.dataset
+      # Search by hostname
+      if params['hostname']
+        rx = params.delete("hostname")
+        begin
+          rx = Regexp.new(rx)
+        rescue
+          # If we can't compile the user's input into a regexp,
+          # just search for the raw string
+        end
+        nodes = nodes.grep([:hostname, :ipmi_hostname], rx,
+                           :case_insensitive => true)
+      end
+      # Search by hw_info
+      hw_info = canonicalize_hw_info(params)
+      unless hw_info.empty?
+        nodes = nodes.where(:hw_info.pg_array.overlaps(hw_info))
+      end
+      nodes
     end
 
     ########################################################################

@@ -842,6 +842,34 @@ class Razor::App < Sinatra::Base
     end
   end
 
+  command :modify_policy_max_count do |data|
+    data['name'] or error 400,
+      :error => "Supply the name of the policy to modify"
+
+    policy = Razor::Data::Policy[:name => data['name']] or error 404,
+      :error => "Policy #{data['name']} does not exist"
+
+    data.key?('max-count') or error 400,
+      :error => "Supply a new max-count for the policy"
+
+    max_count_s = data['max-count']
+    if max_count_s.nil?
+      max_count = nil
+      bound = "unbounded"
+    else
+      max_count = max_count_s.to_i
+      max_count.to_s == max_count_s.to_s or
+        error 400, :error => "New max-count '#{max_count_s}' is not a valid integer"
+      bound = max_count_s
+      node_count = policy.nodes.count
+      node_count <= max_count or
+        error 400, :error => "There are currently #{node_count} nodes bound to this policy. Can not lower max-count to #{max_count} which is less"
+    end
+    policy.max_count = max_count
+    policy.save
+    { :result => "Changed max-count for policy #{policy.name} to #{bound}" }
+  end
+
   #
   # Query/collections API
   #
@@ -862,6 +890,18 @@ class Razor::App < Sinatra::Base
     tag_hash(tag).to_json
   end
 
+  get '/api/collections/tags/:name/nodes' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      error 404, :error => "no tag matched id=#{params[:name]}"
+    collection_view(tag.nodes, "nodes")
+  end
+
+  get '/api/collections/tags/:name/policies' do
+    tag = Razor::Data::Tag[:name => params[:name]] or
+      error 404, :error => "no tag matched id=#{params[:name]}"
+    collection_view(tag.policies, "policies")
+  end
+
   get '/api/collections/brokers' do
     collection_view Razor::Data::Broker, 'brokers'
   end
@@ -880,6 +920,12 @@ class Razor::App < Sinatra::Base
     policy = Razor::Data::Policy[:name => params[:name]] or
       error 404, :error => "no policy matched id=#{params[:name]}"
     policy_hash(policy).to_json
+  end
+
+  get '/api/collections/policies/:name/nodes' do
+    policy = Razor::Data::Policy[:name => params[:name]] or
+      error 404, :error => "no policy matched id=#{params[:name]}"
+    collection_view(policy.nodes, "nodes")
   end
 
   get '/api/collections/recipes' do
@@ -907,7 +953,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node, 'nodes'
+    collection_view Razor::Data::Node.search(params), 'nodes'
   end
 
   get '/api/collections/nodes/:name' do
