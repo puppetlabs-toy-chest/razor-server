@@ -125,6 +125,13 @@ module Razor
       return nil unless node
 
       boot_stage = node.policy ? node.recipe.boot_template(node) : nil
+      if node.last_known_power_state.nil?
+        power_state = nil
+      elsif node.last_known_power_state
+        power_state = 'on'
+      else
+        power_state = 'off'
+      end
 
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,
@@ -138,7 +145,8 @@ module Razor
         :state         => {
           :installed    => node.installed,
           :installed_at => ts(node.installed_at),
-          :stage        => boot_stage
+          :stage        => boot_stage,
+          :power        => power_state
         }.delete_if { |k,v| v.nil? },
         :hostname      => node.hostname,
         :root_password => node.root_password,
