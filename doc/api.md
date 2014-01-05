@@ -238,7 +238,8 @@ will return with status code 400.
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
-      "line_number": "100"
+      "line_number": "100",
+      "match_tags": "AnyOf",
       "tags": [{ "name": "existing_tag"},
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
@@ -257,6 +258,12 @@ The `max_count` determines how many nodes can be bound at any given point
 to this policy at the most. This can either be set to `nil`, indicating
 that an unbounded number of nodes can be bound to this policy, or a
 positive integer to set an upper bound.
+
+The `match_tags` is optional defaulting to 'AllOf'. Valid values are
+'AllOf', 'AnyOf' or 'NoneOf'. It allows you to specify whether the policy
+will match if all the policy tags are on the node (AllOf), if at least
+one of the policy tags are on the node (AnyOf) or only match if none of
+the policy tags are present on the node (NoneOf).
 
 ### Enable/disable policy
 

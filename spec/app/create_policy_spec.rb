@@ -30,6 +30,7 @@ describe "create policy command" do
         :hostname      => "host${id}.example.com",
         :root_password => "geheim",
         :rule_number   => 100,
+        :match_tags    => "AllOf",
         :tags          => [ { "name" => tag1.name } ]
       }
     end
@@ -58,6 +59,12 @@ describe "create policy command" do
 
     it "should fail if a nonexisting repo is referenced" do
       policy_hash[:repo] = { "name" => "not_an_repo" }
+      create_policy
+      last_response.status.should == 400
+    end
+
+    it "should fail if an invalid match_tag value is supplied" do
+      policy_hash[:match_tags] = 'NotValid'
       create_policy
       last_response.status.should == 400
     end
