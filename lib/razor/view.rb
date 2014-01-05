@@ -59,10 +59,11 @@ module Razor
           :root_password => policy.root_password,
         },
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
+        :node_metadata => policy.node_metadata || {},
         :nodes => { :id => view_object_url(policy) + "/nodes",
                     :count => policy.nodes.count,
                     :name => "nodes" }
-      })
+      }).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
 
     def tag_hash(tag)

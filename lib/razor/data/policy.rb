@@ -7,6 +7,7 @@ module Razor::Data
     many_to_one  :broker
 
     plugin :list, :field => :rule_number
+    plugin :serialization, :json, :node_metadata
 
     def before_validation
       # @todo lutter 2014-01-15: the list plugin initializes +rule_number+
@@ -31,6 +32,24 @@ module Razor::Data
         end
       else
         raise "the where parameter must be either 'before' or 'after'"
+      end
+    end
+
+    # This is a hack around the fact that the auto_validates plugin does
+    # not play nice with the JSON serialization plugin (the serializaton
+    # happens in the before_save hook, which runs after validation)
+    #
+    # To avoid spurious error messages, we tell the validation machinery to
+    # expect a Hash resp.
+    #
+    # Add the fields to be serialized to the 'serialized_fields' array
+    #
+    # FIXME: Figure out a way to address this issue upstream
+    def schema_type_class(k)
+      if [ :node_metadata ].include?(k)
+        Hash
+      else
+        super
       end
     end
 

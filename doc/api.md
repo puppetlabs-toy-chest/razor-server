@@ -239,6 +239,7 @@ will return with status code 400.
       "root_password": "secret",
       "max_count": "20",
       "before"|"after": { "name": "other policy" },
+      "node_metadata": { "key1": "value1", "key2": "value2" },
       "tags": [{ "name": "existing_tag"},
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
@@ -261,6 +262,11 @@ The `max_count` determines how many nodes can be bound at any given point
 to this policy at the most. This can either be set to `nil`, indicating
 that an unbounded number of nodes can be bound to this policy, or a
 positive integer to set an upper bound.
+
+The `node_metadata` allows a policy to apply metadata to a node when it
+binds.  This is NON AUTHORITIVE in that it will not replace existing
+metadata on the node with the same keys it will only add keys that are
+missing.
 
 ### Move policy
 
@@ -429,15 +435,15 @@ The RBAC pattern for this command is:
 `reboot-node:${node}:${hard ? 'hard' : 'soft'}`
 
 
-### Modify Node Metadata
+### Modify node metadata
 
 Node metadata is similar to a nodes facts except metadata is what the
 administrators tell Razor about the node rather than what the node tells
 Razor about itself.
 
 Metadata is a collection of key => value pairs (like facts).  Use the
- `modify-node-metadata` command to add/update, remove or clear a node's
-metadata.  The request should look like:
+`modify-node-metadata` command to add/update, remove or clear a node's
+metadata. The request should look like:
 
     {
         'node': 'node1',
@@ -447,6 +453,8 @@ metadata.  The request should look like:
             ...
         }
         'remove': [ 'key3', 'key4', ... ],  # Remove these keys
+        'no_replace': true                  # Do not replace keys on
+                                            # update. Only add new keys
     }
 
 or
@@ -460,6 +468,37 @@ As above, multiple update and/or removes can be done in the one command,
 however, clear can only be done on its own (it doesnt make sense to
 update some details and then clear everything).  An error will also be
 returned if an attempt is made to update and remove the same key.
+
+### Update node metadata
+
+The `update-node-metadata` command is a shortcut to `modify-node-metadata`
+that allows for updating single keys on the command line or with a GET
+request with a simple data structure that looks like.
+
+    {
+        'node'      : 'mode1',
+        'key'       : 'my_key',
+        'value'     : 'my_val',
+        'no_replace': true       #Optional. Will not replace existing keys
+    }
+
+### Remove Node Metadata
+
+The `remove-node-metadata` command is a shortcut to `modify-node-metadata`
+that allows for removing a single key OR all keys only on the command
+like or with a GET request with a simple datastructure that looks like:
+
+    {
+        'node' : 'node1',
+        'key'  : 'my_key',
+    }
+
+or
+
+    {
+        'node' : 'node1',
+        'all'  : true,     # Removes all keys
+    }
 
 ## Collections
 

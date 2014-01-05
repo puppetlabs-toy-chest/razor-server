@@ -160,6 +160,12 @@ module Razor::Data
       self.installed_at = nil
       self.root_password = policy.root_password
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
+
+      if policy.node_metadata
+        modify_metadata('no_replace' => true, 'update' => policy.node_metadata)
+      end
+
+      self
     end
 
     # This is a hack around the fact that the auto_validates plugin does
@@ -229,8 +235,9 @@ module Razor::Data
 
       if data['update']
         data['update'].is_a? Hash or raise ArgumentError, 'update must be a hash'
+        replace = (not [true, 'true'].include?(data['no_replace']))
         data['update'].each do |k,v|
-          new_metadata[k] = v
+          new_metadata[k] = v if replace or not new_metadata[k]
         end
       end
       if data['remove']

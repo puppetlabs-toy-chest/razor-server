@@ -146,10 +146,14 @@ describe "command and query API" do
     end
 
     it "should have the right keys" do
+      pl.max_count = 10
+      pl.node_metadata = { "key1" => "val1" }
+      pl.save
+
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled max_count repo tags recipe broker nodes]
+      policy.keys.should =~ %w[name id spec configuration enabled max_count repo tags recipe broker node_metadata nodes]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
