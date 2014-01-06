@@ -1,0 +1,13 @@
+Source: razor-server
+Section: java
+Priority: optional
+Maintainer: Puppet Labs <info@puppetlabs.com>
+Build-Depends: debhelper (>> 7)
+Standards-Version: 3.9.1
+Homepage: http://www.puppetlabs.com
+
+Package: razor-server
+Architecture: all
+Depends: ${misc:Depends}, razor-torquebox, libarchive-dev
+Description: <%= @summary %>
+<%= @description.gsub(/^$/, '.').gsub(/^/, ' ').chomp %>

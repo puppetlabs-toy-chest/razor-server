@@ -1,0 +1,5 @@
+var/run/razor-server
+var/log/razor-server
+var/lib/razor/repo-store
+etc/razor
+opt/razor

@@ -6,3 +6,4 @@ log/*
 /coverage
 /.project
 /.ruby-version
+/ext/packaging/

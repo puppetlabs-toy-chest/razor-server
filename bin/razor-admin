@@ -3,8 +3,7 @@
 require 'optparse'
 require 'bundler/setup'
 
-MIGRATION_DIR=File::expand_path(File::join(File::dirname(__FILE__),
-                                           "../db/migrate"))
+MIGRATION_DIR=File::expand_path(File::join(File::dirname(__FILE__), "../db/migrate"))
 show_help=false
 optparse = OptionParser.new do |opts|
   opts.banner = <<EOS
