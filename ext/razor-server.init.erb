@@ -1,0 +1,159 @@
+#!/bin/bash
+#
+# razor-server sysv startup script for multiple platforms
+#
+<%= @description.gsub(/^/, '# ').chomp %>
+#
+# chkconfig: - 80 20
+# description: razor-server
+# processname: standalone
+# pidfile: /var/run/razor-server.pid
+
+# Ensure we have a sensible umask
+umask 0027
+
+NAME="razor-server"
+WAIT=30 # seconds
+
+# Load the location data from our torquebox installation
+source /etc/razor/razor-torquebox.sh
+
+# Other configuration
+export JBOSS_PIDFILE="/var/run/${NAME}/torquebox.pid"
+
+export JBOSS_LOG_DIR="/var/log/${NAME}"
+export JBOSS_CONSOLE_LOG="${JBOSS_LOG_DIR}/console.log"
+
+JBOSS_USER="razor"
+
+JBOSS_CONFIG="standalone.xml"
+JBOSS_SCRIPT="${JBOSS_HOME}/bin/standalone.sh"
+
+JBOSS_LIB="/var/lib/razor"
+
+LAUNCH_JBOSS_IN_BACKGROUND=true
+export LAUNCH_JBOSS_IN_BACKGROUND
+
+start() {
+    echo -n "Launching ${NAME}: "
+
+    if status >&/dev/null; then
+        echo "already running."
+        return 0
+    fi
+
+    # We want to truncate the logfile, not just ensure it exists.
+    echo >"${JBOSS_CONSOLE_LOG}"
+    chown "${JBOSS_USER}" "${JBOSS_CONSOLE_LOG}"
+
+    # We can't be sure any directory under /var/run exists after a reboot,
+    # since some distributions put it on a ramfs -- and not unreasonably.
+    mkdir -p --mode 0755 "$(dirname "${JBOSS_PIDFILE}")"
+    echo >"${JBOSS_PIDFILE}"
+    chown "${JBOSS_USER}" "${JBOSS_PIDFILE}"
+
+    # Delegate to another instance of the same script, run as another user, to
+    # actually fire off the software.  This helps isolate the context between
+    # the two, and ensures we don't depend on, eg, environment variables being
+    # copied by su -- which is less reliable than one may hope.
+    su "${JBOSS_USER}" -c "$0 run" &
+    pid=$!
+    disown ${pid}
+
+    # if the process stops running while we wait, it failed.
+    if ! kill -0 ${pid} >&/dev/null; then
+        echo "failed."
+        return 1
+    fi
+
+    echo "done."
+    echo -n "Waiting ${WAIT} seconds for start: "
+
+    # Wait for startup, up to the thirty second mark.
+    for (( count=0; count<${WAIT}; count++ )); do
+        # if the process stops running while we wait, it failed.
+        if ! kill -0 ${pid} >&/dev/null; then
+            echo " failed."
+            return 1
+        fi
+
+        # found the mark that we started, exit now.
+        if egrep -q 'JBoss AS .* started in' "${JBOSS_CONSOLE_LOG}"; then
+            echo " done."
+            return 0
+        fi
+
+        # otherwise wait, and try again.
+        echo -n '.'
+        sleep 1
+    done
+
+    echo " timed out, starting in background."
+    return 0
+}
+
+# This actually runs the software; we assume we are already running as the
+# subordinate user, and start in the background.
+run() {
+    exec >&"${JBOSS_CONSOLE_LOG}" "${JBOSS_SCRIPT}" \
+        "-Djboss.server.log.dir=${JBOSS_LOG_DIR}" \
+        "-b" "0.0.0.0"
+}
+
+
+stop() {
+    if status >&/dev/null; then
+        echo -n "Stopping ${NAME}: "
+        kill $(< "${JBOSS_PIDFILE}")
+
+        # Wait for the process to terminate, which may take a little while
+        for (( count=0; count<=${WAIT}; count++ )); do
+            if ! status>&/dev/null; then
+                echo " done."
+                return 0
+            fi
+
+            echo -n '.'
+            sleep 1
+        done
+
+        echo " timed out waiting to die."
+        return 1
+    else
+        echo "${NAME} seemed to be stopped already, doing nothing"
+        return 0
+    fi
+}
+
+
+
+status() {
+    if [ -f "${JBOSS_PIDFILE}" ]; then
+        read pid < ${JBOSS_PIDFILE}
+        if ps --no-headers -p${pid} -oargs | grep -qc "${JBOSS_HOME}"; then
+            echo "${NAME} is running (pid $pid)"
+            return 0
+        else
+            echo "${NAME} dead but pid file exists"
+            return 1
+        fi
+    fi
+    echo "${NAME} is not running"
+    return 3
+}
+
+case "$1" in
+    start)      start   ;;
+    # used internally to manage user switching
+    run)        run     ;;
+    stop)       stop    ;;
+    status)     status  ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

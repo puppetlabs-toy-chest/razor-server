@@ -1,0 +1,15 @@
+#!/bin/bash
+
+/bin/chown -R razor:razor /var/lib/razor || :
+/bin/chown -R razor:razor /var/run/razor-server || :
+/bin/chown -R razor:razor /var/log/razor-server || :
+
+# Cause our application to be deployed to TorqueBox, but only the first time
+# we are installed.  Upgrades do not automatically trigger this, because a
+# database migration may be required, and we want to avoid reloading code in a
+# way that will break compared to that "admin intervention required"
+# planned downtime.
+if [ x"$1" = x"configure" -a x"$2" = x"" ]; then
+    source /etc/razor/razor-torquebox.sh
+    torquebox deploy /opt/razor --env=production
+fi
