@@ -49,6 +49,25 @@ module Razor
       expand_paths('broker')
     end
 
+    def mkupdate_paths
+      expand_paths('mkupdate')
+    end
+
+    def mkupdate_refresh
+      key     = 'mkupdate_refresh_interval'
+      default = 3600
+      if self[key]
+        interval = self[key].to_i
+        if interval > 0
+          interval
+        else
+          default
+        end
+      else
+        default
+      end
+    end
+
     def fact_blacklisted?(name)
       !! facts_blacklist_rx.match(name)
     end
@@ -61,7 +80,7 @@ module Razor
 
     private
     def expand_paths(what)
-      option_name  = what + '_path' # eg: broker_path, task_path
+      option_name  = what + '_path' # eg: broker_path, task_path, mkupdate_path
 
       if self[option_name]
         self[option_name].split(':').map do |path|
