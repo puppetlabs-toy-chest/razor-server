@@ -19,7 +19,7 @@ exists() {
 
 <% unless broker.empty? %>
 install_sh="<%= broker.install_sh %>"
-version_string="-v <%= broker.version_string %>"
+version_string="<%= broker.version_string %>"
 if ! exists /usr/bin/chef-client; then
   if exists wget; then
     bash <(wget ${install_sh} -O -) -v ${version_string}
