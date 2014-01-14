@@ -1,3 +1,5 @@
+    data = JSON.parse(request.body.read)
+    ASM.process_deployment(data['Deployment'])
 require 'sinatra'
 
 require_relative './lib/razor/initialize'
