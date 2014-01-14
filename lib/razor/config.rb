@@ -19,8 +19,15 @@ module Razor
     HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
 
     def initialize(env, fname = nil)
+      # Use the filename given, or from the environment, or from /etc if it
+      # exists, otherwise the one in our root directory...
       fname ||= ENV["RAZOR_CONFIG"] ||
+        (File.file?('/etc/razor/config.yaml') and '/etc/razor/config.yaml') ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
+
+      # Save this for later, since we use it to find relative paths.
+      @fname = fname
+
       begin
         yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
       rescue Errno::ENOENT
@@ -32,6 +39,10 @@ module Razor
       end
       @values = yaml["all"] || {}
       @values.merge!(yaml[Razor.env] || {})
+    end
+
+    def root
+      File.dirname(@fname)
     end
 
     # Lookup an entry. To look up a nested value, you can pass in the
