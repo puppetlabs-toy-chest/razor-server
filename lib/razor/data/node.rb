@@ -402,5 +402,12 @@ module Razor::Data
         self.save_changes
       end
     end
+
+    # Request a reboot from the machine via IPMI.  This supports both hard and
+    # soft reboots.  This is synchronous, and is expected to be called in the
+    # background from the message queue.
+    def reboot!(hard)
+      Razor::IPMI.reset(self, hard)
+    end
   end
 end

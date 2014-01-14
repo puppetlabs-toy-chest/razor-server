@@ -4,8 +4,8 @@ require_relative '../../app'
 describe "set-node-ipmi-credentials" do
   include Rack::Test::Methods
 
-  let(:app) { Razor::App }
-  let(:url) { '/api/commands/set-node-ipmi-credentials' }
+  let(:app)  { Razor::App }
+  let(:url)  { '/api/commands/set-node-ipmi-credentials' }
   let(:node) { Fabricate(:node).save }
 
   before :each do
@@ -40,5 +40,154 @@ describe "set-node-ipmi-credentials" do
     node.ipmi_hostname.should == update['ipmi-hostname']
     node.ipmi_username.should == update['ipmi-username']
     node.ipmi_password.should == update['ipmi-password']
+  end
+end
+
+describe "reboot-node" do
+  include Rack::Test::Methods
+  include TorqueBox::Injectors
+
+  let(:app)   { Razor::App }
+  let(:url)   { '/api/commands/reboot-node' }
+  let(:node)  { Fabricate(:node_with_ipmi).save }
+  let(:queue) { fetch('/queues/razor/sequel-instance-messages') }
+
+  before :each do
+    header 'content-type', 'application/json'
+    authorize 'fred', 'dead'
+  end
+
+  it "should fail if no node is included" do
+    post url, {}.to_json
+    last_response.status.should == 400
+  end
+
+  [0, 1, 1.1, "true", :true, "false",
+    :false, [true], [false], [:true], [:false]].each do |input|
+    it "should fail if '#{input.inspect} (#{input.class})' is given for 'hard'" do
+      post url, {'name' => node.name, 'hard' => input}.to_json
+      last_response.status.should == 400
+      last_response.body.should =~ /must be a boolean/
+    end
+  end
+
+  it "should work if hard is absent" do
+    post url, {'name' => node.name}.to_json
+    last_response.status.should == 202
+  end
+
+  context "RBAC" do
+    around :each do |spec|
+      Tempfile.open('shiro.ini') do |config|
+        config.print <<EOT
+[main]
+[users]
+both=both,soft,hard
+soft=soft,soft
+hard=hard,hard
+none=none
+[roles]
+soft=commands:reboot-node:*:soft
+hard=commands:reboot-node:*:hard
+EOT
+        config.flush
+        Razor.config['auth.config'] = config.path
+
+        # ...and, thankfully, all our cleanup happens auto-magically.
+        spec.call
+      end
+    end
+
+    it "should reject an unauthenticated request" do
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 401
+    end
+
+    it "should reject only soft reboot request with only hard reboot right" do
+      authorize 'hard', 'hard'
+      post url, {'name' => node.name, 'hard' => false}.to_json
+      last_response.status.should == 403
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 403
+      post url, {'name' => node.name, 'hard' => true}.to_json
+      last_response.status.should == 202
+    end
+
+    it "should reject only hard reboot requests with only soft reboot right" do
+      authorize 'soft', 'soft'
+      post url, {'name' => node.name, 'hard' => true}.to_json
+      last_response.status.should == 403
+      post url, {'name' => node.name, 'hard' => false}.to_json
+      last_response.status.should == 202
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 202
+    end
+
+    it "should reject all reboot requests with no reboot rights" do
+      authorize 'none', 'none'
+      post url, {'name' => node.name, 'hard' => true}.to_json
+      last_response.status.should == 403
+      post url, {'name' => node.name, 'hard' => false}.to_json
+      last_response.status.should == 403
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 403
+    end
+
+    it "should accept all reboot requests with all reboot rights" do
+      authorize 'both', 'both'
+      post url, {'name' => node.name, 'hard' => true}.to_json
+      last_response.status.should == 202
+      post url, {'name' => node.name, 'hard' => false}.to_json
+      last_response.status.should == 202
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 202
+    end
+  end
+
+  it "should 404 if the node does not exist" do
+    post url, {'name' => node.name + '-plus'}.to_json
+    last_response.status.should == 404
+  end
+
+  it "should 422 if the node has no IPMI credentials" do
+    node.set(:ipmi_hostname => nil).save
+    post url, {'name' => node.name}.to_json
+    last_response.status.should == 422
+  end
+
+  it "should publish the `reboot!` message for soft reboots" do
+    expect {
+      post url, {'name' => node.name, 'hard' => false}.to_json
+      last_response.status.should == 202
+    }.to have_published({
+      'class'     => node.class.name,
+      'instance'  => node.pk_hash,
+      'message'   => 'reboot!',
+      'arguments' => [false]
+    }).on(queue)
+  end
+
+  it "should publish the `reboot!` message for soft reboots if hard is absent" do
+    expect {
+      post url, {'name' => node.name}.to_json
+      last_response.status.should == 202
+    }.to have_published({
+      'class'     => node.class.name,
+      'instance'  => node.pk_hash,
+      'message'   => 'reboot!',
+      'arguments' => [false]
+    }).on(queue)
+  end
+
+  it "should publish the `reboot!` message for hard reboots" do
+    expect {
+      post url, {'name' => node.name, 'hard' => true}.to_json
+      last_response.status.should == 202
+    }.to have_published({
+      'class'     => node.class.name,
+      'instance'  => node.pk_hash,
+      'message'   => 'reboot!',
+      'arguments' => [true]
+    }).on(queue)
   end
 end
