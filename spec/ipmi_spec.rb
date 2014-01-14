@@ -167,6 +167,38 @@ EOT
       end
     end
 
+    describe "reset" do
+      it "should return true if hard reset" do
+        fake_run('power reset', <<EOT, '')
+Chassis Power Control: Reset
+EOT
+        Razor::IPMI.reset(ipmi_node, true).should be_true
+      end
+
+      it "should return true if soft reset" do
+        fake_run('power soft', <<EOT, '')
+Chassis Power Control: Soft
+EOT
+        Razor::IPMI.reset(ipmi_node, false).should be_true
+      end
+
+      it "should default to soft reset" do
+        fake_run('power soft', <<EOT, '')
+Chassis Power Control: Soft
+EOT
+        Razor::IPMI.reset(ipmi_node).should be_true
+      end
+
+      it "should raise if a hard reset results from a soft reset request" do
+        fake_run('power soft', <<EOT, '')
+Chassis Power Control: Reset
+EOT
+        expect {
+          Razor::IPMI.reset(ipmi_node)
+        }.to raise_error Razor::IPMI::IPMIError, /output did not indicate reset operation/
+      end
+    end
+
     ########################################################################
     # Support infrastructure for our external command execution.  Fun.
     FakeRunData = {}

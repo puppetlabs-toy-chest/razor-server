@@ -677,6 +677,28 @@ class Razor::App < Sinatra::Base
     { :result => 'updated IPMI details' }
   end
 
+  command :reboot_node do |data|
+    data['name'] or
+      error 400, :error => "Supply 'name' to indicate which node to edit"
+
+    case data['hard']
+    when nil, true, false then # do nothing
+    else error 400, :error => 'the "hard" attribute must be a boolean, or omitted'
+    end
+
+    check_permissions! "commands:reboot-node:#{data['name']}:#{data['hard'] ? 'hard' : 'soft'}"
+
+    node = Razor::Data::Node.find_by_name(data['name']) or
+      error 404, :error => "node #{data['name']} does not exist"
+
+    node.ipmi_hostname or
+      error 422, { :error => "node #{node.name} does not have IPMI credentials set" }
+
+    node.publish 'reboot!', !!data['hard']
+
+    { :result => 'reboot request queued' }
+  end
+
   command :create_recipe do |data|
     check_permissions! "commands:create-recipe:#{data['name']}"
 
