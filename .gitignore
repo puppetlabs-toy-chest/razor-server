@@ -5,3 +5,4 @@ log/*
 /Gemfile.local*
 /coverage
 /.project
+/.ruby-version
