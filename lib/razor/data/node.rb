@@ -329,9 +329,7 @@ module Razor::Data
       end
       hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
       nodes = self.where(:hw_info.pg_array.overlaps(hw_match)).all
-      if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
-      elsif nodes.size == 1
+      if nodes.size == 1
         node = nodes.first
         unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
           node.dhcp_mac = dhcp_mac
@@ -342,10 +340,91 @@ module Razor::Data
           node.save
         end
         node
-      else
+      elsif nodes.size > 1
         # We have more than one node matching hw_info; fail
         raise DuplicateNodeError.new(hw_info, nodes)
       end
+    end
+
+    def self.secondary_lookup(facts)
+      if Razor.config['secondary_match_nodes_on']
+        if Razor.config['secondary_match_nodes_on'].is_a?(Array)
+          criteria = Razor.config['secondary_match_nodes_on']
+        else
+          criteria = [ Razor.config['secondary_match_nodes_on'] ]
+        end
+      else
+        criteria = []
+      end
+
+      # Set up what this nodes hw_info and dhcp mac fields should look like
+      hw_info = canonicalize_hw_info({
+        'mac'  => facts['macaddress'],
+        'uuid' => facts['uuid']
+      })
+      
+      dhcp_mac = facts['macaddress'].gsub(':','-').strip.downcase
+
+      # If secondary matching is not configured or nominated facts have
+      # not been supplied, create a new node.
+      unless criteria.empty?
+        # Search for a node with secondary match criteria
+        # Unlike hw_info, which is stored as a pgsql array, facts are stored
+        # as a JSON encoded hash.  This means itereating over each node,
+        # and seeing if any have the facts that match the criterior.  Im not sure
+        # how expensive this will become as the nodes count grows.  It should only
+        # occur though for new nodes or nodes that have had their system boards
+        # and NICs replaced.
+        #
+        # DESIGN DECISION: All the facts identified as being in the criteria
+        # have to match the nodes facts to be a match. Not just one or some.
+        nodes = self.all.select do |n|
+          # Find all the facts on the node that match the criteria regexes.
+          # DESIGN DECISION: We force the regexes suplied in the config to match
+          # the entire fact name.  Perhaps that should be left to the users
+          # descretion?
+          fact_match = n.facts.select do |k,v|
+            ret = false
+            criteria.each do |regex|
+              regex.sub!('^\^','')
+              regex.sub!('\$$','')
+              ret = true if k.match( %r[^#{regex}$] )
+            end
+            ret
+          end
+          
+          ret = true
+          fact_match.each do |k,v|
+            unless facts.has_key?(k) and facts[k] == v
+              ret = false
+              break
+            end
+          end
+          ret
+        end
+
+        if nodes.size == 1
+          #We've matched a node.  Update the hw_info and dhcp_mac
+          node = nodes.first
+          unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
+            node.dhcp_mac = dhcp_mac
+            node.save
+          end
+          unless node.hw_info == hw_info
+            node.hw_info = hw_info
+            node.save
+          end
+          return node
+        elsif nodes.size > 1
+          #We have have more than one node that matches on the secondary criteria
+          #This secondary matching criteria should only possibly match one node; fail
+          raise DuplicateNodeError.new(hw_info, nodes)
+        end
+      end
+
+      # Either we dont have workable secondary criteria or we didnt resolve
+      # a node with it.  Create a new one
+      self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac, :facts => facts)
     end
 
     def self.stage_done(node_id, name = "")

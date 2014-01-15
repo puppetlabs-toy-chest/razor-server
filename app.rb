@@ -186,7 +186,11 @@ class Razor::App < Sinatra::Base
     # Information to include on the microkernel kernel command line that
     # the MK agent uses to identify the node
     def microkernel_kernel_args
-      "razor.register=#{url("/svc/checkin/#{@node.id}")} #{Razor.config["microkernel.kernel_args"]}"
+      if @node
+        "razor.register=#{url("/svc/checkin")} razor.id=#{@node.id} #{Razor.config["microkernel.kernel_args"]}"
+      else
+        "razor.register=#{url("/svc/checkin")} #{Razor.config["microkernel.kernel_args"]}"
+      end
     end
   end
 
@@ -256,8 +260,13 @@ class Razor::App < Sinatra::Base
   # +tasks/microkernel/boot.erb+. If we need to allow booting of MK's by
   # other means, we'd need to convince facter to send us the same hw_info that
   # iPXE does and identify the node via +Node.lookup+
-  post '/svc/checkin/:id' do
-    logger.info("checkin by node #{params[:id]}")
+  post '/svc/checkin/?:id?' do
+    if params[:id]
+      logger.info("checkin by node #{params[:id]}")
+    else
+      logger.info("checkin by node node without ID")
+    end
+
     return 400 if request.content_type != 'application/json'
     begin
       json = JSON::parse(request.body.read)
@@ -265,12 +274,20 @@ class Razor::App < Sinatra::Base
       return 400
     end
     return 400 unless json['facts']
-    begin
+
+    response = {}
+    if params[:id]
       node = Razor::Data::Node[params["id"]] or return 404
-      node.checkin(json).to_json
+    else
+      node = Razor::Data::Node.secondary_lookup(json['facts'])
+      response['id'] = node.id
+    end
+
+    begin
+      response.merge(node.checkin(json)).to_json
     rescue Razor::Matcher::RuleEvaluationError => e
       logger.error("during checkin of #{node.name}: " + e.message)
-      { :action => :none }.to_json
+      response.merge({ :action => :none }).to_json
     end
   end
 
@@ -319,11 +336,32 @@ class Razor::App < Sinatra::Base
       return 400
     end
 
-    @task = @node.task
+    # @todo lutter 2013-08-19: If have no policy on the node, we will
+    # therefore boot into the MK. This is a gigantic hack; all we need is
+    # an repo with the right name so that the repo_url helper generates
+    # links to the microkernel directory in the repo store.
+    #
+    # We do not have API support yet to set up MK's, and users therefore
+    # have to put the kernel and initrd into the microkernel/ directory
+    # in their repo store manually for things to work.
+    @repo = Razor::Data::Repo.new(:name => "microkernel",
+                                  :iso_url => "file:///dev/null")
 
-    if @node.policy
-      @repo = @node.policy.repo
+    if @node
+      logger.info("node #{@node.id} is booting up")
+      @task = @node.task
+
+      if @node.policy
+        @repo = @node.policy.repo
+      end
+
+      template = @task.boot_template(@node)
+
+      @node.log_append(:event => :boot, :task => @task.name,
+                       :template => template, :repo => @repo.name)
+      @node.save
     else
+<<<<<<< HEAD
       # @todo lutter 2013-08-19: We have no policy on the node, and will
       # therefore boot into the MK. This is a gigantic hack; all we need is
       # an repo with the right name so that the repo_url helper generates
@@ -335,12 +373,13 @@ class Razor::App < Sinatra::Base
       @repo = Razor::Data::Repo.new(:name => "microkernel",
                                     :iso_url => "file:///dev/null",
                                     :task_name => @task.name)
+=======
+      logger.info("Unknown node is booting up")
+      @task = Razor::Task.mk_task
+      template = @task.boot_template(nil)
+>>>>>>> Support a Secondary Node Identification Strategy:
     end
-    template = @task.boot_template(@node)
 
-    @node.log_append(:event => :boot, :task => @task.name,
-                     :template => template, :repo => @repo.name)
-    @node.save
     render_template(template)
   end
 

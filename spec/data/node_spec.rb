@@ -93,14 +93,6 @@ describe Razor::Data::Node do
       nl.id.should == nc.id
     end
 
-    it "should create node when no match exists" do
-      hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
-      nl = Node.lookup(hw_hash)
-      nl.id.should_not be_nil
-      Node[nl.id].should_not be_nil
-      nl.hw_hash.should == hw_hash
-    end
-
     it "should raise DuplicateNodeError if two nodes have overlapping hw_info" do
       hw1 = { "serial" => "1", "asset" => "asset" }
       hw2 = { "serial" => "1", "uuid" => "u1" }
@@ -125,6 +117,7 @@ describe Razor::Data::Node do
 
     it "should update hw_info when it changes" do
       hw_hash = { "mac" => ["00-11-22-33-44-55"], "asset" => "abcd" }
+      Fabricate(:node, :hw_hash => hw_hash)
       n1 = Node.lookup(hw_hash)
       n1.should_not be_nil
 
@@ -137,6 +130,12 @@ describe Razor::Data::Node do
     it "should complain if hardware is moved between known nodes" do
       hw1 = { "net0" => "01:01", "net1" => "01:02" }
       hw2 = { "net0" => "02:01" }
+
+      #Fabricate the 2 nodes
+      Fabricate(:node, :hw_hash => hw1)
+      Fabricate(:node, :hw_hash => hw2)
+
+      #Look them up
       n1 = Node.lookup(hw1)
       n2 = Node.lookup(hw2)
       n1.id.should_not == n2.id
@@ -144,6 +143,101 @@ describe Razor::Data::Node do
       hw2["net1"] = hw1.delete("net1")
       expect {
         Node.lookup(hw2)
+      }.to raise_error(Razor::Data::DuplicateNodeError)
+    end
+  end
+
+  context "secondary_lookup" do
+    it "should create node when no match exists" do
+      facts   = { "macaddress" => "00:11:22:33:44:55", "uuid" => "abcd" }
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "uuid" => "abcd" }
+      n1 = Node.secondary_lookup(facts)
+      n1.id.should_not be_nil
+      Node[n1.id].should_not be_nil
+      n1.hw_hash.should == hw_hash
+    end
+
+    it "should find a node whos facts match all the configured secondary match facts" do
+      # Match a node of fact1 AND fact2
+      Razor.config['secondary_match_nodes_on'] = ['fact\d']
+
+      facts = {
+        "fact1"      => "value1",
+        "fact2"      => "value2",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+      n1 = Fabricate(:node, :facts => facts)
+
+      n2 = Node.secondary_lookup(facts)
+      n2.id.should == n1.id
+    end
+
+    it "should NOT find nodes who dont have ALL the configured secondary match facts" do
+      # Match a node of fact1 AND fact2
+      Razor.config['secondary_match_nodes_on'] = ['fact\d']
+
+      #Node exists in the database with these facts
+      facts = {
+        "fact1"      => "value1",
+        "fact2"      => "value2",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+      n1 = Fabricate(:node, :facts => facts)
+
+      #Do the lookup with these facts.  fact2 does not exist.
+      #Should create a new node
+      facts = {
+        "fact1"      => "value1",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+      n2 = Node.secondary_lookup(facts)
+      n2.id.should_not == n1.id
+    end
+
+    it "should NOT find nodes who have ALL the configured secondary match facts but SOME of the values dont match" do
+      # Match a node of fact1 AND fact2
+      Razor.config['secondary_match_nodes_on'] = ['fact\d']
+
+      #Node exists in the database with these facts
+      facts = {
+        "fact1"      => "value1",
+        "fact2"      => "value2",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+      n1 = Fabricate(:node, :facts => facts)
+
+      #Do the lookup with these facts.  fact2 has a different val.
+      #Should create a new node
+      facts = {
+        "fact1"      => "value1",
+        "fact2"      => "not_value2",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+      n2 = Node.secondary_lookup(facts)
+      n2.id.should_not == n1.id
+    end
+
+    it "should raise DuplicateNodeError if two nodes have the same matching facts" do
+      facts = {
+        "fact1"      => "value1",
+        "fact2"      => "value2",
+        "uuid"       => "1234-1234-1234-1234",
+        "macaddress" => "00:11:22:33:44:55"
+      }
+
+      # Match a node of fact1 AND fact2
+      Razor.config['secondary_match_nodes_on'] = ['fact\d']
+
+      n1 = Fabricate(:node, :facts => facts)
+      n2 = Fabricate(:node, :facts => facts)
+
+      expect {
+        Node.secondary_lookup(facts)
       }.to raise_error(Razor::Data::DuplicateNodeError)
     end
   end
@@ -214,7 +308,7 @@ describe Razor::Data::Node do
       policy.add_tag(tag)
       policy.save
 
-      node = Node.lookup("net0" => hw_id)
+      node = Fabricate(:node, :hw_hash => {"net0" => hw_id})
       node.checkin("facts" => { "f1" => "a" })
       node.modified?.should be_false
 
@@ -230,7 +324,7 @@ describe Razor::Data::Node do
       policy.save
 
       expect do
-        node = Node.lookup("net0" => hw_id)
+        node = Fabricate(:node, :hw_hash => {"net0" => hw_id})
         node.checkin("facts" => { "f1" => "a" })
       end.to raise_error Razor::Matcher::RuleEvaluationError
 
@@ -335,6 +429,7 @@ describe Razor::Data::Node do
     end
 
     it "should not be set by lookup" do
+      node = Fabricate(:node, :hw_hash => {"serial" => "1234"})
       node = Node.lookup("serial" => "1234")
       node.last_checkin.should be_nil
     end
