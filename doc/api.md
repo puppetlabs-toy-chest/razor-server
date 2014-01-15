@@ -363,6 +363,53 @@ You *must* provide an IPMI hostname if you provide either a username or
 password, since we only support remote, not local, communication with the
 IPMI target.
 
+### Reboot node
+
+Razor can request a node reboot through IPMI, if the node has IPMI credentials
+associated.  Both hard (power cycle) and soft (request OS reboot through
+ACPI).  This uses the standard IPMI mechanisms, and has the same limitations
+-- including that soft shutdown support may be implemented by simulating error
+states such as overtemperature alerts by some vendors.
+
+This is applied in the background, and will run as soon as available execution
+slots are available for the task -- IPMI communication has some generous
+internal rate limits to prevent it overwhelming the machine.
+
+This background process is persistent: if you restart the Razor server before
+the command is executed, it will remain in the queue and the operation will
+take place after the server restarts.  There is no time limit on this at
+this time.
+
+Multiple commands can be queued, and they will be processed sequentially, with
+no limitation on how frequently a node can be rebooted.
+
+If the IPMI request fails (that is: ipmitool reports it is unable to
+communicate with the node) the request will be retried.  No detection of
+actual results is included, though, so you may not know if the command is
+delivered and fails to reboot the system.
+
+This is not integrated with the IPMI power state monitoring, and you may not
+see power transitions in the record, or through the node object if polling.
+
+The format of the command is:
+
+    {
+      "node": "node1",
+      "hard": false
+    }
+
+The `node` field is the name of the node to operate on.
+
+The `hard` field is a boolean, or absent.  If it is present, and true, the
+reboot will be hard (eg: full power cycle, without any OS involvement).
+Otherwise it will be a soft reboot.  (Soft reboots require the OS to be
+listening, and may not work for all platforms, OS combinations, and
+especially, during installer or firmware boot states.)
+
+The RBAC pattern for this command is:
+`reboot-node:${node}:${hard ? 'hard' : 'soft'}`
+
+
 ### Modify Node Metadata
 
 Node metadata is similar to a nodes facts except metadata is what the

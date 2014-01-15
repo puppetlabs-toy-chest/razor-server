@@ -50,17 +50,21 @@ module Razor
 
     def security_manager
       synchronize do
-        @@security_manager ||= synchronize do
-          # Make available an application-specific SecurityManager, to make the
-          # authentication magic work.  In future we should consider replacing
-          # this with a thread-per-request local, or even our own, to integrate
-          # nicely with the model ... but this will do, for now.  I hope.
-          path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', root)
-          logger.info("about to create the shiro factory from #{path}")
-          factory = org.apache.shiro.config.IniSecurityManagerFactory.new(path)
-          logger.info("about to create the security manager")
-          factory.get_instance
+        path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', root)
+        unless defined?(@@security_manager_from) and @@security_manager_from == path
+          @@security_manager_from = path
+          @@security_manager = synchronize do
+            # Make available an application-specific SecurityManager, to make the
+            # authentication magic work.  In future we should consider replacing
+            # this with a thread-per-request local, or even our own, to integrate
+            # nicely with the model ... but this will do, for now.  I hope.
+            logger.info("about to create the shiro factory from #{path}")
+            factory = org.apache.shiro.config.IniSecurityManagerFactory.new(path)
+            logger.info("about to create the security manager")
+            factory.get_instance
+          end
         end
+        @@security_manager
       end
     end
   end
