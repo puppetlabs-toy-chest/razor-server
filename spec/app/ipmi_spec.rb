@@ -191,3 +191,51 @@ EOT
     }).on(queue)
   end
 end
+
+describe "set-node-desired-power-state" do
+  include Rack::Test::Methods
+
+  let(:app)   { Razor::App }
+  let(:url)   { '/api/commands/set-node-desired-power-state' }
+  let(:node)  { Fabricate(:node_with_ipmi).save }
+
+  before :each do
+    header 'content-type', 'application/json'
+    authorize 'fred', 'dead'
+  end
+
+  it "should fail if the name is absent" do
+    post url, {}.to_json
+    last_response.status.should == 400
+  end
+
+  it "should 404 if the node does not exist" do
+    post url, {name: node.name + '-really'}.to_json
+    last_response.status.should == 404
+  end
+
+  it "should accept null for 'ignored'" do
+    post url, {name: node.name, to: nil}.to_json
+    last_response.status.should == 202
+    last_response.json.should == {'result' => "set desired power state to ignored (null)"}
+  end
+
+  it "should accept 'on'" do
+    post url, {name: node.name, to: 'on'}.to_json
+    last_response.status.should == 202
+    last_response.json.should == {'result' => "set desired power state to on"}
+  end
+
+  it "should accept 'off'" do
+    post url, {name: node.name, to: 'off'}.to_json
+    last_response.status.should == 202
+    last_response.json.should == {'result' => "set desired power state to off"}
+  end
+
+  ([0, 1, true, false] + %w{true false up down yes no 1 0}).each do |bad|
+    it "should reject #{bad.inspect}" do
+      post url, {name: node.name, to: bad}.to_json
+      last_response.status.should == 400
+    end
+  end
+end
