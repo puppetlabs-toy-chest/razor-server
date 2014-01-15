@@ -142,6 +142,22 @@ EOT
       end
     end
 
+    context "power" do
+      it "should power on successfully" do
+        fake_run('power on', <<EOT, '')
+Chassis Power Control: Up/On
+EOT
+        Razor::IPMI.power(ipmi_node, true)
+      end
+
+      it "should power off successfully" do
+        fake_run('power off', <<EOT, '')
+Chassis Power Control: Down/Off
+EOT
+        Razor::IPMI.power(ipmi_node, false)
+      end
+    end
+
     describe "boot_from_device" do
       it "should raise an error if a bad device name is passed" do
         expect {

@@ -77,6 +77,14 @@ module Razor::IPMI
     true
   end
 
+  def self.power(node, on)
+    output = run(node, 'power', on ? 'on' : 'off')
+    unless output =~ %r(Chassis Power Control: #{on ? 'Up/On' : 'Down/Off'})i
+      raise IPMIError(node, 'reset', "output did not indicate power state correctly:\n#{output}")
+    end
+    !!on
+  end
+
   # This list is hard-coded from the set of boot device types that IPMItool
   # knows about, which in turn comes from (and matches) the IPMI spec, so it
   # shouldn't change any time soon.

@@ -699,6 +699,27 @@ class Razor::App < Sinatra::Base
     { :result => 'reboot request queued' }
   end
 
+  command :set_node_desired_power_state do |data|
+    data['name'] or
+      error 400, :error => "Supply 'name' to indicate which node to edit"
+
+    check_permissions! "commands:set-node-desired-power-state:#{data['name']}"
+
+    node = Razor::Data::Node.find_by_name(data['name']) or
+      error 404, :error => "node #{data['name']} does not exist"
+
+    node.desired_power_state = data['to']
+    node.save
+
+    # can't think of a better way to render this...
+    state = case node.desired_power_state
+            when nil   then 'ignored'
+            when true  then 'on'
+            when false then 'off'
+            end
+    { :result => "set desired power state to #{state}" }
+  end
+
   command :create_recipe do |data|
     check_permissions! "commands:create-recipe:#{data['name']}"
 

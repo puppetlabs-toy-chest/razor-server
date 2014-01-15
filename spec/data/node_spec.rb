@@ -372,7 +372,7 @@ describe Razor::Data::Node do
     end
   end
 
-  context "ipmi" do
+  context "IPMI" do
     context "validation" do
       it "should work with only hostname set" do
         # expect this to raise no errors
@@ -466,12 +466,15 @@ describe Razor::Data::Node do
     end
 
     describe "update_power_state!" do
+      include TorqueBox::Injectors
+
       before :each do
         node.update(:ipmi_hostname => Faker::Internet.domain_name).save
       end
 
       let :prehistory do Time.at(-446061360) end
       let :thefuture  do Time.at(1445480880) end
+      let :queue      do fetch('/queues/razor/sequel-instance-messages') end
 
 
       # @todo danielp 2013-12-05: this stubs the IPMI on? question, which is
@@ -565,6 +568,83 @@ describe Razor::Data::Node do
             node.last_power_state_update_at.should == prehistory
           end
         end
+      end
+
+      it "should queue nothing else if desired power state is null" do
+        Razor::IPMI.stub(:on?).and_return(true, false)
+
+        # First, it is on...
+        node.update_power_state!
+        queue.should be_empty
+
+        # ...then it is off...
+        node.update_power_state!
+        queue.should be_empty
+      end
+
+      it "should queue nothing if desired is off and actual is off" do
+        Razor::IPMI.stub(:on?).and_return(false)
+        node.set(:desired_power_state => false).save
+        node.update_power_state!
+        queue.should be_empty
+      end
+
+      it "should queue nothing if desired is on and actual is on" do
+        Razor::IPMI.stub(:on?).and_return(true)
+        node.set(:desired_power_state => true).save
+        node.update_power_state!
+        queue.should be_empty
+      end
+
+      it "should queue turning off if desired is off and actual is on" do
+        Razor::IPMI.stub(:on?).and_return(true)
+        node.set(:desired_power_state => false).save
+
+        expect {
+          node.update_power_state!
+        }.to have_published(
+          'class'     => node.class.name,
+          'instance'  => node.pk_hash,
+          'message'   => 'off',
+          'arguments' => []
+        ).on(queue)
+      end
+
+      it "should queue turning on if desired is on and actual is off" do
+        Razor::IPMI.stub(:on?).and_return(false)
+        node.set(:desired_power_state => true).save
+
+        expect {
+          node.update_power_state!
+        }.to have_published(
+          'class'     => node.class.name,
+          'instance'  => node.pk_hash,
+          'message'   => 'on',
+          'arguments' => []
+        ).on(queue)
+      end
+
+      it "should queue turning on twice if actual remains off when checked again" do
+        Razor::IPMI.stub(:on?).and_return(false)
+        node.set(:desired_power_state => true).save
+
+        expect {
+          node.update_power_state!
+        }.to have_published(
+          'class'     => node.class.name,
+          'instance'  => node.pk_hash,
+          'message'   => 'on',
+          'arguments' => []
+        ).on(queue)
+
+        expect {
+          node.update_power_state!
+        }.to have_published(
+          'class'     => node.class.name,
+          'instance'  => node.pk_hash,
+          'message'   => 'on',
+          'arguments' => []
+        ).on(queue)
       end
     end
   end
