@@ -598,6 +598,28 @@ describe "command and query API" do
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
           'type'     => 'string',
         },
+        'power' => {
+          '$schema'    => 'http://json-schema.org/draft-04/schema#',
+          'type'       => 'object',
+          'properties' => {
+            'desired_power_state' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => ['string', 'null'],
+              'pattern'  => 'on|off'
+            },
+            'last_known_power_state' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => ['string', 'null'],
+              'pattern'  => 'on|off'
+            },
+            'last_power_state_update_at' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => ['string', 'null'],
+              # 'pattern' => '' ...date field.
+            }
+          },
+          'additionalProperties' => false,
+        }
       },
       'additionalProperties' => false,
     }.freeze

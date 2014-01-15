@@ -22,7 +22,7 @@ describe Razor::ScheduledJobs::IPMI do
 
   it "should skip nodes that were recently checked" do
     Timecop.freeze do
-      Fabricate(:node_with_ipmi, :last_known_power_state => true, :last_power_state_update_at => Time.now - 30)
+      Fabricate(:node_with_ipmi, :last_known_power_state => 'on', :last_power_state_update_at => Time.now - 30)
 
       queue.count.should == 0
       ipmi.run
@@ -31,8 +31,8 @@ describe Razor::ScheduledJobs::IPMI do
   end
 
   it "should check nodes that were not recently checked regardless of power state" do
-    on      = Fabricate(:node_with_ipmi, :last_known_power_state => true, :last_power_state_update_at => Time.now - 600)
-    off     = Fabricate(:node_with_ipmi, :last_known_power_state => false, :last_power_state_update_at => Time.now - 600)
+    on      = Fabricate(:node_with_ipmi, :last_known_power_state => 'on', :last_power_state_update_at => Time.now - 600)
+    off     = Fabricate(:node_with_ipmi, :last_known_power_state => 'off', :last_power_state_update_at => Time.now - 600)
     unknown = Fabricate(:node_with_ipmi, :last_known_power_state => nil, :last_power_state_update_at => Time.now - 600)
 
     Timecop.freeze do
@@ -51,11 +51,11 @@ describe Razor::ScheduledJobs::IPMI do
   it "should work in the face of all possible types of node" do
     Timecop.freeze do
       want = []
-      want << Fabricate(:node_with_ipmi, :last_known_power_state => true, :last_power_state_update_at => Time.now - 600).pk_hash
-      want << Fabricate(:node_with_ipmi, :last_known_power_state => false, :last_power_state_update_at => Time.now - 600).pk_hash
+      want << Fabricate(:node_with_ipmi, :last_known_power_state => 'on', :last_power_state_update_at => Time.now - 600).pk_hash
+      want << Fabricate(:node_with_ipmi, :last_known_power_state => 'off', :last_power_state_update_at => Time.now - 600).pk_hash
       want << Fabricate(:node_with_ipmi, :last_known_power_state => nil, :last_power_state_update_at => Time.now - 600).pk_hash
 
-      Fabricate(:node_with_ipmi, :last_known_power_state => true, :last_power_state_update_at => Time.now - 30)
+      Fabricate(:node_with_ipmi, :last_known_power_state => 'on', :last_power_state_update_at => Time.now - 30)
       Fabricate(:node)
 
       queue.should be_empty

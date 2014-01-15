@@ -435,6 +435,30 @@ The RBAC pattern for this command is:
 `reboot-node:${node}:${hard ? 'hard' : 'soft'}`
 
 
+### Set node desired power state
+
+In addition to monitoring power, Razor can enforce node power state.
+This command allows a desired power state to be set for a node, and if the
+node is observed to be in a different power state an IPMI command will be
+issued to change to the desired state.
+
+The format of the command is:
+
+    {
+      "name": "node1234",
+      "to":   "on"|"off"|null
+    }
+
+The `name` field identifies the node to change the setting on.
+
+The `to` field contains the desired power state to set.  Valid values are
+`on`, `off`, or `null` (the JSON NULL/nil value), which reflect "power on",
+"power off", and "do not enforce power state" respectively.
+
+Power state is enforced every time it is observed; by default this happens
+on a scheduled basis in the background every few minutes.
+
+
 ### Modify node metadata
 
 Node metadata is similar to a nodes facts except metadata is what the

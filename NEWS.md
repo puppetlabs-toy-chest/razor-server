@@ -13,6 +13,15 @@
     policy anymore either. To determine the order of policies, they need to
     be listed with `/api/collections/policies` which returns all policies
     in the order in which they are matched against a node
++ the `node` object view has changed:
+  - the `node["state"]["power"]` field is removed.
+  - the `node["power"]` object is added with the fields:
+    * `"desired_power_state"` reflecting the configured desired power state for the node
+    * `"last_known_power_state"` reflecting the last observed power state
+    * `"last-power_state_update_at"` reflecting the point in time that power state observation was taken.
+  - it is important to note that this is not a real-time power state, but a
+    scheduled observation; do not assume that the last known state reflects
+    current reality.
 
 ## 0.12.0 - 2014-01-03
 

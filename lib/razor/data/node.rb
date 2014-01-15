@@ -399,9 +399,24 @@ module Razor::Data
     # We update our power state regardless of the outcome, including setting
     # it to "unknown" on failures of the IPMI code, though not on failures
     # like command execution blowing up.
+    #
+    # If we have a current power state, and a desired power state, and they
+    # don't match, we also queue work to toggle power into the
+    # appropriate state.
     def update_power_state!
       begin
-        self.last_known_power_state = Razor::IPMI.on?(self)
+        self.last_known_power_state = Razor::IPMI.on?(self) ? 'on' : 'off'
+
+        # If we have both a desired and known power state...
+        unless self.desired_power_state.nil? or self.last_known_power_state.nil?
+          # ...and they don't match...
+          unless self.desired_power_state == self.last_known_power_state
+            # ...toggle our power state to what is desired.  This is put into
+            # the background because it isn't actually related to our current
+            # transaction, and that ensures we do the right thing later.
+            self.publish(self.desired_power_state)
+          end
+        end
       rescue Razor::IPMI::IPMIError
         self.last_known_power_state = nil
         raise
@@ -415,6 +430,16 @@ module Razor::Data
     # background from the message queue.
     def reboot!(hard)
       Razor::IPMI.reset(self, hard)
+    end
+
+    # Turn the node on.
+    def on
+      Razor::IPMI.power(self, true)
+    end
+
+    # Turn the node off.
+    def off
+      Razor::IPMI.power(self, false)
     end
   end
 end

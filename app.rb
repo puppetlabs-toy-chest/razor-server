@@ -711,6 +711,24 @@ class Razor::App < Sinatra::Base
     { :result => 'reboot request queued' }
   end
 
+  command :set_node_desired_power_state do |data|
+    data['name'] or
+      error 400, :error => "Supply 'name' to indicate which node to edit"
+
+    check_permissions! "commands:set-node-desired-power-state:#{data['name']}"
+
+    node = Razor::Data::Node.find_by_name(data['name']) or
+      error 404, :error => "node #{data['name']} does not exist"
+
+    case data['to']
+    when 'on', 'off', nil
+      node.set(desired_power_state: data['to']).save
+      {result: "set desired power state to #{data['to'] || 'ignored (null)'}"}
+    else
+      error 400, :error => "invalid power state #{data['to']}"
+    end
+  end
+
   command :create_recipe do |data|
     check_permissions! "commands:create-recipe:#{data['name']}"
 
