@@ -197,6 +197,17 @@ class Razor::App < Sinatra::Base
     status [500, env["sinatra.error"].message]
   end
 
+  error org.apache.shiro.authz.UnauthorizedException do
+    status [403, env["sinatra.error"].to_s]
+  end
+
+  [ArgumentError, TypeError, Sequel::ValidationFailed, Sequel::Error].each do |fault|
+    error fault do
+      status [400, env["sinatra.error"].to_s]
+    end
+  end
+
+
   # Convenience for /svc/boot and /svc/file
   def render_template(name)
     locals = { :recipe => @recipe, :node => @node, :repo => @repo }
@@ -484,11 +495,7 @@ class Razor::App < Sinatra::Base
       # (recursively) so that we do not use '_' in the API (i.e., this also
       # requires fixing up view.rb)
 
-      begin
-        result = instance_exec(data, &block)
-      rescue => e
-        error 400, :details => e.to_s
-      end
+      result = instance_exec(data, &block)
       result = view_object_reference(result) unless result.is_a?(Hash)
       [202, result.to_json]
     end
