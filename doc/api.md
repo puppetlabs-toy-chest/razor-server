@@ -238,12 +238,16 @@ will return with status code 400.
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
-      "line_number": "100"
+      "before"|"after": { "name": "other policy" },
       "tags": [{ "name": "existing_tag"},
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
 
-Policies are matched in the order of ascending line numbers.
+The overall list of policies is ordered, and polcies are considered in that
+order. When a new policy is created, the entry `before` or `after` can be
+used to put the new policy into the table before or after another
+policy. If neither `before` or `after` are specified, the policy is
+appended to the policy table.
 
 Tags, brokers, recipes and repos are referenced by their name. Tags can
 also be created by providing a rule; if a tag with that name already
@@ -257,6 +261,21 @@ The `max_count` determines how many nodes can be bound at any given point
 to this policy at the most. This can either be set to `nil`, indicating
 that an unbounded number of nodes can be bound to this policy, or a
 positive integer to set an upper bound.
+
+### Move policy
+
+This command makes it possible to change the order in which policies are
+considered when matching against nodes. To put an existing policy into a
+different place in the policy table, use the `move-policy` command with a
+body like:
+
+    {
+      "name": "a policy",
+      "before"|"after": { "name": "other policy" }
+    }
+
+This will change the policy table so that `a policy` will appear before or
+after the policy `other policy`.
 
 ### Enable/disable policy
 

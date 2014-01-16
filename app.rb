@@ -797,8 +797,55 @@ class Razor::App < Sinatra::Base
     end
     data["hostname_pattern"] = data.delete("hostname")
 
+    # Handle positioning in the policy table
+    position = nil
+    neighbor = nil
+    if data["before"] or data["after"]
+      not data.key?("before") or not data.key?("after") or
+        error 400, :error => "Only specify one of 'before' or 'after'"
+      position = data["before"] ? "before" : "after"
+      name = data.delete(position)["name"] or
+        error 400,
+          :error => "The policy reference in '#{position}' must have a name"
+      neighbor = Razor::Data::Policy[:name => name] or
+        error 400,
+      :error => "Policy '#{name}' referenced in '#{position}' not found"
+    end
+
+    # Create the policy
     policy = Razor::Data::Policy.new(data).save
     tags.each { |t| policy.add_tag(t) }
+    policy.move(position, neighbor) if position
+    policy.save
+
+    policy
+  end
+
+  command :move_policy do |data|
+    check_permissions! "commands:move-policy:#{data['name']}"
+
+    data['name'] or error 400,
+      :error => "Supply 'name' to indicate which policy to move"
+    policy = Razor::Data::Policy[:name => data['name']] or error 400,
+      :error => "Policy #{data['name']} does not exist"
+
+    position = nil
+    neighbor = nil
+    if data["before"] or data["after"]
+      not data.key?("before") or not data.key?("after") or
+        error 400, :error => "Only specify one of 'before' or 'after'"
+      position = data["before"] ? "before" : "after"
+      name = data[position]["name"] or
+        error 400,
+          :error => "The policy reference in '#{position}' must have a name"
+      neighbor = Razor::Data::Policy[:name => name] or
+        error 400,
+      :error => "Policy '#{name}' referenced in '#{position}' not found"
+    else
+      error 400, :error => "You must specify either 'before' or 'after'"
+    end
+
+    policy.move(position, neighbor) if position
     policy.save
 
     policy
