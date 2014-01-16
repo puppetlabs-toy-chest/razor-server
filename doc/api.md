@@ -238,12 +238,16 @@ will return with status code 400.
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
-      "line_number": "100"
+      "before"|"after": { "name": "other policy" },
       "tags": [{ "name": "existing_tag"},
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
 
-Policies are matched in the order of ascending line numbers.
+The overall list of policies is ordered, and polcies are considered in that
+order. When a new policy is created, the entry `before` or `after` can be
+used to put the new policy into the table before or after another
+policy. If neither `before` or `after` are specified, the policy is
+appended to the policy table.
 
 Tags, brokers, recipes and repos are referenced by their name. Tags can
 also be created by providing a rule; if a tag with that name already

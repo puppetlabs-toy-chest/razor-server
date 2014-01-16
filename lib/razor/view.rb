@@ -58,7 +58,6 @@ module Razor
           :hostname_pattern => policy.hostname_pattern,
           :root_password => policy.root_password,
         },
-        :rule_number => policy.rule_number,
         :tags => policy.tags.map {|t| view_object_reference(t) }.compact,
         :nodes => { :id => view_object_url(policy) + "/nodes",
                     :count => policy.nodes.count,

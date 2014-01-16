@@ -50,7 +50,6 @@ Fabricator(:policy, :class_name => Razor::Data::Policy) do
   recipe_name      { Fabricate(:recipe).name }
   hostname_pattern 'host${id}.example.org'
   root_password    { Faker::Internet.password }
-  rule_number      { Fabricate.sequence(:razor_data_policy_rule_number, 100) }
 
   repo
   broker

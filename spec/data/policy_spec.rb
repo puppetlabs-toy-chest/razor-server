@@ -64,4 +64,51 @@ describe Razor::Data::Policy do
     Policy.bind(@node)
     @node.policy.should be_nil
   end
+
+  context "ordering" do
+    before(:each) do
+      @p1 = Fabricate(:policy, :rule_number => 1)
+      @p2 = Fabricate(:policy, :rule_number => 2)
+    end
+
+    def check_move(where, other, list)
+      p  = Fabricate(:policy)
+      if where
+        p.move(where, other)
+        p.save
+      end
+
+      list = list.map { |x| x == :_ ? p.id : x.id }
+      Policy.all.map { |p| p.id }.should == list
+    end
+
+    it "moves existing policy to the end" do
+      @p1.move(:after, @p2)
+      Policy.all.map { |p| p.id }.should == [ @p2.id, @p1.id ]
+    end
+
+    it "creates policies at the end of the list" do
+      check_move(nil, nil, [@p1, @p2, :_])
+    end
+
+    describe 'before' do
+      it "p1 creates at the head of the table" do
+        check_move(:before, @p1, [:_, @p1, @p2])
+      end
+
+      it "p2 goes between p1 and p2" do
+        check_move(:before, @p2, [@p1, :_, @p2])
+      end
+    end
+
+    describe "after" do
+      it "p1 goes between p1 and p2" do
+        check_move(:after, @p1, [@p1, :_, @p2])
+      end
+
+      it "p2 goes to the end of the table" do
+        check_move(:after, @p2, [@p1, @p2, :_])
+      end
+    end
+  end
 end

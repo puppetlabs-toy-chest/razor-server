@@ -1,5 +1,19 @@
 # Razor Server Release Notes
 
+## 0.13.0
+
+### Public API changes
+
++ incompatible changes
+  + the way how policy ordering is handled has changed: instead of exposing
+    a `rule_number` that has to be set in `create-policy`, new policies are
+    now by default appended to the policy table. Their position can be
+    controlled with the `before` and `after` parameters to the
+    `create-policy` command. The `rule_number` is not part of the view of a
+    policy anymore either. To determine the order of policies, they need to
+    be listed with `/api/collections/policies` which returns all policies
+    in the order in which they are matched against a node
+
 ## 0.12.0 - 2014-01-03
 
 + the server's management API underneath `/api` can now be protected with
