@@ -47,11 +47,18 @@ describe "modify node metadata command" do
     JSON.parse(last_response.body)["error"].should =~ /cannot update and remove the same key/
   end
 
-  it "should complain if clear is no boolean true or string 'true'" do
+  it "should complain if clear is not boolean true or string 'true'" do
     data = { 'node' => 'node1', 'clear' => 'something' }
     modify_metadata(data)
     last_response.status.should == 400
     JSON.parse(last_response.body)["error"].should =~ /clear must be boolean true or string 'true'/
+  end
+
+  it "should complain if no_replace is not boolean true or string 'true'" do
+    data = { 'node' => 'node1', 'update' => { 'k1' => 'v1'}, 'no_replace' => 'something' }
+    modify_metadata(data)
+    last_response.status.should == 400
+    JSON.parse(last_response.body)["error"].should =~ /no_replace must be boolean true or string 'true'/
   end
 
   describe "when updating metadata on a node" do
@@ -78,6 +85,18 @@ describe "modify node metadata command" do
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
       node_metadata['k1'].should == 'v2'
+    end
+
+    it "should NOT update the value of an existing tag if no_replace is set" do
+      id = node.id      
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} } 
+      modify_metadata(data)
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true } 
+      modify_metadata(data)
+      last_response.status.should == 202
+      node_metadata = Node[:id => id].metadata
+      node_metadata['k1'].should == 'v1'  #should not have updated.
+      node_metadata['k2'].should == 'v2'  #still should have added this.
     end
 
     it "should add and update multiple items" do

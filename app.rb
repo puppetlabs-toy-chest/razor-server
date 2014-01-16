@@ -572,8 +572,15 @@ class Razor::App < Sinatra::Base
     data['value'] or error 400,
       :error => 'must supply value'
 
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
+    end
+
     if node = Razor::Data::Node.find_by_name( data['node'] )
       operation = { 'update' => { data['key'] => data['value'] } }
+      operation['no_replace'] = true unless operation['no_replace'].nil?
+
       node.modify_metadata(operation)
     else
       error 400, :error => "Node #{data['node']} not found"
@@ -613,6 +620,11 @@ class Razor::App < Sinatra::Base
     if data['clear']
       data['clear'] == true or data['clear'] == 'true' or error 400,
         :error => "clear must be boolean true or string 'true'"
+    end
+
+    if data['no_replace']
+      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+        :error => "no_replace must be boolean true or string 'true'"
     end
 
     if data['update'] and data['remove']
