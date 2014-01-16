@@ -262,6 +262,21 @@ to this policy at the most. This can either be set to `nil`, indicating
 that an unbounded number of nodes can be bound to this policy, or a
 positive integer to set an upper bound.
 
+### Move policy
+
+This command makes it possible to change the order in which policies are
+considered when matching against nodes. To put an existing policy into a
+different place in the policy table, use the `move-policy` command with a
+body like:
+
+    {
+      "name": "a policy",
+      "before"|"after": { "name": "other policy" }
+    }
+
+This will change the policy table so that `a policy` will appear before or
+after the policy `other policy`.
+
 ### Enable/disable policy
 
 Policies can be enabled or disabled. Only enabled policies are used when
