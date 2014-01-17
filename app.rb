@@ -20,6 +20,8 @@ class Razor::App < Sinatra::Base
     # into place our security manager and subject instance.  We only protect
     # paths if security is enabled, though.
     use Razor::Middleware::Auth, %r{/api($|/)}i
+
+    set :show_exceptions, false
   end
 
   before do
