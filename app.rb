@@ -1018,6 +1018,12 @@ class Razor::App < Sinatra::Base
     broker_hash(broker).to_json
   end
 
+  get '/api/collections/brokers/:name/policies' do
+    broker = Razor::Data::Broker[:name => params[:name]] or
+      halt 404, "no broker matched id=#{params[:name]}"
+    collection_view(broker.policies, "policies")
+  end
+
   get '/api/collections/policies' do
     collection_view Razor::Data::Policy.order(:rule_number), 'policies'
   end

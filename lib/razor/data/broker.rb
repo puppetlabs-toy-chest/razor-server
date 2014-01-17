@@ -1,4 +1,7 @@
 class Razor::Data::Broker < Sequel::Model
+
+  one_to_many :policies
+
   plugin :serialization, :json, :configuration
 
   serialize_attributes [
