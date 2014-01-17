@@ -24,6 +24,14 @@ Fabricator(:broker, :class_name => Razor::Data::Broker) do
   end
 end
 
+Fabricator(:broker_with_policy, from: :broker) do
+  after_build do |broker, _|
+    policy = Fabricate(:policy)
+    broker.save
+    policy.broker = broker
+    policy.save
+  end
+end
 
 Fabricator(:repo, :class_name => Razor::Data::Repo) do
   name      { Faker::Commerce.product_name + " #{Fabricate.sequence}" }

@@ -183,6 +183,18 @@ The `broker-type` must correspond to a broker that is present on the
 The permissible settings for the `configuration` hash depend on the broker
 type and are declared in the broker type's `configuration.yaml`.
 
+### Delete broker
+
+A broker can be deleted by posting its name to the `/spec/delete_broker`
+command:
+
+    {
+      "name": "small",
+    }
+
+If the broker is used by a policy, the attempt to delete the broker will
+fail.
+
 ### Create tag
 
 To create a tag, clients post the following to the `/spec/create_tag`

@@ -803,6 +803,24 @@ class Razor::App < Sinatra::Base
     Razor::Data::Broker.new(data).save
   end
 
+  command :delete_broker do |data|
+    check_permissions! "commands:delete-broker:#{data['name']}"
+
+    data['name'] or error 400,
+      :error => "Supply 'name' to indicate which broker to delete"
+
+    if broker = Razor::Data::Broker[:name => data['name']]
+      broker.policies.count == 0 or
+        error 400, :error => "Broker #{broker.name} is still used by policies"
+
+      broker.destroy
+      action = "broker #{data['name']} destroyed"
+    else
+      action = "no changes; broker #{data['name']} does not exist"
+    end
+    { :result => action }
+  end
+
   command :create_policy do |data|
     check_permissions! "commands:create-policy:#{data['name']}"
 
