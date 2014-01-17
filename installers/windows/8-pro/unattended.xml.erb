@@ -19,7 +19,7 @@
               <Letter>C</Letter>
               <Order>1</Order>
               <PartitionID>1</PartitionID>
-              <Label>Windows 8</Label>
+              <Label>Windows 2012</Label>
             </ModifyPartition>
           </ModifyPartitions>
           <DiskID>0</DiskID>
@@ -30,11 +30,19 @@
       <UserData>
         <AcceptEula>true</AcceptEula>
         <ProductKey>
-          <Key>V7C3N-3W6CM-PDKR2-KW8DQ-RJMRD</Key>
+          <Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE</Key>
         </ProductKey>
       </UserData>
       <ImageInstall>
         <OSImage>
+<!-- this is needed for windows 2012 -->
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+                            <Value>Windows Server 2012 SERVERSTANDARD</Value>
+                        </MetaData>
+                    </InstallFrom>
+
           <InstallTo>
             <DiskID>0</DiskID>
             <PartitionID>1</PartitionID>
@@ -58,7 +66,7 @@
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <UserAccounts>
         <AdministratorPassword>
-          <Value>razor</Value>
+          <Value><%= node.root_password %></Value>
           <PlainText>true</PlainText>
         </AdministratorPassword>
       </UserAccounts>
@@ -75,7 +83,8 @@
       <OEMInformation>
         <HelpCustomized>false</HelpCustomized>
       </OEMInformation>
-      <!-- Rename computer here. -->
+      <ComputerName><%= node.hostname.split(".").first %></ComputerName>
+      <TimeZone>Central Standard Time</TimeZone>
     </component>
     <component name="Microsoft-Windows-OutOfBoxExperience" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <DoNotOpenInitialConfigurationTasksAtLogon>true</DoNotOpenInitialConfigurationTasksAtLogon>
@@ -86,5 +95,44 @@
     <component name="Microsoft-Windows-Security-Licensing-SLC-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <SkipAutoActivation>true</SkipAutoActivation>
     </component>
+
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <RunSynchronous>
+<!-- commenting this out since this does not work yet -->
+<!--		
+           <RunSynchronousCommand wcm:action="add">
+		     <Description>Disable firewall</Description>
+		     <Order>1</Order>
+		     <Path>powershell.exe -ExecutionPolicy Bypass Set-NetFirewallProfile -Enabled False -LogFileName c:\firewall.log -ErrorAction Inquire -Verbose</Path>
+		</RunSynchronousCommand>
+-->
+
+<!-- Replace PUPPETSERVER with your puppet server -->
+		<RunSynchronousCommand wcm:action="add">
+		     <Description>Install Puppet Agent from razor server</Description>
+		     <Order>2</Order>
+		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;PUPPETSERVER&quot;</Path>
+		</RunSynchronousCommand>
+	</RunSynchronous>
+    </component>
+
+<!-- Include the follwoing if you want the system to join a domain -->
+       <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <Identification>
+<!-- Specify Credentials to use to join the domain -->
+                <Credentials>
+                    <Domain>yourDomainForCredential</Domain>
+                    <Password>SomePassword</Password>
+                    <Username>Administrator</Username>
+                </Credentials>
+               <JoinDomain>YourDomain</JoinDomain> <!-- example dell.com -->
+               <UnsecureJoin>false</UnsecureJoin>
+            </Identification>
+        </component>
+
   </settings>
+ <cpi:offlineImage cpi:source="wim:c:/temp/install.wim#Windows Server 2012 SERVERSTANDARD" xmlns:cpi="urn:schemas-microsoft-com:cpi" /> 
+
+
 </unattend>
+
