@@ -144,7 +144,7 @@ module Razor
           :desired_power_state        => node.desired_power_state,
           :last_known_power_state     => node.last_known_power_state,
           :last_power_state_update_at => node.last_power_state_update_at
-        },
+        }.delete_if { |k,v| v.nil? },
         :hostname      => node.hostname,
         :root_password => node.root_password,
         :last_checkin  => ts(node.last_checkin)
