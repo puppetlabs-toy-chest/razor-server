@@ -39,6 +39,9 @@ namespace :db do
     Razor.database.tables.each do |table|
       Razor.database.run("DROP TABLE #{table} CASCADE")
     end
+    # @todo lutter 2014-01-16: figure out a more sustainable way to
+    # clean out the database
+    Razor.database.run("DROP TYPE power_state")
   end
 
   desc "Reset the database"
