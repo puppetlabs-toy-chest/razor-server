@@ -492,7 +492,7 @@ class Razor::App < Sinatra::Base
 
         #Send the tar
         content_type 'application/octet-stream'
-        update.read_tar
+        update.tar
       else
         [404, { :error => "Update #{name} not found" }.to_json]
       end
