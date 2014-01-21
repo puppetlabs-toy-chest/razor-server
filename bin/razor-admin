@@ -34,6 +34,9 @@ COMMANDS = {
     Razor.database.tables.each do |table|
       Razor.database.run("DROP TABLE #{table} CASCADE")
     end
+    # @todo lutter 2014-01-21: figure out a more sustainable way to clean
+    # out the database
+    Razor.database.run("DROP TYPE power_state")
     Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
     true
   end
