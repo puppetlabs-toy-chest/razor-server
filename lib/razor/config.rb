@@ -41,8 +41,8 @@ module Razor
       key.to_s.split(".").inject(@values) { |v, k| v[k] if v }
     end
 
-    def recipe_paths
-      expand_paths('recipe')
+    def task_paths
+      expand_paths('task')
     end
 
     def broker_paths
@@ -61,7 +61,7 @@ module Razor
 
     private
     def expand_paths(what)
-      option_name  = what + '_path' # eg: broker_path, recipe_path
+      option_name  = what + '_path' # eg: broker_path, task_path
 
       if self[option_name]
         self[option_name].split(':').map do |path|

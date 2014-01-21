@@ -11,7 +11,7 @@ describe "create policy command" do
 
   context "/api/commands/create-policy" do
     before :each do
-      use_recipe_fixtures
+      use_task_fixtures
       header 'content-type', 'application/json'
     end
 
@@ -25,7 +25,7 @@ describe "create policy command" do
       # use them in these tests
       { :name          => "test policy",
         :repo          => { "name" => repo.name },
-        :recipe        => { "name" => "some_os" },
+        :task        => { "name" => "some_os" },
         :broker        => { "name" => broker.name },
         :hostname      => "host${id}.example.com",
         :root_password => "geheim",

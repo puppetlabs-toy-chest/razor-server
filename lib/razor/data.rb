@@ -17,7 +17,7 @@ Sequel::Model.plugin :auto_validations
 # sent messages through the TorqueBox message queue system.
 Sequel::Model.plugin Razor::Messaging::Sequel::Plugin
 
-require_relative 'data/recipe'
+require_relative 'data/task'
 require_relative 'data/repo'
 require_relative 'data/policy'
 require_relative 'data/tag'

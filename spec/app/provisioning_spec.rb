@@ -9,12 +9,12 @@ describe "provisioning API" do
   end
 
   before(:each) do
-    use_recipe_fixtures
+    use_task_fixtures
     authorize 'fred', 'dead'
   end
 
   let (:policy) do
-    Fabricate(:policy, recipe_name: 'some_os')
+    Fabricate(:policy, task_name: 'some_os')
   end
 
   it "should boot new nodes into the MK" do
@@ -66,7 +66,7 @@ describe "provisioning API" do
       assert_booting("Microkernel")
       @node.reload
       @node.log.last["event"].should == "boot"
-      @node.log.last["recipe"].should == "microkernel"
+      @node.log.last["task"].should == "microkernel"
       @node.log.last["template"].should == "boot"
       @node.log.last["repo"].should == "microkernel"
     end
@@ -226,7 +226,7 @@ describe "provisioning API" do
       last_response.status.should == 500
     end
 
-    it "should provide access to node and recipe" do
+    it "should provide access to node and task" do
       get "/svc/file/#{@node.id}/node_installer_vars"
       assert_template_body("some_os/some_os")
     end

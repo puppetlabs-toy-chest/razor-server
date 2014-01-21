@@ -1,6 +1,6 @@
 <%# -*- shell-script -*- %>
 cat <<EOF > /etc/motd
-Installed by Razor using <%= recipe.label %> - <%= recipe.description %>
+Installed by Razor using <%= task.label %> - <%= task.description %>
 Repo: <%= repo_url %>
 Node: <%= node_url %>
 Install log: /var/log/razor.log

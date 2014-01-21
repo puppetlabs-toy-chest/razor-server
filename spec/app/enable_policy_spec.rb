@@ -11,7 +11,7 @@ describe "commands to change a policy's 'enabled' flag" do
 
   context "/api/commands/create-policy" do
     before :each do
-      use_recipe_fixtures
+      use_task_fixtures
       header 'content-type', 'application/json'
     end
 

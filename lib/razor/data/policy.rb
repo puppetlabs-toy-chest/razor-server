@@ -53,21 +53,21 @@ module Razor::Data
       end
     end
 
-    def recipe
-      Razor::Recipe.find(recipe_name)
+    def task
+      Razor::Task.find(task_name)
     end
 
     def validate
       super
 
-      # Because we allow recipes in the file system, we do not have a fk
-      # constraint on +recipe_name+; this check only helps spot simple
+      # Because we allow tasks in the file system, we do not have a fk
+      # constraint on +task_name+; this check only helps spot simple
       # typos etc.
       begin
-        self.recipe
-      rescue Razor::RecipeNotFoundError
-        errors.add(:recipe_name,
-                   "recipe '#{recipe_name}' does not exist")
+        self.task
+      rescue Razor::TaskNotFoundError
+        errors.add(:task_name,
+                   "task '#{task_name}' does not exist")
       end
     end
 

@@ -1,12 +1,12 @@
 module Razor::Data
-  # This class represents recipes that are stored in the database, and
+  # This class represents tasks that are stored in the database, and
   # its main responsibility is to manage the persistence. The overall
-  # recipe functionality is handled by the class +Razor::Recipe+,
-  # which is the one to use for most recipe-related functionality.
+  # task functionality is handled by the class +Razor::Task+,
+  # which is the one to use for most task-related functionality.
   #
-  # Note that we duck type this with Razor::Recipe so that they can be used
+  # Note that we duck type this with Razor::Task so that they can be used
   # interchangeably for template lookup etc.
-  class Recipe < Sequel::Model
+  class Task < Sequel::Model
     plugin :serialization, :json, :boot_seq
     plugin :serialization, :json, :templates
 
@@ -52,20 +52,20 @@ module Razor::Data
     def find_template(template)
       if body = templates[template.to_s]
         [body, {}]
-      elsif ((br = base_recipe) and (result = br.find_template(template)))
+      elsif ((br = base_task) and (result = br.find_template(template)))
         result
-      elsif result = Razor::Recipe.find_common_file(template + '.erb')
+      elsif result = Razor::Task.find_common_file(template + '.erb')
         [template.to_sym, { :views => File::dirname(result) }]
       else
         raise Razor::TemplateNotFoundError,
-          "Recipe #{name}: no template '#{template}' for this recipe or its base recipes"
+          "Task #{name}: no template '#{template}' for this task or its base tasks"
       end
     end
 
     private
 
-    def base_recipe
-      Recipe[:name => base] if base
+    def base_task
+      Task[:name => base] if base
     end
   end
 end

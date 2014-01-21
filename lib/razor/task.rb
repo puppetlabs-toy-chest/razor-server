@@ -1,37 +1,37 @@
 module Razor
 
-  class RecipeNotFoundError < RuntimeError; end
+  class TaskNotFoundError < RuntimeError; end
   class TemplateNotFoundError < RuntimeError; end
-  class RecipeInvalidError < RuntimeError; end
+  class TaskInvalidError < RuntimeError; end
 
-  # An recipe is a collection of templates, plus some metadata. The
+  # An task is a collection of templates, plus some metadata. The
   # metadata lives in a YAML file, the templates in a subdirectory with the
-  # same base name as the YAML file. For an recipe with name +name+, the
+  # same base name as the YAML file. For an task with name +name+, the
   # YAML data must be in +name.yaml+ somewhere on
-  # +Razor.config["recipe_path"]+.
+  # +Razor.config["task_path"]+.
   #
   # Templates are looked up from the directories listed in
-  # +Razor.config["recipe_path"]+, first in a subdirectory
+  # +Razor.config["task_path"]+, first in a subdirectory
   # +name/os_version+, then +name+ and finally in the fixed directory
   # +common+.
   #
   # The following entries from the YAML file are used:
-  # +os_version+: the OS version this recipe supports
+  # +os_version+: the OS version this task supports
   # +label+, +description+: human-readable information
   # +boot_sequence+: a hash mapping integers or the string +"default"+ to
-  # template names. When booting a node, the recipe will respond with
+  # template names. When booting a node, the task will respond with
   # the numered entries in +boot_sequence+ in order; if the number of boots
-  # that a node has done under this recipe is not in +boot_sequence+,
+  # that a node has done under this task is not in +boot_sequence+,
   # the template marked as +"default"+ will be used
   #
-  # Recipes can be derived from/based on other recipes, by mentioning
+  # Tasks can be derived from/based on other tasks, by mentioning
   # their name in the +base+ metadata attribute. The metadata of the base
-  # recipe is used as default values for the derived recipe. Having a
-  # base recipe also changes how templates are looked up: they are first
-  # searched in the derived recipe's template directories, then in those
-  # of the base recipe (and then its base recipes), and finally in
+  # task is used as default values for the derived task. Having a
+  # base task also changes how templates are looked up: they are first
+  # searched in the derived task's template directories, then in those
+  # of the base task (and then its base tasks), and finally in
   # the +common+ directory
-  class Recipe
+  class Task
     attr_reader :name, :os, :os_version, :boot_seq, :label, :description, :base, :architecture
 
     def initialize(name, metadata)
@@ -42,7 +42,7 @@ module Razor
       @metadata = metadata
       @name = name
       unless metadata["os_version"]
-        raise RecipeInvalidError, "#{name} does not have an os_version"
+        raise TaskInvalidError, "#{name} does not have an os_version"
       end
       @os = metadata["os"]
       @os_version = metadata["os_version"].to_s
@@ -58,10 +58,10 @@ module Razor
 
     def find_file(filename)
       candidates = [File::join(name, os_version, filename), File::join(name, filename)]
-      self.class.find_on_recipe_paths(*candidates) or
+      self.class.find_on_task_paths(*candidates) or
         (@base and @base.find_file(filename)) or
         self.class.find_common_file(filename) or
-        raise TemplateNotFoundError, "Recipe #{name}: #{filename} not on the search path"
+        raise TemplateNotFoundError, "Task #{name}: #{filename} not on the search path"
     end
 
     def find_template(template)
@@ -79,47 +79,47 @@ module Razor
 
     protected :metadata
 
-    # Look up an recipe by name. We support file-based recipes
-    # (mostly for development) and recipes stored in the database. If
-    # there is both a file-based and a DB-backed recipe with the same
+    # Look up an task by name. We support file-based tasks
+    # (mostly for development) and tasks stored in the database. If
+    # there is both a file-based and a DB-backed task with the same
     # name, we use the file-based one.
     def self.find(name)
-      if yaml = find_on_recipe_paths("#{name}.yaml")
+      if yaml = find_on_task_paths("#{name}.yaml")
         metadata = YAML::load(File::read(yaml)) || {}
         new(name, metadata)
-      elsif inst = Razor::Data::Recipe[:name => name]
+      elsif inst = Razor::Data::Task[:name => name]
         inst
       else
-        raise RecipeNotFoundError, "No recipe #{name}.yaml on search path" unless yaml
+        raise TaskNotFoundError, "No task #{name}.yaml on search path" unless yaml
       end
     end
 
-    def self.mk_recipe
+    def self.mk_task
       find('microkernel')
     end
 
-    def self.noop_recipe
+    def self.noop_task
       find('noop')
     end
 
     def self.find_common_file(filename)
-      find_on_recipe_paths(File::join("common", filename))
+      find_on_task_paths(File::join("common", filename))
     end
 
-    # List all known recipes, both from the DB and the file
-    # system. Return an array of +Razor::Recipe+ objects, sorted by
+    # List all known tasks, both from the DB and the file
+    # system. Return an array of +Razor::Task+ objects, sorted by
     # +name+
     def self.all
-      (Razor.config.recipe_paths.map do |ip|
+      (Razor.config.task_paths.map do |ip|
         Dir.glob(File::join(ip, "*.yaml")).map { |p| File::basename(p, ".yaml") }
-       end + Razor::Data::Recipe.all).flatten.uniq.sort.map do |name|
+       end + Razor::Data::Task.all).flatten.uniq.sort.map do |name|
         find(name)
       end
     end
 
     private
-    def self.find_on_recipe_paths(*paths)
-      Razor.config.recipe_paths.each do |ip|
+    def self.find_on_task_paths(*paths)
+      Razor.config.task_paths.each do |ip|
         paths.each do |path|
           fname = File::join(ip, path)
           return fname if File::exists?(fname)

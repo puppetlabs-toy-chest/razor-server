@@ -50,7 +50,7 @@ module Razor
 
       view_object_hash(policy).merge({
         :repo => view_object_reference(policy.repo),
-        :recipe => view_object_reference(policy.recipe),
+        :task => view_object_reference(policy.task),
         :broker => view_object_reference(policy.broker),
         :enabled => !!policy.enabled,
         :max_count => policy.max_count != 0 ? policy.max_count : nil,
@@ -100,23 +100,23 @@ module Razor
                               :name => "policies" })
     end
 
-    def recipe_hash(recipe)
-      return nil unless recipe
+    def task_hash(task)
+      return nil unless task
 
-      if recipe.base
-        base = { :base => view_object_reference(recipe.base) }
+      if task.base
+        base = { :base => view_object_reference(task.base) }
       else
         base = {}
       end
 
       # FIXME: also return templates, requires some work for file-based
-      # recipes
-      view_object_hash(recipe).merge(base).merge({
+      # tasks
+      view_object_hash(task).merge(base).merge({
         :os => {
-          :name => recipe.os,
-          :version => recipe.os_version }.delete_if {|k,v| v.nil? },
-        :description => recipe.description,
-        :boot_seq => recipe.boot_seq
+          :name => task.os,
+          :version => task.os_version }.delete_if {|k,v| v.nil? },
+        :description => task.description,
+        :boot_seq => task.boot_seq
       }).delete_if {|k,v| v.nil? }
     end
 
@@ -127,7 +127,7 @@ module Razor
     def node_hash(node)
       return nil unless node
 
-      boot_stage = node.policy ? node.recipe.boot_template(node) : nil
+      boot_stage = node.policy ? node.task.boot_template(node) : nil
 
       view_object_hash(node).merge(
         :hw_info       => node.hw_hash,

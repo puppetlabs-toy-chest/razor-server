@@ -82,13 +82,13 @@ module Razor::Data
       end
     end
 
-    def recipe
+    def task
       if policy
-        policy.recipe
+        policy.task
       elsif installed
-        Razor::Recipe.noop_recipe
+        Razor::Task.noop_task
       else
-        Razor::Recipe.mk_recipe
+        Razor::Task.mk_task
       end
     end
 
@@ -149,9 +149,9 @@ module Razor::Data
       # policy is bound to it. There's two improvements that could be made:
       # 1. not every policy will be destructive, and we should preserve the
       #    'installed' state for non-destructive policies (requires additional
-      #    metadata in recipes)
+      #    metadata in tasks)
       # 2. there's a small time window between binding the node and the
-      #    recipe booting in which the node technically is still installed.
+      #    task booting in which the node technically is still installed.
       #    We could reset the installed fields only when we boot into the new
       #    policy for the first time, but it seems like a minor win, and would
       #    require a flag to remember whether we've already booted into a

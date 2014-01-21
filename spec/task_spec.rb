@@ -1,71 +1,71 @@
 require_relative 'spec_helper'
 
-describe Razor::Recipe do
-  Recipe = Razor::Recipe
+describe Razor::Task do
+  Task = Razor::Task
 
   before(:each) do
-    use_recipe_fixtures
+    use_task_fixtures
   end
 
   describe "find" do
-    it "finds an existing recipe" do
-      inst = Recipe.find("some_os")
+    it "finds an existing task" do
+      inst = Task.find("some_os")
       inst.should_not be_nil
       inst.name.should == "some_os"
     end
 
     it "searches multiple paths in order" do
-      Razor.config["recipe_path"] += ":" + File::join(FIXTURES_PATH, "other_recipes")
-      inst = Recipe.find("shadowed")
+      Razor.config["task_path"] += ":" + File::join(FIXTURES_PATH, "other_tasks")
+      inst = Task.find("shadowed")
       inst.should_not be_nil
       inst.name.should == "shadowed"
 
-      inst = Recipe.find("other")
+      inst = Task.find("other")
       inst.should_not be_nil
       inst.name.should == "other"
     end
 
-    it "raises RecipeNotFoundError for nonexistent recipe" do
+    it "raises TaskNotFoundError for nonexistent task" do
       expect {
-        Recipe.find("no such recipe")
-      }.to raise_error(Razor::RecipeNotFoundError)
+        Task.find("no such task")
+      }.to raise_error(Razor::TaskNotFoundError)
     end
 
-    it "supports recipe inheritance" do
-      inst = Recipe.find("some_os_derived")
+    it "supports task inheritance" do
+      inst = Task.find("some_os_derived")
       inst.description.should == "Derived Some OS Installer"
-      # We leave the label in the derived recipe unset on purpose
+      # We leave the label in the derived task unset on purpose
       # so we get to see the base label
       inst.label.should == "Some OS, version 3"
     end
 
-    it "raises RecipeInvalidError if os_version is missing" do
+    it "raises TaskInvalidError if os_version is missing" do
       expect {
-        Recipe.find("no_os_version")
-      }.to raise_error(Razor::RecipeInvalidError)
+        Task.find("no_os_version")
+      }.to raise_error(Razor::TaskInvalidError)
     end
   end
 
 
-  describe "find for DB and file recipes" do
+  describe "find for DB and file tasks" do
     it "finds them in the database" do
-      inst = Razor::Data::Recipe.create(:name => 'dbinst',
+      inst = Razor::Data::Task.create(:name => 'dbinst',
                                            :os => 'SomeOS',
                                            :os_version => '6')
-      Razor::Recipe.find('dbinst').should == inst
+      Razor::Task.find('dbinst').should == inst
     end
 
-    it "prefers recipes in the file system" do
-      Razor::Data::Recipe.create(:name => 'some_os',
+    it "prefers tasks in the file system" do
+      Razor::Data::Task.create(:name => 'some_os',
                                     :os => 'SomeOS',
                                     :os_version => '6')
-      Recipe.find("some_os").should be_an_instance_of Razor::Recipe
+      Task.find("some_os").should be_an_instance_of Razor::Task
     end
   end
 
   describe "find_template" do
-    let(:inst) { Recipe.find("some_os") }
-    let(:derived) { Recipe.find("some_os_derived") }
+    let(:inst) { Task.find("some_os") }
+    let(:derived) { Task.find("some_os_derived") }
 
     it "finds version-specific template" do
       inst.find_template("specific").should ==
@@ -88,12 +88,12 @@ describe Razor::Recipe do
         [:specific, { :views => File::join(INST_PATH, "some_os/3") }]
     end
 
-    it "prefers templates for the derived recipe" do
+    it "prefers templates for the derived task" do
       derived.find_template("specific.erb").should ==
         [:specific, { :views => File::join(INST_PATH, "some_os_derived")}]
     end
 
-    it "uses templates for the base recipe if the derived one doesn't match" do
+    it "uses templates for the base task if the derived one doesn't match" do
       derived.find_template("template.erb").should ==
         [:template, { :views => File::join(INST_PATH, "some_os/3") }]
     end
@@ -101,7 +101,7 @@ describe Razor::Recipe do
 
   describe "boot_template" do
     it "uses the boot template with the right seq" do
-      inst = Recipe.find("some_os")
+      inst = Task.find("some_os")
       node = Razor::Data::Node.new(:hw_info => ["mac=deadbeef"],
                                    :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|

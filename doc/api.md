@@ -129,16 +129,16 @@ The `delete-repo` command accepts a single repo name:
       "name": "fedora16"
     }
 
-### Create recipe
+### Create task
 
-Razor supports both recipes stored in the filesystem and recipes
+Razor supports both tasks stored in the filesystem and tasks
 stored in the database; for development, it is highly recommended that you
-store your recipes in the filesystem. Details about that can be found
-[on the Wiki](https://github.com/puppetlabs/razor-server/wiki/Writing-recipes)
+store your tasks in the filesystem. Details about that can be found
+[on the Wiki](https://github.com/puppetlabs/razor-server/wiki/Writing-tasks)
 
-For production setups, it is usually better to store your recipes in the
-database. To create an recipe, clients post the following to the
-`/spec/create_recipe` URL:
+For production setups, it is usually better to store your tasks in the
+database. To create a task, clients post the following to the
+`/spec/create_task` URL:
 
     {
       "name": "redhat6",
@@ -157,7 +157,7 @@ database. To create an recipe, clients post the following to the
 
 The possible properties in the request are:
 
-name       | The name of the recipe; must be unique
+name       | The name of the task; must be unique
 os         | The name of the OS; mandatory
 os_version | The version of the operating system
 description| Human-readable description
@@ -245,7 +245,7 @@ will return with status code 400.
     {
       "name": "a policy",
       "repo": { "name": "some_repo" },
-      "recipe": { "name": "redhat6" },
+      "task": { "name": "redhat6" },
       "broker": { "name": "puppet" },
       "hostname": "host${id}.example.com",
       "root_password": "secret",
@@ -262,7 +262,7 @@ used to put the new policy into the table before or after another
 policy. If neither `before` or `after` are specified, the policy is
 appended to the policy table.
 
-Tags, brokers, recipes and repos are referenced by their name. Tags can
+Tags, brokers, tasks and repos are referenced by their name. Tags can
 also be created by providing a rule; if a tag with that name already
 exists, the rule must be equal to the rule of the existing tag.
 

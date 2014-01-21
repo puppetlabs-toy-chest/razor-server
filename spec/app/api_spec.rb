@@ -103,7 +103,7 @@ describe "command and query API" do
     # `before` is used instead of `let` since the database gets rolled
     # back after every test
     before(:each) do
-      use_recipe_fixtures
+      use_task_fixtures
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
@@ -117,7 +117,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  Fabricate(:policy, :repo => @repo, :recipe_name => "some_os")
+      pl =  Fabricate(:policy, :repo => @repo, :task_name => "some_os")
       pl.add_tag @tag
 
       get '/api/collections/policies'
@@ -131,14 +131,14 @@ describe "command and query API" do
 
   context "/api/collections/policies/ID - get policy" do
     before(:each) do
-      use_recipe_fixtures
+      use_task_fixtures
 
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @repo = Fabricate(:repo)
     end
 
-    subject(:pl){ Fabricate(:policy, :repo => @repo, :recipe_name => "some_os")}
+    subject(:pl){ Fabricate(:policy, :repo => @repo, :task_name => "some_os")}
 
     it "should exist" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
@@ -153,7 +153,7 @@ describe "command and query API" do
       get "/api/collections/policies/#{URI.escape(pl.name)}"
       policy = last_response.json
 
-      policy.keys.should =~ %w[name id spec configuration enabled max_count repo tags recipe broker node_metadata nodes]
+      policy.keys.should =~ %w[name id spec configuration enabled max_count repo tags task broker node_metadata nodes]
       policy["repo"].keys.should =~ %w[id name spec]
       policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
       policy["tags"].should be_empty
@@ -228,12 +228,12 @@ describe "command and query API" do
     end
   end
 
-  context "/api/collections/recipes/:name" do
+  context "/api/collections/tasks/:name" do
     # @todo lutter 2013-10-08: I would like to pull the schema for the base
     # property out into a ObjectReferenceSchema and make the base property
     # a $ref to that. My attempts at doing that have failed so far, because
     # json-schema fails when we validate against the resulting
-    # RecipeItemSchema, complaining that the schema for base is not
+    # TaskItemSchema, complaining that the schema for base is not
     # valid
     #
     # Note that to use a separate ObjectReferenceSchema, we have to
@@ -242,9 +242,9 @@ describe "command and query API" do
     #   ObjectReferenceSchema['id'] = url
     #   sch = JSON::Schema::new(ObjectReferenceSchema, url)
     #   JSON::Validator.add_schema(sch)
-    RecipeItemSchema = {
+    TaskItemSchema = {
       '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Recipe Item JSON Schema",
+      'title'    => "Task Item JSON Schema",
       'type'     => 'object',
       'required' => %w[spec id name os boot_seq],
       'properties' => {
@@ -314,44 +314,44 @@ describe "command and query API" do
     end
 
     before(:each) do
-      use_recipe_fixtures
+      use_task_fixtures
     end
 
-    it "works for file-based recipes" do
-      get "/api/collections/recipes/some_os"
+    it "works for file-based tasks" do
+      get "/api/collections/tasks/some_os"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "some_os"
       data["boot_seq"].keys.should =~ %w[1 2 default]
       data["boot_seq"]["2"].should == "boot_again"
-      validate! RecipeItemSchema, last_response.body
+      validate! TaskItemSchema, last_response.body
     end
 
-    it "works for DB-backed recipes" do
-      inst = Razor::Data::Recipe.create(:name => 'dbinst',
+    it "works for DB-backed tasks" do
+      inst = Razor::Data::Task.create(:name => 'dbinst',
                                            :os => 'SomeOS',
                                            :os_version => '6',
-                                           :boot_seq => { 1 => "recipe",
+                                           :boot_seq => { 1 => "task",
                                                           "default" => "local"})
-      get "/api/collections/recipes/dbinst"
+      get "/api/collections/tasks/dbinst"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "dbinst"
       data["boot_seq"].keys.should =~ %w[1 default]
-      validate! RecipeItemSchema, last_response.body
+      validate! TaskItemSchema, last_response.body
     end
 
-    it "includes a reference to the base recipe" do
-      get "/api/collections/recipes/some_os_derived"
+    it "includes a reference to the base task" do
+      get "/api/collections/tasks/some_os_derived"
       last_response.status.should == 200
 
       data = last_response.json
       data["name"].should == "some_os_derived"
       data["os"]["version"].should == "4"
       data["base"]["name"].should == "some_os"
-      validate! RecipeItemSchema, last_response.body
+      validate! TaskItemSchema, last_response.body
     end
   end
 

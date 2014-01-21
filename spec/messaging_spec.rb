@@ -49,7 +49,7 @@ describe Razor::Messaging::Sequel do
       end
     end
 
-    %w[IO Process::Status Razor Razor::Recipe Razor::Util::TemplateConfig].each do |input|
+    %w[IO Process::Status Razor Razor::Task Razor::Util::TemplateConfig].each do |input|
       it "should fail because #{input.inspect} is not in the Razor::Data namespace" do
         expect {
           handler.find_razor_data_class(input)

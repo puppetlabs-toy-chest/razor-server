@@ -1,6 +1,6 @@
 require_relative '../spec_helper'
 
-describe Razor::Data::Recipe do
+describe Razor::Data::Task do
   class MockNode
     attr_reader :facts
 
@@ -10,11 +10,11 @@ describe Razor::Data::Recipe do
   end
 
   before(:each) do
-    use_recipe_fixtures
+    use_task_fixtures
   end
 
-  subject(:recipe) do
-    Razor::Data::Recipe.create(
+  subject(:task) do
+    Razor::Data::Task.create(
       :name => 'test',
       :os => 'SomeOS',
       :templates => {
@@ -29,8 +29,8 @@ describe Razor::Data::Recipe do
   end
 
   subject(:derived) do
-    recipe  # Must exist for the FK on base
-    Razor::Data::Recipe.create(
+    task  # Must exist for the FK on base
+    Razor::Data::Task.create(
       :name => 'derived',
       :base => 'test',
       :os => 'SomeOS',
@@ -41,16 +41,16 @@ describe Razor::Data::Recipe do
 
   describe "persistence" do
     it "initializes templates and boot_seq to an empty hash" do
-      inst = Razor::Data::Recipe.new
+      inst = Razor::Data::Task.new
       inst.templates.should == {}
       inst.boot_seq.should == {}
     end
 
     def rejects(attr, value)
-      # The simpler recipe[attr] = value leads to obscure errors
-      recipe.set_fields({ attr => value }, [attr])
+      # The simpler task[attr] = value leads to obscure errors
+      task.set_fields({ attr => value }, [attr])
       expect {
-        recipe.save
+        task.save
       }.to raise_error(Sequel::ValidationFailed)
     end
 
@@ -82,9 +82,9 @@ describe Razor::Data::Recipe do
       end
 
       it "allows integer keys and 'default'" do
-        recipe.boot_seq = { 1 => "one", 2 => "two", 70 => "seventy",
+        task.boot_seq = { 1 => "one", 2 => "two", 70 => "seventy",
                                "default" => "default" }
-        recipe.save.should be_true
+        task.save.should be_true
       end
 
       it "keys can not be symbols" do
@@ -104,19 +104,19 @@ describe Razor::Data::Recipe do
   describe "find_template" do
     it "raises TemplateNotFoundError for nonexistent template" do
       expect {
-        recipe.find_template('no such template').should_not be_nil
+        task.find_template('no such template').should_not be_nil
       }.to raise_error(Razor::TemplateNotFoundError)
     end
 
     it "returns a template as a string" do
-      recipe.find_template('simple').should == ["Simple Template", {}]
+      task.find_template('simple').should == ["Simple Template", {}]
     end
 
-    it "finds a template in a base recipe" do
+    it "finds a template in a base task" do
       derived.find_template('simple').should == ["Simple Template", {}]
     end
 
-    it "prefers the template in a derived recipe" do
+    it "prefers the template in a derived task" do
       derived.find_template('overridden').should == ["Derived", {}]
     end
 
@@ -132,7 +132,7 @@ describe Razor::Data::Recipe do
                                    :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|
         node.boot_count += 1
-        recipe.boot_template(node).should == t
+        task.boot_template(node).should == t
       end
     end
   end

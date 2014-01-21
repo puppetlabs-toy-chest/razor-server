@@ -9,8 +9,8 @@ Newly added machines in a Razor deployment will PXE-boot from a special Razor
 Microkernel image, then check in, provide Razor with inventory information,
 and wait for further instructions. Razor will consult user-created policy
 rules to choose which recpies to apply to a new node, which will begin to
-follow the recipe directions, giving feedback to Razor as it completes various
-steps. Recipes can include steps for handoff to a DevOps system such as
+follow the task directions, giving feedback to Razor as it completes various
+steps. Tasks can include steps for handoff to a DevOps system such as
 [Puppet](https://github.com/puppetlabs/puppet) or to any other system capable
 of controlling the node (such as a vCenter server taking possession of ESX
 systems).

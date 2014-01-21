@@ -39,7 +39,7 @@ Fabricator(:repo, :class_name => Razor::Data::Repo) do
 end
 
 
-Fabricator(:recipe, :class_name => Razor::Data::Recipe) do
+Fabricator(:task, :class_name => Razor::Data::Task) do
   name          { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   os            { Faker::Commerce.product_name }
   os_version    { random_version }
@@ -55,7 +55,7 @@ end
 Fabricator(:policy, :class_name => Razor::Data::Policy) do
   name             { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   enabled          true
-  recipe_name      { Fabricate(:recipe).name }
+  task_name      { Fabricate(:task).name }
   hostname_pattern 'host${id}.example.org'
   root_password    { Faker::Internet.password }
 

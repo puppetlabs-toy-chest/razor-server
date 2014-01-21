@@ -59,8 +59,8 @@ all:
     - mac
   checkin_interval: 15
   # Colon-separated list of paths; each entry must be a directory in which
-  # we should look for recipes
-  recipe_path: recipes
+  # we should look for tasks
+  task_path: tasks
   repo_store_root: /var/lib/razor/repo-store
   # The *broker_path* is a colon separated list of directories containing
   # broker types

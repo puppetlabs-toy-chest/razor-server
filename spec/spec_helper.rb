@@ -58,12 +58,12 @@ class Razor::Config
 end
 
 FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
-INST_PATH = File::join(FIXTURES_PATH, "recipes")
+INST_PATH = File::join(FIXTURES_PATH, "tasks")
 
 BROKER_FIXTURE_PATH = File.join(FIXTURES_PATH, 'brokers')
 
-def use_recipe_fixtures
-  Razor.config["recipe_path"] = INST_PATH
+def use_task_fixtures
+  Razor.config["task_path"] = INST_PATH
 end
 
 def use_broker_fixtures
