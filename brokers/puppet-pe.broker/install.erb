@@ -180,7 +180,7 @@ fi
 # This is the end of the code copied from the upstream installer.
 ##############################################################################
 
-url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:version] || 'latest' %>/${PLATFORM_TAG}.bash"
+url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:version] || 'current' %>/${PLATFORM_TAG}.bash"
 
 # Now, figure out how to download and run the script we need...
 if cmd curl; then
