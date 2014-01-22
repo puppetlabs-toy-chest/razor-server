@@ -23,6 +23,7 @@ describe "reinstall-node" do
       reinstall_node(node.name)
 
       last_response.status.should == 202
+      last_response.json['result'].should =~ /node unbound/
       node.reload
       node.policy.should be_nil
       node.installed.should be_nil
@@ -36,6 +37,7 @@ describe "reinstall-node" do
       reinstall_node(node.name)
 
       last_response.status.should == 202
+      last_response.json['result'].should =~ /installed flag cleared/
       node.reload
       node.policy.should be_nil
       node.installed.should be_nil
@@ -47,11 +49,13 @@ describe "reinstall-node" do
       reinstall_node(node.name)
 
       last_response.status.should == 202
+      last_response.json['result'].should =~ /neither bound nor installed/
     end
 
     it "should succeed for a nonexistent node" do
       reinstall_node("not really an existing node")
       last_response.status.should == 202
+      last_response.json['result'].should =~ /does not exist/
     end
   end
 end

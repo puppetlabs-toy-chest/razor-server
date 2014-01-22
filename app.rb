@@ -661,6 +661,9 @@ class Razor::App < Sinatra::Base
         node.installed_at = nil
         actions << "installed flag cleared"
       end
+      if actions.empty?
+        actions << "no changes; node #{data['name']} was neither bound nor installed"
+      end
       node.log_append(log)
       node.save
     else
