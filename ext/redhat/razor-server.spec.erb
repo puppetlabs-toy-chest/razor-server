@@ -1,0 +1,127 @@
+%global realversion    <%= @version %>
+%global rpmversion     <%= @rpmversion %>
+
+# For better or worse, there are a bunch of different arch binaries in this.
+# They are not actually a problem, though, since we handle them carefully.
+%define _binaries_in_noarch_packages_terminate_build   0
+
+Summary:        <%= @summary %>
+Name:           razor-server
+Version:        %{rpmversion}
+Release:        <%= @rpmrelease -%>%{?dist}
+Vendor:         Puppet Labs
+License:        Apache 2.0
+Group:          System Environment/Base
+URL:            http://www.puppetlabs.com/puppet/related-projects/%{name}
+# Note this URL will only be valid at official tags from Puppet Labs
+Source0:        http://puppetlabs.com/downloads/%{name}/%{name}-%{realversion}.tar.gz
+BuildArch:      noarch
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+AutoProv:       0
+
+# We dynamically create our service account
+Requires(pre): shadow-utils
+
+# Depend on our basic toolchain
+Requires(pre): razor-torquebox
+
+Requires:       libarchive-devel
+
+%description
+<%= @description %>
+
+%prep
+%setup -q  -n %{name}-%{realversion}
+
+%build
+
+%install
+rm -rf %{buildroot}
+
+# These are used at runtime.
+mkdir -p %{buildroot}/var/run/razor-server
+mkdir -p %{buildroot}/var/log/razor-server
+mkdir -p %{buildroot}/var/lib/razor/repo-store
+
+# Install the init script and sysconfig file
+mkdir -p %{buildroot}%{_initrddir}
+cp -p ext/razor-server.init %{buildroot}%{_initrddir}/razor-server
+
+# OK, all the ext stuff is done...
+rm -rf ext
+
+# Unpack the Razor server sources
+mkdir -p %{buildroot}/opt/razor
+cp -pr .bundle * %{buildroot}/opt/razor
+
+# Put the configuration in the global location
+mkdir -p %{buildroot}/etc/razor
+mv %{buildroot}/opt/razor/config.yaml.sample %{buildroot}/etc/razor/config.yaml
+mv %{buildroot}/opt/razor/shiro.ini %{buildroot}/etc/razor/shiro.ini
+
+# Create the links to wrap our commands.
+mkdir -p %{buildroot}/usr/sbin
+for cmd in bin/*; do
+    cmd=$(basename ${cmd})
+    if test x"${cmd}" != x"razor-binary-wrapper"; then
+        ln -s /opt/razor/bin/razor-binary-wrapper %{buildroot}/usr/sbin/${cmd}
+    fi
+done
+
+
+%post -p /bin/bash
+# Register the service
+/sbin/chkconfig --add razor-server
+
+# Cause our application to be deployed to TorqueBox, but only the first time
+# we are installed.  Upgrades do not automatically trigger this, because a
+# database migration may be required, and we want to avoid reloading code in a
+# way that will break compared to that "admin intervention required"
+# planned downtime.
+if [ x"$1" = x"1" ]; then
+    source /etc/razor/razor-torquebox.sh
+    torquebox deploy /opt/razor --env=production
+fi
+
+exit 0
+
+%preun -p /bin/bash
+# Undeploy our application from TorqueBox.
+source /etc/razor/razor-torquebox.sh
+torquebox undeploy /opt/razor || :
+
+/sbin/service razor-server stop >&/dev/null || :
+/sbin/chkconfig --del razor-server || :
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%attr(-,razor,razor) %dir /var/run/razor-server
+%attr(-,razor,razor) %dir /var/log/razor-server
+%attr(-,razor,razor) %dir /var/lib/razor
+%attr(-,razor,razor) %dir /var/lib/razor/repo-store
+
+%attr(755,root,root) %{_initrddir}/razor-server
+
+/opt/razor
+
+# When flagged as configuration files, I see this:
+# --> Processing Dependency: config(razor-server) = release.0.12.0.gc3c7b74-1.fc19 for package: razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch
+# --> Finished Dependency Resolution
+# Error: Package: razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch (/razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch)
+#            Requires: config(razor-server) = release.0.12.0.gc3c7b74-1.fc19
+#  You could try using --skip-broken to work around the problem
+# %config(noreplace) /etc/razor/config.yaml
+# %config(noreplace) /etc/razor/shiro.ini
+
+/etc/razor/config.yaml
+/etc/razor/shiro.ini
+
+# Our user focused symbolic links.
+/usr/sbin/razor-admin
+
+%changelog
+* <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>.pe
+- Build for <%= @version %>

@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+ROOT := $(CURDIR)/debian/tmp
+
+%:
+	dh $@
+
+override_dh_install:
+	dh_install -v
+
+# The hackery to put our init script into place is kind of evil, but whatever.
+override_dh_auto_install:
+	mv ext/razor-server.init debian/razor-server.init
+	rmdir ext		# should be emptied by now
+
+	mkdir -p $(ROOT)/etc/razor
+	mv config.yaml.sample $(ROOT)/etc/razor/config.yaml
+	mv shiro.ini $(ROOT)/etc/razor/shiro.ini
+
+	mkdir -p $(ROOT)/opt/razor
+	tar c --exclude=debian . | tar xC $(ROOT)/opt/razor
+	for file in $$(cat debian/docs); do rm -vrf $(ROOT)/opt/razor/$${file}; done
+
+	# Create the links to wrap our commands.
+	mkdir -p $(ROOT)/usr/sbin
+	for cmd in bin/*; do \
+	    cmd=$$(basename $${cmd}); \
+	    if test x"$${cmd}" != x"razor-binary-wrapper"; then \
+	        ln -s /opt/razor/bin/razor-binary-wrapper $(ROOT)/usr/sbin/$${cmd}; \
+	    fi; \
+	done
+
+
+# This is deliberately empty: we ship arch binaries, but don't want external
+# deps for them.  This does require hand-managing any binary deps, which
+# we do.  (Thankfully easy, because we don't compile any of our own code.)
+override_dh_shlibdeps:

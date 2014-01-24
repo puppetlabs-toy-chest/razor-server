@@ -1,0 +1,23 @@
+#!/bin/sh
+. /etc/razor/razor-torquebox.sh
+
+# If we support moving, this needs to change.
+RAZOR_HOME='/opt/razor'
+
+# Make sure our Gemfile is found by the tool.  This is needed because Bundler
+# checks for the Gemfile relative to the current working directory, not the
+# code you are running -- so fails for anything, say, in the path. :/
+export BUNDLE_GEMFILE="${RAZOR_HOME}/Gemfile"
+
+# Figure out what we were asked to execute.
+exe="$(basename $0)"
+
+# Find the executable, and run it directly, or fail out gracefully.
+if test -f "${RAZOR_HOME}/bin/${exe}"; then
+    exec "${RAZOR_HOME}/bin/${exe}" "$@"
+elif test -f "${JRUBY_HOME}/bin/${exe}"; then
+    exec "${JRUBY_HOME}/bin/${exe}"
+else
+    echo "unable to find the ${exe} command in razor or bundled gems!"
+    exit 1
+fi

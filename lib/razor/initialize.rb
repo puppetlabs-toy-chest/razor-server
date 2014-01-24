@@ -50,7 +50,7 @@ module Razor
 
     def security_manager
       synchronize do
-        path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', root)
+        path = File.expand_path(Razor.config['auth.config'] || 'shiro.ini', config.root)
         unless defined?(@@security_manager_from) and @@security_manager_from == path
           @@security_manager_from = path
           @@security_manager = synchronize do

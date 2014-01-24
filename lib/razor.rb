@@ -1,6 +1,7 @@
 require 'sequel'
 require 'json'
 
+require_relative 'razor/version'
 require_relative 'razor/util'
 require_relative 'razor/middleware'
 require_relative 'razor/config'
