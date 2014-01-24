@@ -1,6 +1,12 @@
 require 'rake'
 require 'yaml'
 
+# This defaults to the JRuby used on our internal builders, if present, and
+# then falls back to searching the path as it should.
+JRUBY = (["/usr/local/share/pl-jruby/bin"] + ENV['PATH'].split(':')).find do |path|
+  File.executable?(File.join(path, 'jruby'))
+end
+
 task :default do
   system("rake -T")
 end
@@ -145,12 +151,12 @@ namespace :package do
   task :torquebox do
     begin
       rm_f "Gemfile.lock"
-      sh "jruby -S bundle install --clean --no-cache --retry 10 --path vendor/bundle --without 'development test doc'"
+      sh "#{JRUBY} -S bundle install --clean --no-cache --retry 10 --path vendor/bundle --without 'development test doc'"
       rm_f ".bundle/install.log"
     rescue
       unless @tried_to_install_bundler
         # Maybe the executable isn't installed in the parent, try and get it now.
-        sh "jruby -S gem install bundler"
+        sh "#{JRUBY} -S gem install bundler"
         @tried_to_install_bundler = true
         retry
       end
