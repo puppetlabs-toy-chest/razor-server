@@ -18,6 +18,9 @@ description: |
   steps. Models can include steps for handoff to a DevOps system such as Puppet
   or to any other system capable of controlling the node (such as a vCenter
   server taking possession of ESX systems).
+# automatically burn our version into the generated source
+version_file: 'lib/razor/version.rb'
+update_version_file: true
 # files and gem_files are space separated lists (or arrays)
 files:
   - ext/razor-server.init.erb
