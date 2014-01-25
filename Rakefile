@@ -153,15 +153,22 @@ namespace :package do
   task :torquebox do
     begin
       rm_f "Gemfile.lock"
-      sh "#{JRUBY} -S bundle install --clean --no-cache --retry 10 --path vendor/bundle --without 'development test doc'"
+      sh "#{JRUBY} -S bundle install --clean --no-cache --path vendor/bundle --without 'development test doc'"
       rm_f ".bundle/install.log"
     rescue
       unless @tried_to_install_bundler
         # Maybe the executable isn't installed in the parent, try and get it now.
-        sh "#{JRUBY} -S gem install bundler"
+        sh "#{JRUBY} -S gem install bundler" rescue nil
         @tried_to_install_bundler = true
         retry
       end
+
+      unless @retried and @retried > 9
+        @retried = (@retried || 0) + 1
+        puts "gonna just retry that there bundle install against network errors"
+        retry
+      end
+
       raise
     end
   end
