@@ -3,9 +3,11 @@ require 'yaml'
 
 # This defaults to the JRuby used on our internal builders, if present, and
 # then falls back to searching the path as it should.
-JRUBY = (["/usr/local/share/pl-jruby/bin"] + ENV['PATH'].split(':')).find do |path|
+jruby = (["/usr/local/share/pl-jruby/bin"] + ENV['PATH'].split(':')).find do |path|
   File.executable?(File.join(path, 'jruby'))
-end
+end or raise "unable to locate jruby on your system!"
+
+JRUBY = File.join(jruby, 'jruby')
 
 task :default do
   system("rake -T")
