@@ -24,8 +24,8 @@
           line.gsub('/', repo_url('/'))
         when /^kernelopt=/
           #"kernelopt=ks=#{file_url('ks.cfg')}"
-          if File.exists?("/opt/razor-server/installers/vmware_esxi/5.5/ks_" + node.name + ".cfg.erb")
-             "kernelopt=ks=#{file_url('ks_' + node.name + '.cfg')}"
+          if File.exists?("/opt/razor-server/installers/vmware_esxi/ks_" + node.facts["serialnumber"] + ".cfg.erb")
+             "kernelopt=ks=#{file_url('ks_' + node.facts["serialnumber"] + '.cfg')}"
           else
              "kernelopt=ks=#{file_url('ks.cfg')}"
           end
