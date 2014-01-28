@@ -25,8 +25,22 @@ autopart
 reboot
 
 # followig is MINIMAL https://partner-bugzilla.redhat.com/show_bug.cgi?id=593309
-%packages --nobase
+%packages --ignoremissing
 @core
+@System Tools
+automake
+gcc
+cpp
+glibc-devel
+glibc-headers
+glibc-kernelheaders
+glibc
+glibc-common
+libgcc
+zlib-devel
+openssl-devel
+readline-devel
+ruby
 
 %end
 
@@ -45,5 +59,6 @@ echo bash /root/razor_postinstall.sh >> /etc/rc.d/rc.local
 chmod +x /root/razor_postinstall.sh
 
 curl -s <%= stage_done_url("kickstart") %>
+
 %end
 ############

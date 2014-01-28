@@ -18,6 +18,13 @@ fi
 # careful though, since this file is also used by the CentOS installer, for
 # which there is no RHN registration
 
+#install the puppet agent
+mkdir /tmp/mnt
+mount -o nolock,username=readonly,password=readonly //<%= URI.parse(repo_url).host %>/razor /tmp/mnt
+rpm -ivh /tmp/mnt/puppetlabs-release-6-7.noarch.rpm
+umount /tmp/mnt
+rm -rf /tmp/mnt
+
 <%= render_template("os_complete") %>
 
 # We are done
