@@ -10,7 +10,10 @@ sleep 3
 <%# the other, depending on the node and the bugs in its BIOS (see          %>
 <%# http://ipxe.org/cmd/sanboot)                                            %>
 
-<% if node.facts["virtual"] == "kvm" %>
+<%# testing "is_virtual" exists technically isn't necessary, since we have  %>
+<%# full control over the client, but just in case someone builds a custom  %>
+<%# kernel image that doesn't include it, or something...                   %>
+<% if !node.facts["is_virtual"] or node.facts["is_virtual"] != "false"  %>
 echo forcing local booting with sanboot 0x80
 sanboot --no-describe --drive 0x80
 <% end %>
