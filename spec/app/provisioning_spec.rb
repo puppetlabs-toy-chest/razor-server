@@ -125,7 +125,7 @@ describe "provisioning API" do
         get "/svc/boot?net0=#{@mac}"
 
         last_response.status.should == 200
-        node = Node.lookup("net0" => @mac)
+        node = Node.lookup({ 'hw_info' => {"net0" => @mac} })
         node.dhcp_mac.should be_nil
       end
 
@@ -134,7 +134,7 @@ describe "provisioning API" do
         get "/svc/boot?net0=#{@mac}&dhcp_mac=#{dhcp_mac}"
 
         last_response.status.should == 200
-        node = Node.lookup("net0" => @mac)
+        node = Node.lookup({ 'hw_info' => {"net0" => @mac} })
         node.dhcp_mac.should == dhcp_mac
       end
 
@@ -146,7 +146,7 @@ describe "provisioning API" do
         get "/svc/boot?net0=#{@mac}"
 
         last_response.status.should == 200
-        node = Node.lookup("net0" => @mac)
+        node = Node.lookup({ 'hw_info' => {"net0" => @mac} })
         node.dhcp_mac.should == dhcp_mac
       end
     end

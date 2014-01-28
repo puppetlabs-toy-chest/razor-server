@@ -279,7 +279,10 @@ class Razor::App < Sinatra::Base
     if params[:id]
       node = Razor::Data::Node[params["id"]] or return 404
     else
-      node = Razor::Data::Node.secondary_lookup(json['facts'])
+      data = {
+        'facts' => json['facts']
+      }
+      node = Razor::Data::Node.lookup(data)
       response['id'] = node.id
     end
 
@@ -309,7 +312,7 @@ class Razor::App < Sinatra::Base
   get '/svc/nodeid' do
     return 400 if params.empty?
     begin
-      if node = Razor::Data::Node.lookup(params)
+      if node = Razor::Data::Node.lookup({ 'hw_info' => params })
         logger.info("/svc/nodeid: #{params.inspect} mapped to #{node.id}")
         { :id => node.id }.to_json
       else
@@ -325,8 +328,12 @@ class Razor::App < Sinatra::Base
   end
 
   get '/svc/boot' do
+    data = {
+      'hw_info' => params
+    }
+
     begin
-      @node = Razor::Data::Node.lookup(params)
+      @node = Razor::Data::Node.lookup(data)
     rescue Razor::Data::DuplicateNodeError => e
       e.log_to_nodes!
       logger.error(e.message)
