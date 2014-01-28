@@ -64,6 +64,24 @@ describe "command and query API" do
       end
     end
 
+    it "should properly set the hostname in links" do
+      # This tests https://tickets.puppetlabs.com/browse/RAZOR-93
+      # The first request to /api would 'bake' the hostname into
+      # command URL's
+      header 'Host', 'example.net'
+      get '/api'
+
+      header 'Host', 'example.com'
+      get '/api'
+
+      api = last_response.json
+      (api['commands'] + api['collections']).each do |x|
+        uri = URI::parse(x['id'])
+        uri.host.should be == 'example.com',
+          "id for #{x['name']} is '#{uri.host}' but should be 'example.com'"
+      end
+    end
+
     it "should return JSON content" do
       get '/api'
       last_response.content_type.should =~ /application\/json/i

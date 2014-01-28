@@ -457,7 +457,7 @@ class Razor::App < Sinatra::Base
     # for discussion and compatibility concerns; we also want to preserve the
     # `id` key for some time so we don't break older clients.
     {
-      "commands" => @@commands.dup.map { |c| c.update("id" => url(c["id"])) },
+      "commands" => @@commands.map { |c| c.dup.update("id" => url(c["id"])) },
       "collections" => COLLECTIONS.map do |coll|
         { "name" => coll, "rel" => spec_url("/collections/#{coll}"),
           "id" => url("/api/collections/#{coll}")}
@@ -487,7 +487,7 @@ class Razor::App < Sinatra::Base
       "name" => name,
       "rel" => Razor::View::spec_url("commands", name),
       "id" => path
-    }
+    }.freeze
 
     # Handler for the command
     post path do
