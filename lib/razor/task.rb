@@ -106,15 +106,19 @@ module Razor
       find_on_task_paths(File::join("common", filename))
     end
 
-    # List all known tasks, both from the DB and the file
+    # List all known, valid tasks, both from the DB and the file
     # system. Return an array of +Razor::Task+ objects, sorted by
     # +name+
     def self.all
       (Razor.config.task_paths.map do |ip|
         Dir.glob(File::join(ip, "*.yaml")).map { |p| File::basename(p, ".yaml") }
-       end + Razor::Data::Task.all).flatten.uniq.sort.map do |name|
-        find(name)
-      end
+       end + Razor::Data::Task.all.map { |t| t.name }).flatten.uniq.sort.map do |name|
+        begin
+          find(name)
+        rescue TaskInvalidError
+          nil
+        end
+      end.compact
     end
 
     private

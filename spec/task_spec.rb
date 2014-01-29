@@ -63,6 +63,22 @@ describe Razor::Task do
     end
   end
 
+
+  describe "all" do
+    it "lists file tasks" do
+      Task.all.map { |t| t.name }.should =~
+        ["microkernel", "shadowed", "some_os", "some_os_derived"]
+    end
+
+    it "lists database tasks" do
+      inst = Razor::Data::Task.create(:name => 'dbinst',
+                                      :os => 'SomeOS',
+                                      :os_version => '6')
+      Task.all.map { |t| t.name }.should =~
+        ["microkernel", "shadowed", "some_os", "some_os_derived", "dbinst"]
+    end
+  end
+
   describe "find_template" do
     let(:inst) { Task.find("some_os") }
     let(:derived) { Task.find("some_os_derived") }
