@@ -2,4 +2,4 @@
 server:
   description: "The puppet master to load configurations and installation packages from."
 version:
-  description: "Override the PE version to install; defaults to `latest`."
+  description: "Override the PE version to install; defaults to `current`."
