@@ -61,6 +61,18 @@ describe "create policy command" do
       last_response.status.should == 400
     end
 
+    it "should fail if the name is empty" do
+      policy_hash[:name] = ""
+      create_policy
+      last_response.status.should == 400
+    end
+
+    it "should fail if the name is missing" do
+      policy_hash.delete(:name)
+      create_policy
+      last_response.status.should == 400
+    end
+
     it "should create a policy in the database" do
       create_policy
 
