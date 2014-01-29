@@ -16,7 +16,7 @@ url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:vers
 
 # Now, figure out how to download and run the script we need...
 if cmd curl; then
-    curl -kLo /root/install.bash "${url}" || fail "curl failed to get ${url}"
+    curl -fSkLo /root/install.bash "${url}" || fail "curl failed to get ${url}"
 elif cmd wget; then
     wget --no-check-certificate -O /root/install.bash "${url}" || fail "wget failed to get ${url}"
 else
