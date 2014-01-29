@@ -431,7 +431,7 @@ see power transitions in the record, or through the node object if polling.
 The format of the command is:
 
     {
-      "node": "node1",
+      "name": "node1",
       "hard": false
     }
 
