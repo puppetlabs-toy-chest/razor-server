@@ -53,6 +53,13 @@ describe "create broker command" do
       last_response.body.should == "Broker type 'no-such-broker-for-me' not found"
     end
 
+    it "should fail cleanly if 'configuration' is a string" do
+      broker_command['configuration'] = '{"arg1": "value1"}'
+      create_broker broker_command
+
+      last_response.status.should == 400
+      last_response.body.should == "configuration must be a Hash"
+    end
     # Successful creation
     it "should return 202, and the URL of the broker" do
       command = create_broker broker_command

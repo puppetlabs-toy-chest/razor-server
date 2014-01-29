@@ -22,8 +22,12 @@ class Razor::Data::Broker < Sequel::Model
       # Extra keys found in the data we were given are treated as errors,
       # since they are most likely typos, or targetting a broker other than
       # the current broker.
-      (configuration.keys - schema.keys).each do |additional|
-        errors.add(:configuration, "key '#{additional}' is not defined for this broker type")
+      if configuration.is_a?(Hash)
+        (configuration.keys - schema.keys).each do |additional|
+          errors.add(:configuration, "key '#{additional}' is not defined for this broker type")
+        end
+      else
+        errors.add(:configuration, "must be a Hash")
       end
 
       # Required keys that are missing from the supplied configuration.
