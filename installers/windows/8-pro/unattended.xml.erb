@@ -111,7 +111,7 @@
 		<RunSynchronousCommand wcm:action="add">
 		     <Description>Install Puppet Agent from razor server</Description>
 		     <Order>2</Order>
-		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;<%= URI.parse(repo_url).host %>&quot;</Path>
+		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot;</Path>
 		</RunSynchronousCommand>
 	</RunSynchronous>
     </component>
