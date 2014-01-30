@@ -19,7 +19,7 @@
               <Letter>C</Letter>
               <Order>1</Order>
               <PartitionID>1</PartitionID>
-              <Label>Windows 2012</Label>
+              <Label><%= node.hostname.split(".").first %></Label>
             </ModifyPartition>
           </ModifyPartitions>
           <DiskID>0</DiskID>
@@ -106,6 +106,12 @@
 		     <Path>powershell.exe -ExecutionPolicy Bypass Set-NetFirewallProfile -Enabled False -LogFileName c:\firewall.log -ErrorAction Inquire -Verbose</Path>
 		</RunSynchronousCommand>
 -->
+<!-- adding puppet master server to hosts file -->
+           <RunSynchronousCommand wcm:action="add">
+                     <Description>Add to Hosts file</Description>
+                     <Order>1</Order>
+                     <Path>powershell.exe -Command "Add-Content \"c:\windows\system32\drivers\etc\hosts\" \"`n<%= URI.parse(repo_url).host %> dellasm\""</Path>
+                </RunSynchronousCommand>
 
 <!-- Replace PUPPETSERVER with your puppet server -->
 		<RunSynchronousCommand wcm:action="add">
