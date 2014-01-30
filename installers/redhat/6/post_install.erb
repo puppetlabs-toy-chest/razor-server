@@ -18,12 +18,36 @@ fi
 # careful though, since this file is also used by the CentOS installer, for
 # which there is no RHN registration
 
+#add the puppet master host entry in /etc/hosts
+echo "<%= URI.parse(repo_url).host %> dellasm" >> /etc/hosts
+
 #install the puppet agent
 mkdir /tmp/mnt
 mount -o nolock,username=readonly,password=readonly //<%= URI.parse(repo_url).host %>/razor /tmp/mnt
 rpm -ivh /tmp/mnt/puppet-agent/rhel6/x86_64/*.rpm
 umount /tmp/mnt
 rm -rf /tmp/mnt
+
+#update puppet.conf file
+cat > /etc/puppet/puppet.conf << EOF
+[main]
+    server = dellasm
+    logdir = /var/log/puppet
+    rundir = /var/run/puppet
+    ssldir = \$vardir/ssl
+[agent]
+    classfile = \$vardir/classes.txt
+    localconfig = \$vardir/localconfig
+
+EOF
+
+# For debugging, just in case, dump out the modified confirmation file.
+echo ====================[ /etc/puppet/puppet.conf ]=========================
+cat /etc/puppet/puppet.conf
+echo ========================================================================
+
+#start the puppet agent
+service puppet start
 
 <%= render_template("os_complete") %>
 
