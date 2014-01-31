@@ -341,7 +341,7 @@ Policies can be deleted with the `delete-policy` command.  It accepts the
 name of a single policy:
 
     {
-      'name': 'my-policy'
+      "name": "my-policy"
     }
 
 Note that this does not affect the `installed` status of a node, and
@@ -354,7 +354,7 @@ A single node can be removed from the database with the `delete-node`
 command. It accepts the name of a single node:
 
     {
-      'name': 'node17'
+      "name": "node17"
     }
 
 Of course, if that node boots again at some point, it will be automatically
@@ -369,7 +369,7 @@ another policy. This command does not change its metadata or facts. Specify
 which node to unbind by sending the node's name in the body of the request
 
     {
-      'name': 'node17'
+      "name": "node17"
     }
 
 ### Set node IPMI credentials
@@ -386,10 +386,10 @@ conflicting update and partial update combination surprises for users.
 The structure of a request is:
 
     {
-      'name': 'node17',
-      'ipmi-hostname': 'bmc17.example.com',
-      'ipmi-username': null,
-      'ipmi-password': 'sekretskwirrl'
+      "name": "node17",
+      "ipmi-hostname": "bmc17.example.com",
+      "ipmi-username": null,
+      "ipmi-password": "sekretskwirrl"
     }
 
 The various IPMI fields can be null (representing no value, or the NULL
@@ -444,7 +444,7 @@ listening, and may not work for all platforms, OS combinations, and
 especially, during installer or firmware boot states.)
 
 The RBAC pattern for this command is:
-`reboot-node:${node}:${hard ? 'hard' : 'soft'}`
+`reboot-node:${node}:${hard ? "hard" : "soft"}`
 
 
 ### Set node desired power state
@@ -482,22 +482,22 @@ Metadata is a collection of key => value pairs (like facts).  Use the
 metadata. The request should look like:
 
     {
-        'node': 'node1',
-        'update': {                         # Add or update these keys
-            'key1': 'value1',
-            'key2': 'value2',
+        "node": "node1",
+        "update": {                         # Add or update these keys
+            "key1": "value1",
+            "key2": "value2",
             ...
         }
-        'remove': [ 'key3', 'key4', ... ],  # Remove these keys
-        'no_replace': true                  # Do not replace keys on
+        "remove": [ "key3", "key4", ... ],  # Remove these keys
+        "no_replace": true                  # Do not replace keys on
                                             # update. Only add new keys
     }
 
 or
 
     {
-        'node': 'node1',
-        'clear': true                       # Clear all metadata
+        "node": "node1",
+        "clear": true                       # Clear all metadata
     }
 
 As above, multiple update and/or removes can be done in the one command,
@@ -512,10 +512,10 @@ that allows for updating single keys on the command line or with a GET
 request with a simple data structure that looks like.
 
     {
-        'node'      : 'mode1',
-        'key'       : 'my_key',
-        'value'     : 'my_val',
-        'no_replace': true       #Optional. Will not replace existing keys
+        "node"      : "mode1",
+        "key"       : "my_key",
+        "value"     : "my_val",
+        "no_replace": true       #Optional. Will not replace existing keys
     }
 
 ### Remove Node Metadata
@@ -525,15 +525,15 @@ that allows for removing a single key OR all keys only on the command
 like or with a GET request with a simple datastructure that looks like:
 
     {
-        'node' : 'node1',
-        'key'  : 'my_key',
+        "node" : "node1",
+        "key"  : "my_key",
     }
 
 or
 
     {
-        'node' : 'node1',
-        'all'  : true,     # Removes all keys
+        "node" : "node1",
+        "all"  : true,     # Removes all keys
     }
 
 ## Collections
