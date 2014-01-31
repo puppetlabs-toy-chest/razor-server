@@ -18,6 +18,13 @@ WAIT=30 # seconds
 # Load the location data from our torquebox installation
 source /etc/razor/razor-torquebox.sh
 
+# Configure our language -- needed to ensure we process Unicode content
+# correctly.  Should fall back to nothing worse than not setting this
+# would cause.  At the point this is set, all the rest of our environment
+# should be cleared, so there shouldn't be other variables leaking in.
+LANG=en_US.UTF-8
+export LANG
+
 # Other configuration
 export JBOSS_PIDFILE="/var/run/${NAME}/torquebox.pid"
 
