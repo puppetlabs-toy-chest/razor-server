@@ -21,9 +21,9 @@ module Razor::Data
     # can be either +before+ or +after+, +other+ must be a policy.
     def move(where, other)
       raise "Save object first. List plugin can not move unsaved objects" if new?
-      if where.to_sym == :before
+      if where == 'before'
         move_to(other.position_value)
-      elsif where.to_sym == :after
+      elsif where == 'after'
         lp = last_position
         if other.position_value == lp
           move_to(lp, lp)
