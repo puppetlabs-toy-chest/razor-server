@@ -19,11 +19,20 @@ module Razor::Data
 
     # Put this policy into a different place in the policy table; +where+
     # can be either +before+ or +after+, +other+ must be a policy.
+    #
+    # This will raise an error if the object has not been saved, since this is
+    # required to be confirmed in current position, or if you attempt to move
+    # the object relative to itself.
     def move(where, other)
       raise "Save object first. List plugin can not move unsaved objects" if new?
-      if where.to_sym == :before
-        move_to(other.position_value)
-      elsif where.to_sym == :after
+      if self == other
+        raise ArgumentError, "cannot move a policy relative to itself"
+      elsif where == 'before'
+        # Move, but only if we don't already meet the constraint.
+        if self.position_value >= other.position_value then
+          move_to(other.position_value)
+        end
+      elsif where == 'after'
         lp = last_position
         if other.position_value == lp
           move_to(lp, lp)
