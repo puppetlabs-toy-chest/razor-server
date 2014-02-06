@@ -62,16 +62,7 @@ describe "reboot-node" do
     last_response.status.should == 400
   end
 
-  [0, 1, 1.1, "true", :true, "false",
-    :false, [true], [false], [:true], [:false]].each do |input|
-    it "should fail if '#{input.inspect} (#{input.class})' is given for 'hard'" do
-      post url, {'name' => node.name, 'hard' => input}.to_json
-      last_response.status.should == 400
-      last_response.body.should =~ /must be a boolean/
-    end
-  end
-
-  it "should work if hard is absent" do
+  it "should work" do
     post url, {'name' => node.name}.to_json
     last_response.status.should == 202
   end
@@ -82,13 +73,10 @@ describe "reboot-node" do
         config.print <<EOT
 [main]
 [users]
-both=both,soft,hard
-soft=soft,soft
-hard=hard,hard
+can=can,reboot
 none=none
 [roles]
-soft=commands:reboot-node:*:soft
-hard=commands:reboot-node:*:hard
+reboot=commands:reboot-node:*
 EOT
         config.flush
         Razor.config['auth.config'] = config.path
@@ -103,42 +91,14 @@ EOT
       last_response.status.should == 401
     end
 
-    it "should reject only soft reboot request with only hard reboot right" do
-      authorize 'hard', 'hard'
-      post url, {'name' => node.name, 'hard' => false}.to_json
-      last_response.status.should == 403
-      post url, {'name' => node.name}.to_json
-      last_response.status.should == 403
-      post url, {'name' => node.name, 'hard' => true}.to_json
-      last_response.status.should == 202
-    end
-
-    it "should reject only hard reboot requests with only soft reboot right" do
-      authorize 'soft', 'soft'
-      post url, {'name' => node.name, 'hard' => true}.to_json
-      last_response.status.should == 403
-      post url, {'name' => node.name, 'hard' => false}.to_json
-      last_response.status.should == 202
-      post url, {'name' => node.name}.to_json
-      last_response.status.should == 202
-    end
-
     it "should reject all reboot requests with no reboot rights" do
       authorize 'none', 'none'
-      post url, {'name' => node.name, 'hard' => true}.to_json
-      last_response.status.should == 403
-      post url, {'name' => node.name, 'hard' => false}.to_json
-      last_response.status.should == 403
       post url, {'name' => node.name}.to_json
       last_response.status.should == 403
     end
 
-    it "should accept all reboot requests with all reboot rights" do
-      authorize 'both', 'both'
-      post url, {'name' => node.name, 'hard' => true}.to_json
-      last_response.status.should == 202
-      post url, {'name' => node.name, 'hard' => false}.to_json
-      last_response.status.should == 202
+    it "should accept a reboot request with reboot rights" do
+      authorize 'can', 'can'
       post url, {'name' => node.name}.to_json
       last_response.status.should == 202
     end
@@ -155,19 +115,7 @@ EOT
     last_response.status.should == 422
   end
 
-  it "should publish the `reboot!` message for soft reboots" do
-    expect {
-      post url, {'name' => node.name, 'hard' => false}.to_json
-      last_response.status.should == 202
-    }.to have_published({
-      'class'     => node.class.name,
-      'instance'  => node.pk_hash,
-      'message'   => 'reboot!',
-      'arguments' => [false]
-    }).on(queue)
-  end
-
-  it "should publish the `reboot!` message for soft reboots if hard is absent" do
+  it "should publish the `reboot!` message" do
     expect {
       post url, {'name' => node.name}.to_json
       last_response.status.should == 202
@@ -175,19 +123,7 @@ EOT
       'class'     => node.class.name,
       'instance'  => node.pk_hash,
       'message'   => 'reboot!',
-      'arguments' => [false]
-    }).on(queue)
-  end
-
-  it "should publish the `reboot!` message for hard reboots" do
-    expect {
-      post url, {'name' => node.name, 'hard' => true}.to_json
-      last_response.status.should == 202
-    }.to have_published({
-      'class'     => node.class.name,
-      'instance'  => node.pk_hash,
-      'message'   => 'reboot!',
-      'arguments' => [true]
+      'arguments' => []
     }).on(queue)
   end
 end

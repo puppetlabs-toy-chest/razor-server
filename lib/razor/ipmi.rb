@@ -69,9 +69,9 @@ module Razor::IPMI
     power_state(node) == 'on'
   end
 
-  def self.reset(node, hard = false)
-    output = run(node, 'power', hard ? 'reset' : 'soft')
-    unless output =~ /Chassis Power Control: #{hard ? 'Reset' : 'Soft'}/i
+  def self.reset(node)
+    output = run(node, 'power', 'cycle')
+    unless output =~ /Chassis Power Control: Cycle/i
       raise IPMIError(node, 'reset', "output did not indicate reset operation:\n#{output}")
     end
     true

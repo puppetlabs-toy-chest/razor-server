@@ -403,14 +403,11 @@ IPMI target.
 ### Reboot node
 
 Razor can request a node reboot through IPMI, if the node has IPMI credentials
-associated.  Both hard (power cycle) and soft (request OS reboot through
-ACPI).  This uses the standard IPMI mechanisms, and has the same limitations
--- including that soft shutdown support may be implemented by simulating error
-states such as overtemperature alerts by some vendors.
+associated.  This only supports hard power cycle reboots.
 
 This is applied in the background, and will run as soon as available execution
 slots are available for the task -- IPMI communication has some generous
-internal rate limits to prevent it overwhelming the machine.
+internal rate limits to prevent it overwhelming the network or host server.
 
 This background process is persistent: if you restart the Razor server before
 the command is executed, it will remain in the queue and the operation will
@@ -432,19 +429,11 @@ The format of the command is:
 
     {
       "name": "node1",
-      "hard": false
     }
 
 The `node` field is the name of the node to operate on.
 
-The `hard` field is a boolean, or absent.  If it is present, and true, the
-reboot will be hard (eg: full power cycle, without any OS involvement).
-Otherwise it will be a soft reboot.  (Soft reboots require the OS to be
-listening, and may not work for all platforms, OS combinations, and
-especially, during installer or firmware boot states.)
-
-The RBAC pattern for this command is:
-`reboot-node:${node}:${hard ? "hard" : "soft"}`
+The RBAC pattern for this command is: `reboot-node:${node}`
 
 
 ### Set node desired power state
