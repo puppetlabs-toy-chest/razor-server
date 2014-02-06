@@ -135,13 +135,27 @@ module Razor::Data
       Pathname(Razor.config['repo_store_root'])
     end
 
+    # Reserved words in DOS and NTFS filesystems.  Gotta love the magic.
+    # This only includes words that are not going to be otherwise escaped.
+    ReservedFilenames = %w{
+      CON PRN AUX NUL
+      COM1 COM2 COM3 COM4 COM5 COM6 COM7 COM8 COM9
+      LPT1 LPT2 LPT3 LPT4 LPT5 LPT6 LPT7 LPT8 LPT9
+    }
+
+    # The same thing, turned into a regexp.
+    ReservedFilenameRegexp = /^(#{ReservedFilenames.join('|')})(?:$|\.)/i
+
+    # Characters that are escaped for both DOS, Windows, Unix, etc,
+    # compatibility.  Treated as a set of characters, not just a string.
+    ReservedCharacters = %r{[\u0000-\u001f\u007f%/\\?*:|"<>$\',]}
+
     # Return the name of the repo, made file-system safe by URL-encoding it
     # as a single string.
     def filesystem_safe_name
-      URI.escape(name, '/\\?*:|"<>$\'')
-      # For Windows, we should also eliminate reserved DOS device files (eg:
-      # COM1) that can cause a nasty DOS by, eg, locking up forever if there
-      # is nothing attached to the appropriate communication port.
+      name.
+        gsub(ReservedCharacters) {|sub| '%%%02X' % sub.ord }.
+        gsub(ReservedFilenameRegexp) {|sub| sub.gsub(/[^.]/) {|c| '%%%02X' % c.ord } }
     end
 
     # Take a local ISO repo file, possible temporary, possibly permanent,
@@ -153,7 +167,7 @@ module Razor::Data
       Archive.extract(path, destination)
       self.publish('release_temporary_repo')
     end
-    
+
     # Release any temporary repo previously downloaded.
     def release_temporary_repo
       if self.tmpdir

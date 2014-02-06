@@ -393,12 +393,56 @@ describe Razor::Data::Repo do
   end
 
   context "filesystem_safe_name" do
-    '/\\?*:|"<>$\''.each_char do |char|
+    "\x00\x1f\x7f/\\?*:|\"<>$\',".each_char do |char|
       it "should escape #{char.inspect}" do
         repo = Repo.new(:name => "foo#{char}bar", :iso_url => 'file:///')
         repo.filesystem_safe_name.should_not include char
         repo.filesystem_safe_name.should =~ /%0{0,6}#{char.ord.to_s(16)}/i
       end
+    end
+
+    it "should escape '%' in filenames" do
+      Repo.new(:name => '%ab').filesystem_safe_name.should == '%25ab'
+      Repo.new(:name => 'a%b').filesystem_safe_name.should == 'a%25b'
+      Repo.new(:name => 'ab%').filesystem_safe_name.should == 'ab%25'
+    end
+
+    Razor::Data::Repo::ReservedFilenames.each do |name|
+      encoded = /#{name.upcase.gsub(/./) {|x| '%%0{0,6}%02X' % x.ord }}/i
+
+      it "should encode reserved filename #{name.inspect}" do
+        Repo.new(:name => name).filesystem_safe_name.should =~ encoded
+      end
+
+      it "should not encode files that end with #{name.inspect}" do
+        Repo.new(:name => "s" + name).filesystem_safe_name.should == 's' + name
+      end
+
+      it "should not encode files that start with #{name.inspect} and anything but '.'" do
+        Repo.new(:name => name + 's').filesystem_safe_name.should == name + 's'
+      end
+
+      %w{. .foo .con .txt .banana}.each do |ext|
+        it "should encode reserved filename #{name.inspect} if followed by #{ext.inspect}" do
+          Repo.new(:name => name + ext).filesystem_safe_name.
+            should =~ /#{encoded}#{Regexp.escape(ext)}/
+        end
+      end
+
+      it "should encode all possible case variants of #{name}" do
+        bits = name.split('').map {|c| [c.downcase, c.upcase]}
+        names = bits.first.product(*bits[1..-1]).map(&:join)
+        names.each do |n|
+          Repo.new(:name => name).filesystem_safe_name.should =~ encoded
+        end
+      end
+    end
+
+    it "should return UTF-8 output string" do
+      name = '죾쒃쌼싁씜봜ㅛ짘홒녿'
+      encoded = Repo.new(:name => name).filesystem_safe_name
+      encoded.encoding.should == Encoding.find('UTF-8')
+      encoded.should == name
     end
   end
 
@@ -447,6 +491,21 @@ describe Razor::Data::Repo do
           (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
         end
       end
+    end
+
+    it "should unpack successfully with a unicode name" do
+      #pending("libarchive ISO support on OSX", :if => ::FFI::Platform.mac?) do
+        repo.set(:name => '죾쒃쌼싁씜봜ㅛ짘홒녿').save
+        Dir.mktmpdir do |root|
+          root = Pathname(root)
+          Razor.config['repo_store_root'] = root
+          repo.unpack_repo(tiny_iso)
+
+          (root + repo.filesystem_safe_name).should exist
+          (root + repo.filesystem_safe_name + 'content.txt').should exist
+          (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
+        end
+      #end
     end
 
     it "should publish 'release_temporary_repo' when unpacking completes" do
