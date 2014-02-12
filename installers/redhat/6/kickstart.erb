@@ -7,7 +7,10 @@ url --url=<%= repo_url %>
 cmdline
 lang en_US.UTF-8
 keyboard us
-rootpw <%= node.root_password %>
+rootpw --iscrypted <%= 
+    require 'unix_crypt'
+    UnixCrypt::SHA512.build(node.root_password)
+%>
 network --hostname <%= node.hostname %>
 firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
