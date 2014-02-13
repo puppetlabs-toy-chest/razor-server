@@ -53,7 +53,7 @@
   installation
 + nodes now have an explicit `installed` state which recipes have to set by
   calling `stage_done_url("finished")`
-+ a brandnew chef broker [contributed by Egle Sigler]
++ a brand new chef broker [contributed by Egle Sigler]
 
 ### Public API changes
 
@@ -73,7 +73,7 @@
     interface
   + `modify-node-metadata`, `update-node-metadata`, and
     `remove_node_metadata` commands to manipulate a node's metadata
-  + `modify-policy-max-count` to manipualte the quota for a policy
+  + `modify-policy-max-count` to manipulate the quota for a policy
   + `reinstall-node` to cause a node to go through the policy table again
     (used to be called `unbind-node`)
   + `delete_policy` to delete a policy; nodes that were bound to that
@@ -125,7 +125,7 @@
 
 ### Node/server API changes
 + the `broker_install_url` helper now fetches the broker install script;
-  the stock insallers now run the broker install script
+  the stock installers now run the broker install script
 + the `file_url` helper now supports fetching raw files, not just
   interpolated templates
 + the `/svc/nodeid` endpoint makes it possible for nodes to look up their
@@ -150,5 +150,5 @@
 ## 0.10.0 - 2013-09-18
 
 First release of the rewrite. See
-[github](https://github.com/puppetlabs/razor-server) for details about hte
+[github](https://github.com/puppetlabs/razor-server) for details about the
 new code base and for installation instructions.
