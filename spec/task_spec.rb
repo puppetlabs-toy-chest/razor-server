@@ -34,6 +34,7 @@ describe Razor::Task do
     it "supports task inheritance" do
       inst = Task.find("some_os_derived")
       inst.description.should == "Derived Some OS Installer"
+      inst.os_version.should == "4"
       # We leave the label in the derived task unset on purpose
       # so we get to see the base label
       inst.label.should == "Some OS, version 3"
