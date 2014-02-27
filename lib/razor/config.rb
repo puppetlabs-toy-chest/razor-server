@@ -5,8 +5,8 @@ require 'yaml'
 module Razor
   class InvalidConfigurationError < RuntimeError
     attr_reader :key
-    def initialize(key, msg = "setting is invalid")
-      super("entry #{key}: #{msg}")
+    def initialize(key, msg = _("setting is invalid"))
+      super(_("entry %{key}: %{msg}") % {key: key, msg: msg})
       @key = key
     end
   end
@@ -33,10 +33,10 @@ module Razor
         yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
       rescue Errno::ENOENT
         raise InvalidConfigurationError,
-          "The configuration file #{fname} does not exist"
+          _("The configuration file %{filename} does not exist") % {filename: fname}
       rescue Errno::EACCES
         raise InvalidConfigurationError,
-          "The configuration file #{fname} is not readable"
+          _("The configuration file %{filename} is not readable") % {filename: fname}
       end
       @values = yaml["all"] || {}
       @values.merge!(yaml[Razor.env] || {})
@@ -109,7 +109,7 @@ module Razor
           Regexp.compile(s)
         rescue RegexpError => e
           raise_ice("facts.blacklist",
-                    "entry #{s} is not a valid regular expression: #{e.message}")
+                    _("entry %{raw} is not a valid regular expression: %{error}") % {raw: s, error: e.message})
         end
       end
     end
@@ -117,22 +117,22 @@ module Razor
     def validate_repo_store_root
       key = 'repo_store_root'
       root = self[key] or
-        raise_ice(key, "must be set in the configuration file")
+        raise_ice(key, _("must be set in the configuration file"))
       root = Pathname(root)
-      root.absolute? or raise_ice key, "must be an absolute path"
+      root.absolute? or raise_ice key, _("must be an absolute path")
       root.directory? and root.writable? or
-        raise_ice key, "must be a writable directory"
+        raise_ice key, _("must be a writable directory")
     end
 
     def validate_match_nodes_on
       key = 'match_nodes_on'
       match_on = self[key] or
-        raise_ice(key, "must be set in the configuration file")
+        raise_ice(key, _("must be set in the configuration file"))
       (match_on.is_a?(Array) and match_on.size > 0) or
-        raise_ice(key, "must be a nonempty array")
+        raise_ice(key, _("must be a nonempty array"))
       (match_on - HW_INFO_KEYS).empty? or
         raise_ice(key,
-        "must only contain '#{HW_INFO_KEYS.join("', '")}'")
+        _("must only contain '%{keys}'") % {keys: HW_INFO_KEYS.join("', '")})
     end
   end
 end

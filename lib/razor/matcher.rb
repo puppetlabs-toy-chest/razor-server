@@ -37,7 +37,7 @@ class Razor::Matcher
     end
 
     def to_s
-      super + " while evaluating rule: #{@rule}"
+      super + _(" while evaluating rule: %{rule}") % {rule: @rule}
     end
   end
 
@@ -101,7 +101,7 @@ class Razor::Matcher
 
     def tag(*args)
       unless t = Razor::Data::Tag[:name => args[0]]
-        raise RuleEvaluationError.new "Tag '#{args[0]}' does not exist"
+        raise RuleEvaluationError.new(_("Tag '%{name}' does not exist") % {name: args[0]})
       end
       # This is a bit ugly: we really just want to call t.match? but that
       # takes a node, and we only have the values Hash here. So we peek a
@@ -140,7 +140,7 @@ class Razor::Matcher
         # Ignore this here, since a RuleEvaluationError will be raised later
       end
 
-      raise RuleEvaluationError.new "can't convert #{value.inspect} to number"
+      raise RuleEvaluationError.new _("can't convert %{raw} to number") % {raw: value.inspect}
     end
 
     def gte(*args)
@@ -167,7 +167,7 @@ class Razor::Matcher
       when args.length > 1 then args[1]
       else
         name = map_name == "facts" ? "fact" : map_name
-        raise RuleEvaluationError.new "Couldn't find #{name} '#{args[0]}' and no default supplied"
+        raise RuleEvaluationError.new _("Couldn't find %{name} '%{raw}' and no default supplied") % {name: name, raw: args[0]}
       end
     end
   end
@@ -176,7 +176,7 @@ class Razor::Matcher
     rule_hash = JSON.parse(rule_json)
 
     unless rule_hash.keys.sort == ["rule"]
-      raise "Invalid matcher; couldn't unserialize #{rule_hash}"
+      raise _("Invalid matcher; couldn't unserialize %{rule_hash}") % {raw: rule_hash}
     end
 
     self.new(rule_hash["rule"])
@@ -189,7 +189,7 @@ class Razor::Matcher
   attr_reader :rule
   # +rule+ must be an Array
   def initialize(rule)
-    raise TypeError.new("rule is not an array") unless rule.is_a? Array
+    raise TypeError.new(_("rule is not an array")) unless rule.is_a? Array
     @rule = rule.freeze
   end
 
@@ -228,9 +228,9 @@ class Razor::Matcher
     errors.clear
 
     # This error is fatal; all further validation assumes rule is an array
-    return errors << "must be an array" unless rule.is_a?(Array)
+    return errors << _("must be an array") unless rule.is_a?(Array)
 
-    return errors << "must have at least one argument" unless rule.size >= 2
+    return errors << _("must have at least one argument") unless rule.size >= 2
 
     # This error is also fatal; if a type isn't accepted here, it certainly
     # won't be later.
@@ -238,15 +238,16 @@ class Razor::Matcher
       if Mixed.any? {|type| arg.class <= type }
         true
       else
-        errors << "cannot process objects of type #{arg.class}" and false
+        errors << _("cannot process objects of type %{class}") % {class: arg.class}
+        false
       end
     end
 
     attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]]
     unless attrs
       # This error is fatal since unknown operators have unknown requirements
-      errors << "uses unrecognized operator '#{rule[0]}'; recognized " +
-                "operators are #{Functions::ATTRS.keys+Functions::ALIAS.keys}"
+      errors << _("uses unrecognized operator '%{name}'; recognized operators are %{operators}") %
+        {name: rule[0], operators: Functions::ATTRS.keys+Functions::ALIAS.keys}
       return false
     end
 
@@ -254,8 +255,9 @@ class Razor::Matcher
     # are subclasses of classes in required_returns
     attrs[:returns].each do |return_type|
       unless required_returns.any? {|allowed_type| return_type <= allowed_type}
-        errors << "attempts to return values of type #{return_type} from " +
-                  "#{rule[0]}, but only #{required_returns} are allowed"
+        errors << _("attempts to return values of type %{return_type} from " +
+          "%{name}, but only %{required_returns} are allowed") %
+          {return_type: return_type, name: rule[0], required_returns: required_returns}
       end
     end
 
@@ -266,9 +268,10 @@ class Razor::Matcher
       else
         # Ensure all concrete objects are of expected types
         unless expected_types.any? {|type| arg.class <= type }
-          errors << "attempts to pass #{arg.inspect} of type #{arg.class} to "+
-                    "'#{rule[0]}' for argument #{pos}, but only "+
-                    "#{expected_types} are accepted"
+          errors << _("attempts to pass %{arg} of type %{type} to "+
+                    "'%{name}' for argument %{position}, but only "+
+                    "%{expected_types} are accepted") %
+            {arg: arg.inspect, type: arg.class, name: rule[0], position: pos, expected: expected_types}
         end
       end
     end

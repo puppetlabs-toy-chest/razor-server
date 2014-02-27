@@ -45,9 +45,9 @@ module Razor::Data
     def validate
       super
       if url and iso_url
-        errors.add(:urls, "either url or iso_url must be given")
+        errors.add(:urls, _("only one of the 'url' and 'iso_url' attributes can be set at the same time"))
       elsif url.nil? and iso_url.nil?
-        errors.add(:urls, "only one of url and iso_url can be used")
+        errors.add(:urls, _("you must set one of the 'url' or 'iso_url' attributes"))
       end
     end
 
@@ -59,7 +59,7 @@ module Razor::Data
     def make_the_repo_accessible
       url = URI.parse(iso_url)
       if url.scheme.downcase == 'file'
-        File.readable?(url.path) or raise "unable to read local file #{url.path}"
+        File.readable?(url.path) or raise _("unable to read local file %{path}") % {path: url.path}
         publish 'unpack_repo', url.path
       else
         publish 'unpack_repo', download_file_to_tempdir(url)

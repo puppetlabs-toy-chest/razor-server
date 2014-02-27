@@ -42,7 +42,7 @@ class Razor::Data::Tag < Sequel::Model
       if matcher.is_a?(Razor::Matcher)
         errors[:matcher] = matcher.errors unless matcher.valid?
       else
-        errors.add(:matcher, "is not a matcher object")
+        errors.add(:matcher, _("is not a matcher object"))
       end
     end
   end
@@ -83,14 +83,14 @@ class Razor::Data::Tag < Sequel::Model
   # Violation of these rules lead to an +ArgumentError+ being thrown.
   def self.find_or_create_with_rule(data)
     name = data["name"] or
-      raise ArgumentError, "Tags must have a 'name'"
+      raise ArgumentError, _("Tags must have a 'name'")
     if tag = find(:name => name)
       data["rule"].nil? or data["rule"] == tag.rule or
-        raise ArgumentError, "Provided rule and existing rule for existing tag '#{name}' must be equal"
+        raise ArgumentError, _("Provided rule and existing rule for existing tag '%{name}' must be equal") % {name: name}
       tag
     else
       data["rule"] or
-        raise ArgumentError, "A rule must be provided for new tag '#{name}'"
+        raise ArgumentError, _("A rule must be provided for new tag '%{name}'") % {name: name}
       create(data)
     end
   end

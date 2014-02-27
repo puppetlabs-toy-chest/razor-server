@@ -43,7 +43,7 @@ module Razor
       @metadata = metadata
       @name = name
       unless metadata["os_version"]
-        raise TaskInvalidError, "#{name} does not have an os_version"
+        raise TaskInvalidError, _("%{name} does not have an os_version") % {name: name}
       end
       @os = metadata["os"]
       @os_version = metadata["os_version"].to_s
@@ -62,7 +62,7 @@ module Razor
       self.class.find_on_task_paths(*candidates) or
         (@base and @base.find_file(filename)) or
         self.class.find_common_file(filename) or
-        raise TemplateNotFoundError, "Task #{name}: #{filename} not on the search path"
+        raise TemplateNotFoundError, _("Task %{name}: %{filename} not on the search path") % {name: name, filename: filename}
     end
 
     def find_template(template)
@@ -90,8 +90,8 @@ module Razor
         new(name, metadata)
       elsif inst = Razor::Data::Task[:name => name]
         inst
-      else
-        raise TaskNotFoundError, "No task #{name}.yaml on search path" unless yaml
+      elsif !yaml
+        raise TaskNotFoundError, _("No task %{name}.yaml on search path") % {name: name}
       end
     end
 

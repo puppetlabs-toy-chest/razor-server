@@ -21,19 +21,19 @@ module Razor::Data
       super
       if templates.is_a?(Hash)
         templates.keys.all? { |k| k.is_a?(String) } or
-          errors.add(:templates, "keys must be strings")
+          errors.add(:templates, _("keys must be strings"))
         templates.values.all? { |v| v.is_a?(String) } or
-          errors.add(:templates, "values must be strings")
+          errors.add(:templates, _("values must be strings"))
       else
-        errors.add(:templates, "must be a Hash")
+        errors.add(:templates, _("must be a Hash"))
       end
       if boot_seq.is_a?(Hash)
         boot_seq.keys.all? { |k| k.is_a?(Integer) || k == "default" } or
-          errors.add(:boot_seq, "keys must be integers or the string \"default\"")
+          errors.add(:boot_seq, _("keys must be integers or the string \"default\""))
         boot_seq.values.all? { |v| v.is_a?(String) } or
-          errors.add(:boot_seq, "values must be strings")
+          errors.add(:boot_seq, _("values must be strings"))
       else
-        errors.add(:boot_seq, "must be a Hash")
+        errors.add(:boot_seq, _("must be a Hash"))
       end
     end
 
@@ -59,7 +59,7 @@ module Razor::Data
         [template.to_sym, { :views => File::dirname(result) }]
       else
         raise Razor::TemplateNotFoundError,
-          "Task #{name}: no template '#{template}' for this task or its base tasks"
+          _("Task %{name}: no template '%{template}' for this task or its base tasks") % {name: name, template: template}
       end
     end
 

@@ -25,9 +25,9 @@ module Razor::Data
     # required to be confirmed in current position, or if you attempt to move
     # the object relative to itself.
     def move(where, other)
-      raise "Save object first. List plugin can not move unsaved objects" if new?
+      raise _("Save object first. List plugin can not move unsaved objects") if new?
       if self == other
-        raise ArgumentError, "cannot move a policy relative to itself"
+        raise ArgumentError, _("cannot move a policy relative to itself")
       elsif where == 'before'
         # Move, but only if we don't already meet the constraint.
         if self.position_value >= other.position_value then
@@ -41,7 +41,8 @@ module Razor::Data
           move_to(other.position_value+1, lp)
         end
       else
-        raise "the where parameter must be either 'before' or 'after'"
+        # TRANSLATORS: do not translate 'where, 'before', or 'after'
+        raise _("the where parameter must be either 'before' or 'after'")
       end
     end
 
@@ -77,7 +78,7 @@ module Razor::Data
         self.task
       rescue Razor::TaskNotFoundError
         errors.add(:task_name,
-                   "task '#{task_name}' does not exist")
+                   _("task '%{name}' does not exist") % {name: task_name})
       end
     end
 

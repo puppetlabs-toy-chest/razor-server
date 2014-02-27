@@ -41,7 +41,7 @@ class Razor::App < Sinatra::Base
     # unfortunately for us, https://github.com/sinatra/sinatra/issues/731
     # --daniel 2013-06-26
     request.preferred_type('application/json') or
-      halt [406, {"error" => "only application/json content is available"}.to_json]
+      halt [406, {"error" => _("only application/json content is available")}.to_json]
   end
 
   #
@@ -74,10 +74,10 @@ class Razor::App < Sinatra::Base
       if request.content_type =~ %r'application/json'i
         return JSON.parse(request.body.read)
       else
-        error 415, :error => "only application/json is accepted here"
+        error 415, :error => _("only application/json is accepted here")
       end
     rescue => e
-      error 415, :error => "unable to parse JSON", :details => e.to_s
+      error 415, :error => _("unable to parse JSON"), :details => e.to_s
     end
 
     def compose_url(*parts)
@@ -114,7 +114,7 @@ class Razor::App < Sinatra::Base
             "remove[]=#{r}"
           }.join("&")
         else
-          halt 404, "store_metadata_url must include update and/or remove keys"
+          halt 404, _("store_metadata_url must include update and/or remove keys")
         end
       }.join("&")
       url "/svc/store_metadata/#{@node.id}?#{q}"
@@ -430,7 +430,7 @@ class Razor::App < Sinatra::Base
       content_type nil
       send_file fpath, :disposition => nil
     else
-      [404, { :error => "File #{path} not found" }.to_json ]
+      [404, { :error => _("File %{path} not found") % {path: path} }.to_json ]
     end
   end
 
@@ -493,7 +493,7 @@ class Razor::App < Sinatra::Base
     # Handler for the command
     post path do
       data = json_body
-      data.is_a?(Hash) or error 415, :error => "body must be a JSON object"
+      data.is_a?(Hash) or error 415, :error => _("body must be a JSON object")
       # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
       # (recursively) so that we do not use '_' in the API (i.e., this also
       # requires fixing up view.rb)
@@ -521,30 +521,30 @@ class Razor::App < Sinatra::Base
 
   command :delete_repo do |data|
     data["name"] or error 400,
-      :error => "Supply 'name' to indicate which repo to delete"
+      :error => _("Supply 'name' to indicate which repo to delete")
 
     check_permissions! "commands:delete-repo:#{data['name']}"
 
     if repo = Razor::Data::Repo[:name => data['name']]
       repo.destroy
-      action = "repo destroyed"
+      action = _("repo destroyed")
     else
-      action = "no changes; repo #{data["name"]} does not exist"
+      action = _("no changes; repo %{name} does not exist") % {name: data["name"]}
     end
     { :result => action }
   end
 
   command :delete_node do |data|
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which node to delete"
+      :error => _("Supply 'name' to indicate which node to delete")
 
     check_permissions! "commands:delete-node:#{data['name']}"
 
     if node = Razor::Data::Node.find_by_name(data['name'])
       node.destroy
-      action = "node destroyed"
+      action = _("node destroyed")
     else
-      action = "no changes; node #{data['name']} does not exist"
+      action = _("no changes; node %{name} does not exist") % {name: data['name']}
     end
     { :result => action }
   end
@@ -554,14 +554,14 @@ class Razor::App < Sinatra::Base
     #associated with it.  The node will remain bound, resulting in the
     #noop task being associated on boot (causing a local boot)
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which policy to delete"
+      :error => _("Supply 'name' to indicate which policy to delete")
     if policy = Razor::Data::Policy[:name => data['name']]
       policy.remove_all_nodes
       policy.remove_all_tags
       policy.destroy
-      action = "policy destroyed"
+      action = _("policy destroyed")
     else
-      action = "no changes; policy #{data['name']} does not exist"
+      action = _("no changes; policy %{name} does not exist") % {name: data['name']}
     end
     { :result => action }
   end
@@ -569,15 +569,15 @@ class Razor::App < Sinatra::Base
   # Update/add specific metadata key (works with GET)
   command :update_node_metadata do |data|
     data['node'] or error 400,
-      :error => 'must supply node'
+      :error => _('must supply node')
     data['key'] or error 400,
-      :error => 'must supply key'
+      :error => _('must supply key')
     data['value'] or error 400,
-      :error => 'must supply value'
+      :error => _('must supply value')
 
     if data['no_replace']
       data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
-        :error => "no_replace must be boolean true or string 'true'"
+        :error => _("no_replace must be boolean true or string 'true'")
     end
 
     if node = Razor::Data::Node.find_by_name( data['node'] )
@@ -593,9 +593,9 @@ class Razor::App < Sinatra::Base
   # Remove a specific key or remove all (works with GET)
   command :remove_node_metadata do |data|
     data['node'] or error 400,
-      :error => 'must supply node'
+      :error => _('must supply node')
     data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
-      :error => 'must supply key or set all to true'
+      :error => _('must supply key or set all to true')
 
     if node = Razor::Data::Node.find_by_name( data['node'] )
       if data['key']
@@ -605,46 +605,46 @@ class Razor::App < Sinatra::Base
       end
       node.modify_metadata(operation)
     else
-      error 400, :error => "Node #{data['node']} not found"
+      error 400, :error => _("Node %{name} not found") % {name: data['node']}
     end
   end
 
   # Take a bulk operation via POST'ed JSON
   command :modify_node_metadata do |data|
     data['node'] or error 400,
-      :error => 'must supply node'
+      :error => _('must supply node')
     data['update'] or data['remove'] or data['clear'] or error 400,
-      :error => 'must supply at least one opperation'
+      :error => _('must supply at least one opperation')
 
     if data['clear'] and (data['update'] or data['remove'])
-      error 400, :error => 'clear cannot be used with update or remove'
+      error 400, :error => _('clear cannot be used with update or remove')
     end
 
     if data['clear']
       data['clear'] == true or data['clear'] == 'true' or error 400,
-        :error => "clear must be boolean true or string 'true'"
+        :error => _("clear must be boolean true or string 'true'")
     end
 
     if data['no_replace']
       data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
-        :error => "no_replace must be boolean true or string 'true'"
+        :error => _("no_replace must be boolean true or string 'true'")
     end
 
     if data['update'] and data['remove']
       data['update'].keys.concat(data['remove']).uniq! and error 400,
-        :error => 'cannot update and remove the same key'
+        :error => _('cannot update and remove the same key')
     end
 
     if node = Razor::Data::Node.find_by_name(data.delete('node'))
       node.modify_metadata(data)
     else
-      error 400, :error => "Node #{data['node']} not found"
+      error 400, :error => _("Node %{name} not found") % {name: data['node']}
     end
   end
 
   command :reinstall_node do |data|
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which node to unbind"
+      :error => _("Supply 'name' to indicate which node to unbind")
 
     check_permissions! "commands:unbind-node:#{data['name']}"
 
@@ -654,33 +654,35 @@ class Razor::App < Sinatra::Base
       if node.policy
         log[:policy_name] = node.policy.name
         node.policy = nil
-        actions << "node unbound from #{log[:policy_name]}"
+        actions << _("node unbound from %{policy}") % {policy: log[:policy_name]}
       end
       if node.installed
         log[:installed] = node.installed
         node.installed = nil
         node.installed_at = nil
-        actions << "installed flag cleared"
+        actions << _("installed flag cleared")
       end
       if actions.empty?
-        actions << "no changes; node #{data['name']} was neither bound nor installed"
+        actions << _("no changes; node %{name} was neither bound nor installed") % {name: data['name']}
       end
       node.log_append(log)
       node.save
     else
-      actions << "no changes; node #{data['name']} does not exist"
+      actions << _("no changes; node %{name} does not exist") % {name: data['name']}
     end
-    { :result => actions.join(" and ") }
+    # @todo danielp 2014-02-27: I don't know the best way to handle this sort
+    # of conjoined string in translation.
+    { :result => actions.join(_(" and ")) }
   end
 
   command :set_node_ipmi_credentials do |data|
     data['name'] or
-      error 400, :error => "Supply 'name' to indicate which node to edit"
+      error 400, :error => _("Supply 'name' to indicate which node to edit")
 
     check_permissions! "commands:set-node-ipmi-credentials:#{data['name']}"
 
     node = Razor::Data::Node.find_by_name(data['name']) or
-      error 404, :error => "node #{data['name']} does not exist"
+      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     # Finally, save the changes.  This is using the unrestricted update
     # method because we carefully manually constructed our input above,
@@ -692,41 +694,41 @@ class Razor::App < Sinatra::Base
       :ipmi_username => data['ipmi-username'],
       :ipmi_password => data['ipmi-password'])
 
-    { :result => 'updated IPMI details' }
+    { :result => _('updated IPMI details') }
   end
 
   command :reboot_node do |data|
     data['name'] or
-      error 400, :error => "Supply 'name' to indicate which node to edit"
+      error 400, :error => _("Supply 'name' to indicate which node to edit")
 
     check_permissions! "commands:reboot-node:#{data['name']}"
 
     node = Razor::Data::Node.find_by_name(data['name']) or
-      error 404, :error => "node #{data['name']} does not exist"
+      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     node.ipmi_hostname or
-      error 422, { :error => "node #{node.name} does not have IPMI credentials set" }
+      error 422, { :error => _("node %{name} does not have IPMI credentials set") % {name: node.name} }
 
     node.publish 'reboot!'
 
-    { :result => 'reboot request queued' }
+    { :result => _('reboot request queued') }
   end
 
   command :set_node_desired_power_state do |data|
     data['name'] or
-      error 400, :error => "Supply 'name' to indicate which node to edit"
+      error 400, :error => _("Supply 'name' to indicate which node to edit")
 
     check_permissions! "commands:set-node-desired-power-state:#{data['name']}"
 
     node = Razor::Data::Node.find_by_name(data['name']) or
-      error 404, :error => "node #{data['name']} does not exist"
+      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     case data['to']
     when 'on', 'off', nil
       node.set(desired_power_state: data['to']).save
-      {result: "set desired power state to #{data['to'] || 'ignored (null)'}"}
+      {result: _("set desired power state to %{state}") % {state: data['to'] || 'ignored (null)'}}
     else
-      error 400, :error => "invalid power state #{data['to']}"
+      error 400, :error => _("invalid power state %{state}") % {state: data['to']}
     end
   end
 
@@ -753,16 +755,16 @@ class Razor::App < Sinatra::Base
     check_permissions! "commands:delete-tag:#{data['name']}"
 
     data["name"] or
-      error 400, :error => "Supply a name to indicate which tag to delete"
+      error 400, :error => _("Supply a name to indicate which tag to delete")
     if tag = Razor::Data::Tag[:name => data["name"]]
       data["force"] or tag.policies.empty? or
-        error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+        error 400, :error => _("Tag '%{name}' is used by policies and 'force' is false") % {name: data["name"]}
       tag.remove_all_policies
       tag.remove_all_nodes
       tag.destroy
-      { :result => "Tag #{data["name"]} deleted" }
+      { :result => _("Tag %{name} deleted") % {name: data["name"]} }
     else
-      { :result => "No change. Tag #{data["name"]} does not exist." }
+      { :result => _("No change. Tag %{name} does not exist.") % {name: data["name"]} }
     end
   end
 
@@ -770,19 +772,19 @@ class Razor::App < Sinatra::Base
     check_permissions! "commands:update-tag-rule:#{data['name']}"
 
     data["name"] or
-      error 400, :error => "Supply a name to indicate which tag to update"
+      error 400, :error => _("Supply a name to indicate which tag to update")
     data["rule"] or
-      error 400, :error => "Supply a new rule for tag #{data["name"]}"
+      error 400, :error => _("Supply a new rule for tag %{name}") % {name: data["name"]}
     tag = Razor::Data::Tag[:name => data["name"]] or
-      error 404, :error => "Tag '#{data["name"]}' does not exist"
+      error 404, :error => _("Tag '%{name}' does not exist") % {name: data["name"]}
     data["force"] or tag.policies.empty? or
-      error 400, :error => "Tag '#{data["name"]} is used by policies and 'force' is false"
+      error 400, :error => _("Tag '%{name}' is used by policies and 'force' is false") % {name: data["name"]}
     if tag.rule != data["rule"]
       tag.rule = data["rule"]
       tag.save
-      { :result => "Tag #{data["name"]} updated" }
+      { :result => _("Tag %{name} updated") % {name: data["name"]} }
     else
-      { :result => "No change; new rule is the same as the existing rule for #{data["name"]}" }
+      { :result => _("No change; new rule is the same as the existing rule for %{name}") % {name: data["name"]} }
     end
   end
 
@@ -793,7 +795,7 @@ class Razor::App < Sinatra::Base
       begin
         data["broker_type"] = Razor::BrokerType.find(type)
       rescue Razor::BrokerTypeNotFoundError
-        halt [400, "Broker type '#{type}' not found"]
+        halt [400, _("Broker type '%{name}' not found") % {name: type}]
       rescue => e
         halt 400, e.to_s
       end
@@ -806,16 +808,16 @@ class Razor::App < Sinatra::Base
     check_permissions! "commands:delete-broker:#{data['name']}"
 
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which broker to delete"
+      :error => _("Supply 'name' to indicate which broker to delete")
 
     if broker = Razor::Data::Broker[:name => data['name']]
       broker.policies.count == 0 or
-        error 400, :error => "Broker #{broker.name} is still used by policies"
+        error 400, :error => _("Broker %{name} is still used by policies") % {name: broker.name}
 
       broker.destroy
-      action = "broker #{data['name']} destroyed"
+      action = _("broker %{name} destroyed") % {name: data['name']}
     else
-      action = "no changes; broker #{data['name']} does not exist"
+      action = _("no changes; broker %{name} does not exist") % {name: data['name']}
     end
     { :result => action }
   end
@@ -829,16 +831,16 @@ class Razor::App < Sinatra::Base
 
     if data["repo"]
       name = data["repo"]["name"] or
-        error 400, :error => "The repo reference must have a 'name'"
+        error 400, :error => _("The repo reference must have a 'name'")
       data["repo"] = Razor::Data::Repo[:name => name] or
-        error 400, :error => "Repo '#{name}' not found"
+        error 400, :error => _("Repo '%{name}' not found") % {name: name}
     end
 
     if data["broker"]
       name = data["broker"]["name"] or
-        halt [400, "The broker reference must have a 'name'"]
+        halt [400, _("The broker reference must have a 'name'")]
       data["broker"] = Razor::Data::Broker[:name => name] or
-        halt [400, "Broker '#{name}' not found"]
+        halt [400, _("Broker '%{name}' not found") % {name: name}]
     end
 
     if data["task"]
@@ -851,14 +853,15 @@ class Razor::App < Sinatra::Base
     neighbor = nil
     if data["before"] or data["after"]
       not data.key?("before") or not data.key?("after") or
-        error 400, :error => "Only specify one of 'before' or 'after'"
+        # TRANSLATORS: 'before' and 'after' should not be translated.
+        error 400, :error => _("Only specify one of 'before' or 'after'")
       position = data["before"] ? "before" : "after"
       name = data.delete(position)["name"] or
         error 400,
-          :error => "The policy reference in '#{position}' must have a name"
+          :error => _("The policy reference in '%{position}' must have a name") % {position: position}
       neighbor = Razor::Data::Policy[:name => name] or
         error 400,
-      :error => "Policy '#{name}' referenced in '#{position}' not found"
+      :error => _("Policy '%{name}' referenced in '%{position}' not found") % {name: name, position: position}
     end
 
     # Create the policy
@@ -874,24 +877,26 @@ class Razor::App < Sinatra::Base
     check_permissions! "commands:move-policy:#{data['name']}"
 
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which policy to move"
+      :error => _("Supply 'name' to indicate which policy to move")
     policy = Razor::Data::Policy[:name => data['name']] or error 400,
-      :error => "Policy #{data['name']} does not exist"
+      :error => _("Policy %{name} does not exist") % {name: data['name']}
 
     position = nil
     neighbor = nil
     if data["before"] or data["after"]
       not data.key?("before") or not data.key?("after") or
-        error 400, :error => "Only specify one of 'before' or 'after'"
+        # TRANSLATORS: 'before' and 'after' should not be translated.
+        error 400, :error => _("Only specify one of 'before' or 'after'")
       position = data["before"] ? "before" : "after"
       name = data[position]["name"] or
         error 400,
-          :error => "The policy reference in '#{position}' must have a name"
+          :error => _("The policy reference in '%{position}' must have a name") % {position: position}
       neighbor = Razor::Data::Policy[:name => name] or
         error 400,
-      :error => "Policy '#{name}' referenced in '#{position}' not found"
+      :error => _("Policy '%{name}' referenced in '%{position}' not found") % {name: name, position: position}
     else
-      error 400, :error => "You must specify either 'before' or 'after'"
+      # TRANSLATORS: 'before' and 'after' should not be translated.
+      error 400, :error => _("You must specify either 'before' or 'after'")
     end
 
     policy.move(position, neighbor) if position
@@ -902,13 +907,16 @@ class Razor::App < Sinatra::Base
 
   def toggle_policy_enabled(data, enabled, verb)
     data['name'] or error 400,
-      :error => "Supply 'name' to indicate which policy to #{verb}"
+      :error => _("Supply 'name' to indicate which policy to %{verb}") % {verb: verb}
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => "Policy #{data['name']} does not exist"
+      :error => _("Policy %{name} does not exist") % {name: data['name']}
     policy.enabled = enabled
     policy.save
 
-    { :result => "Policy #{policy.name} #{verb}d" }
+    # @todo danielp 2014-02-27: I don't think this is going to work out for
+    # translation at all, and needs to be replaced by multiple,
+    # explicit messages.
+    {:result => _("Policy %{name} %{verb}d") % {name: policy.name, verb: verb}}
   end
 
   command :enable_policy do |data|
@@ -923,34 +931,34 @@ class Razor::App < Sinatra::Base
 
   command :add_policy_tag do |data|
     data['name'] or error 400,
-      :error => "Supply policy name to which the tag is to be added"
+      :error => _("Supply policy name to which the tag is to be added")
     data['tag'] or error 400,
-      :error => "Supply the name of the tag you which to add"
+      :error => _("Supply the name of the tag you which to add")
 
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => "Policy #{data['name']} does not exist"
+      :error => _("Policy %{name} does not exist") % {name: name}
     tag = Razor::Data::Tag.find_or_create_with_rule(
         { 'name' => data['tag'], 'rule' => data['rule'] }
       ) or error 404,
-      :error => "Tag #{data['tag']} does not exist and no rule to create it supplied."
+      :error => _("Tag %{name} does not exist and no rule to create it supplied.") % {name: data['tag']}
 
     unless policy.tags.include?(tag)
       policy.add_tag(tag)
       policy
     else
-      action = "Tag #{data['tag']} already on policy #{data['name']}"
+      action = _("Tag %{tag} already on policy %{policy}") % {tag: data['tag'], policy: data['name']}
       { :result => action }
     end
   end
 
   command :remove_policy_tag do |data|
     data['name'] or error 400,
-      :error => "Supply policy name to which the tag is to be removed"
+      :error => _("Supply policy name to which the tag is to be removed")
     data['tag'] or error 400,
-      :error => "Supply the name of the tag you which to remove"
+      :error => _("Supply the name of the tag you which to remove")
 
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => "Policy #{data['name']} does not exist"
+      :error => _("Policy %{name} does not exist") % {name: data['name']}
     tag = Razor::Data::Tag[:name => data['tag']]
 
     if tag
@@ -958,24 +966,24 @@ class Razor::App < Sinatra::Base
         policy.remove_tag(tag)
         policy
       else
-        action = "Tag #{data['tag']} was not on policy #{data['name']}"
+        action = _("Tag %{tag} was not on policy %{policy}") % {tag: data['tag'], policy: data['name']}
         { :result => action }
       end
     else
-      action = "Tag #{data['tag']} was not on policy #{data['name']}"
+      action = _("Tag %{tag} was not on policy %{policy}") % {tag: data['tag'], policy: data['name']}
       { :result => action }
     end
   end
 
   command :modify_policy_max_count do |data|
     data['name'] or error 400,
-      :error => "Supply the name of the policy to modify"
+      :error => _("Supply the name of the policy to modify")
 
     policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => "Policy #{data['name']} does not exist"
+      :error => _("Policy %{name} does not exist") % {name: data['name']}
 
     data.key?('max-count') or error 400,
-      :error => "Supply a new max-count for the policy"
+      :error => _("Supply a new max-count for the policy")
 
     max_count_s = data['max-count']
     if max_count_s.nil?
@@ -984,15 +992,18 @@ class Razor::App < Sinatra::Base
     else
       max_count = max_count_s.to_i
       max_count.to_s == max_count_s.to_s or
-        error 400, :error => "New max-count '#{max_count_s}' is not a valid integer"
+        error 400, :error => _("New max-count '%{raw}' is not a valid integer") % {raw: max_count_s}
       bound = max_count_s
       node_count = policy.nodes.count
       node_count <= max_count or
-        error 400, :error => "There are currently #{node_count} nodes bound to this policy. Can not lower max-count to #{max_count} which is less"
+        error 400, :error => n_(
+        "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}",
+        "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}",
+        node_count) % {node_count: node_count, max_count: max_count}
     end
     policy.max_count = max_count
     policy.save
-    { :result => "Changed max-count for policy #{policy.name} to #{bound}" }
+    { :result => _("Changed max-count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
   end
 
   #
@@ -1011,19 +1022,19 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/tags/:name' do
     tag = Razor::Data::Tag[:name => params[:name]] or
-      error 404, :error => "no tag matched id=#{params[:name]}"
+      error 404, :error => _("no tag matched id=%{name}") % {name: params[:name]}
     tag_hash(tag).to_json
   end
 
   get '/api/collections/tags/:name/nodes' do
     tag = Razor::Data::Tag[:name => params[:name]] or
-      error 404, :error => "no tag matched id=#{params[:name]}"
+      error 404, :error => _("no tag matched id=%{name}") % {name: params[:name]}
     collection_view(tag.nodes, "nodes")
   end
 
   get '/api/collections/tags/:name/policies' do
     tag = Razor::Data::Tag[:name => params[:name]] or
-      error 404, :error => "no tag matched id=#{params[:name]}"
+      error 404, :error => _("no tag matched id=%{name}") % {name: params[:name]}
     collection_view(tag.policies, "policies")
   end
 
@@ -1033,13 +1044,13 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/brokers/:name' do
     broker = Razor::Data::Broker[:name => params[:name]] or
-      halt 404, "no broker matched id=#{params[:name]}"
+      halt 404, _("no broker matched id=%{name}") % {name: params[:name]}
     broker_hash(broker).to_json
   end
 
   get '/api/collections/brokers/:name/policies' do
     broker = Razor::Data::Broker[:name => params[:name]] or
-      halt 404, "no broker matched id=#{params[:name]}"
+      halt 404, _("no broker matched id=%{name}") % {name: params[:name]}
     collection_view(broker.policies, "policies")
   end
 
@@ -1049,13 +1060,13 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/policies/:name' do
     policy = Razor::Data::Policy[:name => params[:name]] or
-      error 404, :error => "no policy matched id=#{params[:name]}"
+      error 404, :error => _("no policy matched id=%{name}") % {name: params[:name]}
     policy_hash(policy).to_json
   end
 
   get '/api/collections/policies/:name/nodes' do
     policy = Razor::Data::Policy[:name => params[:name]] or
-      error 404, :error => "no policy matched id=#{params[:name]}"
+      error 404, :error => _("no policy matched id=%{name}") % {name: params[:name]}
     collection_view(policy.nodes, "nodes")
   end
 
@@ -1067,7 +1078,7 @@ class Razor::App < Sinatra::Base
     begin
       task = Razor::Task.find(params[:name])
     rescue Razor::TaskNotFoundError => e
-      error 404, :error => "Task #{params[:name]} does not exist",
+      error 404, :error => _("Task %{name} does not exist") % {name: params[:name]},
         :details => e.to_s
     end
     task_hash(task).to_json
@@ -1079,7 +1090,7 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/repos/:name' do
     repo = Razor::Data::Repo[:name => params[:name]] or
-      error 404, :error => "no repo matched name=#{params[:name]}"
+      error 404, :error => _("no repo matched name=%{name}") % {name: params[:name]}
     repo_hash(repo).to_json
   end
 
@@ -1089,7 +1100,7 @@ class Razor::App < Sinatra::Base
 
   get '/api/collections/nodes/:name' do
     node = Razor::Data::Node.find_by_name(params[:name]) or
-      error 404, :error => "no node matched name=#{params[:name]}"
+      error 404, :error => _("no node matched name=%{name}") % {name: params[:name]}
     node_hash(node).to_json
   end
 
@@ -1099,7 +1110,7 @@ class Razor::App < Sinatra::Base
     # @todo lutter 2013-08-20: There are no tests for this handler
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
     node = Razor::Data::Node.find_by_name(params[:name]) or
-      error 404, :error => "no node matched hw_id=#{params[:hw_id]}"
+      error 404, :error => _("no node matched hw_id=%{hw_id}") % {hw_id: params[:hw_id]}
     {
       "spec" => spec_url("collections", "nodes", "log"),
       "items" => node.log
@@ -1111,7 +1122,7 @@ class Razor::App < Sinatra::Base
   get '/api/microkernel/bootstrap' do
     params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]*\Z/ or
       error 400,
-        :error => "The nic_max parameter must be an integer not starting with 0"
+        :error => _("The nic_max parameter must be an integer not starting with 0")
 
     # How many NICs ipxe should probe for DHCP
     @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i

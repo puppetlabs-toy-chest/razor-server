@@ -25,20 +25,20 @@ class Razor::Data::Broker < Sequel::Model
       # the current broker.
       if configuration.is_a?(Hash)
         (configuration.keys - schema.keys).each do |additional|
-          errors.add(:configuration, "key '#{additional}' is not defined for this broker type")
+          errors.add(:configuration, _("key '%{additional}' is not defined for this broker type") % {additional: additional})
         end
       else
-        errors.add(:configuration, "must be a Hash")
+        errors.add(:configuration, _("must be a Hash"))
       end
 
       # Required keys that are missing from the supplied configuration.
       schema.each do |key, details|
         next unless details['required']
         next if configuration.has_key? key
-        errors.add(:configuration, "key '#{key}' is required by this broker type, but was not supplied")
+        errors.add(:configuration, _("key '%{key}' is required by this broker type, but was not supplied") % {key: key})
       end
     else
-      errors.add(:broker_type, "'#{broker_type}' is not valid")
+      errors.add(:broker_type, _("'%{name}' is not valid") % {name: broker_type})
     end
   end
 

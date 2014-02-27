@@ -40,7 +40,7 @@ class Razor::BrokerType
       map  {|path| Pathname(path) + "#{name}.broker" }.
       find {|path| path.directory? }
 
-    broker or raise Razor::BrokerTypeNotFoundError, "No broker #{name}.broker directory on search path"
+    broker or raise Razor::BrokerTypeNotFoundError, _("No broker %{name}.broker directory on search path") % {name: name}
 
     new(broker)
   end
@@ -64,9 +64,9 @@ class Razor::BrokerType
     # could theoretically exploit this to do bad things based on the
     # template actions.  Better safe than sorry...
     node.is_a?(Razor::Data::Node) or
-      raise TypeError, "internal error: #{node.class} where Razor::Data::Node expected"
+      raise TypeError, _("internal error: %{class} where Razor::Data::Node expected") % {class: node.class}
     broker.is_a?(Razor::Data::Broker) or
-      raise TypeError, "internal error: #{node.class} where Razor::Data::Broker expected"
+      raise TypeError, _("internal error: %{class} where Razor::Data::Broker expected") % {class: node.class}
 
     # @todo danielp 2013-08-05: what else do we need to expose to the template
     # to make this all work?
@@ -129,9 +129,9 @@ class Razor::BrokerType
     # the `install.erb` file.  We assert nothing about it beyond the most
     # basic existence.
     install_template_path.exist? or
-      raise Razor::BrokerTypeInvalidError, "#{@name} has no install template"
+      raise Razor::BrokerTypeInvalidError, _("%{name} has no install template") % {name: @name}
     install_template_path.readable? or
-      raise Razor::BrokerTypeInvalidError, "#{@name} has an install template, but it is unreadable"
+      raise Razor::BrokerTypeInvalidError, _("%{name} has an install template, but it is unreadable") % {name: @name}
   end
 
   # Return the name of the installer template file.

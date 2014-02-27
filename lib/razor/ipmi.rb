@@ -159,7 +159,7 @@ module Razor::IPMI
 
   def self.build_command(node, args)
     node.ipmi_hostname or
-      raise ArgumentError, "node #{node.name} has no IPMI hostname set"
+      raise ArgumentError, _("node %{name} has no IPMI hostname set") % {name: node.name}
 
     command = %w{ipmitool -I lanplus}
     command.concat(['-H', node.ipmi_hostname])

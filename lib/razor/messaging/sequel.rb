@@ -99,9 +99,9 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
   def process!(message)
     body = message.decode
     body.is_a? Hash or
-      raise MessageViolatesConsistencyChecks, "message body must be a map"
+      raise MessageViolatesConsistencyChecks, _("message body must be a map")
     body.has_key?('message') or
-      raise MessageViolatesConsistencyChecks, "message name must be present"
+      raise MessageViolatesConsistencyChecks, _("message name must be present")
 
     class_constant = find_razor_data_class(body['class'])
     instance       = find_instance_in_class(class_constant, body['instance'])
@@ -113,7 +113,8 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
       # I guess, would be the root cause.
       #
       # Is that really the right strategy, though?
-      raise "Unable to find #{class_constant.name} with pk #{body['instance'].inspect}"
+      raise _("Unable to find %{class} with pk %{pk}") %
+        {class: class_constant.name, pk: body['instance'].inspect}
     else
       # We might as well be tolerant of our inputs, and treat a nil/missing
       # arguments value as "no arguments"
@@ -216,22 +217,20 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
   # This only works with normal classes assigned to a constant
   def find_razor_data_class(fullname)
     fullname.is_a? String or
-      raise MessageViolatesConsistencyChecks, "`class` must be a string"
+      raise MessageViolatesConsistencyChecks, _("`class` must be a string")
 
     base, _, name = fullname.rpartition('::')
 
     base == 'Razor::Data' and not name.nil? and not name.empty? or
-      raise MessageViolatesConsistencyChecks, "#{fullname.inspect} is not under Razor::Data namespace"
+      raise MessageViolatesConsistencyChecks, _("%{name} is not under Razor::Data namespace") % {name: fullname.inspect}
 
     # rescue false handles incorrectly formatted constant names, such as ''
     # or 'foo', translating their error message into our permanent failure
     found = Razor::Data.const_defined?(name) rescue false
-    found or
-      raise MessageViolatesConsistencyChecks, "#{fullname.inspect} is not a valid class name"
+    found or raise MessageViolatesConsistencyChecks, _("%{name} is not a valid class name") % {name: fullname.inspect}
 
     constant = Razor::Data.const_get(name)
-    constant.is_a?(Class) or
-      raise MessageViolatesConsistencyChecks, "#{fullname.inspect} is a #{constant.class}, when Class was expected"
+    constant.is_a?(Class) or raise MessageViolatesConsistencyChecks, _("%{name} is a %{class}, when Class was expected") % {name: fullname.inspect, class: constant.class}
 
     return constant
   end
@@ -245,7 +244,7 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
     # extra weight required to make this more robust without proof that it
     # poses some longer-term problem.
     pk_hash.is_a?(Hash) or
-      raise MessageViolatesConsistencyChecks, "instance ID is #{pk_hash.nil? ? 'nil' : pk_hash.class.name}, when Hash was expected"
+      raise MessageViolatesConsistencyChecks, _("instance ID is %{pk}, when Hash was expected") % {pk: pk_hash.nil? ? 'nil' : pk_hash.class.name}
 
     # This is the recommended way to perform lookup according to the Sequel
     # docs, so we respect their wishes.
@@ -298,17 +297,17 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
       # @return self, to allow chaining
       def publish(message, *arguments)
         message.is_a? String or message.is_a? Symbol or
-          raise TypeError, "message is a #{message.class} where String or Symbol was expected"
+          raise TypeError, _("message is a %{class} where String or Symbol was expected") % {class: message.class}
 
-        block_given? and raise ArgumentError, "blocks cannot be published"
+        block_given? and raise ArgumentError, _("blocks cannot be published")
 
         # This will raise NameError if the message is not accepted locally,
         # which completes our contract of raising on error.
         arity = method(message).arity
         if arity < 0
-          raise ArgumentError, "variable number of arguments sending #{self.class}.#{message}"
+          raise ArgumentError, _("variable number of arguments sending %{class}.%{message}") % {class: self.class, message: message}
         elsif arity != arguments.count
-          raise ArgumentError, "wrong number of arguments sending #{self.class}.#{message} (#{arguments.count} for #{arity}"
+          raise ArgumentError, _("wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}") % {class: self.class, message: message, count: arguments.count, arity: arity}
         end
 
         # Looks good, publish it; EDN encoding has reasonably good fidelity

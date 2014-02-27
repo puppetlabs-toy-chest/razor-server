@@ -10,7 +10,7 @@ module Razor::Util
       if Razor::Config::TEMPLATE_PATHS.include?(key)
         Razor.config[key]
       else
-        raise ConfigAccessProhibited, "The config setting '#{key}' can not be accessed from templates"
+        raise ConfigAccessProhibited, _("The config setting '%{key}' can not be accessed from templates") % {key: key}
       end
     end
   end
