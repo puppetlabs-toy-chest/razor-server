@@ -8,8 +8,10 @@ cmdline
 lang en_US.UTF-8
 keyboard us
 rootpw --iscrypted <%= 
+    require 'asm/cipher'
     require 'unix_crypt'
-    UnixCrypt::SHA512.build(node.root_password)
+    asm_decrypted_password = ASM::Cipher.decrypt_string(node.root_password)
+    UnixCrypt::SHA512.build(asm_decrypted_password)
 %>
 network --hostname <%= node.hostname %>
 firewall --enabled --ssh

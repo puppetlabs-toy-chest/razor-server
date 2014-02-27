@@ -24,6 +24,8 @@ gem 'sequel'
 gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
+gem 'aescrypt'
+gem 'rest-client'
 
 ## support for various installers and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,
