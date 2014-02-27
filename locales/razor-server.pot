@@ -1,0 +1,640 @@
+# Razor Server translations
+# Copyright (C) 2014 Puppet Labs, LLC.
+# This file is distributed under the same license as the Razor Server package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-02-27 15:44-0800\n"
+"PO-Revision-Date: 2014-02-27 15:44-0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: ../app.rb:44
+msgid "only application/json content is available"
+msgstr ""
+
+#: ../app.rb:77
+msgid "only application/json is accepted here"
+msgstr ""
+
+#: ../app.rb:80
+msgid "unable to parse JSON"
+msgstr ""
+
+#: ../app.rb:117
+msgid "store_metadata_url must include update and/or remove keys"
+msgstr ""
+
+#: ../app.rb:433
+msgid "File %{path} not found"
+msgstr ""
+
+#: ../app.rb:496
+msgid "body must be a JSON object"
+msgstr ""
+
+#: ../app.rb:524
+msgid "Supply 'name' to indicate which repo to delete"
+msgstr ""
+
+#: ../app.rb:530
+msgid "repo destroyed"
+msgstr ""
+
+#: ../app.rb:532
+msgid "no changes; repo %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:539
+msgid "Supply 'name' to indicate which node to delete"
+msgstr ""
+
+#: ../app.rb:545
+msgid "node destroyed"
+msgstr ""
+
+#: ../app.rb:547 ../app.rb:671
+msgid "no changes; node %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:557
+msgid "Supply 'name' to indicate which policy to delete"
+msgstr ""
+
+#: ../app.rb:562
+msgid "policy destroyed"
+msgstr ""
+
+#: ../app.rb:564
+msgid "no changes; policy %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:572 ../app.rb:596 ../app.rb:615
+msgid "must supply node"
+msgstr ""
+
+#: ../app.rb:574
+msgid "must supply key"
+msgstr ""
+
+#: ../app.rb:576
+msgid "must supply value"
+msgstr ""
+
+#: ../app.rb:580 ../app.rb:630
+msgid "no_replace must be boolean true or string 'true'"
+msgstr ""
+
+#: ../app.rb:598
+msgid "must supply key or set all to true"
+msgstr ""
+
+#: ../app.rb:608 ../app.rb:641
+msgid "Node %{name} not found"
+msgstr ""
+
+#: ../app.rb:617
+msgid "must supply at least one opperation"
+msgstr ""
+
+#: ../app.rb:620
+msgid "clear cannot be used with update or remove"
+msgstr ""
+
+#: ../app.rb:625
+msgid "clear must be boolean true or string 'true'"
+msgstr ""
+
+#: ../app.rb:635
+msgid "cannot update and remove the same key"
+msgstr ""
+
+#: ../app.rb:647
+msgid "Supply 'name' to indicate which node to unbind"
+msgstr ""
+
+#: ../app.rb:657
+msgid "node unbound from %{policy}"
+msgstr ""
+
+#: ../app.rb:663
+msgid "installed flag cleared"
+msgstr ""
+
+#: ../app.rb:666
+msgid "no changes; node %{name} was neither bound nor installed"
+msgstr ""
+
+#: ../app.rb:675
+msgid " and "
+msgstr ""
+
+#: ../app.rb:680 ../app.rb:702 ../app.rb:719
+msgid "Supply 'name' to indicate which node to edit"
+msgstr ""
+
+#: ../app.rb:685 ../app.rb:707 ../app.rb:724
+msgid "node %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:697
+msgid "updated IPMI details"
+msgstr ""
+
+#: ../app.rb:710
+msgid "node %{name} does not have IPMI credentials set"
+msgstr ""
+
+#: ../app.rb:714
+msgid "reboot request queued"
+msgstr ""
+
+#: ../app.rb:729
+msgid "set desired power state to %{state}"
+msgstr ""
+
+#: ../app.rb:731
+msgid "invalid power state %{state}"
+msgstr ""
+
+#: ../app.rb:758
+msgid "Supply a name to indicate which tag to delete"
+msgstr ""
+
+#: ../app.rb:761 ../app.rb:781
+msgid "Tag '%{name}' is used by policies and 'force' is false"
+msgstr ""
+
+#: ../app.rb:765
+msgid "Tag %{name} deleted"
+msgstr ""
+
+#: ../app.rb:767
+msgid "No change. Tag %{name} does not exist."
+msgstr ""
+
+#: ../app.rb:775
+msgid "Supply a name to indicate which tag to update"
+msgstr ""
+
+#: ../app.rb:777
+msgid "Supply a new rule for tag %{name}"
+msgstr ""
+
+#: ../app.rb:779 ../lib/razor/matcher.rb:104
+msgid "Tag '%{name}' does not exist"
+msgstr ""
+
+#: ../app.rb:785
+msgid "Tag %{name} updated"
+msgstr ""
+
+#: ../app.rb:787
+msgid "No change; new rule is the same as the existing rule for %{name}"
+msgstr ""
+
+#: ../app.rb:798
+msgid "Broker type '%{name}' not found"
+msgstr ""
+
+#: ../app.rb:811
+msgid "Supply 'name' to indicate which broker to delete"
+msgstr ""
+
+#: ../app.rb:815
+msgid "Broker %{name} is still used by policies"
+msgstr ""
+
+#: ../app.rb:818
+msgid "broker %{name} destroyed"
+msgstr ""
+
+#: ../app.rb:820
+msgid "no changes; broker %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:834
+msgid "The repo reference must have a 'name'"
+msgstr ""
+
+#: ../app.rb:836
+msgid "Repo '%{name}' not found"
+msgstr ""
+
+#: ../app.rb:841
+msgid "The broker reference must have a 'name'"
+msgstr ""
+
+#: ../app.rb:843
+msgid "Broker '%{name}' not found"
+msgstr ""
+
+#: ../app.rb:857 ../app.rb:889
+msgid "Only specify one of 'before' or 'after'"
+msgstr ""
+
+#: ../app.rb:861 ../app.rb:893
+msgid "The policy reference in '%{position}' must have a name"
+msgstr ""
+
+#: ../app.rb:864 ../app.rb:896
+msgid "Policy '%{name}' referenced in '%{position}' not found"
+msgstr ""
+
+#: ../app.rb:880
+msgid "Supply 'name' to indicate which policy to move"
+msgstr ""
+
+#: ../app.rb:882 ../app.rb:912 ../app.rb:939 ../app.rb:961 ../app.rb:983
+msgid "Policy %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:899
+msgid "You must specify either 'before' or 'after'"
+msgstr ""
+
+#: ../app.rb:910
+msgid "Supply 'name' to indicate which policy to %{verb}"
+msgstr ""
+
+#: ../app.rb:919
+msgid "Policy %{name} %{verb}d"
+msgstr ""
+
+#: ../app.rb:934
+msgid "Supply policy name to which the tag is to be added"
+msgstr ""
+
+#: ../app.rb:936
+msgid "Supply the name of the tag you which to add"
+msgstr ""
+
+#: ../app.rb:943
+msgid "Tag %{name} does not exist and no rule to create it supplied."
+msgstr ""
+
+#: ../app.rb:949
+msgid "Tag %{tag} already on policy %{policy}"
+msgstr ""
+
+#: ../app.rb:956
+msgid "Supply policy name to which the tag is to be removed"
+msgstr ""
+
+#: ../app.rb:958
+msgid "Supply the name of the tag you which to remove"
+msgstr ""
+
+#: ../app.rb:969 ../app.rb:973
+msgid "Tag %{tag} was not on policy %{policy}"
+msgstr ""
+
+#: ../app.rb:980
+msgid "Supply the name of the policy to modify"
+msgstr ""
+
+#: ../app.rb:986
+msgid "Supply a new max-count for the policy"
+msgstr ""
+
+#: ../app.rb:995
+msgid "New max-count '%{raw}' is not a valid integer"
+msgstr ""
+
+#: ../app.rb:999
+msgid "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}"
+msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../app.rb:1006
+msgid "Changed max-count for policy %{name} to %{count}"
+msgstr ""
+
+#: ../app.rb:1025 ../app.rb:1031 ../app.rb:1037
+msgid "no tag matched id=%{name}"
+msgstr ""
+
+#: ../app.rb:1047 ../app.rb:1053
+msgid "no broker matched id=%{name}"
+msgstr ""
+
+#: ../app.rb:1063 ../app.rb:1069
+msgid "no policy matched id=%{name}"
+msgstr ""
+
+#: ../app.rb:1081
+msgid "Task %{name} does not exist"
+msgstr ""
+
+#: ../app.rb:1093
+msgid "no repo matched name=%{name}"
+msgstr ""
+
+#: ../app.rb:1103
+msgid "no node matched name=%{name}"
+msgstr ""
+
+#: ../app.rb:1113
+msgid "no node matched hw_id=%{hw_id}"
+msgstr ""
+
+#: ../app.rb:1125
+msgid "The nic_max parameter must be an integer not starting with 0"
+msgstr ""
+
+#: ../lib/razor/broker_type.rb:43
+msgid "No broker %{name}.broker directory on search path"
+msgstr ""
+
+#: ../lib/razor/broker_type.rb:67
+msgid "internal error: %{class} where Razor::Data::Node expected"
+msgstr ""
+
+#: ../lib/razor/broker_type.rb:69
+msgid "internal error: %{class} where Razor::Data::Broker expected"
+msgstr ""
+
+#: ../lib/razor/broker_type.rb:132
+msgid "%{name} has no install template"
+msgstr ""
+
+#: ../lib/razor/broker_type.rb:134
+msgid "%{name} has an install template, but it is unreadable"
+msgstr ""
+
+#: ../lib/razor/config.rb:8
+msgid "setting is invalid"
+msgstr ""
+
+#: ../lib/razor/config.rb:9
+msgid "entry %{key}: %{msg}"
+msgstr ""
+
+#: ../lib/razor/config.rb:36
+msgid "The configuration file %{filename} does not exist"
+msgstr ""
+
+#: ../lib/razor/config.rb:39
+msgid "The configuration file %{filename} is not readable"
+msgstr ""
+
+#: ../lib/razor/config.rb:112
+msgid "entry %{raw} is not a valid regular expression: %{error}"
+msgstr ""
+
+#: ../lib/razor/config.rb:120 ../lib/razor/config.rb:130
+msgid "must be set in the configuration file"
+msgstr ""
+
+#: ../lib/razor/config.rb:122
+msgid "must be an absolute path"
+msgstr ""
+
+#: ../lib/razor/config.rb:124
+msgid "must be a writable directory"
+msgstr ""
+
+#: ../lib/razor/config.rb:132
+msgid "must be a nonempty array"
+msgstr ""
+
+#: ../lib/razor/config.rb:135
+msgid "must only contain '%{keys}'"
+msgstr ""
+
+#: ../lib/razor/data/broker.rb:28
+msgid "key '%{additional}' is not defined for this broker type"
+msgstr ""
+
+#: ../lib/razor/data/broker.rb:31 ../lib/razor/data/task.rb:28 ../lib/razor/data/task.rb:36
+msgid "must be a Hash"
+msgstr ""
+
+#: ../lib/razor/data/broker.rb:38
+msgid "key '%{key}' is required by this broker type, but was not supplied"
+msgstr ""
+
+#: ../lib/razor/data/broker.rb:41
+msgid "'%{name}' is not valid"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:13
+msgid "(name=%{name}, id=%{id})"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:15
+msgid "Multiple nodes match hw_info %{hw_info}. Nodes: %{nodes}"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:196 ../lib/razor/matcher.rb:231
+msgid "must be an array"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:200
+msgid "entry '%{raw}' is not in the format 'key=value'"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:202
+msgid "entry '%{raw}' does not have a value"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:204
+msgid "entry '%{raw}' uses an unknown key %{key}"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:211 ../lib/razor/data/node.rb:212
+msgid "you must also set an IPMI hostname"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:239
+msgid "update must be a hash"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:246
+msgid "remove must be an array"
+msgstr ""
+
+#: ../lib/razor/data/node.rb:335
+msgid "Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})"
+msgstr ""
+
+#: ../lib/razor/data/policy.rb:28
+msgid "Save object first. List plugin can not move unsaved objects"
+msgstr ""
+
+#: ../lib/razor/data/policy.rb:30
+msgid "cannot move a policy relative to itself"
+msgstr ""
+
+#: ../lib/razor/data/policy.rb:45
+msgid "the where parameter must be either 'before' or 'after'"
+msgstr ""
+
+#: ../lib/razor/data/policy.rb:81
+msgid "task '%{name}' does not exist"
+msgstr ""
+
+#: ../lib/razor/data/repo.rb:48
+msgid "only one of the 'url' and 'iso_url' attributes can be set at the same time"
+msgstr ""
+
+#: ../lib/razor/data/repo.rb:50
+msgid "you must set one of the 'url' or 'iso_url' attributes"
+msgstr ""
+
+#: ../lib/razor/data/repo.rb:62
+msgid "unable to read local file %{path}"
+msgstr ""
+
+#: ../lib/razor/data/tag.rb:45
+msgid "is not a matcher object"
+msgstr ""
+
+#: ../lib/razor/data/tag.rb:86
+msgid "Tags must have a 'name'"
+msgstr ""
+
+#: ../lib/razor/data/tag.rb:89
+msgid "Provided rule and existing rule for existing tag '%{name}' must be equal"
+msgstr ""
+
+#: ../lib/razor/data/tag.rb:93
+msgid "A rule must be provided for new tag '%{name}'"
+msgstr ""
+
+#: ../lib/razor/data/task.rb:24
+msgid "keys must be strings"
+msgstr ""
+
+#: ../lib/razor/data/task.rb:26 ../lib/razor/data/task.rb:34
+msgid "values must be strings"
+msgstr ""
+
+#: ../lib/razor/data/task.rb:32
+msgid "keys must be integers or the string \"default\""
+msgstr ""
+
+#: ../lib/razor/data/task.rb:62
+msgid "Task %{name}: no template '%{template}' for this task or its base tasks"
+msgstr ""
+
+#: ../lib/razor/ipmi.rb:162
+msgid "node %{name} has no IPMI hostname set"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:40
+msgid " while evaluating rule: %{rule}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:143
+msgid "can't convert %{raw} to number"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:170
+msgid "Couldn't find %{name} '%{raw}' and no default supplied"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:179
+msgid "Invalid matcher; couldn't unserialize %{rule_hash}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:192
+msgid "rule is not an array"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:233
+msgid "must have at least one argument"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:241
+msgid "cannot process objects of type %{class}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:249
+msgid "uses unrecognized operator '%{name}'; recognized operators are %{operators}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:258
+msgid "attempts to return values of type %{return_type} from %{name}, but only %{required_returns} are allowed"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:271
+msgid "attempts to pass %{arg} of type %{type} to '%{name}' for argument %{position}, but only %{expected_types} are accepted"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:102
+msgid "message body must be a map"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:104
+msgid "message name must be present"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:116
+msgid "Unable to find %{class} with pk %{pk}"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:220
+msgid "`class` must be a string"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:225
+msgid "%{name} is not under Razor::Data namespace"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:230
+msgid "%{name} is not a valid class name"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:233
+msgid "%{name} is a %{class}, when Class was expected"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:247
+msgid "instance ID is %{pk}, when Hash was expected"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:300
+msgid "message is a %{class} where String or Symbol was expected"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:302
+msgid "blocks cannot be published"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:308
+msgid "variable number of arguments sending %{class}.%{message}"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:310
+msgid "wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}"
+msgstr ""
+
+#: ../lib/razor/middleware/auth.rb:12
+msgid "patterns must be strings or regular expressions"
+msgstr ""
+
+#: ../lib/razor/task.rb:46
+msgid "%{name} does not have an os_version"
+msgstr ""
+
+#: ../lib/razor/task.rb:65
+msgid "Task %{name}: %{filename} not on the search path"
+msgstr ""
+
+#: ../lib/razor/task.rb:94
+msgid "No task %{name}.yaml on search path"
+msgstr ""
+
+#: ../lib/razor/util/template_config.rb:13
+msgid "The config setting '%{key}' can not be accessed from templates"
+msgstr ""
