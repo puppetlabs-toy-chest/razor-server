@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'sequel'
 require 'torquebox/logger'
 require_relative 'config'

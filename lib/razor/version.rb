@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Razor
   # Define the Razor version, and stash it in a constant.  When we build a
   # package for shipping we burn the version directly into this file, by

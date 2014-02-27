@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Razor::Data
   # This class represents tasks that are stored in the database, and
   # its main responsibility is to manage the persistence. The overall

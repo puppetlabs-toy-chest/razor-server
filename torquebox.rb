@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Configure TorqueBox global settings for our application.
 #
 # You can override this with your deployment descriptor outside this

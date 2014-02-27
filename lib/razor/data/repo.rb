@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'tmpdir'
 require 'open-uri'
 require 'uri'

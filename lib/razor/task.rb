@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Razor
 
   class TaskNotFoundError < RuntimeError; end

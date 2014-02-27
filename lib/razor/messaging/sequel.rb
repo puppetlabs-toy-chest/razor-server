@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # This allows Ruby to parse the Razor::Messaging::Sequel class without
 # Kernel::include-ing the ../../razor and ../../razor/initialize files.
 # Loading those files here causes a race condition when trying to load the

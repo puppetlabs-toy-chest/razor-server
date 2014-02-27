@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'sinatra'
 
 require_relative './lib/razor/initialize'

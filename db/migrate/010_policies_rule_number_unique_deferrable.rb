@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require_relative './util'
 
 # Mark the unique constraint on policies.rule_number deferrable so we can

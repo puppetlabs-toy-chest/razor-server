@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 class Razor::Data::Broker < Sequel::Model
 
   one_to_many :policies

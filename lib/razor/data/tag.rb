@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 class Razor::Data::Tag < Sequel::Model
   plugin :serialization
 

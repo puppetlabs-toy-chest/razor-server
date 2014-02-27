@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'pathname'
 
 def random_version

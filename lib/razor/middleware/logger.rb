@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Middleware to send all web-level log messages to a TorqueBox logger
 # THe Sinatra 'logger' helper will log to this, too
 class Razor::Middleware::Logger

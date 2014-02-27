@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'json'
 
 # This class provides a generic matcher for rules/conditions

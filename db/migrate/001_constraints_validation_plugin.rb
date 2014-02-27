@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 Sequel.migration do
   up do
     extension(:constraint_validations)

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Razor::Data
   class DuplicateNodeError < RuntimeError
     attr_reader :hw_info, :nodes

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # A facade around Razor::Config for use in installer templates, so that the
 # templates only have access to config settings that are explicitly
 # whitelisted for them in Razor::Config::TEMPLATe_PATHS

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Utilities for use by our migrations only; generally, you should strive to
 # have each migration be self contained. This file is only for things that

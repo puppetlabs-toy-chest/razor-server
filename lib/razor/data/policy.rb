@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Razor::Data
   class Policy < Sequel::Model
 
