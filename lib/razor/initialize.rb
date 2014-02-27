@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+require_relative 'gettext_setup'
+
 require 'sequel'
 require 'torquebox/logger'
 require_relative 'config'

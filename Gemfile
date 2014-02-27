@@ -24,6 +24,7 @@ gem 'sequel'
 gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
+gem 'fast_gettext', '~> 0.8.1'
 
 ## support for various tasks and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,
@@ -59,6 +60,12 @@ group :development do
   # For production you can use this, or deploy to a distinct installation of
   # TorqueBox, as you prefer.
   gem 'torquebox-server', '~> 3.0.1'
+
+  # This provides the rxgettext tool, used to manage our pot translation
+  # template file generation.  Unfortunately, while fast_gettext is better for
+  # runtime use, it doesn't include the generation tool yet.  This can go if
+  # and when a suitable replacement is identified.
+  gem 'gettext', '~> 3.1.1'
 end
 
 # This allows you to create `Gemfile.local` and have it loaded automatically;
