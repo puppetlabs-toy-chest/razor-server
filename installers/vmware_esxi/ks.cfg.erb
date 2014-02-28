@@ -4,11 +4,13 @@ rootpw --iscrypted <%=
   if node.root_password =~ /^\$\d+\$[^$]*\$/
     node.root_password
   else
+    require 'asm/cipher'
     require 'unix_crypt'
+    asm_decrypted_password = ASM::Cipher.decrypt_string(node.root_password)
     # @todo danielp 2013-11-07: if ESXi supports a stronger algorithm, we
     # should probably upgrade to using it in preference to MD5.  SHA512 is
     # current state-of-the-art practice, elsewhere.
-    UnixCrypt::MD5.build(node.root_password)
+    UnixCrypt::MD5.build(asm_decrypted_password)
   end
 %>
 clearpart --firstdisk --overwritevmfs
