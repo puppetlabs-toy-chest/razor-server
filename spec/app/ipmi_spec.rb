@@ -36,6 +36,7 @@ describe "set-node-ipmi-credentials" do
     }
 
     post url, {:name => node.name}.merge(update).to_json
+    last_response.status.should == 202
     node.reload                 # refresh from the database, plz
 
     node.ipmi_hostname.should == update['ipmi-hostname']

@@ -5,6 +5,8 @@ require_relative './lib/razor/initialize'
 require_relative './lib/razor'
 
 class Razor::App < Sinatra::Base
+  extend Razor::Validation
+
   configure do
     # FIXME: This turns off template caching all together since I am not
     # sure that the caching won't interfere with how we lookup
@@ -77,7 +79,7 @@ class Razor::App < Sinatra::Base
         error 415, :error => _("only application/json is accepted here")
       end
     rescue => e
-      error 415, :error => _("unable to parse JSON"), :details => e.to_s
+      error 400, :error => _("unable to parse JSON"), :details => e.to_s
     end
 
     def compose_url(*parts)
@@ -208,6 +210,11 @@ class Razor::App < Sinatra::Base
     error fault do
       status [400, env["sinatra.error"].to_s]
     end
+  end
+
+  error Razor::ValidationFailure do
+    e = env["sinatra.error"]
+    status [e.status, {error: e.to_s}.to_json]
   end
 
 
@@ -493,7 +500,8 @@ class Razor::App < Sinatra::Base
     # Handler for the command
     post path do
       data = json_body
-      data.is_a?(Hash) or error 415, :error => _("body must be a JSON object")
+      self.class.validate!(name, data)
+
       # @todo lutter 2013-08-18: tr("_", "-") in all keys in data
       # (recursively) so that we do not use '_' in the API (i.e., this also
       # requires fixing up view.rb)
@@ -504,9 +512,17 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :create_repo do |data|
-    check_permissions! "commands:create-repo:#{data['name']}"
+  validate :create_repo do
+    authz '%{name}'
 
+    attr  'name',    type: String, required: true
+    attr  'url',     type: URI,    exclude: 'iso-url'
+    attr  'iso-url', type: URI,    exclude: 'url'
+
+    require_one_of 'url', 'iso-url'
+  end
+
+  command :create_repo do |data|
     # Create our shiny new repo.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
@@ -519,12 +535,12 @@ class Razor::App < Sinatra::Base
     repo
   end
 
+  validate :delete_repo do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+  end
+
   command :delete_repo do |data|
-    data["name"] or error 400,
-      :error => _("Supply 'name' to indicate which repo to delete")
-
-    check_permissions! "commands:delete-repo:#{data['name']}"
-
     if repo = Razor::Data::Repo[:name => data['name']]
       repo.destroy
       action = _("repo destroyed")
@@ -534,12 +550,12 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  validate :delete_node do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+  end
+
   command :delete_node do |data|
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which node to delete")
-
-    check_permissions! "commands:delete-node:#{data['name']}"
-
     if node = Razor::Data::Node.find_by_name(data['name'])
       node.destroy
       action = _("node destroyed")
@@ -549,12 +565,15 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  validate :delete_policy do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+  end
+
   command :delete_policy do |data|
     #deleting a policy will first remove the policy from any node
     #associated with it.  The node will remain bound, resulting in the
     #noop task being associated on boot (causing a local boot)
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which policy to delete")
     if policy = Razor::Data::Policy[:name => data['name']]
       policy.remove_all_nodes
       policy.remove_all_tags
@@ -570,8 +589,8 @@ class Razor::App < Sinatra::Base
   command :update_node_metadata do |data|
     data['node'] or error 400,
       :error => _('must supply node')
-    data['key'] or error 400,
-      :error => _('must supply key')
+    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
+      :error => _('must supply key or set all to true')
     data['value'] or error 400,
       :error => _('must supply value')
 
@@ -642,12 +661,12 @@ class Razor::App < Sinatra::Base
     end
   end
 
+  validate :reinstall_node do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+  end
+
   command :reinstall_node do |data|
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which node to unbind")
-
-    check_permissions! "commands:unbind-node:#{data['name']}"
-
     actions = []
     if node = Razor::Data::Node.find_by_name(data['name'])
       log = { :event => :reinstall }
