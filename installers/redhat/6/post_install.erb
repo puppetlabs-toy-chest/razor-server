@@ -36,8 +36,9 @@ cat > /etc/puppet/puppet.conf << EOF
     rundir = /var/run/puppet
     ssldir = \$vardir/ssl
 [agent]
-    classfile = \$vardir/classes.txt
+    classfile   = \$vardir/classes.txt
     localconfig = \$vardir/localconfig
+    certname    = agent-<%= node.hostname.split('.').first %>
 
 EOF
 
