@@ -117,7 +117,7 @@
 		<RunSynchronousCommand wcm:action="add">
 		     <Description>Install Puppet Agent from razor server</Description>
 		     <Order>2</Order>
-		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot;</Path>
+		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot; PUPPET_AGENT_CERTNAME=&quot;agent-<%= node.hostname.split('.').first %>&quot;</Path>
 		</RunSynchronousCommand>
 	</RunSynchronous>
     </component>
