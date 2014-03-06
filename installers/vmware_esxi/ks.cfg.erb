@@ -17,7 +17,18 @@ clearpart --firstdisk --overwritevmfs
 install --firstdisk --overwritevmfs
 # Set the network to DHCP on the first network adapater
 # @todo danielp 2013-10-11: this needs to support static mode too...
-network --bootproto=dhcp --device=vmnic0
+<%=
+dir = File.expand_path(File.dirname(__FILE__))
+inc_file = File.join(dir, "bootproto_#{node.facts['serialnumber']}.inc.erb")
+if File.exists?(inc_file)
+  content = File.read(inc_file)
+  t = ERB.new(content)
+  t.result(binding)
+else
+  'network --bootproto=dhcp --device=vmnic0'
+end
+%>
+
 reboot
 
 # %include /tmp/networkconfig
