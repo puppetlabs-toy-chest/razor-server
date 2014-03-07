@@ -275,6 +275,24 @@ describe Razor::Matcher do
     end
   end
 
+  it "should return a reasonable message when datatype doesn't match" do
+    m = Matcher.new([">=", 1, ["fact", "processorcount"]])
+    m.should_not be_valid
+    m.errors.should == ["could return incompatible datatype(s) from function 'fact' ([String, TrueClass, FalseClass, NilClass]) for argument 1. Function '>=' expects ([Numeric])"]
+  end
+
+  it "should return a reasonable message when root datatype doesn't match" do
+    m = Matcher.new(["fact", "processorcount"])
+    m.should_not be_valid
+    m.errors.should == ["could return incompatible datatype(s) from function 'fact' ([String, Numeric, NilClass]). Rule expects ([TrueClass, FalseClass])"]
+  end
+
+  it "should return a reasonable message when non-array datatype doesn't match" do
+    m = Matcher.new([">=", 1, "three"])
+    m.should_not be_valid
+    m.errors.should == ["attempts to pass \"three\" of type String to '>=' for argument 1, but only [Numeric] are accepted"]
+  end
+
   it "should handle nested evaluation" do
     match("and", ["=", ["fact", "f1"], 42],
                  ["!=", ["fact", "f2"], 43],

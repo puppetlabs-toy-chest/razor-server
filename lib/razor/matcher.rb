@@ -224,7 +224,7 @@ class Razor::Matcher
     fns.send(*r)
   end
 
-  def validate(rule, required_returns)
+  def validate(rule, required_returns, caller_name = nil, caller_position = nil)
     errors.clear
 
     # This error is fatal; all further validation assumes rule is an array
@@ -243,35 +243,40 @@ class Razor::Matcher
       end
     end
 
-    attrs = Functions::ATTRS[Functions::ALIAS[rule[0]] || rule[0]]
+    name = rule[0]
+    attrs = Functions::ATTRS[Functions::ALIAS[name] || name]
     unless attrs
       # This error is fatal since unknown operators have unknown requirements
       errors << _("uses unrecognized operator '%{name}'; recognized operators are %{operators}") %
-        {name: rule[0], operators: Functions::ATTRS.keys+Functions::ALIAS.keys}
+        {name: name, operators: Functions::ATTRS.keys+Functions::ALIAS.keys}
       return false
     end
 
     # Ensure all returned types are in required_returns, or that they
     # are subclasses of classes in required_returns
-    attrs[:returns].each do |return_type|
-      unless required_returns.any? {|allowed_type| return_type <= allowed_type}
-        errors << _("attempts to return values of type %{return_type} from " +
-          "%{name}, but only %{required_returns} are allowed") %
-          {return_type: return_type, name: rule[0], required_returns: required_returns}
+    # E.g. Select returns that are not subclasses of any required returns
+    outliers = attrs[:returns].select { |ret| required_returns.none? { |allowed| ret <= allowed } }
+    unless outliers.empty?
+      if caller_name.nil? then
+        errors << _("could return incompatible datatype(s) from function '%{name}' (%{outliers}). Rule expects (%{required_returns})") %
+            {name: name, outliers: outliers, required_returns: required_returns}
+      else
+        errors << _("could return incompatible datatype(s) from function '%{name}' (%{outliers}) for argument %{position}. Function '%{caller_name}' expects (%{required_returns})") %
+            {name: name, outliers: outliers, position: caller_position, required_returns: required_returns, caller_name: caller_name}
       end
     end
 
     rule.drop(1).each_with_index do |arg, pos|
       expected_types = attrs[:expects][pos] || attrs[:expects].last
       if arg.is_a? Array
-        validate(arg, expected_types)
+        validate(arg, expected_types, name, pos)
       else
         # Ensure all concrete objects are of expected types
         unless expected_types.any? {|type| arg.class <= type }
           errors << _("attempts to pass %{arg} of type %{type} to "+
                     "'%{name}' for argument %{position}, but only "+
-                    "%{expected_types} are accepted") %
-            {arg: arg.inspect, type: arg.class, name: rule[0], position: pos, expected: expected_types}
+                    "%{expected} are accepted") %
+            {arg: arg.inspect, type: arg.class, name: name, position: pos, expected: expected_types}
         end
       end
     end
