@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+	<servicing/>
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <SetupUILanguage>
+        <UILanguage><%= options['language'] %></UILanguage>
+      </SetupUILanguage>
+      <InputLocale><%= options['keyboard'] %></InputLocale>
+      <SystemLocale><%= options['language'] %></SystemLocale>
+      <UILanguage><%= options['language'] %></UILanguage>
+      <UILanguageFallback><%= options['language'] %></UILanguageFallback>
+      <UserLocale><%= options['language'] %></UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <DiskConfiguration>
+				<WillShowUI>OnError</WillShowUI>
+				<Disk wcm:action="add">
+					<CreatePartitions>
+						<CreatePartition wcm:action="add">
+							<Order>1</Order>
+							<Size>300</Size>
+							<Type>Primary</Type>
+						</CreatePartition>
+						<CreatePartition wcm:action="add">
+                            <Order>2</Order>
+                            <Extend>true</Extend>
+                            <Type>Primary</Type>          
+						</CreatePartition>
+					</CreatePartitions>
+					<ModifyPartitions>
+						<ModifyPartition wcm:action="add">
+							<Active>true</Active>
+							<Format>NTFS</Format>
+							<Label>System</Label>
+							<Order>1</Order>
+							<PartitionID>1</PartitionID>
+						</ModifyPartition>
+						<ModifyPartition wcm:action="add">
+							<Format>NTFS</Format>
+							<Label>Windows</Label>
+							<Order>2</Order>
+							<PartitionID>2</PartitionID>
+						</ModifyPartition>
+					</ModifyPartitions>
+					<DiskID>0</DiskID>
+					<WillWipeDisk>true</WillWipeDisk>
+				</Disk>
+			</DiskConfiguration>     
+      <ImageInstall>
+				<OSImage>
+					<InstallTo>
+						<DiskID>0</DiskID>
+						<PartitionID>2</PartitionID>
+					</InstallTo>
+					<InstallToAvailablePartition>false</InstallToAvailablePartition>
+					<WillShowUI>OnError</WillShowUI>
+					<InstallFrom>
+						<MetaData wcm:action="add">
+							<Key>/IMAGE/INDEX</Key>
+							<Value>4</Value>
+						</MetaData>
+					</InstallFrom>
+				</OSImage>
+			</ImageInstall>
+<UserData>
+        <AcceptEula>true</AcceptEula>
+        <ProductKey>
+          <Key><%= options['product_key'] %></Key>
+          <WillShowUI>OnError</WillShowUI>
+        </ProductKey>
+      </UserData>
+    </component>    
+  </settings>
+  <settings pass="specialize">
+		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <OEMInformation>
+				<Manufacturer>DELL</Manufacturer>
+				<Model>PowerEdge</Model>
+				<SupportURL>http://support.dell.com</SupportURL>
+				<SupportHours/>
+				<SupportPhone/>
+				<Logo/>
+				<HelpCustomized>false</HelpCustomized>
+			</OEMInformation>
+      <ComputerName><%= node.hostname.split(".").first %></ComputerName>
+      <TimeZone><%= options['timezone'] %></TimeZone>
+    </component>   
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <RunSynchronous>
+
+ <!-- adding puppet master server to hosts file -->
+           <RunSynchronousCommand wcm:action="add">
+                     <Description>Add to Hosts file</Description>
+                     <Order>1</Order>
+                     <Path>powershell.exe -Command "Add-Content \"c:\windows\system32\drivers\etc\hosts\" \"`n<%= URI.parse(repo_url).host %> dellasm\""</Path>
+                </RunSynchronousCommand>
+
+<!-- Replace PUPPETSERVER with your puppet server -->
+                <RunSynchronousCommand wcm:action="add">
+                     <Description>Install Puppet Agent from razor server</Description>
+                     <Order>2</Order>
+                     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot;</Path>
+                </RunSynchronousCommand>
+
+				<RunSynchronousCommand wcm:action="add">
+					<Description>Updating registry to run ASM script on every reboot</Description>
+					<Order>3</Order>
+					<Path>REG.EXE ADD HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v ASMScript /t REG_SZ /d &quot;cmd /c set PATH=%PATH%;C:\;D:\;E:\;F:\;G:\;H:\;I:\;J:\;K:\;L:\;M:\;N:\;O:\;P:\ &amp;&amp; ASMScript.cmd&quot; /f</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
+    </component>
+  </settings>
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Display>
+				<ColorDepth>32</ColorDepth>
+				<HorizontalResolution>1024</HorizontalResolution>
+				<RefreshRate>60</RefreshRate>
+				<VerticalResolution>768</VerticalResolution>
+			</Display>
+        <AutoLogon>
+				<Password>
+					<Value><%=node.root_password%></Value>
+					<PlainText>true</PlainText>
+				</Password>
+				<Enabled>true</Enabled>
+				<LogonCount>20</LogonCount>
+				<Username>Administrator</Username>
+			</AutoLogon>
+        <UserAccounts>
+        <AdministratorPassword>
+          <Value><%=node.root_password%></Value>
+          <PlainText>true</PlainText>
+        </AdministratorPassword>
+      </UserAccounts>      
+    </component>
+  </settings>
+ <cpi:offlineImage cpi:source="wim:c:/users/Administrator/desktop/unattend_install/ws2012/sources/install.wim#Windows Server 2012 SERVERDATACENTER" xmlns:cpi="urn:schemas-microsoft-com:cpi"/>
+</unattend>
+

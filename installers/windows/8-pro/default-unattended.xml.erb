@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <servicing></servicing>
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <DiskConfiguration>
+        <Disk wcm:action="add">
+          <CreatePartitions>
+            <CreatePartition wcm:action="add">
+              <Order>1</Order>
+              <Type>Primary</Type>
+              <Extend>true</Extend>
+            </CreatePartition>
+          </CreatePartitions>
+          <ModifyPartitions>
+            <ModifyPartition wcm:action="add">
+              <Extend>false</Extend>
+              <Format>NTFS</Format>
+              <Letter>C</Letter>
+              <Order>1</Order>
+              <PartitionID>1</PartitionID>
+              <Label><%= node.hostname.split(".").first %></Label>
+            </ModifyPartition>
+          </ModifyPartitions>
+          <DiskID>0</DiskID>
+          <WillWipeDisk>true</WillWipeDisk>
+        </Disk>
+        <WillShowUI>OnError</WillShowUI>
+      </DiskConfiguration>
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+        <ProductKey>
+          <Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE</Key>  <!-- set CD Key here -->
+        </ProductKey>
+      </UserData>
+      <ImageInstall>
+        <OSImage>
+<!-- this is needed for windows 2012 -->
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+                            <Value>Windows Server 2012 SERVERSTANDARD</Value>
+                        </MetaData>
+                    </InstallFrom>
+
+          <InstallTo>
+            <DiskID>0</DiskID>
+            <PartitionID>1</PartitionID>
+          </InstallTo>
+          <WillShowUI>OnError</WillShowUI>
+        </OSImage>
+      </ImageInstall>
+    </component>
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <SetupUILanguage>
+        <UILanguage>en-US</UILanguage>
+      </SetupUILanguage>
+      <InputLocale>en-US</InputLocale>
+      <SystemLocale>en-US</SystemLocale>
+      <UILanguage>en-US</UILanguage>
+      <UILanguageFallback>en-US</UILanguageFallback>
+      <UserLocale>en-US</UserLocale>
+    </component>
+  </settings>
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <UserAccounts>
+        <AdministratorPassword>
+          <Value><%= require 'asm/cipher'; ASM::Cipher.decrypt_string(node.root_password) %></Value>
+          <PlainText>true</PlainText>
+        </AdministratorPassword>
+      </UserAccounts>
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <NetworkLocation>Home</NetworkLocation>
+        <ProtectYourPC>3</ProtectYourPC>
+      </OOBE>
+      <ShowWindowsLive>false</ShowWindowsLive>
+    </component>
+  </settings>
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <OEMInformation>
+        <HelpCustomized>false</HelpCustomized>
+      </OEMInformation>
+      <ComputerName><%= node.hostname.split(".").first %></ComputerName>
+      <TimeZone>Central Standard Time</TimeZone>
+    </component>
+    <component name="Microsoft-Windows-OutOfBoxExperience" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <DoNotOpenInitialConfigurationTasksAtLogon>true</DoNotOpenInitialConfigurationTasksAtLogon>
+    </component>
+    <component name="Microsoft-Windows-ServerManager-SvrMgrNc" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <DoNotOpenServerManagerAtLogon>true</DoNotOpenServerManagerAtLogon>
+    </component>
+    <component name="Microsoft-Windows-Security-Licensing-SLC-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <SkipAutoActivation>true</SkipAutoActivation>
+    </component>
+
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <RunSynchronous>
+<!-- commenting this out since this does not work yet -->
+<!--		
+           <RunSynchronousCommand wcm:action="add">
+		     <Description>Disable firewall</Description>
+		     <Order>1</Order>
+		     <Path>powershell.exe -ExecutionPolicy Bypass Set-NetFirewallProfile -Enabled False -LogFileName c:\firewall.log -ErrorAction Inquire -Verbose</Path>
+		</RunSynchronousCommand>
+-->
+<!-- adding puppet master server to hosts file -->
+           <RunSynchronousCommand wcm:action="add">
+                     <Description>Add to Hosts file</Description>
+                     <Order>1</Order>
+                     <Path>powershell.exe -Command "Add-Content \"c:\windows\system32\drivers\etc\hosts\" \"`n<%= URI.parse(repo_url).host %> dellasm\""</Path>
+                </RunSynchronousCommand>
+
+<!-- Replace PUPPETSERVER with your puppet server -->
+		<RunSynchronousCommand wcm:action="add">
+		     <Description>Install Puppet Agent from razor server</Description>
+		     <Order>2</Order>
+		     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot; PUPPET_AGENT_CERTNAME=&quot;agent-<%= node.hostname.split('.').first %>&quot; PUPPET_AGENT_ACCOUNT_USER=Administrator PUPPET_AGENT_ACCOUNT_PASSWORD=&quot;<%= ASM::Cipher.decrypt_string(node.root_password) %>&quot;</Path>
+		</RunSynchronousCommand>
+	</RunSynchronous>
+    </component>
+
+<!-- Include the follwoing if you want the system to join a domain -->
+       <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <Identification>
+<!-- Specify Credentials to use to join the domain -->
+                <Credentials>
+                    <Domain>yourDomainForCredential</Domain>
+                    <Password>SomePassword</Password>
+                    <Username>Administrator</Username>
+                </Credentials>
+               <JoinDomain>YourDomain</JoinDomain> <!-- example dell.com -->
+               <UnsecureJoin>false</UnsecureJoin>
+            </Identification>
+        </component>
+
+  </settings>
+ <cpi:offlineImage cpi:source="wim:c:/temp/install.wim#Windows Server 2012 SERVERSTANDARD" xmlns:cpi="urn:schemas-microsoft-com:cpi" /> 
+
+
+</unattend>
+
