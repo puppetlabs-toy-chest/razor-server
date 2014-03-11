@@ -120,6 +120,9 @@ puppet module install puppetlabs/inifile
 
 # Update the ini file with the resource tool.
 <% broker.each do |setting, value| %>
+<%- if setting == 'server'
+      value = node.metadata['puppet_server'] || value
+    end -%> 
 puppet resource ini_setting ensure=present path=/etc/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
 <% end %>
 <% end %>

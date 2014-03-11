@@ -1,7 +1,9 @@
 # Thanks to William Lam for being the guru
 accepteula
 rootpw --iscrypted <%=
-  if node.root_password =~ /^\$\d+\$[^$]*\$/
+  if node.metadata['hostname'] =~ /^\$\d+\$[^$]*\$/
+    node.metadata['hostname']
+  elsif node.root_password =~ /^\$\d+\$[^$]*\$/
     node.root_password
   else
     require 'unix_crypt'
@@ -28,7 +30,7 @@ wget <%= stage_done_url("kickstart") %>
 
 %firstboot --interpreter=busybox
 # set the hostname correctly before we do anythig else
-esxcli system hostname set --fqdn <%= node.hostname %>
+esxcli system hostname set --fqdn <%= node.metadata['hostname'] || node.hostname %>
 
 # enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
 grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config

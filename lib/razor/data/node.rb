@@ -95,13 +95,15 @@ module Razor::Data
     end
 
     def domainname
-      return nil if hostname.nil?
-      hostname.split(".").drop(1).join(".")
+      name = metadata['hostname'] || hostname
+      return nil if name.nil?
+      name.split(".").drop(1).join(".")
     end
 
     def shortname
-      return nil if hostname.nil?
-      hostname.split(".").first
+      name = metadata['hostname'] || hostname
+      return nil if name.nil?
+      name.split(".").first
     end
 
     # Retrive the entire log for this node as an array of hashes, ordered
