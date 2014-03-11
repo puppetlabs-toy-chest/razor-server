@@ -556,7 +556,7 @@ class Razor::App < Sinatra::Base
   end
 
   command :delete_node do |data|
-    if node = Razor::Data::Node.find_by_name(data['name'])
+    if node = Razor::Data::Node[:name => data['name']]
       node.destroy
       action = _("node destroyed")
     else
@@ -599,7 +599,7 @@ class Razor::App < Sinatra::Base
         :error => _("no_replace must be boolean true or string 'true'")
     end
 
-    if node = Razor::Data::Node.find_by_name( data['node'] )
+    if node = Razor::Data::Node[:name => data['node']]
       operation = { 'update' => { data['key'] => data['value'] } }
       operation['no_replace'] = true unless operation['no_replace'].nil?
 
@@ -616,7 +616,7 @@ class Razor::App < Sinatra::Base
     data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
       :error => _('must supply key or set all to true')
 
-    if node = Razor::Data::Node.find_by_name( data['node'] )
+    if node = Razor::Data::Node[:name => data['node']]
       if data['key']
         operation = { 'remove' => [ data['key'] ] }
       else
@@ -654,7 +654,7 @@ class Razor::App < Sinatra::Base
         :error => _('cannot update and remove the same key')
     end
 
-    if node = Razor::Data::Node.find_by_name(data.delete('node'))
+    if node = Razor::Data::Node[:name => data.delete('node')]
       node.modify_metadata(data)
     else
       error 400, :error => _("Node %{name} not found") % {name: data['node']}
@@ -668,7 +668,7 @@ class Razor::App < Sinatra::Base
 
   command :reinstall_node do |data|
     actions = []
-    if node = Razor::Data::Node.find_by_name(data['name'])
+    if node = Razor::Data::Node[:name => data['name']]
       log = { :event => :reinstall }
       if node.policy
         log[:policy_name] = node.policy.name
@@ -700,7 +700,7 @@ class Razor::App < Sinatra::Base
 
     check_permissions! "commands:set-node-ipmi-credentials:#{data['name']}"
 
-    node = Razor::Data::Node.find_by_name(data['name']) or
+    node = Razor::Data::Node[:name => data['name']] or
       error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     # Finally, save the changes.  This is using the unrestricted update
@@ -722,7 +722,7 @@ class Razor::App < Sinatra::Base
 
     check_permissions! "commands:reboot-node:#{data['name']}"
 
-    node = Razor::Data::Node.find_by_name(data['name']) or
+    node = Razor::Data::Node[:name => data['name']] or
       error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     node.ipmi_hostname or
@@ -739,7 +739,7 @@ class Razor::App < Sinatra::Base
 
     check_permissions! "commands:set-node-desired-power-state:#{data['name']}"
 
-    node = Razor::Data::Node.find_by_name(data['name']) or
+    node = Razor::Data::Node[:name => data['name']] or
       error 404, :error => _("node %{name} does not exist") % {name: data['name']}
 
     case data['to']
@@ -1118,7 +1118,7 @@ class Razor::App < Sinatra::Base
   end
 
   get '/api/collections/nodes/:name' do
-    node = Razor::Data::Node.find_by_name(params[:name]) or
+    node = Razor::Data::Node[:name => params[:name]] or
       error 404, :error => _("no node matched name=%{name}") % {name: params[:name]}
     node_hash(node).to_json
   end
@@ -1128,7 +1128,7 @@ class Razor::App < Sinatra::Base
 
     # @todo lutter 2013-08-20: There are no tests for this handler
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
-    node = Razor::Data::Node.find_by_name(params[:name]) or
+    node = Razor::Data::Node[:name => params[:name]] or
       error 404, :error => _("no node matched hw_id=%{hw_id}") % {hw_id: params[:hw_id]}
     {
       "spec" => spec_url("collections", "nodes", "log"),

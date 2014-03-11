@@ -41,15 +41,25 @@ describe Razor::Data::Node do
     end
   end
 
-  context "find_by_name" do
+  # @todo danielp 2014-03-11: This kind of does test "is it on", but it was
+  # previously application level logic, so better to translate the tests and
+  # make sure they pass.
+  #
+  # Dear future developer, probably me, please think kindly of me for
+  # retaining these, and delete them with a clear conscience, their sole
+  # purpose having been served well before you started to wonder why they
+  # existed and if they could be deleted.
+  #
+  # At the point you ask that question, they most certainly can.
+  context "finding by name" do
     it "finds a node" do
       node = Fabricate(:node)
-      Node.find_by_name(node.name).should == node
+      Node[:name => node.name].should == node
     end
 
     ["node42", "hello there", ""].each do |name|
       it "returns nil for nonexistant node '#{name}'" do
-        Node.find_by_name(name).should be_nil
+        Node[:name => name].should be_nil
       end
     end
   end

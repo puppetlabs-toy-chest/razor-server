@@ -56,7 +56,7 @@ end
 Fabricator(:policy, :class_name => Razor::Data::Policy) do
   name             { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   enabled          true
-  task_name      { Fabricate(:task).name }
+  task_name        { Fabricate(:task).name }
   hostname_pattern 'host${id}.example.org'
   root_password    { Faker::Internet.password }
 
@@ -69,19 +69,24 @@ Fabricator(:policy_with_tag, from: :policy) do
 end
 
 Fabricator(:node, :class_name => Razor::Data::Node) do
+  name    "placeholder"
   hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+
+  after_save do |node, _|
+    node.set(name: "node#{node[:id]}").save
+  end
 end
 
-Fabricator(:node_with_ipmi, class_name: Razor::Data::Node, from: :node) do
+Fabricator(:node_with_ipmi, from: :node) do
   ipmi_hostname { Faker::Internet.domain_name }
 end
 
-Fabricator(:node_with_facts, :class_name => Razor::Data::Node) do
+Fabricator(:node_with_facts, from: :node) do
   hw_info { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
   facts   { { "f1" => "a" } }
 end
 
-Fabricator(:node_with_metadata, :class_name => Razor::Data::Node) do
+Fabricator(:node_with_metadata, from: :node) do
   hw_info  { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
   metadata { { "m1" => "a" } }
 end

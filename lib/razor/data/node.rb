@@ -31,6 +31,13 @@ module Razor::Data
   end
 
   class Node < Sequel::Model
+    # Since we generate the name in the database using a trigger, the
+    # auto-validation plugin sets up the wrong constraint checks.
+    # This updates it to fix that, by moving from "must be present" to
+    # "validate not null if explicitly supplied", which allows the database to
+    # assign the default if it is not present.
+    auto_validate_not_null_columns.delete(:name)
+    auto_validate_explicit_not_null_columns << :name
 
     #See the method schema_type_class() for some special considerations
     #regarding the use of serialization.
@@ -54,13 +61,6 @@ module Razor::Data
       need_eval_tags = changed_columns.include?(:metadata)
       super
       publish('eval_tags') if need_eval_tags
-    end
-
-    # Return a 'name'; for now this is a fixed generated string
-    # @todo lutter 2013-08-30: figure out a way for users to control how
-    # node names are set
-    def name
-      id.nil? ? nil : "node#{id}"
     end
 
     # Set the hardware info from a hash.
@@ -190,6 +190,7 @@ module Razor::Data
 
     def validate
       super
+
       unless hw_info.nil?
         # PGArray is not an Array, just behaves like one
         hw_info.is_a?(Sequel::Postgres::PGArray) or hw_info.is_a?(Array) or
@@ -282,12 +283,6 @@ module Razor::Data
       end
       save_changes
       { :action => action }
-    end
-
-    def self.find_by_name(name)
-      # We currently do not store the name in the DB; this just reverses
-      # what the +#name+ method does and looks up by id
-      self[$1] if name =~ /\Anode([0-9]+)\Z/
     end
 
     # Normalize the hardware info. Be very careful when you change this
