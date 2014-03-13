@@ -697,14 +697,16 @@ class Razor::App < Sinatra::Base
     { :result => actions.join(_(" and ")) }
   end
 
+  validate :set_node_ipmi_credentials do
+    authz '%{name}'
+    attr  'name', type: String, required: true, references: Razor::Data::Node
+    attr  'ipmi-hostname', type: String
+    attr  'ipmi-username', type: String, also: 'ipmi-hostname'
+    attr  'ipmi-password', type: String, also: 'ipmi-hostname'
+  end
+
   command :set_node_ipmi_credentials do |data|
-    data['name'] or
-      error 400, :error => _("Supply 'name' to indicate which node to edit")
-
-    check_permissions! "commands:set-node-ipmi-credentials:#{data['name']}"
-
-    node = Razor::Data::Node[:name => data['name']] or
-      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
+    node = Razor::Data::Node[:name => data['name']]
 
     # Finally, save the changes.  This is using the unrestricted update
     # method because we carefully manually constructed our input above,

@@ -25,7 +25,11 @@ class Razor::Validation::HashSchema
       end
     end
 
-    @attributes.each {|_, attr| attr.finalize }
+    @attributes.each {|_, attr| attr.finalize(self) }
+  end
+
+  def attribute(name)
+    @attributes[name]
   end
 
   def validate!(data)
@@ -110,6 +114,7 @@ class Razor::Validation::HashSchema
   end
 
   def attr(name, checks)
+    name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     @attributes[name] = Razor::Validation::Attribute.new(name, checks)
   end
 

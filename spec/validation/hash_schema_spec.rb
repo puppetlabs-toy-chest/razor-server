@@ -25,6 +25,18 @@ describe Razor::Validation::HashSchema do
       schema.attr('cheap', {})
       expect { schema.finalize }.to raise_error(/require_one_of cheep, fast, good references cheep/)
     end
+
+    it "should fail if an unknown attribute is excluded" do
+      schema.attr('good', exclude: 'bad')
+      expect { schema.finalize }.
+        to raise_error(/excluded attribute bad by good is not defined in the schema/)
+    end
+
+    it "should fail if an unknown attribute is 'also' required" do
+      schema.attr('good', also: 'bad')
+      expect { schema.finalize }.
+        to raise_error(/additionally required attribute bad by good is not defined in the schema/)
+    end
   end
 
   context "authz" do

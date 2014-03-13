@@ -16,7 +16,7 @@ describe "set-node-ipmi-credentials" do
 
   it "should fail if the node name is not given" do
     post url, {}.to_json
-    last_response.status.should == 400
+    last_response.status.should == 422
   end
 
   it "should report 'no such node' if the name isn't found" do
@@ -61,7 +61,7 @@ describe "reboot-node" do
 
   it "should fail if no node is included" do
     post url, {}.to_json
-    last_response.status.should == 400
+    last_response.status.should == 422
   end
 
   it "should work" do
@@ -144,7 +144,7 @@ describe "set-node-desired-power-state" do
 
   it "should fail if the name is absent" do
     post url, {}.to_json
-    last_response.status.should == 400
+    last_response.status.should == 422
   end
 
   it "should 404 if the node does not exist" do
@@ -173,7 +173,7 @@ describe "set-node-desired-power-state" do
   ([0, 1, true, false] + %w{true false up down yes no 1 0}).each do |bad|
     it "should reject #{bad.inspect}" do
       post url, {name: node.name, to: bad}.to_json
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
   end
 end

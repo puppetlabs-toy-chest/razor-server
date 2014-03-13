@@ -12,8 +12,14 @@ class Razor::Validation::Attribute
     end
   end
 
-  def finalize
-    # nothing to do here, for now.
+  def finalize(schema)
+    Array(@exclude).each do |attr|
+      schema.attribute(attr) or raise ArgumentError, "excluded attribute #{attr} by #{@name} is not defined in the schema"
+    end
+
+    Array(@also).each do |attr|
+      schema.attribute(attr) or raise ArgumentError, "additionally required attribute #{attr} by #{@name} is not defined in the schema"
+    end
   end
 
   def validate!(data)
@@ -27,6 +33,11 @@ class Razor::Validation::Attribute
     @exclude and @exclude.each do |what|
       data.has_key?(what) and
         raise Razor::ValidationFailure, _("if %{name} is present, %{exclude} must not be present") % {name: @name, exclude: what}
+
+    @also and @also.each do |what|
+        data.has_key?(what) or
+          raise Razor::ValidationFailure, _("if %{name} is present, %{also} must also be present") % {name: @name, also: @also.join(', ')}
+      end
     end
 
     value = data[@name]
@@ -73,6 +84,14 @@ class Razor::Validation::Attribute
     end
 
     @exclude = Array(what)
+  end
+
+  def also(what)
+    unless what.is_a?(String) or (what.is_a?(Array) and what.all?{|x| x.is_a?(String)})
+      raise ArgumentError, "additional attribute requirements must be a string, or an array of strings"
+    end
+
+    @also = Array(what)
   end
 
   def references(what)
