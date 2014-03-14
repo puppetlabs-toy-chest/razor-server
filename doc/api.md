@@ -609,3 +609,30 @@ culminates in chain loading from the Razor server)
 The URL accepts the parameter `nic_max` which should be set to the maximum
 number of network interfaces that respond to DHCP on any given machine. It
 defaults to 4.
+
+### Query node collections
+
+Nodes can be queried by the following items 
+
+* hostname: a regular expression to match against hostnames
+* The following hw_info in the node details
+ * mac
+ * serial
+ * asset
+ * uuid
+
+For example the UUID could be queried to return the associated node
+
+    /api/collections/nodes?uuid=9ad1e079-b9e3-347c-8b13-9b42cbf53a14'
+
+    {
+    "items": [
+        {
+            "id": "http://razor.example.com:8080/api/collections/nodes/node14", 
+            "name": "node14", 
+            "spec": "http://api.puppetlabs.com/razor/v1/collections/nodes/member"
+        }
+    ], 
+    "spec": "http://api.puppetlabs.com/razor/v1/collections/nodes"
+    }
+
