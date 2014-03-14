@@ -574,6 +574,30 @@ name   | a human-readable name for the object
 If the reference object is in an array, the `obj_id` field serves as a unique
 identifier within the array.
 
+### Querying the node collection
+
+Nodes can be queried by the following items
+
+* `hostname`: a regular expression to match against hostnames; this
+  includes using part of a hostname, e.g., `hostname=foo` to get all nodes
+  whose hostname includes `foo`
+* the fields that are stored in the `hw_info` of a node, namely `mac`,
+  `serial`, `asset`, and `uuid`
+
+For example the UUID could be queried to return the associated node
+
+    /api/collections/nodes?uuid=9ad1e079-b9e3-347c-8b13-9b42cbf53a14'
+
+    {
+      "items": [
+        {
+            "id": "http://razor.example.com:8080/api/collections/nodes/node14",
+            "name": "node14",
+            "spec": "http://api.puppetlabs.com/razor/v1/collections/nodes/member"
+        }],
+      "spec": "http://api.puppetlabs.com/razor/v1/collections/nodes"
+    }
+
 ## Other things
 
 ### The default boostrap iPXE file
