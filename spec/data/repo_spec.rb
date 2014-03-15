@@ -326,6 +326,11 @@ describe Razor::Data::Repo do
           res.body   = ' ' * LongFileSize
         end
 
+        @server.mount_proc '/redirect.iso' do |req, res|
+          res.status = 301
+          res['location'] = '/long.iso'
+        end
+
         Thread.new { @server.start }
       end
 
@@ -335,6 +340,10 @@ describe Razor::Data::Repo do
 
       let :repo do
         Repo.new(:name => 'test', :iso_url => 'http://localhost:8000/')
+      end
+
+      after :each do
+        repo.exists? && repo.destroy
       end
 
       context "download_file_to_tempdir" do
@@ -352,6 +361,12 @@ describe Razor::Data::Repo do
 
         it "should copy long content down on success" do
           url  = URI.parse('http://localhost:8000/long.iso')
+          file = repo.download_file_to_tempdir(url)
+          File.size?(file).should == LongFileSize
+        end
+
+        it "should follow redirects" do
+          url  = URI.parse('http://localhost:8000/redirect.iso')
           file = repo.download_file_to_tempdir(url)
           File.size?(file).should == LongFileSize
         end
