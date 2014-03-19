@@ -38,7 +38,7 @@ cat > /etc/puppet/puppet.conf << EOF
 [agent]
     classfile   = \$vardir/classes.txt
     localconfig = \$vardir/localconfig
-    certname    = agent-<%= node.hostname.split('.').first %>
+    certname    = <%= require 'asm/util'; ASM::Util.hostname_to_certname(node.hostname.split('.').first) %>
 
 EOF
 
