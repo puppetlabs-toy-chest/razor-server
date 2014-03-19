@@ -1,6 +1,5 @@
 ---
 
-name: debian
 os_version: wheezy
 description: Debian Generic Installer
 boot_sequence:

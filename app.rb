@@ -549,11 +549,11 @@ class Razor::App < Sinatra::Base
     collection_view Razor::Task, 'tasks'
   end
 
-  get '/api/collections/tasks/:name' do
+  get '/api/collections/tasks/*' do |name|
     begin
-      task = Razor::Task.find(params[:name])
+      task = Razor::Task.find(name)
     rescue Razor::TaskNotFoundError => e
-      error 404, :error => _("Task %{name} does not exist") % {name: params[:name]},
+      error 404, :error => _("Task %{name} does not exist") % {name: name},
         :details => e.to_s
     end
     task_hash(task).to_json

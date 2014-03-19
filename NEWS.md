@@ -1,5 +1,26 @@
 # Razor Server Release Notes
 
+## 0.15.0 - 2014-??-??
+
++ incompatible changes
+  + the way that tasks and templates are stored on disk has changed.
+    The metadata file is changed from `tasks/{name}.yaml` to
+    `tasks/{name}.task/metadata.yaml`. The search path for templates has
+    changed from:
+    1. `tasks/{name}/{os_version}`
+    2. `tasks/{name}`
+    3. `tasks/{base_task}/{os_version}` (if inheritance was used)
+    4. `tasks/{base_task}` (if inheritance was used)
+      * [Any other base tasks are searched here recursively]
+    5. `tasks/common`
+    It is now:
+    1. `tasks/{name}.task`
+    2. `tasks/{base_task}.task` (if inheritance was used)
+      * [Any other base tasks are searched here recursively]
+    3. `tasks/common`
+    For a more complete guide to migrating, see
+    [This migration page](http://links.puppetlabs.com/razor-migration-task-revamp)
+
 ## 0.13.0 - 2014-01-21
 
 + 'recipes' (neé installers) are now called 'tasks', as the word recipes is
