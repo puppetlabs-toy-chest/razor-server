@@ -100,13 +100,13 @@
                 <RunSynchronousCommand wcm:action="add">
                      <Description>Install Puppet Agent from razor server</Description>
                      <Order>2</Order>
-                     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot;</Path>
+                     <Path>msiexec /i \\<%= URI.parse(repo_url).host %>\razor\puppet-agent\windows\puppet-3.3.2.msi /qn PUPPET_MASTER_SERVER=&quot;dellasm&quot; PUPPET_AGENT_CERTNAME=&quot;<%= require 'asm/util'; ASM::Util.hostname_to_certname(node.hostname.split('.').first) %>&quot; PUPPET_AGENT_ACCOUNT_USER=Administrator PUPPET_AGENT_ACCOUNT_PASSWORD=&quot;<%= require 'asm/cipher' ; ASM::Cipher.decrypt_string(node.root_password) %>&quot;</Path> 
                 </RunSynchronousCommand>
 
 				<RunSynchronousCommand wcm:action="add">
 					<Description>Updating registry to run ASM script on every reboot</Description>
 					<Order>3</Order>
-					<Path>REG.EXE ADD HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v ASMScript /t REG_SZ /d &quot;cmd /c set PATH=%PATH%;C:\;D:\;E:\;F:\;G:\;H:\;I:\;J:\;K:\;L:\;M:\;N:\;O:\;P:\ &amp;&amp; ASMScript.cmd&quot; /f</Path>
+					<Path>REG.EXE ADD HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v ASMScript /t REG_SZ /d &quot;cmd /c c:\ASMPostInstall\ASMScript.cmd&quot; /f</Path>
 				</RunSynchronousCommand>
 			</RunSynchronous>
     </component>
@@ -121,7 +121,7 @@
 			</Display>
         <AutoLogon>
 				<Password>
-					<Value><%=node.root_password%></Value>
+					<Value><%=require 'asm/cipher'; ASM::Cipher.decrypt_string(node.root_password)%></Value>
 					<PlainText>true</PlainText>
 				</Password>
 				<Enabled>true</Enabled>
@@ -130,7 +130,7 @@
 			</AutoLogon>
         <UserAccounts>
         <AdministratorPassword>
-          <Value><%=node.root_password%></Value>
+          <Value><%=require 'asm/cipher'; ASM::Cipher.decrypt_string(node.root_password)%></Value>
           <PlainText>true</PlainText>
         </AdministratorPassword>
       </UserAccounts>      
@@ -138,4 +138,5 @@
   </settings>
  <cpi:offlineImage cpi:source="wim:c:/users/Administrator/desktop/unattend_install/ws2012/sources/install.wim#Windows Server 2012 SERVERDATACENTER" xmlns:cpi="urn:schemas-microsoft-com:cpi"/>
 </unattend>
+
 
