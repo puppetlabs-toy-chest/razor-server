@@ -721,14 +721,13 @@ class Razor::App < Sinatra::Base
     { :result => _('updated IPMI details') }
   end
 
+  validate :reboot_node do
+    authz '%{name}'
+    attr  'name', type: String, required: true, references: Razor::Data::Node
+  end
+
   command :reboot_node do |data|
-    data['name'] or
-      error 400, :error => _("Supply 'name' to indicate which node to edit")
-
-    check_permissions! "commands:reboot-node:#{data['name']}"
-
-    node = Razor::Data::Node[:name => data['name']] or
-      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
+    node = Razor::Data::Node[:name => data['name']]
 
     node.ipmi_hostname or
       error 422, { :error => _("node %{name} does not have IPMI credentials set") % {name: node.name} }
@@ -738,22 +737,17 @@ class Razor::App < Sinatra::Base
     { :result => _('reboot request queued') }
   end
 
+  validate :set_node_desired_power_state do
+    authz '%{name}'
+    attr  'name', type: String, required: true,  references: Razor::Data::Node
+    attr  'to',   type: [String, nil], required: false, one_of: ['on', 'off', nil]
+  end
+
   command :set_node_desired_power_state do |data|
-    data['name'] or
-      error 400, :error => _("Supply 'name' to indicate which node to edit")
+    node = Razor::Data::Node[:name => data['name']]
 
-    check_permissions! "commands:set-node-desired-power-state:#{data['name']}"
-
-    node = Razor::Data::Node[:name => data['name']] or
-      error 404, :error => _("node %{name} does not exist") % {name: data['name']}
-
-    case data['to']
-    when 'on', 'off', nil
-      node.set(desired_power_state: data['to']).save
-      {result: _("set desired power state to %{state}") % {state: data['to'] || 'ignored (null)'}}
-    else
-      error 400, :error => _("invalid power state %{state}") % {state: data['to']}
-    end
+    node.set(desired_power_state: data['to']).save
+    {result: _("set desired power state to %{state}") % {state: data['to'] || 'ignored (null)'}}
   end
 
   command :create_task do |data|

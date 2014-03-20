@@ -42,22 +42,38 @@ class Razor::Validation::Attribute
 
     value = data[@name]
 
-    if @type and not value.class <= @type
-      raise Razor::ValidationFailure, _("attribute %{name} has wrong type %{actual} where %{expected} was expected") % {
+    if @type
+      Array(@type).any? do |check|
+        # If we don't match the base type, go to the next one; if none match our
+        # final validation failure will trigger and raise.
+        next false unless value.class <= check[:type]
+
+        # If there is a validation
+        begin
+          check[:validate] and check[:validate].call(value)
+        rescue => e
+          raise Razor::ValidationFailure, _("attribute %{name} fails type checking for %{type}: %{error}") % {name: @name, type: ruby_type_to_json(check[:type]), error: e.to_s}
+        end
+
+        # If we got here we passed all the checks, and have a match, so we are good.
+        break true
+      end or raise Razor::ValidationFailure, n_(
+        "attribute %{name} has wrong type %{actual} where %{expected} was expected",
+        "attribute %{name} has wrong type %{actual} where one of %{expected} was expected",
+        Array(@type).count) % {
         name:     @name,
         actual:   ruby_type_to_json(value),
-        expected: ruby_type_to_json(@type)}
-    end
-
-    begin
-      @type_validate and @type_validate.call(value)
-    rescue => e
-      raise Razor::ValidationFailure, _("attribute %{name} fails type checking: %{error}") % {name: @name, error: e.to_s}
+        expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
 
     if @references
       @references[@refname => value] or
         raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: @name}, 404)
+    end
+
+    if @one_of
+      @one_of.any? {|match| value == match } or
+        raise Razor::ValidationFailure, _("attribute %{name} must refer to one of %{valid}") % {name: @name, valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
     end
 
     return true
@@ -68,13 +84,15 @@ class Razor::Validation::Attribute
   end
 
   def type(which)
-    which.is_a?(Module) or raise ArgumentError, "type checks must be passed a class or module"
+    which = Array(which)
+    which.all? {|x| x.nil? or x.is_a?(Module) } and not which.empty? or
+      raise ArgumentError, "type checks must be passed a class, module, nil, or an array of the same"
 
-    if which <= URI
-      @type = String
-      @type_validate = -> str { URI.parse(str) }
-    else
-      @type = which
+    @type = which.map do |entry|
+      if    entry.nil?   then {type: NilClass}
+      elsif entry <= URI then {type: String, validate: -> str { URI.parse(str) }}
+      else                    {type: entry}
+      end
     end
   end
 
@@ -99,5 +117,20 @@ class Razor::Validation::Attribute
       raise ArgumentError, "attribute references must be a Sequel::Model class"
     @references = what
     @refname    = @name.to_sym
+  end
+
+  ValidTypesForOneOf = [String, Numeric, TrueClass, FalseClass, NilClass]
+  ValidTypesForOneOfJSON = ValidTypesForOneOf.map {|x| ruby_type_to_json(x) }.join(', ')
+  def one_of(what)
+    what.is_a? Array or
+      raise ArgumentError, "one_of takes an array of options, not a #{ruby_type_to_json(what)}"
+    what.each do |value|
+      ValidTypesForOneOf.any? {|x| value.is_a? x } or
+        raise ArgumentError, "one_of values must be one of #{ValidTypesForOneOfJSON}, not #{ruby_type_to_json(value)}"
+    end
+
+    what.uniq == what or raise ArgumentError, "one_of contains duplicate values"
+
+    @one_of = what
   end
 end
