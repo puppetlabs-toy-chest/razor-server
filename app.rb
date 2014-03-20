@@ -23,6 +23,11 @@ class Razor::App < Sinatra::Base
     use Razor::Middleware::Auth, %r{/api($|/)}i
 
     set :show_exceptions, false
+    
+    #Store the MK updates on startup.  Periodically refresh them
+    @@mkupdates              = Razor::MkUpdate.all.sort! {|a,b| a.name <=> b.name }
+    @@mkupdates_last_refresh = Time.now.to_i
+    @@mkupdates_timeout      = Razor.config.mkupdate_refresh
   end
 
   before do
@@ -185,6 +190,31 @@ class Razor::App < Sinatra::Base
     # the MK agent uses to identify the node
     def microkernel_kernel_args
       "razor.register=#{url("/svc/checkin/#{@node.id}")} #{Razor.config["microkernel.kernel_args"]}"
+    end
+
+    # We could just blast the old @@mkupdates and repopulate, however,
+    # because re-tarring unchanged files WILL result in a new MD5, we
+    # need to preserve exisitng update objects and their tars.  So we will
+    # refresh the objects that we already have and get new ones. ATM, the
+    # only way to get new ones is to get all and ditch the ones we  already
+    # have.  If this becomes an issue, it can be re-visited later. 
+    def refresh_mk_updates
+      if Time.now.to_i - @@mkupdates_last_refresh >= @@mkupdates_timeout
+        logger.info("Refreshing MK updates.")
+
+        #Look for changes in existing updates
+        @@mkupdates.each do |u| 
+          u.refresh
+        end
+
+        #Look for new updates
+        known_updates = @@mkupdates.map { |u| u.name }
+        new_updates   = Razor::MkUpdate.all.reject { |update|
+          known_updates.include?(update.name)
+        }
+        (@@mkupdates << new_updates).flatten!.sort! {|a,b| a.name <=> b.name }
+        @@mkupdates_last_refresh = Time.now.to_i
+      end
     end
   end
 
@@ -431,6 +461,44 @@ class Razor::App < Sinatra::Base
       send_file fpath, :disposition => nil
     else
       [404, { :error => _("File %{path} not found") % {path: path} }.to_json ]
+    end
+  end
+
+  # The MK should call this to get data about all the available updates  
+  get '/svc/mkupdates' do
+    refresh_mk_updates
+
+    updates = Hash.new()
+    @@mkupdates.each { |update|
+      updates["#{update.name}.tar.gz"] = {
+        'version'  => update.version,
+        'root_dir' => update.root_dir,
+        'md5'      => update.md5
+      }
+    }
+    updates.to_json
+  end
+
+  # The MK should retrieve updates from this endpoint.  If the client
+  # includes an 'If-None-Match' header containing the hex MD5 of a
+  # previously retrieved TAR file, the server will return a 304 Not Modified
+  # if the update has not changed.
+  get '/svc/mkupdates/:update_name' do
+    if params[:update_name] =~ /\.tar\.gz$/
+      name = params[:update_name].match(/(.+)\.tar\.gz$/)[1]
+      if update = @@mkupdates.select { |u| u.name == name }.first
+        #if the reqest has an etag that matches the md5 of the update tar
+        #send back a not modified.
+        etag update.md5
+
+        #Send the tar
+        content_type 'application/octet-stream'
+        update.tar
+      else
+        [404, { :error => "Update #{name} not found" }.to_json]
+      end
+    else
+      [404, { :error => "Update must be a .tar.gz file" }.to_json]
     end
   end
 
