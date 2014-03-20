@@ -825,7 +825,9 @@ class Razor::App < Sinatra::Base
   command :create_policy do |data|
     check_permissions! "commands:create-policy:#{data['name']}"
 
-    tags = (data.delete("tags") || []).map do |t|
+    tags = (data.delete("tags") || [])
+    tags.is_a?(Array) or error 400, :error => "tags must be an array"
+    tags = tags.map do |t|
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
 

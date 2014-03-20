@@ -50,6 +50,12 @@ describe "create policy command" do
       last_response.json["id"].should =~ %r'/api/collections/policies/test%20policy\Z'
     end
 
+    it "should fail if the tags value is a string" do
+      policy_hash[:tags] = ""
+      create_policy
+      last_response.status.should == 400
+    end
+
     it "should fail if a nonexisting tag is referenced" do
       policy_hash[:tags] = [ { "name" => "not_a_tag"} ]
       create_policy
