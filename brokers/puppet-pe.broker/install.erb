@@ -12,7 +12,7 @@ cmd()  { hash "$1" >&/dev/null; } # portable 'which'
 cmd bash || fail "we need bash available to be able to run the installer"
 
 # ...our nice, generic, delegatable script.
-url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:version] || 'current' %>/install.bash"
+url="https://<%= (node.metadata['puppet_server'] || broker[:server] || 'puppet') %>:8140/packages/<%= broker[:version] || 'current' %>/install.bash"
 
 # Now, figure out how to download and run the script we need...
 if cmd curl; then
