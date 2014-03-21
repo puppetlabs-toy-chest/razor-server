@@ -3,11 +3,12 @@ require 'set'
 
 class Razor::Validation::HashSchema
   def initialize(command)
-    @command            = command
-    @authz_template     = "\"commands:#{@command}\""
-    @authz_dependencies = []
-    @attributes         = {}
-    @require_one_of     = []
+    @command             = command
+    @authz_template      = "\"commands:#{@command}\""
+    @authz_dependencies  = []
+    @attributes          = {}
+    @extra_attr_patterns = {}
+    @require_one_of      = []
   end
 
   # Perform any final checks that our content is sane, for things that could
@@ -70,11 +71,21 @@ class Razor::Validation::HashSchema
       end
     end
 
-    # Check to see if extra attributes are present, since we presently
-    # disallow them completely.  (@todo danielp 2014-03-11: that will not last
-    # forever, and we will need to make this optional, but we should wait
-    # until we understand how that works before we act. :)
+    # Check to see if extra attributes are present.  Then we remove any that
+    # are matched by our extra attribute patterns, and finally fail if there
+    # are still more.
     extra_attributes = data.keys - @attributes.keys
+
+    @extra_attr_patterns.each do |pattern, check|
+      extra_attributes = extra_attributes.reject do |name|
+        next false unless name =~ pattern
+        check.validate!(data, name)
+        true
+      end
+    end
+
+    # Disallow any additional attributes.  If you didn't match something, we
+    # reject you.
     unless extra_attributes.empty?
       msg = n_(
         'extra attribute %{extra} was present, but is not allowed',
@@ -113,9 +124,17 @@ class Razor::Validation::HashSchema
     @authz_template = @authz_template[0..-2] + ':' + authz + '"'
   end
 
-  def attr(name, checks)
+  def attr(name, checks = {})
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     @attributes[name] = Razor::Validation::Attribute.new(name, checks)
+  end
+
+  def object(name, checks = {}, &block)
+    name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
+    block.is_a?(Proc)  or raise ArgumentError, "object #{name} must have a block to define it"
+    schema = Razor::Validation::DSL.build(name, block)
+    @attributes[name] = Razor::Validation::Attribute.
+      new(name, checks.merge(schema: schema))
   end
 
   def require_one_of(*attributes)
@@ -131,5 +150,24 @@ class Razor::Validation::HashSchema
     # append the array of attributes to the set to check, since each
     # invocation of this creates a new, independent assertion.
     @require_one_of << attributes
+  end
+
+  def extra_attrs(matches, checks = nil)
+    # One argument, and it is a hash, the user went directly to checks that
+    # are applied to every single extra attribute found.
+    if checks.nil?
+      checks = matches
+      matches  = /./
+    end
+
+    checks.is_a?(Hash) or raise TypeError, "must be followed by a hash"
+
+    Array(matches).flatten.each do |match|
+      match.is_a?(Regexp) or
+        raise ArgumentError, "extra_attrs must be given a regexp, or an array of the same"
+
+      @extra_attr_patterns[match] = Razor::Validation::Attribute.new(match, checks)
+    end
+
   end
 end

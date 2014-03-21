@@ -750,6 +750,21 @@ class Razor::App < Sinatra::Base
     {result: _("set desired power state to %{state}") % {state: data['to'] || 'ignored (null)'}}
   end
 
+  validate :create_task do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+    attr  'os',   type: String, required: true
+
+    object 'templates', required: true do
+      extra_attrs type: String
+    end
+
+    object 'boot_seq' do
+      attr 'default', type: String
+      extra_attrs /^[0-9]+/, type: String
+    end
+  end
+
   command :create_task do |data|
     check_permissions! "commands:create-task:#{data['name']}"
 

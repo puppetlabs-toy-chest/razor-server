@@ -33,38 +33,35 @@ describe "create task command" do
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
 
-    [
-      "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
-    ].map(&:to_json).each do |input|
+    ["foo", 100, 100.1, -100, true, false].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
         create_task input
         last_response.status.should == 400
       end
     end
 
-    # Spot check that validation errors are surfaced as 400
     it "should fail if name is missing" do
       task_hash.delete(:name)
       create_task
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should fail if os is missing" do
       task_hash.delete(:os)
       create_task
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should fail if boot_seq hash has keys that are strings != 'default'" do
       task_hash[:boot_seq]["sundays"] = "local"
       create_task
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should fail if templates is not a hash" do
       task_hash[:templates] = ["stuff"]
       create_task
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     # Successful creation

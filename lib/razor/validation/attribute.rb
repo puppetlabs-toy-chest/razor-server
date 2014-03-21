@@ -1,8 +1,15 @@
 # -*- encoding: utf-8 -*-
 class Razor::Validation::Attribute
   def initialize(name, checks)
-    name.is_a?(String) or raise TypeError, "attribute name must be a string"
-    name =~ /\A[-a-z0-9]+\z/ or raise ArgumentError, "attribute name is not valid"
+    case name
+    when String
+      name =~ /\A[-_a-z0-9]+\z/ or raise ArgumentError, "attribute name is not valid"
+    when Regexp
+      # no additional validation at this stage, but we should add some!
+    else
+      raise TypeError, "attribute name must be a string"
+    end
+
     @name = name
 
     checks.is_a?(Hash) or raise TypeError, "must be followed by a hash"
@@ -22,25 +29,27 @@ class Razor::Validation::Attribute
     end
   end
 
-  def validate!(data)
+  def validate!(data, name = nil)
+    name ||= @name
+
     # if the key is not present, fail if required, otherwise we are done validating.
-    unless data.has_key?(@name)
+    unless data.has_key?(name)
       @required and
-        raise Razor::ValidationFailure, _("required attribute %{name} is missing") % {name: @name}
+        raise Razor::ValidationFailure, _("required attribute %{name} is missing") % {name: name}
       return true
     end
 
     @exclude and @exclude.each do |what|
       data.has_key?(what) and
-        raise Razor::ValidationFailure, _("if %{name} is present, %{exclude} must not be present") % {name: @name, exclude: what}
+        raise Razor::ValidationFailure, _("if %{name} is present, %{exclude} must not be present") % {name: name, exclude: what}
 
     @also and @also.each do |what|
         data.has_key?(what) or
-          raise Razor::ValidationFailure, _("if %{name} is present, %{also} must also be present") % {name: @name, also: @also.join(', ')}
+          raise Razor::ValidationFailure, _("if %{name} is present, %{also} must also be present") % {name: name, also: @also.join(', ')}
       end
     end
 
-    value = data[@name]
+    value = data[name]
 
     if @type
       Array(@type).any? do |check|
@@ -52,7 +61,7 @@ class Razor::Validation::Attribute
         begin
           check[:validate] and check[:validate].call(value)
         rescue => e
-          raise Razor::ValidationFailure, _("attribute %{name} fails type checking for %{type}: %{error}") % {name: @name, type: ruby_type_to_json(check[:type]), error: e.to_s}
+          raise Razor::ValidationFailure, _("attribute %{name} fails type checking for %{type}: %{error}") % {name: name, type: ruby_type_to_json(check[:type]), error: e.to_s}
         end
 
         # If we got here we passed all the checks, and have a match, so we are good.
@@ -61,20 +70,24 @@ class Razor::Validation::Attribute
         "attribute %{name} has wrong type %{actual} where %{expected} was expected",
         "attribute %{name} has wrong type %{actual} where one of %{expected} was expected",
         Array(@type).count) % {
-        name:     @name,
+        name:     name,
         actual:   ruby_type_to_json(value),
         expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
 
     if @references
       @references[@refname => value] or
-        raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: @name}, 404)
+        raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: name}, 404)
     end
 
     if @one_of
       @one_of.any? {|match| value == match } or
-        raise Razor::ValidationFailure, _("attribute %{name} must refer to one of %{valid}") % {name: @name, valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
+        raise Razor::ValidationFailure, _("attribute %{name} must refer to one of %{valid}") % {name: name, valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
     end
+
+    # If we have a nested schema, just throw the value into it to see if it
+    # is valid.  That handles the nesting case nicely.
+    if @nested_schema then @nested_schema.validate!(value) end
 
     return true
   end
@@ -132,5 +145,11 @@ class Razor::Validation::Attribute
     what.uniq == what or raise ArgumentError, "one_of contains duplicate values"
 
     @one_of = what
+  end
+
+  def schema(schema)
+    schema.is_a?(Razor::Validation::HashSchema) or
+      raise ArgumentError, "schema must be a schema instance; use 'object' to define this"
+    @nested_schema = schema
   end
 end

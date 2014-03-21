@@ -12,7 +12,7 @@ describe Razor::Validation::Attribute do
         to raise_error(/attribute name must be a string/)
     end
 
-    ['Boom', 'boo_yah', 'bing bang', 'bro()'].each do |input|
+    ['Boom', 'bing bang', 'bro()'].each do |input|
       it "should fail if the name has illegal characters (#{input.inspect})" do
         expect { attr.new(input, {}) }.
           to raise_error(/attribute name is not valid/)
