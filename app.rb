@@ -808,15 +808,15 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :update_tag_rule do |data|
-    check_permissions! "commands:update-tag-rule:#{data['name']}"
+  validate :update_tag_rule do
+    authz '%{name}'
+    attr  'name',  type: String, required: true, references: Razor::Data::Tag
+    attr  'rule',  type: Array
+    attr  'force', type: :bool
+  end
 
-    data["name"] or
-      error 400, :error => _("Supply a name to indicate which tag to update")
-    data["rule"] or
-      error 400, :error => _("Supply a new rule for tag %{name}") % {name: data["name"]}
-    tag = Razor::Data::Tag[:name => data["name"]] or
-      error 404, :error => _("Tag '%{name}' does not exist") % {name: data["name"]}
+  command :update_tag_rule do |data|
+    tag = Razor::Data::Tag[:name => data["name"]]
     data["force"] or tag.policies.empty? or
       error 400, :error => _("Tag '%{name}' is used by policies and 'force' is false") % {name: data["name"]}
     if tag.rule != data["rule"]
