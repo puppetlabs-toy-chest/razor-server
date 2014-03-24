@@ -46,6 +46,7 @@ namespace :db do
     # @todo lutter 2014-01-16: figure out a more sustainable way to
     # clean out the database
     Razor.database.run("DROP TYPE IF EXISTS power_state")
+    Razor.database.run("DROP TYPE IF EXISTS command_status")
   end
 
   desc "Reset the database"

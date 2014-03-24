@@ -139,3 +139,4 @@ Tag    = Razor::Data::Tag
 Repo   = Razor::Data::Repo
 Policy = Razor::Data::Policy
 Broker = Razor::Data::Broker
+Command= Razor::Data::Command

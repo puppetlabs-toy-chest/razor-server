@@ -143,3 +143,8 @@ Fabricator(:bound_node, from: :node) do
     node.save
   end
 end
+
+Fabricator(:command) do
+  command 'do-something'
+  status  'pending'
+end
