@@ -789,11 +789,13 @@ class Razor::App < Sinatra::Base
     Razor::Data::Tag.find_or_create_with_rule(data)
   end
 
-  command :delete_tag do |data|
-    check_permissions! "commands:delete-tag:#{data['name']}"
+  validate :delete_tag do
+    authz '%{name}'
+    attr  'name',  type: String, required: true
+    attr  'force', type: :bool
+  end
 
-    data["name"] or
-      error 400, :error => _("Supply a name to indicate which tag to delete")
+  command :delete_tag do |data|
     if tag = Razor::Data::Tag[:name => data["name"]]
       data["force"] or tag.policies.empty? or
         error 400, :error => _("Tag '%{name}' is used by policies and 'force' is false") % {name: data["name"]}

@@ -98,15 +98,22 @@ class Razor::Validation::Attribute
 
   def type(which)
     which = Array(which)
-    which.all? {|x| x.nil? or x.is_a?(Module) } and not which.empty? or
-      raise ArgumentError, "type checks must be passed a class, module, nil, or an array of the same"
+    which.empty? and raise ArgumentError, "type checks must be passed some type to check"
 
     @type = which.map do |entry|
-      if    entry.nil?   then {type: NilClass}
-      elsif entry <= URI then {type: String, validate: -> str { URI.parse(str) }}
-      else                    {type: entry}
+      case entry
+      when nil    then {type: NilClass}
+      when :bool  then [{type: TrueClass}, {type: FalseClass}]
+      when Module then
+        if entry <= URI then
+          {type: String, validate: -> str { URI.parse(str) }}
+        else
+          {type: entry}
+        end
+      else
+        raise ArgumentError, "type checks must be passed a class, module, nil, or an array of the same (got #{which.inspect})"
       end
-    end
+    end.flatten
   end
 
   def exclude(what)

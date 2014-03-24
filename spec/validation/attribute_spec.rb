@@ -111,10 +111,17 @@ describe Razor::Validation::Attribute do
   context "type" do
     subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
 
-    ["String", true, false, {}, [], 1, 1.1, :string].each do |input|
+    ["String", true, false, 1, 1.1, :string].each do |input|
       it "should fail unless the type is a class or module (#{input.inspect})" do
         expect { attr.type(input) }.
           to raise_error(/type checks must be passed a class, module, nil, or an array of the same/)
+      end
+    end
+
+    [[], {}].each do |input|
+      it "should fail if given an empty collection (#{input.inspect})" do
+        expect { attr.type(input) }.
+          to raise_error(/type checks must be passed some type to check/)
       end
     end
   end
