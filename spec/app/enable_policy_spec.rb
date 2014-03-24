@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "commands to change a policy's 'enabled' flag" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -35,7 +35,7 @@ describe "commands to change a policy's 'enabled' flag" do
         policy.enabled = verb == "disable"
         policy.save
 
-        post "/api/commands/#{verb}-policy", { "name" => policy.name }.to_json
+        command "#{verb}-policy", { "name" => policy.name }
 
         last_response.status.should == 202
         last_response.json?.should be_true

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "modify node metadata command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:node) do
     Fabricate(:node)
@@ -17,7 +17,7 @@ describe "modify node metadata command" do
   end
 
   def modify_metadata(data)
-    post '/api/commands/modify-node-metadata', data.to_json
+    command 'modify-node-metadata', data
   end
 
   it "should require a node" do

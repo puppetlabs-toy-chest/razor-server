@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "update-tag-rule" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -14,7 +14,7 @@ describe "update-tag-rule" do
     params = { "name" => name }
     params["rule"] = rule unless rule.nil?
     params["force"] = force unless force.nil?
-    post '/api/commands/update-tag-rule', params.to_json
+    command 'update-tag-rule', params
   end
 
   before :each do

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "policy-remove-tag" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
 
@@ -11,7 +11,7 @@ describe "policy-remove-tag" do
     data = {}
     name and data['name'] = name
     tag and data['tag'] = tag
-    post '/api/commands/remove-policy-tag', data.to_json
+    command 'remove-policy-tag', data
   end
 
   context "/api/commands/policy-remove-tag" do

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "create policy command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -35,8 +35,8 @@ describe "create policy command" do
     end
 
     def create_policy(input = nil)
-      input ||= policy_hash.to_json
-      post '/api/commands/create-policy', input
+      input ||= policy_hash
+      command 'create-policy', input
     end
 
     # Successful creation

@@ -5,7 +5,7 @@ require_relative '../../app'
 require 'pathname'
 
 describe "create broker command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
 
@@ -27,9 +27,9 @@ describe "create broker command" do
       }
     end
 
-    def create_broker(command)
-      post '/api/commands/create-broker', command.to_json
-      command
+    def create_broker(params)
+      command 'create-broker', params
+      params
     end
 
     it "should reject bad JSON" do
