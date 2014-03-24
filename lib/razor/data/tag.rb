@@ -82,8 +82,7 @@ class Razor::Data::Tag < Sequel::Model
   #
   # Violation of these rules lead to an +ArgumentError+ being thrown.
   def self.find_or_create_with_rule(data)
-    name = data["name"] or
-      raise ArgumentError, _("Tags must have a 'name'")
+    name = data['name']
     if tag = find(:name => name)
       data["rule"].nil? or data["rule"] == tag.rule or
         raise ArgumentError, _("Provided rule and existing rule for existing tag '%{name}' must be equal") % {name: name}

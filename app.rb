@@ -779,8 +779,13 @@ class Razor::App < Sinatra::Base
     Razor::Data::Task.new(data).save.freeze
   end
 
+  validate :create_tag do
+    authz '%{name}'
+    attr  'name', type: String, required: true
+    attr  'rule', type: Array
+  end
+
   command :create_tag do |data|
-    check_permissions! "commands:create-tag:#{data['name']}"
     Razor::Data::Tag.find_or_create_with_rule(data)
   end
 
