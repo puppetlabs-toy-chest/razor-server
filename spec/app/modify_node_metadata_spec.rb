@@ -77,7 +77,7 @@ describe "modify node metadata command" do
 
     it "should create a new metadata item on a node" do
       id = node.id
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} } 
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
@@ -85,10 +85,10 @@ describe "modify node metadata command" do
     end
 
     it "should update the value of an existing tag" do
-      id = node.id      
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} } 
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2'} } 
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2'} }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
@@ -96,10 +96,10 @@ describe "modify node metadata command" do
     end
 
     it "should NOT update the value of an existing tag if no_replace is set" do
-      id = node.id      
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} } 
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true } 
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
@@ -108,10 +108,10 @@ describe "modify node metadata command" do
     end
 
     it "should add and update multiple items" do
-      id = node.id      
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} } 
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2', 'k3' => 'v3' } } 
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2', 'k3' => 'v3' } }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
@@ -129,7 +129,7 @@ describe "modify node metadata command" do
     end
 
     it "should remove a single item" do
-      id = node.id      
+      id = node.id
       data = { 'node' => "node#{id}", 'remove' => ['k1'] }
       modify_metadata(data)
       last_response.status.should == 202
@@ -138,7 +138,7 @@ describe "modify node metadata command" do
     end
 
     it "should remove multiple pieces of metadata" do
-      id = node.id      
+      id = node.id
       data = { 'node' => "node#{id}", 'remove' => ['k1', 'k2'] }
       modify_metadata(data)
       last_response.status.should == 202
@@ -156,10 +156,10 @@ describe "modify node metadata command" do
     end
 
     it "should processes both the update and remove tasks" do
-      id = node.id      
-      data = { 
+      id = node.id
+      data = {
         'node'   => "node#{id}",
-        'update' => { 
+        'update' => {
           'k1' => 'v10',
           'k2' => 'v20',
         },
@@ -182,7 +182,7 @@ describe "modify node metadata command" do
     end
 
     it "should remove all metadata when clear is string true" do
-      id = node.id      
+      id = node.id
       data = { 'node' => "node#{id}", 'clear' => 'true' }
       modify_metadata(data)
       last_response.status.should == 202
@@ -191,7 +191,7 @@ describe "modify node metadata command" do
     end
 
     it "should remove all metadata when clear is boolean true" do
-      id = node.id      
+      id = node.id
       data = { 'node' => "node#{id}", 'clear' => true }
       modify_metadata(data)
       last_response.status.should == 202
