@@ -57,4 +57,56 @@ describe Razor::Data::Command do
       command.error[1]['message'].should == exc1.to_s
     end
   end
+
+  describe 'start' do
+    it "should set command and params" do
+      cmd = Command.start('hello', { "param" => "value" }, 'fred')
+      cmd.command.should == 'hello'
+      cmd.params.should == { "param" => "value" }
+      cmd.status.should be_nil
+      cmd.submitted_at.should_not be_nil
+      cmd.submitted_by.should == 'fred'
+    end
+
+    it "should accept a user of nil" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.submitted_by.should be_nil
+    end
+  end
+
+  describe 'store' do
+    it "without arguments should mark a command as finished and save it" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.store
+      cmd = Command[cmd.id]
+      cmd.status.should == 'finished'
+      cmd.finished_at.should_not be_nil
+    end
+
+    it "should overwrite status when supplied" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.status = 'nonsense'
+      cmd.store('pending')
+      cmd = Command[cmd.id]
+      cmd.status.should == 'pending'
+      cmd.finished_at.should be_nil
+    end
+
+    it "should set finished_at when transitioning to 'finished'" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.store('pending')
+      cmd.finished_at.should be_nil
+      cmd.store('finished')
+      cmd = Command[cmd.id]
+      cmd.finished_at.should_not be_nil
+    end
+
+    it "should preserve status if non passed in" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.status = 'pending'
+      cmd.store
+      cmd = Command[cmd.id]
+      cmd.status.should == 'pending'
+    end
+  end
 end
