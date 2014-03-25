@@ -76,8 +76,8 @@ class Razor::Validation::Attribute
     end
 
     if @references
-      @references[@refname => value] or
-        raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: name}, 404)
+      found = @references.find(@refname => value) rescue nil
+      found or raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: name}, 404)
     end
 
     if @one_of
@@ -133,10 +133,14 @@ class Razor::Validation::Attribute
   end
 
   def references(what)
-    what.is_a?(Class) and what <= Sequel::Model or
-      raise ArgumentError, "attribute references must be a Sequel::Model class"
-    @references = what
-    @refname    = @name.to_sym
+    const, key = what
+
+    unless const.is_a?(Class) and const.respond_to?('find')
+      raise ArgumentError, "attribute references must be a class that respond to find(key: value)"
+    end
+
+    @references = const
+    @refname    = (key or @name).to_sym
   end
 
   ValidTypesForOneOf = [String, Numeric, TrueClass, FalseClass, NilClass]

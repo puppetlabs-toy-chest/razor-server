@@ -152,16 +152,11 @@ describe Razor::Validation::Attribute do
   context "references" do
     subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
 
-    [[], [Razor::Data::Node], Object, URI, String].each do |input|
+    [[], Object, URI, String].each do |input|
       it "should fail if the argument is not a Sequel::Model #{input.inspect}" do
         expect { attr.references(input) }.
-          to raise_error(/attribute references must be a Sequel::Model class/)
+          to raise_error(/attribute references must be a class that respond to find/)
       end
-    end
-
-    it "should fail if an instance is given" do
-      expect { attr.references(Fabricate(:node)) }.
-        to raise_error(/attribute references must be a Sequel::Model class/)
     end
 
     it "should accept a Sequel::Model derived class" do

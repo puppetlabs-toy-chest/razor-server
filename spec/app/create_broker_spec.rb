@@ -38,9 +38,7 @@ describe "create broker command" do
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
 
-    [
-     "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
-    ].map(&:to_json).each do |input|
+    ["foo", 100, 100.1, -100, true, false].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
         post '/api/commands/create-broker', input
         last_response.status.should == 400
@@ -50,16 +48,16 @@ describe "create broker command" do
     it "should fail if the named broker does not actually exist" do
       create_broker broker_command.merge 'broker-type' => 'no-such-broker-for-me'
 
-      last_response.status.should == 400
-      last_response.body.should == "Broker type 'no-such-broker-for-me' not found"
+      last_response.status.should == 404
+      last_response.json['error'].should == 'attribute broker-type must refer to an existing instance'
     end
 
     it "should fail cleanly if 'configuration' is a string" do
       broker_command['configuration'] = '{"arg1": "value1"}'
       create_broker broker_command
 
-      last_response.status.should == 400
-      last_response.body.should == "configuration must be a Hash"
+      last_response.status.should == 422
+      last_response.json['error'].should == "expected object but got string"
     end
     # Successful creation
     it "should return 202, and the URL of the broker" do

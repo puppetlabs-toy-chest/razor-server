@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'spec_helper'
 
-describe Razor::BrokerType.find('puppet') do
+describe Razor::BrokerType.find(name: 'puppet') do
   let :broker do
     Razor::Data::Broker.new(:name => 'puppet-test', :broker_type => subject)
   end

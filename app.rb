@@ -828,17 +828,19 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :create_broker do |data|
-    check_permissions! "commands:create-broker:#{data['name']}"
+  validate :create_broker do
+    authz  '%{name}'
+    attr   'name', type: String, required: true
+    attr   'broker-type', type: String, references: [Razor::BrokerType, :name]
+    object 'configuration' do
+      extra_attrs /./
+    end
+  end
 
+  command :create_broker do |data|
     if type = data.delete("broker-type")
-      begin
-        data["broker_type"] = Razor::BrokerType.find(type)
-      rescue Razor::BrokerTypeNotFoundError
+      data["broker_type"] = Razor::BrokerType.find(name: type) or
         halt [400, _("Broker type '%{name}' not found") % {name: type}]
-      rescue => e
-        halt 400, e.to_s
-      end
     end
 
     Razor::Data::Broker.new(data).save

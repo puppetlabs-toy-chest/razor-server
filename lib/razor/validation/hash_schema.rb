@@ -152,10 +152,10 @@ class Razor::Validation::HashSchema
     @require_one_of << attributes
   end
 
-  def extra_attrs(matches, checks = nil)
+  def extra_attrs(matches, checks = {})
     # One argument, and it is a hash, the user went directly to checks that
     # are applied to every single extra attribute found.
-    if checks.nil?
+    if checks.empty? and matches.is_a?(Hash)
       checks = matches
       matches  = /./
     end

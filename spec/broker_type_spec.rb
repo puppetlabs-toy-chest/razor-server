@@ -110,22 +110,20 @@ describe Razor::BrokerType do
         end
       end
 
-      it "should raise if the broker is not found" do
-        expect { Razor::BrokerType.find('foo') }.
-          to raise_error Razor::BrokerTypeNotFoundError
+      it "should return nil if the broker is not found" do
+        Razor::BrokerType.find(name: 'foo').should be_nil
       end
 
-      it "should raise 'not found' if the broker is a file, because it is ignored" do
+      it "should return nil if the broker is a file, because it is ignored" do
         fake = (Pathname(Razor.config.broker_paths.first) + 'test.broker')
         fake.open('w') {|f| f.puts "this is not a valid broker" }
-        expect { Razor::BrokerType.find('foo') }.
-          to raise_error Razor::BrokerTypeNotFoundError
+        Razor::BrokerType.find(name: 'foo').should be_nil
       end
 
       it "should return a Razor::BrokerType if the broker is found" do
         broker = {'test' => {'install.erb' => "# no real content here\n"}}
         with_brokers_in(paths.first => broker) do
-          Razor::BrokerType.find('test').should be_an_instance_of Razor::BrokerType
+          Razor::BrokerType.find(name: 'test').should be_an_instance_of Razor::BrokerType
         end
       end
 
@@ -133,7 +131,7 @@ describe Razor::BrokerType do
         broker = {'test' => {}}
         with_brokers_in(paths.first => broker) do
           expect {
-            Razor::BrokerType.find('test')
+            Razor::BrokerType.find(name: 'test')
           }.to raise_error Razor::BrokerTypeInvalidError, /install template/
         end
       end
@@ -143,7 +141,7 @@ describe Razor::BrokerType do
         with_brokers_in(paths.first => broker) do
           (Pathname(paths.first) + 'test.broker' + 'install.erb').chmod(0000)
           expect {
-            Razor::BrokerType.find('test')
+            Razor::BrokerType.find(name: 'test')
           }.to raise_error Razor::BrokerTypeInvalidError, /install template/
         end
       end
@@ -165,7 +163,7 @@ describe Razor::BrokerType do
         it "should find a broker in the #{text} path" do
           broker = {'test' => {'install.erb' => "# no real content here\n"}}
           with_brokers_in(paths[slot] => broker) do
-            Razor::BrokerType.find('test').should be_an_instance_of Razor::BrokerType
+            Razor::BrokerType.find(name: 'test').should be_an_instance_of Razor::BrokerType
           end
         end
       end
@@ -174,7 +172,7 @@ describe Razor::BrokerType do
         first  = {'test' => {'install.erb' => "# this is the first broker\n"}}
         second = {'test' => {'install.erb' => "# this is the second broker\n"}}
         with_brokers_in(paths.first => first, paths.last => second) do
-          broker = Razor::BrokerType.find('test')
+          broker = Razor::BrokerType.find(name: 'test')
           broker.should be_an_instance_of Razor::BrokerType
           broker.name.should == 'test'
           broker.send(:install_template_path).to_s.should start_with(paths.first)
@@ -189,7 +187,7 @@ describe Razor::BrokerType do
         }
         with_brokers_in(paths[1] => brokers) do
           brokers.keys.each do |name|
-            Razor::BrokerType.find(name).name.should == name
+            Razor::BrokerType.find(name: name).name.should == name
           end
         end
       end
@@ -202,7 +200,7 @@ describe Razor::BrokerType do
         }
         with_brokers_in(paths[1] => brokers) do
           Razor::BrokerType.all.each do |name|
-            Razor::BrokerType.find(name).name.should == name
+            Razor::BrokerType.find(name: name).name.should == name
           end
         end
       end
@@ -221,7 +219,7 @@ describe Razor::BrokerType do
     it "should return an empty hash with no configuration data" do
       broker = {'test' => {'install.erb' => "# no real content here\n",}}
       with_brokers_in(path => broker) do
-        Razor::BrokerType.find('test').configuration_schema.should == {}
+        Razor::BrokerType.find(name: 'test').configuration_schema.should == {}
       end
     end
 
@@ -233,7 +231,7 @@ describe Razor::BrokerType do
           'configuration.yaml' => config.to_yaml}}
 
       with_brokers_in(path => broker) do
-        Razor::BrokerType.find('test').configuration_schema.should == config
+        Razor::BrokerType.find(name: 'test').configuration_schema.should == config
       end
     end
 
@@ -244,7 +242,7 @@ describe Razor::BrokerType do
 
       with_brokers_in(path => broker) do
         expect {
-          Razor::BrokerType.find('test').configuration_schema
+          Razor::BrokerType.find(name: 'test').configuration_schema
         }.to raise_error Psych::SyntaxError
       end
     end
@@ -268,7 +266,7 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "# no real content here\n"}}
       with_brokers_in(paths.first => broker) do
         expect {
-          b = Razor::BrokerType.find('test')
+          b = Razor::BrokerType.find(name: 'test')
           b.install_script(self, broker_instance_for(b))
         }.to raise_error TypeError, /Razor::Data::Node/
       end
@@ -278,7 +276,7 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "# no real content here\n"}}
       with_brokers_in(paths.first => broker) do
         node   = Razor::Data::Node.new
-        broker = Razor::BrokerType.find('test')
+        broker = Razor::BrokerType.find(name: 'test')
         script = broker.install_script(node, broker_instance_for(broker))
         script.should be_an_instance_of String
         script.should == "# no real content here\n"
@@ -289,7 +287,7 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "<%= node.name %>"}}
       with_brokers_in(paths.first => broker) do
         node   = Fabricate(:node)
-        broker = Razor::BrokerType.find('test')
+        broker = Razor::BrokerType.find(name: 'test')
         script = broker.install_script(node, broker_instance_for(broker))
         script.should == node.name
       end
@@ -300,7 +298,7 @@ describe Razor::BrokerType do
       with_brokers_in(paths.first => broker) do
         node = Fabricate(:node, :hw_info => [ "mac=12345678" ])
         expect {
-          broker = Razor::BrokerType.find('test')
+          broker = Razor::BrokerType.find(name: 'test')
           script = broker.install_script(node, broker_instance_for(broker))
         }.to raise_error /frozen/
         node.hw_info.should == [ "mac=12345678" ]
@@ -312,7 +310,7 @@ describe Razor::BrokerType do
         {'install.erb' => "<%= broker[:foo] = 'bar' %>"}}
       with_brokers_in(paths.first => broker) do
         node     = Razor::Data::Node.new
-        broker   = Razor::BrokerType.find('test')
+        broker   = Razor::BrokerType.find(name: 'test')
         config   = {'1' => 1, '2' => 2.0}
         instance = broker_instance_for(broker, config)
         instance.configuration.should == config
@@ -329,7 +327,7 @@ describe Razor::BrokerType do
       broker = {'test' => {'install.erb' => "<%= @foo = 'exploited!' %>"}}
       with_brokers_in(paths.first => broker) do
         node     = Razor::Data::Node.new
-        broker   = Razor::BrokerType.find('test')
+        broker   = Razor::BrokerType.find(name: 'test')
         instance = broker_instance_for(broker)
 
         expect {

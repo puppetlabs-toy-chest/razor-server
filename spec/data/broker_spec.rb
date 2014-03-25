@@ -29,7 +29,7 @@ describe Razor::Data::Broker do
 
   # Deliberately not memorizing the result of this; do that yourself.
   def broker
-    Razor::BrokerType.find('test')
+    Razor::BrokerType.find(name: 'test')
   end
 
   describe "name" do
