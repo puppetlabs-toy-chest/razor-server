@@ -65,9 +65,7 @@ describe Razor::ScheduledJobs::IPMI do
       queue.count.should == 3
       sent = queue.peek_at_all.map {|m| m[:body]['instance'] }
 
-      # This should always work reliably, I think.  If not we probably have to
-      # sort or something equally nasty.
-      sent.should == want
+      sent.should =~ want
     end
   end
 end
