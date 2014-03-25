@@ -82,7 +82,7 @@ describe "command and query API" do
         "name" => "magicos",
         "iso-url" => "file:///dev/null",
         "task"    => {"name" => "some_os"},
-      }
+      }, :status => :pending
 
       last_response.status.should == 202
       last_response.mime_type.downcase.should == 'application/json'
@@ -97,7 +97,7 @@ describe "command and query API" do
         "name" => "magicos",
         "iso-url" => "file:///dev/null",
         "task"    => {"name" => "some_os"},
-      }
+      }, :status => :pending
 
       Repo.find(:name => "magicos").should be_an_instance_of Repo
     end

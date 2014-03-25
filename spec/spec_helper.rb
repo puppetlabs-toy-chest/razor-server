@@ -161,14 +161,15 @@ module Razor::Test
     #
     # If the command succeeds, check that the return code is 202, and that
     # an entry was made into the command log, and check its sanity
-    def command(name, params)
+    def command(name, params, opts = {})
       post "/api/commands/#{name}", params.to_json
+      status = (opts[:status] || 'finished').to_s
       if last_response.successful?
         last_response.status.should == 202
         last_response.command.should_not be_nil
         last_response.command.command.should == name.to_s
         last_response.command.params.should == stringify_keys(params)
-        last_response.command.status.should == 'finished'
+        last_response.command.status.should == status
       end
     end
 

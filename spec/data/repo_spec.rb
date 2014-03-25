@@ -257,16 +257,20 @@ describe Razor::Data::Repo do
 
   context "after creation" do
     it "should automatically 'make_the_repo_accessible'" do
-      repo = Fabricate.build(:repo)
-      expect { repo.save }.
+      data = Fabricate.build(:repo).to_hash
+      command = Fabricate(:command)
+      expect { Razor::Data::Repo.import(command, data) }.
         to have_published(
-        'class'    => repo.class.name,
+        'class'    => Razor::Data::Repo.name,
         # Because we can't look into the future and see what that the PK will
         # be without saving, but we can't save without publishing the message
         # and spoiling the test, we have to check this more liberally...
         'instance' => include(:id => be),
+        'command'  => { :id => command.id },
         'message'  => 'make_the_repo_accessible'
       ).on(queue)
+      command.reload
+      command.status.should == 'pending'
     end
   end
 
@@ -275,20 +279,23 @@ describe Razor::Data::Repo do
       let :tmpfile do Tempfile.new(['make_the_repo_accessible', '.iso']) end
       let :path    do tmpfile.path end
       let :repo   do Fabricate(:repo, :iso_url => "file://#{path}") end
+      let :command do Fabricate(:command) end
 
       it "should raise (to trigger a retry) if the repo is not readable" do
         File.chmod(00000, path) # yes, *no* permissions, thanks
         expect {
-          repo.make_the_repo_accessible
+          repo.make_the_repo_accessible(command)
         }.to raise_error RuntimeError, /unable to read local file/
+        command.status.should == 'running'
       end
 
       it "should publish 'unpack_repo' if the repo is readable" do
         expect {
-          repo.make_the_repo_accessible
+          repo.make_the_repo_accessible(command)
         }.to have_published(
            'class'     => repo.class.name,
            'instance'  => repo.pk_hash,
+           'command'   => { :id => command.id },
            'message'   => 'unpack_repo',
            'arguments' => [path]
         ).on(queue)
@@ -298,10 +305,11 @@ describe Razor::Data::Repo do
         repo.iso_url = "FILE://#{path}"
 
         expect {
-          repo.make_the_repo_accessible
+          repo.make_the_repo_accessible(command)
         }.to have_published(
           'class'     => repo.class.name,
           'instance'  => repo.pk_hash,
+          'command'   => { :id => command.id },
           'message'   => 'unpack_repo',
           'arguments' => [path]
         ).on(queue)
@@ -347,6 +355,8 @@ describe Razor::Data::Repo do
 
       let :repo do Fabricate(:repo) end
 
+      let :command do Fabricate(:command) end
+
       after :each do
         repo.exists? && repo.destroy
       end
@@ -382,10 +392,11 @@ describe Razor::Data::Repo do
         repo.save              # make sure our primary key is set!
 
         expect {
-          repo.make_the_repo_accessible
+          repo.make_the_repo_accessible(command)
         }.to have_published(
           'class'     => repo.class.name,
           'instance'  => repo.pk_hash,
+          'command'   => { :id => command.id },
           'message'   => 'unpack_repo',
           'arguments' => [end_with('/short.iso')]
         ).on(queue)
@@ -487,6 +498,8 @@ describe Razor::Data::Repo do
       Fabricate(:repo, :iso_url => "file://#{tiny_iso}")
     end
 
+    let :command do Fabricate(:command) end
+
     it "should create the repo store root directory if absent" do
       Dir.mktmpdir do |tmpdir|
         root = Pathname(tmpdir) + 'repo-store'
@@ -494,7 +507,7 @@ describe Razor::Data::Repo do
 
         root.should_not exist
 
-        repo.unpack_repo(tiny_iso)
+        repo.unpack_repo(command, tiny_iso)
 
         root.should exist
       end
@@ -505,7 +518,7 @@ describe Razor::Data::Repo do
         Dir.mktmpdir do |root|
           root = Pathname(root)
           Razor.config['repo_store_root'] = root
-          repo.unpack_repo(tiny_iso)
+          repo.unpack_repo(command, tiny_iso)
 
           (root + repo.filesystem_safe_name).should exist
           (root + repo.filesystem_safe_name + 'content.txt').should exist
@@ -520,7 +533,7 @@ describe Razor::Data::Repo do
         Dir.mktmpdir do |root|
           root = Pathname(root)
           Razor.config['repo_store_root'] = root
-          repo.unpack_repo(tiny_iso)
+          repo.unpack_repo(command, tiny_iso)
 
           (root + repo.filesystem_safe_name).should exist
           (root + repo.filesystem_safe_name + 'content.txt').should exist
@@ -534,11 +547,12 @@ describe Razor::Data::Repo do
         Dir.mktmpdir do |root|
           root = Pathname(root)
           Razor.config['repo_store_root'] = root
-          repo.unpack_repo(tiny_iso)
+          repo.unpack_repo(command, tiny_iso)
         end
       }.to have_published(
         'class'    => repo.class.name,
         'instance' => repo.pk_hash,
+        'command'   => { :id => command.id },
         'message'  => 'release_temporary_repo'
       ).on(queue)
     end
@@ -547,9 +561,13 @@ describe Razor::Data::Repo do
   context "release_temporary_repo" do
     let :repo do Fabricate(:repo) end
 
+    let :command do Fabricate(:command) end
+
     it "should do nothing, successfully, if tmpdir is nil" do
       repo.tmpdir.should be_nil
-      repo.release_temporary_repo
+      repo.release_temporary_repo(command)
+      command.reload
+      command.status.should == 'finished'
     end
 
     it "should remove the temporary directory" do
@@ -561,7 +579,7 @@ describe Razor::Data::Repo do
         repo.tmpdir = root
         repo.save
 
-        repo.release_temporary_repo
+        repo.release_temporary_repo(command)
 
         root.should_not exist
       end
@@ -577,7 +595,7 @@ describe Razor::Data::Repo do
         repo.save
 
         expect {
-          repo.release_temporary_repo
+          repo.release_temporary_repo(command)
         }.to raise_error Errno::ENOENT, /no-such-directory/
       end
     end

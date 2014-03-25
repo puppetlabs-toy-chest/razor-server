@@ -24,11 +24,13 @@ module Razor::Data
     # since we direct everything through the model that is acceptable.
     set_allowed_columns :name, :iso_url, :url, :task_name
 
-    # When a new instance is saved, we need to make the repo accessible as a
-    # local file.
-    def after_create
-      super
-      publish 'make_the_repo_accessible'
+    # Create a new repo and kick off the background import of its ISO (if
+    # there is one) The +command+ is used to track progress of the import
+    # and report any errors that might happen
+    def self.import(command, data)
+      repo = create(data)
+      repo.publish('make_the_repo_accessible', command)
+      return repo
     end
 
     # When we are destroyed, if we have a scratch directory, we need to
@@ -60,13 +62,14 @@ module Razor::Data
     # and the temporary file stored for later cleanup.
     #
     # @warning this should not be called inside a transaction.
-    def make_the_repo_accessible
+    def make_the_repo_accessible(command)
+      command.store('running')
       url = URI.parse(iso_url)
       if url.scheme.downcase == 'file'
         File.readable?(url.path) or raise _("unable to read local file %{path}") % {path: url.path}
-        publish 'unpack_repo', url.path
+        publish 'unpack_repo', command, url.path
       else
-        publish 'unpack_repo', download_file_to_tempdir(url)
+        publish 'unpack_repo', command, download_file_to_tempdir(url)
       end
     end
 
@@ -160,20 +163,21 @@ module Razor::Data
     # Take a local ISO repo file, possible temporary, possibly permanent,
     # that we can read, and unpack it into our working directory.  Once we are
     # done, notify ourselves of that so any cleanup required can be performed.
-    def unpack_repo(path)
+    def unpack_repo(command, path)
       destination = repo_store_root + filesystem_safe_name
       destination.mkpath        # in case it didn't already exist
       Archive.extract(path, destination)
-      self.publish('release_temporary_repo')
+      self.publish('release_temporary_repo', command)
     end
 
     # Release any temporary repo previously downloaded.
-    def release_temporary_repo
+    def release_temporary_repo(command)
       if self.tmpdir
         FileUtils.remove_entry_secure(self.tmpdir)
         self.tmpdir = nil
         self.save
       end
+      command.store('finished')
     end
 
 
