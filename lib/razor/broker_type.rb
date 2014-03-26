@@ -35,14 +35,18 @@ class Razor::BrokerType
 
   # Fetch an instance of a single broker by name; this follows the
   # conventional path behaviour by preferring the first instance on the path.
-  def self.find(name)
+  #
+  # This follows the pattern of our Sequel::Model classes to allow this to be
+  # polymorphicly used in validation where they are.
+  def self.find(match)
+    match.keys == [:name] or raise ArgumentError, "broker types only match on `name`"
+    name = match[:name]
+
     broker = Razor.config.broker_paths.
       map  {|path| Pathname(path) + "#{name}.broker" }.
       find {|path| path.directory? }
 
-    broker or raise Razor::BrokerTypeNotFoundError, _("No broker %{name}.broker directory on search path") % {name: name}
-
-    new(broker)
+    broker ? new(broker) : nil
   end
 
   # The name of the broker

@@ -23,8 +23,8 @@ describe "delete-policy" do
   it "should complain about no policy name" do
     count = Policy.count
     delete_policy()
-    last_response.status.should == 400
-    last_response.json["error"].should =~ /Supply 'name'/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /required attribute name is missing/
     Policy.count.should == count
   end
 

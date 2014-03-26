@@ -7,7 +7,7 @@ class Razor::Data::Broker < Sequel::Model
 
   serialize_attributes [
     ->(b){ b.name },               # serialize
-    ->(b){ Razor::BrokerType.find(b) } # deserialize
+    ->(b){ Razor::BrokerType.find(name: b) } # deserialize
   ], :broker_type
 
   # We have validation that we match our external files on disk, too.

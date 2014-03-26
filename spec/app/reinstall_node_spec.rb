@@ -53,10 +53,10 @@ describe "reinstall-node" do
       last_response.json['result'].should =~ /neither bound nor installed/
     end
 
-    it "should succeed for a nonexistent node" do
+    it "should return 404 for a nonexistent node" do
       reinstall_node("not really an existing node")
-      last_response.status.should == 202
-      last_response.json['result'].should =~ /does not exist/
+      last_response.status.should == 404
+      last_response.json['error'].should == 'attribute name must refer to an existing instance'
     end
   end
 end

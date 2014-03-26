@@ -27,16 +27,14 @@ describe "create tag command" do
 
     it "should reject bad JSON" do
       create_tag '{"json": "not really..."'
-      last_response.status.should == 415
+      last_response.status.should == 400
       JSON.parse(last_response.body)["error"].should == 'unable to parse JSON'
     end
 
-    [
-     "foo", 100, 100.1, -100, true, false, [], ["name", "a"]
-    ].map(&:to_json).each do |input|
+    ["foo", 100, 100.1, -100, true, false].map(&:to_json).each do |input|
       it "should reject non-object inputs (like: #{input.inspect})" do
         create_tag input
-        last_response.status.should == 415
+        last_response.status.should == 400
       end
     end
 
