@@ -846,12 +846,12 @@ class Razor::App < Sinatra::Base
     Razor::Data::Broker.new(data).save
   end
 
+  validate :delete_broker do
+    authz  '%{name}'
+    attr   'name', type: String, required: true
+  end
+
   command :delete_broker do |data|
-    check_permissions! "commands:delete-broker:#{data['name']}"
-
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which broker to delete")
-
     if broker = Razor::Data::Broker[:name => data['name']]
       broker.policies.count == 0 or
         error 400, :error => _("Broker %{name} is still used by policies") % {name: broker.name}
@@ -864,55 +864,66 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
-  command :create_policy do |data|
-    check_permissions! "commands:create-policy:#{data['name']}"
+  validate :create_policy do
+    authz  '%{name}'
+    attr   'name',          type: String, required: true
+    attr   'hostname',      type: String, required: true
+    attr   'root_password', type: String
 
+    object 'before', exclude: 'after' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
+    end
+
+    object 'after', exclude: 'before' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
+    end
+
+    array 'tags' do
+      object do
+        attr 'name', type: String, required: true, references: Razor::Data::Tag
+      end
+    end
+
+    object 'repo' do
+      attr 'name', type: String, required: true, references: Razor::Data::Repo
+    end
+
+    object 'broker' do
+      attr 'name', type: String, required: true, references: Razor::Data::Broker
+    end
+
+    object 'task' do
+      attr 'name', type: String, required: true
+    end
+  end
+
+  command :create_policy do |data|
     tags = (data.delete("tags") || []).map do |t|
       Razor::Data::Tag.find_or_create_with_rule(t)
     end
 
-    if data["repo"]
-      name = data["repo"]["name"] or
-        error 400, :error => _("The repo reference must have a 'name'")
-      data["repo"] = Razor::Data::Repo[:name => name] or
-        error 400, :error => _("Repo '%{name}' not found") % {name: name}
-    end
-
-    if data["broker"]
-      name = data["broker"]["name"] or
-        halt [400, _("The broker reference must have a 'name'")]
-      data["broker"] = Razor::Data::Broker[:name => name] or
-        halt [400, _("Broker '%{name}' not found") % {name: name}]
-    end
+    data["repo"]   &&= Razor::Data::Repo[:name => data["repo"]["name"]]
+    data["broker"] &&= Razor::Data::Broker[:name => data["broker"]["name"]]
 
     if data["task"]
       data["task_name"] = data.delete("task")["name"]
     end
+
     data["hostname_pattern"] = data.delete("hostname")
 
     # Handle positioning in the policy table
-    position = nil
-    neighbor = nil
     if data["before"] or data["after"]
-      not data.key?("before") or not data.key?("after") or
-        # TRANSLATORS: 'before' and 'after' should not be translated.
-        error 400, :error => _("Only specify one of 'before' or 'after'")
       position = data["before"] ? "before" : "after"
-      name = data.delete(position)["name"] or
-        error 400,
-          :error => _("The policy reference in '%{position}' must have a name") % {position: position}
-      neighbor = Razor::Data::Policy[:name => name] or
-        error 400,
-      :error => _("Policy '%{name}' referenced in '%{position}' not found") % {name: name, position: position}
+      neighbor = Razor::Data::Policy[:name => data.delete(position)["name"]]
     end
 
     # Create the policy
     policy = Razor::Data::Policy.new(data).save
     tags.each { |t| policy.add_tag(t) }
-    policy.move(position, neighbor) if position
+    position and policy.move(position, neighbor)
     policy.save
 
-    policy
+    return policy
   end
 
   command :move_policy do |data|

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-class Razor::Validation::Attribute
+class Razor::Validation::HashAttribute
   def initialize(name, checks)
     case name
     when String
@@ -160,6 +160,7 @@ class Razor::Validation::Attribute
 
   def schema(schema)
     schema.is_a?(Razor::Validation::HashSchema) or
+      schema.is_a?(Razor::Validation::ArraySchema) or
       raise ArgumentError, "schema must be a schema instance; use 'object' to define this"
     @nested_schema = schema
   end

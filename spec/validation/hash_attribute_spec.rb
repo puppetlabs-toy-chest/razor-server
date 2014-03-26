@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 require_relative '../spec_helper'
 
-describe Razor::Validation::Attribute do
+describe Razor::Validation::HashAttribute do
   def attr
-    Razor::Validation::Attribute
+    Razor::Validation::HashAttribute
   end
 
   context "initialize" do
@@ -38,7 +38,7 @@ describe Razor::Validation::Attribute do
   end
 
   context "validate!" do
-    subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
+    subject(:attr) { Razor::Validation::HashAttribute.new('attr', {}) }
 
     it "should fail if the attribute is required but not present" do
       attr.required(true)
@@ -74,7 +74,7 @@ describe Razor::Validation::Attribute do
     context "references" do
       let :node do Fabricate(:node) end
       # Necessary because of the magic in lookups.
-      let :attr do Razor::Validation::Attribute.new('id', {}) end
+      let :attr do Razor::Validation::HashAttribute.new('id', {}) end
 
       before :each do
         attr.references(Razor::Data::Node)
@@ -109,7 +109,7 @@ describe Razor::Validation::Attribute do
   end
 
   context "type" do
-    subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
+    subject(:attr) { Razor::Validation::HashAttribute.new('attr', {}) }
 
     ["String", true, false, 1, 1.1, :string].each do |input|
       it "should fail unless the type is a class or module (#{input.inspect})" do
@@ -127,7 +127,7 @@ describe Razor::Validation::Attribute do
   end
 
   context "exclude" do
-    subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
+    subject(:attr) { Razor::Validation::HashAttribute.new('attr', {}) }
 
     it "should accept a string" do
       expect { attr.exclude('test') }.not_to raise_error
@@ -150,7 +150,7 @@ describe Razor::Validation::Attribute do
   end
 
   context "references" do
-    subject(:attr) { Razor::Validation::Attribute.new('attr', {}) }
+    subject(:attr) { Razor::Validation::HashAttribute.new('attr', {}) }
 
     [[], Object, URI, String].each do |input|
       it "should fail if the argument is not a Sequel::Model #{input.inspect}" do

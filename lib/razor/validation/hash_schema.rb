@@ -126,14 +126,23 @@ class Razor::Validation::HashSchema
 
   def attr(name, checks = {})
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
-    @attributes[name] = Razor::Validation::Attribute.new(name, checks)
+    @attributes[name] = Razor::Validation::HashAttribute.new(name, checks)
   end
 
   def object(name, checks = {}, &block)
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     block.is_a?(Proc)  or raise ArgumentError, "object #{name} must have a block to define it"
-    schema = Razor::Validation::DSL.build(name, block)
-    @attributes[name] = Razor::Validation::Attribute.
+    schema = Razor::Validation::DSL.build(name, block, Razor::Validation::HashSchema)
+    @attributes[name] = Razor::Validation::HashAttribute.
+      new(name, checks.merge(schema: schema))
+  end
+
+  def array(name, checks = {}, &block)
+    name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
+    block ||= ->(*_) {}         # make it work without the block, just checks.
+
+    schema = Razor::Validation::DSL.build(name, block, Razor::Validation::ArraySchema)
+    @attributes[name] = Razor::Validation::HashAttribute.
       new(name, checks.merge(schema: schema))
   end
 
@@ -166,7 +175,7 @@ class Razor::Validation::HashSchema
       match.is_a?(Regexp) or
         raise ArgumentError, "extra_attrs must be given a regexp, or an array of the same"
 
-      @extra_attr_patterns[match] = Razor::Validation::Attribute.new(match, checks)
+      @extra_attr_patterns[match] = Razor::Validation::HashAttribute.new(match, checks)
     end
 
   end

@@ -53,13 +53,13 @@ describe "create policy command" do
     it "should fail if a nonexisting tag is referenced" do
       policy_hash[:tags] = [ { "name" => "not_a_tag"} ]
       create_policy
-      last_response.status.should == 400
+      last_response.status.should == 404
     end
 
     it "should fail if a nonexisting repo is referenced" do
       policy_hash[:repo] = { "name" => "not_an_repo" }
       create_policy
-      last_response.status.should == 400
+      last_response.status.should == 404
     end
 
     it "should fail if the name is empty" do
@@ -71,7 +71,7 @@ describe "create policy command" do
     it "should fail if the name is missing" do
       policy_hash.delete(:name)
       create_policy
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should create a policy in the database" do

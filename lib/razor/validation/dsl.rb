@@ -5,9 +5,9 @@ require_relative 'hash_schema'
 class Razor::Validation::DSL
   extend Forwardable
 
-  def self.build(name, block)
+  def self.build(name, block, schema_class)
     builder  = new
-    instance = Razor::Validation::HashSchema.new(name)
+    instance = schema_class.new(name)
 
     builder.instance_variable_set('@instance', instance)
     builder.instance_eval(&block)
