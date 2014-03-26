@@ -43,7 +43,7 @@ describe "move policy command" do
 
     it "requires either before or after to be present" do
       move_policy(@p1, nil, nil)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json["error"] =~ /either 'before' or 'after'/
     end
 
@@ -53,7 +53,7 @@ describe "move policy command" do
         :before => { :name => @p2.name },
         :after => { :name => @p3.name }
       }.to_json
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json["error"] =~ /one of 'before' or 'after'/
     end
   end
