@@ -953,28 +953,30 @@ class Razor::App < Sinatra::Base
     policy
   end
 
-  def toggle_policy_enabled(data, enabled, verb)
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which policy to %{verb}") % {verb: verb}
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
+  def toggle_policy_enabled(data, enabled)
+    policy = Razor::Data::Policy[:name => data['name']]
     policy.enabled = enabled
     policy.save
+  end
 
-    # @todo danielp 2014-02-27: I don't think this is going to work out for
-    # translation at all, and needs to be replaced by multiple,
-    # explicit messages.
-    {:result => _("Policy %{name} %{verb}d") % {name: policy.name, verb: verb}}
+  validate :enable_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
   end
 
   command :enable_policy do |data|
-    check_permissions! "commands:enable-policy:#{data['name']}"
-    toggle_policy_enabled(data, true, 'enable')
+    policy = toggle_policy_enabled(data, true)
+    {:result => _("Policy %{name} enabled") % {name: policy.name}}
+  end
+
+  validate :disable_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
   end
 
   command :disable_policy do |data|
-    check_permissions! "commands:disable-policy:#{data['name']}"
-    toggle_policy_enabled(data, false, 'disable')
+    policy = toggle_policy_enabled(data, false)
+    {:result => _("Policy %{name} disabled") % {name: policy.name}}
   end
 
   command :add_policy_tag do |data|
