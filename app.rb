@@ -926,33 +926,28 @@ class Razor::App < Sinatra::Base
     return policy
   end
 
-  command :move_policy do |data|
-    check_permissions! "commands:move-policy:#{data['name']}"
+  validate :move_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
 
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which policy to move")
-    policy = Razor::Data::Policy[:name => data['name']] or error 400,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
+    require_one_of 'before', 'after'
 
-    position = nil
-    neighbor = nil
-    if data["before"] or data["after"]
-      not data.key?("before") or not data.key?("after") or
-        # TRANSLATORS: 'before' and 'after' should not be translated.
-        error 400, :error => _("Only specify one of 'before' or 'after'")
-      position = data["before"] ? "before" : "after"
-      name = data[position]["name"] or
-        error 400,
-          :error => _("The policy reference in '%{position}' must have a name") % {position: position}
-      neighbor = Razor::Data::Policy[:name => name] or
-        error 400,
-      :error => _("Policy '%{name}' referenced in '%{position}' not found") % {name: name, position: position}
-    else
-      # TRANSLATORS: 'before' and 'after' should not be translated.
-      error 400, :error => _("You must specify either 'before' or 'after'")
+    object 'before', exclude: 'after' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
     end
 
-    policy.move(position, neighbor) if position
+    object 'after', exclude: 'before' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
+    end
+  end
+
+  command :move_policy do |data|
+    policy = Razor::Data::Policy[:name => data['name']]
+    position = data["before"] ? "before" : "after"
+    name = data[position]["name"]
+    neighbor = Razor::Data::Policy[:name => name]
+
+    policy.move(position, neighbor)
     policy.save
 
     policy

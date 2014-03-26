@@ -30,20 +30,20 @@ describe "move policy command" do
   describe "spec" do
     it "requires a name for the policy to move" do
       move_policy(nil, :after, @p1)
-      last_response.status.should == 400
-      last_response.json["error"].should =~ /Supply 'name'/
+      last_response.status.should == 422
+      last_response.json["error"].should =~ /name is missing/
     end
 
     it "rejects moving a nonexisting policy" do
       @p1.name = @p1.name + "(not really)"
       move_policy(@p1, :after, @p2)
-      last_response.status.should == 400
-      last_response.json["error"].should =~ /does not exist/
+      last_response.status.should == 404
+      last_response.json["error"].should =~ /must refer to an existing instance/
     end
 
     it "requires either before or after to be present" do
       move_policy(@p1, nil, nil)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json["error"] =~ /either 'before' or 'after'/
     end
 
@@ -53,7 +53,7 @@ describe "move policy command" do
         :before => { :name => @p2.name },
         :after => { :name => @p3.name }
       }.to_json
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json["error"] =~ /one of 'before' or 'after'/
     end
   end
