@@ -979,18 +979,24 @@ class Razor::App < Sinatra::Base
     {:result => _("Policy %{name} disabled") % {name: policy.name}}
   end
 
-  command :add_policy_tag do |data|
-    data['name'] or error 400,
-      :error => _("Supply policy name to which the tag is to be added")
-    data['tag'] or error 400,
-      :error => _("Supply the name of the tag you which to add")
+  validate :add_policy_tag do
+    attr 'name', type: String, required: true, references: Razor::Data::Policy
+    #object 'tag', required: true do
+    #  attr 'name', type: String, required: true, references: Razor::Data::Tag
+    #end
+    attr 'tag', type: String, required: true
+    attr 'rule', type: Array
+  end
 
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: name}
-    tag = Razor::Data::Tag.find_or_create_with_rule(
-        { 'name' => data['tag'], 'rule' => data['rule'] }
-      ) or error 404,
-      :error => _("Tag %{name} does not exist and no rule to create it supplied.") % {name: data['tag']}
+  command :add_policy_tag do |data|
+    policy = Razor::Data::Policy[:name => data['name']]
+    begin
+      tag = Razor::Data::Tag.find_or_create_with_rule(
+          { 'name' => data['tag'], 'rule' => data['rule'] }
+        )
+    rescue ArgumentError => er
+      error 422, er.message
+    end
 
     unless policy.tags.include?(tag)
       policy.add_tag(tag)
