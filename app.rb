@@ -632,37 +632,29 @@ class Razor::App < Sinatra::Base
     node.modify_metadata(operation)
   end
 
+  validate :modify_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'update', type: Hash
+    attr 'remove', type: Array
+    attr 'clear', type: [String, :bool], exclude: ['update', 'remove']
+    attr 'no_replace', type: [String, :bool]
+  end
   # Take a bulk operation via POST'ed JSON
   command :modify_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['update'] or data['remove'] or data['clear'] or error 400,
-      :error => _('must supply at least one opperation')
-
-    if data['clear'] and (data['update'] or data['remove'])
-      error 400, :error => _('clear cannot be used with update or remove')
-    end
-
-    if data['clear']
-      data['clear'] == true or data['clear'] == 'true' or error 400,
+    data['update'] or data['remove'] or data['clear'] or error 422,
+        :error => _("at least one operation (update, remove, clear) required")
+    !data['clear'] or data['clear'] == true or data['clear'] == 'true' or error 422,
         :error => _("clear must be boolean true or string 'true'")
-    end
-
-    if data['no_replace']
-      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+    !data['no_replace'] or data['no_replace'] == true or data['no_replace'] == 'true' or error 422,
         :error => _("no_replace must be boolean true or string 'true'")
-    end
 
     if data['update'] and data['remove']
-      data['update'].keys.concat(data['remove']).uniq! and error 400,
+      data['update'].keys.concat(data['remove']).uniq! and error 422,
         :error => _('cannot update and remove the same key')
     end
 
-    if node = Razor::Data::Node[:name => data.delete('node')]
-      node.modify_metadata(data)
-    else
-      error 400, :error => _("Node %{name} not found") % {name: data['node']}
-    end
+    node = Razor::Data::Node[:name => data.delete('node')]
+    node.modify_metadata(data)
   end
 
   validate :reinstall_node do
