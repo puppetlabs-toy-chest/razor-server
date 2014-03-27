@@ -30,7 +30,29 @@ class Razor::Validation::ArraySchema
 
   def object(index = nil, checks = {}, &block)
     block.is_a?(Proc)  or raise ArgumentError, "an object must have a block to define it"
-    schema = Razor::Validation::DSL.build(@command, block, Razor::Validation::HashSchema)
+    schema = Razor::Validation::HashSchema.build(@command, block)
     @checks << Razor::Validation::ArrayAttribute.new(index, checks.merge(schema: schema))
+  end
+
+
+
+  ########################################################################
+  # Infrastructure for creating the a nested schema.
+  class Builder < Object
+    extend Forwardable
+
+    def initialize(name)
+      @name = name
+    end
+
+    def schema
+      @schema ||= Razor::Validation::ArraySchema.new(@name)
+    end
+
+    def_delegators 'schema', *Razor::Validation::ArraySchema.public_instance_methods(false)
+  end
+
+  def self.build(name, block)
+    Builder.new(name).tap{|i| i.instance_eval(&block) }.schema
   end
 end
