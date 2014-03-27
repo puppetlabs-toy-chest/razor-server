@@ -23,13 +23,19 @@ describe "modify-policy-max-count" do
     it "should require that max-count is present" do
       post '/api/commands/modify-policy-max-count',
         { "name" => policy.name }.to_json
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.body.should =~ /max-count/
     end
 
     it "should accept a string for max-count" do
       set_max_count("2")
       last_response.status.should == 202
+    end
+
+    it "should reject a non-integer string for max-count" do
+      set_max_count("a")
+      last_response.status.should == 422
+      last_response.json['error'].should =~ /'a' is not a valid integer/
     end
 
     it "should allow increasing the max-count" do
