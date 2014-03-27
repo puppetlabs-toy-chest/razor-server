@@ -585,28 +585,29 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  validate :update_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'key', type: String, exclude: 'all'
+    attr 'all', type: [String, :bool], exclude: 'key'
+    attr 'value', required: true
+    attr 'no_replace', type: [String, :bool]
+
+    require_one_of 'key', 'all'
+  end
+
   # Update/add specific metadata key (works with GET)
   command :update_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
-      :error => _('must supply key or set all to true')
-    data['value'] or error 400,
-      :error => _('must supply value')
+    # This will get removed when coercion is no longer supported.
+    (!data['no_replace'] or ['true', true].include? data['no_replace']) or error 422,
+        :error => _("'no_replace' must be boolean true or string 'true'")
+    (!data['all'] or (['true', true].include? data['all'])) or error 422,
+        :error => _("'all' must be boolean true or string 'true'")
 
-    if data['no_replace']
-      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
-        :error => _("no_replace must be boolean true or string 'true'")
-    end
+    node = Razor::Data::Node[:name => data['node']]
+    operation = { 'update' => { data['key'] => data['value'] } }
+    operation['no_replace'] = true unless operation['no_replace'].nil?
 
-    if node = Razor::Data::Node[:name => data['node']]
-      operation = { 'update' => { data['key'] => data['value'] } }
-      operation['no_replace'] = true unless operation['no_replace'].nil?
-
-      node.modify_metadata(operation)
-    else
-      error 400, :error => "Node #{data['node']} not found"
-    end
+    node.modify_metadata(operation)
   end
 
   # Remove a specific key or remove all (works with GET)
