@@ -610,23 +610,26 @@ class Razor::App < Sinatra::Base
     node.modify_metadata(operation)
   end
 
+  validate :remove_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'key', type: String
+    attr 'all', type: [String, :bool]
+
+    require_one_of 'key', 'all'
+  end
+
   # Remove a specific key or remove all (works with GET)
   command :remove_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
-      :error => _('must supply key or set all to true')
+    (data['all'] and data['all'] == 'true') or error 422,
+          :error => _('invalid value for attribute \'all\'')
 
-    if node = Razor::Data::Node[:name => data['node']]
-      if data['key']
-        operation = { 'remove' => [ data['key'] ] }
-      else
-        operation = { 'clear' => true }
-      end
-      node.modify_metadata(operation)
+    node = Razor::Data::Node[:name => data['node']]
+    if data['key']
+      operation = { 'remove' => [ data['key'] ] }
     else
-      error 400, :error => _("Node %{name} not found") % {name: data['node']}
+      operation = { 'clear' => true }
     end
+    node.modify_metadata(operation)
   end
 
   # Take a bulk operation via POST'ed JSON
