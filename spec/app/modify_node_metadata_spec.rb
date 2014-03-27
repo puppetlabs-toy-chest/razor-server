@@ -5,6 +5,10 @@ require_relative '../../app'
 describe "modify node metadata command" do
   include Rack::Test::Methods
 
+  let(:node) do
+    Fabricate(:node)
+  end
+
   let(:app) { Razor::App }
 
   before :each do
@@ -19,54 +23,50 @@ describe "modify node metadata command" do
   it "should require a node" do
     data = { 'update' => { 'k1' => 'v1'} }
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /must supply node/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /required attribute node is missing/
   end
 
   it "should require an operation" do
-    data = { 'node' => 'node1' }
+    data = { 'node' => "node#{node.id}"}
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /must supply at least one opperation/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /at least one operation \(update, remove, clear\) required/
   end
 
   it "should complain about the use of clear with other ops" do
-    data = { 'node' => 'node1', 'update' => { 'k1' => 'v1'}, 'clear' => 'true' }
+    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'clear' => 'true' }
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /clear cannot be used with update or remove/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /if clear is present, update must not be present/
   end
 
   it "should complain duplicate keys in update and remove" do
-    data = { 
-      'node'   => 'node1',
+    data = {
+      'node'   => "node#{node.id}",
       'update' => { 'k1' => 'v1', 'k2' => 'v2'},
       'remove' => [ 'k2' ]
     }
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /cannot update and remove the same key/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /cannot update and remove the same key/
   end
 
   it "should complain if clear is not boolean true or string 'true'" do
-    data = { 'node' => 'node1', 'clear' => 'something' }
+    data = { 'node' => "node#{node.id}", 'clear' => 'something' }
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /clear must be boolean true or string 'true'/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /clear must be boolean true or string 'true'/
   end
 
   it "should complain if no_replace is not boolean true or string 'true'" do
-    data = { 'node' => 'node1', 'update' => { 'k1' => 'v1'}, 'no_replace' => 'something' }
+    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'no_replace' => 'something' }
     modify_metadata(data)
-    last_response.status.should == 400
-    JSON.parse(last_response.body)["error"].should =~ /no_replace must be boolean true or string 'true'/
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /no_replace must be boolean true or string 'true'/
   end
 
   describe "when updating metadata on a node" do
-
-    let(:node) do
-      Fabricate(:node)
-    end
 
     it "should create a new metadata item on a node" do
       id = node.id
