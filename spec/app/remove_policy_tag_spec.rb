@@ -23,8 +23,8 @@ describe "policy-remove-tag" do
     it "should remove a tag from a policy" do
       count = policy.tags.count
       remove_policy_tag(policy.name, policy.tags.first.name)
-      policy.tags(true).count.should == count-1
       last_response.status.should == 202
+      policy.tags(true).count.should == count-1
     end
 
     it "should advise that that tag wasnt on policy" do

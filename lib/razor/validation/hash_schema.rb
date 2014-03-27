@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'set'
+require 'forwardable'
 
 class Razor::Validation::HashSchema
   def initialize(command)
@@ -132,16 +133,15 @@ class Razor::Validation::HashSchema
   def object(name, checks = {}, &block)
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     block.is_a?(Proc)  or raise ArgumentError, "object #{name} must have a block to define it"
-    schema = Razor::Validation::DSL.build(name, block, Razor::Validation::HashSchema)
     @attributes[name] = Razor::Validation::HashAttribute.
-      new(name, checks.merge(schema: schema))
+      new(name, checks.merge(schema: self.class.build(name, block)))
   end
 
   def array(name, checks = {}, &block)
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     block ||= ->(*_) {}         # make it work without the block, just checks.
 
-    schema = Razor::Validation::DSL.build(name, block, Razor::Validation::ArraySchema)
+    schema = Razor::Validation::ArraySchema.build(name, block)
     @attributes[name] = Razor::Validation::HashAttribute.
       new(name, checks.merge(schema: schema))
   end
@@ -178,5 +178,25 @@ class Razor::Validation::HashSchema
       @extra_attr_patterns[match] = Razor::Validation::HashAttribute.new(match, checks)
     end
 
+  end
+
+  ########################################################################
+  # Infrastructure for creating the a nested schema.
+  class Builder < Object
+    extend Forwardable
+
+    def initialize(name)
+      @name = name
+    end
+
+    def schema
+      @schema ||= Razor::Validation::HashSchema.new(@name)
+    end
+
+    def_delegators 'schema', *Razor::Validation::HashSchema.public_instance_methods(false)
+  end
+
+  def self.build(name, block)
+    Builder.new(name).tap{|i| i.instance_eval(&block) }.schema
   end
 end
