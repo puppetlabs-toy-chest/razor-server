@@ -8,7 +8,10 @@ describe "policy-remove-tag" do
   let(:app) { Razor::App }
 
   def remove_policy_tag(name=nil, tag=nil)
-    post '/api/commands/remove-policy-tag', { "name" => name, "tag" => tag }.to_json
+    data = {}
+    name and data['name'] = name
+    tag and data['tag'] = tag
+    post '/api/commands/remove-policy-tag', data.to_json
   end
 
   context "/api/commands/policy-remove-tag" do
@@ -39,18 +42,18 @@ describe "policy-remove-tag" do
 
     it "should fail to with no policy name" do
       remove_policy_tag(nil, tag.name)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /Supply policy name/
+      last_response.json["error"].should =~ /required attribute name is missing/
     end
 
     it "should fail to with no tag name" do
       remove_policy_tag(policy.name)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /name of the tag/
+      last_response.json["error"].should =~ /required attribute tag is missing/
     end
   end
 end

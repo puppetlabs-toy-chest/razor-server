@@ -8,7 +8,11 @@ describe "policy-add-tag" do
   let(:app) { Razor::App }
 
   def add_policy_tag(name=nil, tag=nil, rule=nil)
-    post '/api/commands/add-policy-tag', { "name" => name, "tag" => tag, "rule" => rule }.to_json
+    data = {}
+    name and data['name'] = name
+    tag and data['tag'] = tag
+    rule and data['rule'] = rule
+    post '/api/commands/add-policy-tag', data.to_json
   end
 
   context "/api/commands/policy-add-tag" do
@@ -51,23 +55,23 @@ describe "policy-add-tag" do
       tag_name = 'another_tag'
       add_policy_tag(policy.name, tag_name)
       policy.tags(true).count.should == count
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should fail with no policy name" do
       add_policy_tag(nil, tag.name)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /Supply policy name/
+      last_response.json["error"].should =~ /required attribute name is missing/
     end
 
     it "should fail with no tag name" do
       add_policy_tag(policy.name)
-      last_response.status.should == 400
+      last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /name of the tag/
+      last_response.json["error"].should =~ /required attribute tag is missing/
     end
   end
 end

@@ -21,9 +21,9 @@ describe "commands to change a policy's 'enabled' flag" do
     ["enable", "disable"].each do |verb|
       other_verb = verb == "enable" ? "disable" : "enable"
 
-      it "returns 400 when no name is provided (#{verb})" do
+      it "returns 422 when no name is provided (#{verb})" do
         post "/api/commands/#{verb}-policy", { "noname" => "nothing" }.to_json
-        last_response.status.should == 400
+        last_response.status.should == 422
       end
 
       it "returns 404 when no policy with that name exists (#{verb})" do

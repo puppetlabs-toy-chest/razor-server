@@ -585,80 +585,76 @@ class Razor::App < Sinatra::Base
     { :result => action }
   end
 
+  validate :update_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'key', type: String, exclude: 'all'
+    attr 'all', type: [String, :bool], exclude: 'key'
+    attr 'value', required: true
+    attr 'no_replace', type: [String, :bool]
+
+    require_one_of 'key', 'all'
+  end
+
   # Update/add specific metadata key (works with GET)
   command :update_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
-      :error => _('must supply key or set all to true')
-    data['value'] or error 400,
-      :error => _('must supply value')
+    # This will get removed when coercion is no longer supported.
+    (!data['no_replace'] or ['true', true].include? data['no_replace']) or error 422,
+        :error => _("'no_replace' must be boolean true or string 'true'")
+    (!data['all'] or (['true', true].include? data['all'])) or error 422,
+        :error => _("'all' must be boolean true or string 'true'")
 
-    if data['no_replace']
-      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
-        :error => _("no_replace must be boolean true or string 'true'")
-    end
+    node = Razor::Data::Node[:name => data['node']]
+    operation = { 'update' => { data['key'] => data['value'] } }
+    operation['no_replace'] = true unless operation['no_replace'].nil?
 
-    if node = Razor::Data::Node[:name => data['node']]
-      operation = { 'update' => { data['key'] => data['value'] } }
-      operation['no_replace'] = true unless operation['no_replace'].nil?
+    node.modify_metadata(operation)
+  end
 
-      node.modify_metadata(operation)
-    else
-      error 400, :error => "Node #{data['node']} not found"
-    end
+  validate :remove_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'key', type: String
+    attr 'all', type: [String, :bool]
+
+    require_one_of 'key', 'all'
   end
 
   # Remove a specific key or remove all (works with GET)
   command :remove_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['key'] or ( data['all'] and data['all'] == 'true' ) or error 400,
-      :error => _('must supply key or set all to true')
+    (data['all'] and data['all'] == 'true') or error 422,
+          :error => _('invalid value for attribute \'all\'')
 
-    if node = Razor::Data::Node[:name => data['node']]
-      if data['key']
-        operation = { 'remove' => [ data['key'] ] }
-      else
-        operation = { 'clear' => true }
-      end
-      node.modify_metadata(operation)
+    node = Razor::Data::Node[:name => data['node']]
+    if data['key']
+      operation = { 'remove' => [ data['key'] ] }
     else
-      error 400, :error => _("Node %{name} not found") % {name: data['node']}
+      operation = { 'clear' => true }
     end
+    node.modify_metadata(operation)
   end
 
+  validate :modify_node_metadata do
+    attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
+    attr 'update', type: Hash
+    attr 'remove', type: Array
+    attr 'clear', type: [String, :bool], exclude: ['update', 'remove']
+    attr 'no_replace', type: [String, :bool]
+  end
   # Take a bulk operation via POST'ed JSON
   command :modify_node_metadata do |data|
-    data['node'] or error 400,
-      :error => _('must supply node')
-    data['update'] or data['remove'] or data['clear'] or error 400,
-      :error => _('must supply at least one opperation')
-
-    if data['clear'] and (data['update'] or data['remove'])
-      error 400, :error => _('clear cannot be used with update or remove')
-    end
-
-    if data['clear']
-      data['clear'] == true or data['clear'] == 'true' or error 400,
+    data['update'] or data['remove'] or data['clear'] or error 422,
+        :error => _("at least one operation (update, remove, clear) required")
+    !data['clear'] or data['clear'] == true or data['clear'] == 'true' or error 422,
         :error => _("clear must be boolean true or string 'true'")
-    end
-
-    if data['no_replace']
-      data['no_replace'] == true or data['no_replace'] == 'true' or error 400,
+    !data['no_replace'] or data['no_replace'] == true or data['no_replace'] == 'true' or error 422,
         :error => _("no_replace must be boolean true or string 'true'")
-    end
 
     if data['update'] and data['remove']
-      data['update'].keys.concat(data['remove']).uniq! and error 400,
+      data['update'].keys.concat(data['remove']).uniq! and error 422,
         :error => _('cannot update and remove the same key')
     end
 
-    if node = Razor::Data::Node[:name => data.delete('node')]
-      node.modify_metadata(data)
-    else
-      error 400, :error => _("Node %{name} not found") % {name: data['node']}
-    end
+    node = Razor::Data::Node[:name => data.delete('node')]
+    node.modify_metadata(data)
   end
 
   validate :reinstall_node do
@@ -926,74 +922,77 @@ class Razor::App < Sinatra::Base
     return policy
   end
 
-  command :move_policy do |data|
-    check_permissions! "commands:move-policy:#{data['name']}"
+  validate :move_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
 
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which policy to move")
-    policy = Razor::Data::Policy[:name => data['name']] or error 400,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
+    require_one_of 'before', 'after'
 
-    position = nil
-    neighbor = nil
-    if data["before"] or data["after"]
-      not data.key?("before") or not data.key?("after") or
-        # TRANSLATORS: 'before' and 'after' should not be translated.
-        error 400, :error => _("Only specify one of 'before' or 'after'")
-      position = data["before"] ? "before" : "after"
-      name = data[position]["name"] or
-        error 400,
-          :error => _("The policy reference in '%{position}' must have a name") % {position: position}
-      neighbor = Razor::Data::Policy[:name => name] or
-        error 400,
-      :error => _("Policy '%{name}' referenced in '%{position}' not found") % {name: name, position: position}
-    else
-      # TRANSLATORS: 'before' and 'after' should not be translated.
-      error 400, :error => _("You must specify either 'before' or 'after'")
+    object 'before', exclude: 'after' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
     end
 
-    policy.move(position, neighbor) if position
+    object 'after', exclude: 'before' do
+      attr 'name', type: String, required: true, references: Razor::Data::Policy
+    end
+  end
+
+  command :move_policy do |data|
+    policy = Razor::Data::Policy[:name => data['name']]
+    position = data["before"] ? "before" : "after"
+    name = data[position]["name"]
+    neighbor = Razor::Data::Policy[:name => name]
+
+    policy.move(position, neighbor)
     policy.save
 
     policy
   end
 
-  def toggle_policy_enabled(data, enabled, verb)
-    data['name'] or error 400,
-      :error => _("Supply 'name' to indicate which policy to %{verb}") % {verb: verb}
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
+  def toggle_policy_enabled(data, enabled)
+    policy = Razor::Data::Policy[:name => data['name']]
     policy.enabled = enabled
     policy.save
+  end
 
-    # @todo danielp 2014-02-27: I don't think this is going to work out for
-    # translation at all, and needs to be replaced by multiple,
-    # explicit messages.
-    {:result => _("Policy %{name} %{verb}d") % {name: policy.name, verb: verb}}
+  validate :enable_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
   end
 
   command :enable_policy do |data|
-    check_permissions! "commands:enable-policy:#{data['name']}"
-    toggle_policy_enabled(data, true, 'enable')
+    policy = toggle_policy_enabled(data, true)
+    {:result => _("Policy %{name} enabled") % {name: policy.name}}
+  end
+
+  validate :disable_policy do
+    authz '%{name}'
+    attr   'name', type: String, required: true, references: Razor::Data::Policy
   end
 
   command :disable_policy do |data|
-    check_permissions! "commands:disable-policy:#{data['name']}"
-    toggle_policy_enabled(data, false, 'disable')
+    policy = toggle_policy_enabled(data, false)
+    {:result => _("Policy %{name} disabled") % {name: policy.name}}
+  end
+
+  validate :add_policy_tag do
+    attr 'name', type: String, required: true, references: Razor::Data::Policy
+    #object 'tag', required: true do
+    #  attr 'name', type: String, required: true, references: Razor::Data::Tag
+    #end
+    attr 'tag', type: String, required: true
+    attr 'rule', type: Array
   end
 
   command :add_policy_tag do |data|
-    data['name'] or error 400,
-      :error => _("Supply policy name to which the tag is to be added")
-    data['tag'] or error 400,
-      :error => _("Supply the name of the tag you which to add")
-
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: name}
-    tag = Razor::Data::Tag.find_or_create_with_rule(
-        { 'name' => data['tag'], 'rule' => data['rule'] }
-      ) or error 404,
-      :error => _("Tag %{name} does not exist and no rule to create it supplied.") % {name: data['tag']}
+    policy = Razor::Data::Policy[:name => data['name']]
+    begin
+      tag = Razor::Data::Tag.find_or_create_with_rule(
+          { 'name' => data['tag'], 'rule' => data['rule'] }
+        )
+    rescue ArgumentError => er
+      error 422, er.message
+    end
 
     unless policy.tags.include?(tag)
       policy.add_tag(tag)
@@ -1004,39 +1003,31 @@ class Razor::App < Sinatra::Base
     end
   end
 
-  command :remove_policy_tag do |data|
-    data['name'] or error 400,
-      :error => _("Supply policy name to which the tag is to be removed")
-    data['tag'] or error 400,
-      :error => _("Supply the name of the tag you which to remove")
+  validate :remove_policy_tag do
+    attr 'name', type: String, required: true, references: Razor::Data::Policy
+    attr 'tag', type: String, required: true
+  end
 
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
+  command :remove_policy_tag do |data|
+    policy = Razor::Data::Policy[:name => data['name']]
     tag = Razor::Data::Tag[:name => data['tag']]
 
-    if tag
-      if policy.tags.include?(tag)
-        policy.remove_tag(tag)
-        policy
-      else
-        action = _("Tag %{tag} was not on policy %{policy}") % {tag: data['tag'], policy: data['name']}
-        { :result => action }
-      end
+    if tag and policy.tags.include?(tag)
+      policy.remove_tag(tag)
+      policy
     else
       action = _("Tag %{tag} was not on policy %{policy}") % {tag: data['tag'], policy: data['name']}
       { :result => action }
     end
   end
 
+  validate :modify_policy_max_count do
+    attr 'name', type: String, required: true, references: Razor::Data::Policy
+    attr 'max-count', required: true
+  end
+
   command :modify_policy_max_count do |data|
-    data['name'] or error 400,
-      :error => _("Supply the name of the policy to modify")
-
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
-
-    data.key?('max-count') or error 400,
-      :error => _("Supply a new max-count for the policy")
+    policy = Razor::Data::Policy[:name => data['name']]
 
     max_count_s = data['max-count']
     if max_count_s.nil?
