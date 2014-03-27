@@ -1025,15 +1025,13 @@ class Razor::App < Sinatra::Base
     end
   end
 
+  validate :modify_policy_max_count do
+    attr 'name', type: String, required: true, references: Razor::Data::Policy
+    attr 'max-count', required: true
+  end
+
   command :modify_policy_max_count do |data|
-    data['name'] or error 400,
-      :error => _("Supply the name of the policy to modify")
-
-    policy = Razor::Data::Policy[:name => data['name']] or error 404,
-      :error => _("Policy %{name} does not exist") % {name: data['name']}
-
-    data.key?('max-count') or error 400,
-      :error => _("Supply a new max-count for the policy")
+    policy = Razor::Data::Policy[:name => data['name']]
 
     max_count_s = data['max-count']
     if max_count_s.nil?
