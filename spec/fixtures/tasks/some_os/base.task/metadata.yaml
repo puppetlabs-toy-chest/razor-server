@@ -1,0 +1,5 @@
+---
+
+base: some_os
+os_version: 4
+description: Base Some OS Installer

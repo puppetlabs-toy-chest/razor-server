@@ -277,7 +277,7 @@ describe "command and query API" do
         },
         'name'     => {
           'type'     => 'string',
-          'pattern'  => '^[a-zA-Z0-9_]+$'
+          'pattern'  => '^[a-zA-Z0-9_/]+$'
         },
         'base'     => {
           '$schema'  => 'http://json-schema.org/draft-04/schema#',
@@ -295,7 +295,7 @@ describe "command and query API" do
             },
             'name'     => {
               'type'     => 'string',
-              'pattern'  => '^[a-zA-Z0-9_]+$'
+              'pattern'  => '^[a-zA-Z0-9_/]+$'
             }
           },
           'additionalProperties' => false
@@ -363,13 +363,13 @@ describe "command and query API" do
     end
 
     it "includes a reference to the base task" do
-      get "/api/collections/tasks/some_os_derived"
+      get "/api/collections/tasks/some_os/derived"
       last_response.status.should == 200
 
       data = last_response.json
-      data["name"].should == "some_os_derived"
+      data["name"].should == "some_os/derived"
       data["os"]["version"].should == "4"
-      data["base"]["name"].should == "some_os"
+      data["base"]["name"].should == "some_os/base"
       validate! TaskItemSchema, last_response.body
     end
   end

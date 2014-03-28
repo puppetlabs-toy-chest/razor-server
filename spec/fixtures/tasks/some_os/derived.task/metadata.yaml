@@ -1,5 +1,5 @@
 ---
 
-base: some_os
+base: some_os/base
 os_version: 4
 description: Derived Some OS Installer

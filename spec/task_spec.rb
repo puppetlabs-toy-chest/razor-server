@@ -10,9 +10,9 @@ describe Razor::Task do
 
   describe "find" do
     it "finds an existing task" do
-      inst = Task.find("some_os")
+      inst = Task.find("some_os/base")
       inst.should_not be_nil
-      inst.name.should == "some_os"
+      inst.name.should == "some_os/base"
     end
 
     it "searches multiple paths in order" do
@@ -33,7 +33,7 @@ describe Razor::Task do
     end
 
     it "supports task inheritance" do
-      inst = Task.find("some_os_derived")
+      inst = Task.find("some_os/derived")
       inst.description.should == "Derived Some OS Installer"
       inst.os_version.should == "4"
       # We leave the label in the derived task unset on purpose
@@ -45,6 +45,16 @@ describe Razor::Task do
       expect {
         Task.find("no_os_version")
       }.to raise_error(Razor::TaskInvalidError)
+    end
+
+    it "encourages migration when likely omitted" do
+      expect { Task.find("unupgraded") }.
+          to raise_error(Razor::TaskNotFoundError, /Task unupgraded appears to be in a legacy format/)
+    end
+
+    it "doesn't encourage migration when not merited" do
+      expect { Task.find("not_on_search_path") }.
+          to raise_error(Razor::TaskNotFoundError, /Could not find task not_on_search_path on the search path/)
     end
   end
 
@@ -58,10 +68,10 @@ describe Razor::Task do
     end
 
     it "prefers tasks in the file system" do
-      Razor::Data::Task.create(:name => 'some_os',
+      Razor::Data::Task.create(:name => 'some_os/base',
                                     :os => 'SomeOS',
                                     :os_version => '6')
-      Task.find("some_os").should be_an_instance_of Razor::Task
+      Task.find("some_os/base").should be_an_instance_of Razor::Task
     end
   end
 
@@ -69,7 +79,7 @@ describe Razor::Task do
   describe "all" do
     it "lists file tasks" do
       Task.all.map { |t| t.name }.should =~
-        ["microkernel", "shadowed", "some_os", "some_os_derived"]
+        ["microkernel", "shadowed", "some_os", "some_os/base", "some_os/derived"]
     end
 
     it "lists database tasks" do
@@ -77,17 +87,17 @@ describe Razor::Task do
                                       :os => 'SomeOS',
                                       :os_version => '6')
       Task.all.map { |t| t.name }.should =~
-        ["microkernel", "shadowed", "some_os", "some_os_derived", "dbinst"]
+        ["microkernel", "shadowed", "some_os", "some_os/base", "some_os/derived", "dbinst"]
     end
   end
 
   describe "find_template" do
-    let(:inst) { Task.find("some_os") }
-    let(:derived) { Task.find("some_os_derived") }
+    let(:inst) { Task.find("some_os/base") }
+    let(:derived) { Task.find("some_os/derived") }
 
     it "finds version-specific template" do
       inst.find_template("specific").should ==
-        [:specific, { :views => File::join(INST_PATH, "some_os/3")}]
+        [:specific, { :views => File::join(INST_PATH, "some_os/base.task")}]
     end
 
     it "finds common template" do
@@ -103,23 +113,23 @@ describe Razor::Task do
 
     it "work when the template name ends in .erb" do
       inst.find_template("specific.erb").should ==
-        [:specific, { :views => File::join(INST_PATH, "some_os/3") }]
+        [:specific, { :views => File::join(INST_PATH, "some_os/base.task") }]
     end
 
     it "prefers templates for the derived task" do
       derived.find_template("specific.erb").should ==
-        [:specific, { :views => File::join(INST_PATH, "some_os_derived")}]
+        [:specific, { :views => File::join(INST_PATH, "some_os/derived.task")}]
     end
 
     it "uses templates for the base task if the derived one doesn't match" do
       derived.find_template("template.erb").should ==
-        [:template, { :views => File::join(INST_PATH, "some_os/3") }]
+        [:template, { :views => File::join(INST_PATH, "some_os.task") }]
     end
   end
 
   describe "boot_template" do
     it "uses the boot template with the right seq" do
-      inst = Task.find("some_os")
+      inst = Task.find("some_os/base")
       node = Razor::Data::Node.new(:hw_info => ["mac=deadbeef"],
                                    :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|
