@@ -724,6 +724,134 @@ describe "command and query API" do
     end
   end
 
+  context "/api/collections/commands" do
+    CommandItemSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Command item JSON Schema",
+      'type'     => 'object',
+      'required' => %w[spec id name command],
+      'properties' => {
+        'spec' => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'id'       => {
+          'type'     => 'string',
+          'pattern'  => '^https?://'
+        },
+        'name'     => {
+          'type'     => 'string',
+          'pattern'  => '^[0-9]+$'
+        },
+        'command'    => {
+          'type'     => 'string',
+          'pattern'  => '^[a-z-]+$'
+        },
+        'params'     => {
+          'type'     => 'object',
+        },
+        'errors'     => {
+          'type'     => 'array',
+          'items'    =>  {
+            'type'     => 'object',
+            'required' => %w[exception message attempted_at],
+            'properties' => {
+              'exception' => {
+                 'type'   => 'string'
+              },
+              'message'   => {
+                'type'    => 'string'
+              },
+              'attempted_at' => {
+                'type' => 'string'
+              }
+            },
+            'additionalProperties' => false
+          }
+        },
+        'status' => {
+          'type'     => 'string',
+          'pattern'  => '^(pending|running|finished|failed)$'
+        },
+        'submitted_at' => {
+          'type'       => 'string',
+        },
+        'finished_at'  => {
+          'type'       => 'string'
+        }
+      },
+      'additionalProperties' => false,
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
+    shared_examples "a command collection" do |expected|
+      it "should return a valid collection" do
+        get "/api/collections/commands"
+
+        last_response.status.should == 200
+        nodes = last_response.json['items']
+        nodes.should be_an_instance_of Array
+        nodes.count.should == expected
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
+
+      it "should 404 a command requested that does not exist" do
+        get "/api/collections/commands/fast%20freddy"
+        last_response.status.should == 404
+      end
+
+      if expected > 0
+        it "should be able to access all command instances" do
+          Razor::Data::Command.all.each do |command|
+            get "/api/collections/commands/#{command.name}"
+            last_response.status.should == 200
+            validate! CommandItemSchema, last_response.body
+          end
+        end
+      end
+    end
+
+    context "with none" do
+      it_should_behave_like "a command collection", 0
+    end
+
+    context "with one" do
+      before :each do
+        Fabricate(:command)
+      end
+
+      it_should_behave_like "a command collection", 1
+    end
+
+    context "with ten" do
+      before :each do
+        10.times { Fabricate(:command) }
+      end
+
+      it_should_behave_like "a command collection", 10
+    end
+
+    it "should report errors in an array" do
+      command = Fabricate(:command)
+      command.add_exception Exception.new("Exception 1")
+      command.add_exception Exception.new("Exception 2")
+      command.store('failed')
+      get "/api/collections/commands/#{command.id}"
+      last_response.status.should == 200
+      validate! CommandItemSchema, last_response.body
+
+      last_response.json['status'].should == 'failed'
+      last_response.json['errors'].should_not be_nil
+      last_response.json['errors'][0]['message'].should == "Exception 1"
+      last_response.json['errors'][1]['message'].should == "Exception 2"
+    end
+  end
+
   context "/api/microkernel/bootstrap" do
     it "generates a script for 4 NIC's if nic_max is not given" do
       get "/api/microkernel/bootstrap"

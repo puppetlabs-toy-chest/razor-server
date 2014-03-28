@@ -155,6 +155,26 @@ module Razor
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
 
+    def command_hash(cmd)
+      # @todo lutter 2014-03-27: we strip the backtrace because it tells
+      # normal users nothing. For debugging, it would be nice to make that
+      # available through the API at some point
+      errors = (cmd.error || []).reject { |e| e.nil? }.map do |e|
+        h = e.dup
+        h.delete('backtrace')
+        h
+      end
+      view_object_hash(cmd).merge(
+        :command  => cmd.command,
+        :params   => cmd.params,
+        :errors   => errors,
+        :status   => cmd.status,
+        :submitted_at => ts(cmd.submitted_at),
+        :submitted_by => cmd.submitted_by,
+        :finished_at  => ts(cmd.finished_at)
+      ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
+    end
+
     def collection_view(cursor, name)
       perm = "query:#{name}"
       cursor = cursor.all if cursor.respond_to?(:all)
