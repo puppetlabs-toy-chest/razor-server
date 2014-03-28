@@ -9,6 +9,7 @@ require 'forwardable'
 class Razor::Command
   extend Forwardable
   extend Razor::Validation
+  extend Razor::Help
 
   ########################################################################
   # Command runtime interface, used on instances
