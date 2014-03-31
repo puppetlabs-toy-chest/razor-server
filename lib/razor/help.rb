@@ -22,10 +22,27 @@ module Razor::Help
     @example
   end
 
+
+  # Format the help text into something usable by the client.
+  # See the bottom of the file for the actual templates.
+  HelpTemplates = Hash.new {|_, name| raise ArgumentError, "unknown help format #{name}" }
+  def help(format = nil)
+    if format
+      HelpTemplates[format].result(binding)
+    else
+      # produce a new hash with the same output keys, but mutated output values
+      HelpTemplates.merge(HelpTemplates) {|_, erb| erb.result(binding) }
+    end
+  end
+
   # A hook to allow us to check that documentation is correct without having
   # to pre-declare it all up front.
   def loading_complete
     super if defined?(super)
+  end
+
+  def included(where)
+    fail "Razor::Help should be extended on a class, not included in one"
   end
 
   # Strip indentation and trailing whitespace from embedded doc fragments.
@@ -65,7 +82,12 @@ module Razor::Help
     text.lines.map{|line|line.rstrip}.join("\n").rstrip
   end
 
-  def included(where)
-    fail "Razor::Help should be extended on a class, not included in one"
-  end
+  HelpTemplates['full'] = ERB.new(scrub(<<-ERB), nil, '%')
+% if summary.nil? and description.nil?
+Unfortunately, the `<%= name %>` command has not been documented.
+% else
+Unfortunately, we have not yet written a document template for the
+full help style.  Would be nice if we did, I guess.
+% end
+  ERB
 end

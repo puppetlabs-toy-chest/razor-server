@@ -56,6 +56,7 @@ class Razor::Command
 
     {
       name: name,
+      help: self.class.help
     }.to_json
   end
 
