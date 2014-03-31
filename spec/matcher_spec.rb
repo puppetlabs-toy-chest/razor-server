@@ -161,6 +161,20 @@ describe Razor::Matcher do
       match("<",  4,   3  ).should == false
       match("lt", 3.5, 3.6).should == true
     end
+
+    it "lower should behave" do
+      match("=", ["lower", "ABC"], "abc").should == true
+      match("=", ["lower", "ABC"], "ABC").should_not == true
+      match("=", ["lower", ["fact", "f1"]], "abc",
+            { "f1" => "ABC" }).should == true
+    end
+
+    it "upper should behave" do
+      match("=", ["upper", "abc"], "ABC").should == true
+      match("=", ["upper", "abc"], "abc").should_not == true
+      match("=", ["upper", ["fact", "f1"]], "ABC",
+            { "f1" => "abc" }).should == true
+    end
   end
 
   describe "#valid?" do
@@ -232,6 +246,20 @@ describe Razor::Matcher do
       Matcher.new(["gt", 1, 4]).should be_valid
       Matcher.new([">",  8, 4.7]).should be_valid
       Matcher.new(["gt", true, 3]).should_not be_valid
+    end
+
+    it "should require string for lower" do
+      Matcher.new(["=", ["lower", "ABC"], "abc"]).should be_valid
+      Matcher.new(["=", ["lower", 1], "abc"]).should_not be_valid
+      expect { match("=", ["lower", ["fact", "f1"]], "123", { "f1" => 123 }) }.
+          to raise_error(Razor::Matcher::RuleEvaluationError, /argument to 'lower' should be a string but was Fixnum/)
+    end
+
+    it "should require string for upper" do
+      Matcher.new(["=", ["upper", "abc"], "abc"]).should be_valid
+      Matcher.new(["=", ["upper", 1], "abc"]).should_not be_valid
+      expect { match("=", ["upper", ["fact", "f1"]], "123", { "f1" => 123 }) }.
+          to raise_error(Razor::Matcher::RuleEvaluationError, /argument to 'upper' should be a string but was Fixnum/)
     end
 
     it "should require that top-level functions return booleans" do

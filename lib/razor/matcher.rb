@@ -67,6 +67,8 @@ class Razor::Matcher
         "gt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lte"      => {:expects => [[Numeric]],       :returns => Boolean },
         "lt"       => {:expects => [[Numeric]],       :returns => Boolean },
+        "lower"    => {:expects => [[String]],        :returns => [String] },
+        "upper"    => {:expects => [[String]],        :returns => [String] },
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -157,6 +159,20 @@ class Razor::Matcher
 
     def lt(*args)
       args[0] < args[1]
+    end
+
+    def lower(*args)
+      value = args[0]
+      return value.downcase if value.is_a?(String)
+
+      raise RuleEvaluationError.new _("argument to 'lower' should be a string but was %{raw}") % {raw: value.class.inspect}
+    end
+
+    def upper(*args)
+      value = args[0]
+      return value.upcase if value.is_a?(String)
+
+      raise RuleEvaluationError.new _("argument to 'upper' should be a string but was %{raw}") % {raw: value.class.inspect}
     end
 
     private
