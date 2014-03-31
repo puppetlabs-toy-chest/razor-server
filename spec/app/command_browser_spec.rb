@@ -29,11 +29,28 @@ describe "command browser API" do
       should =~ Regexp.new(Regexp.escape(Razor::VERSION))
   end
 
+  it "should return the same etag for two requests" do
+    get '/api/commands/test-browsing'
+    etag = last_response.headers.find{|k,v| k.downcase == "etag" }[1]
+    etag.should =~ Regexp.new(Regexp.escape(Razor::VERSION))
+
+    get '/api/commands/test-browsing'
+    last_response.headers.find{|k,v| k.downcase == "etag" }[1].should == etag
+  end
+
   it "should return json" do
     last_response.content_type.should =~ %r{application/json}
   end
 
   it "should return the command name" do
-    last_response.json.should == {'name' => 'test-browsing'}
+    last_response.json.should include 'name' => 'test-browsing'
+  end
+
+  context "help" do
+    it "should include full help text" do
+      last_response.json.should have_key 'help'
+      last_response.json['help'].should have_key 'full'
+      last_response.json['help']['full'].should be_an_instance_of String
+    end
   end
 end

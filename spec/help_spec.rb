@@ -172,4 +172,28 @@ but the rest of the text is
       EOT
     end
   end
+
+  context "formatting help text" do
+    let :cmd do
+      Class.new(Razor::Command)
+    end
+
+    before :each do
+      stub_const('Razor::Command::TestHelpRendering', cmd)
+    end
+
+    it "should fail with an unknown help format" do
+      expect { cmd.help('awesome') }.
+        to raise_error ArgumentError, /unknown help format awesome/
+    end
+
+    context "full help" do
+      subject(:text) { cmd.help('full') }
+
+      it "should return a sensible message with no help text" do
+        text.should =~
+          /Unfortunately, the `test-help-rendering` command has not been documented/
+      end
+    end
+  end
 end
