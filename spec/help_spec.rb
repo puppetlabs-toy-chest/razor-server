@@ -63,34 +63,34 @@ EOT
     end
   end
 
-  context "examples" do
-    it "should return nil if no examples is set" do
-      help.examples.should be_nil
+  context "example" do
+    it "should return nil if no example is set" do
+      help.example.should be_nil
     end
 
-    it "should accept a examples value" do
-      expect { help.examples('testing') }.not_to raise_error
+    it "should accept a example value" do
+      expect { help.example('testing') }.not_to raise_error
     end
 
-    it "should return the new examples value" do
-      help.examples('test').should == 'test'
+    it "should return the new example value" do
+      help.example('test').should == 'test'
     end
 
-    it "should retain the examples value" do
-      help.examples('test')
-      help.examples.should == 'test'
+    it "should retain the example value" do
+      help.example('test')
+      help.example.should == 'test'
     end
 
-    it "should work if the examples contains a newline" do
-      expect { help.examples("test\ncontent") }.not_to raise_error
+    it "should work if the example contains a newline" do
+      expect { help.example("test\ncontent") }.not_to raise_error
     end
 
     it "should strip indents" do
-      help.examples <<EOT
+      help.example <<EOT
         This text is indented.
         We should see something strip that off.
 EOT
-      help.examples.should =~ /^This text/
+      help.example.should =~ /^This text/
     end
   end
 
