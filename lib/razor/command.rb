@@ -45,6 +45,27 @@ class Razor::Command
   end
 
 
+  # Handle a raw HTTP get.  This formats metadata about the command into a
+  # form that can be consumed by the client on the other end of the API.
+  def handle_http_get(app)
+    # This will stop processing if the client has a cached version identical
+    # to our own.  The only time this may pose an issue is for a developer who
+    # is actively editing the server-side content, without committing changes.
+    app.etag "server-version-#{Razor::VERSION}"
+    app.content_type 'application/json'
+
+    {
+      name: name,
+    }.to_json
+  end
+
+
+  # @todo danielp 2014-03-31: I feel awkward about this being defined here, as
+  # well as up in the app, but without both knowing about it we end up in a
+  # world where we can't dynamically add commands to, eg, the dispatch layer.
+  #
+  # This probably isn't a big thing in release code, but makes testing vastly
+  # more painful and annoying than it otherwise has to be.
   def self.http_path
     "/api/commands/#{name}"
   end
@@ -63,6 +84,13 @@ class Razor::Command
   # Return all the defined command objects -- the classes, not the instances.
   def self.all
     @commands ||= []
+  end
+
+  # Find a command; at the moment, only by name.
+  def self.find(query = {})
+    query.keys == [:name] or
+      raise ArgumentError, "unsuppored command find for #{(query.keys - [:name]).join(', ')}"
+    @commands.find {|c| c.name == query[:name] }
   end
 
   # When a derived class is created, we register it with our table of

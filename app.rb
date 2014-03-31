@@ -475,10 +475,14 @@ class Razor::App < Sinatra::Base
   end
 
   # Hook all our commands into the HTTP router.
-  Razor::Command.all.each do |command|
-    post command.http_path do
-      command.new.handle_http_post(self)
-    end
+  get '/api/commands/:name', provides: 'application/json' do
+    cmd = Razor::Command.find(name: params[:name]) or pass
+    cmd.new.handle_http_get(self)
+  end
+
+  post '/api/commands/:name' do
+    cmd = Razor::Command.find(name: params[:name]) or pass
+    cmd.new.handle_http_post(self)
   end
 
 

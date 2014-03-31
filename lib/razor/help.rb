@@ -16,10 +16,10 @@ module Razor::Help
     @description
   end
 
-  def examples(value = nil)
+  def example(value = nil)
     value = Razor::Help.scrub(value)
-    value.nil? or @examples = value
-    @examples
+    value.nil? or @example = value
+    @example
   end
 
   # A hook to allow us to check that documentation is correct without having
