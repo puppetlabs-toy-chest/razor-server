@@ -40,5 +40,5 @@ module Razor
   # The running version of Razor.  Razor follows the tenets of [semantic
   # versioning](http://semver.org), and this version number reflects the rules
   # as of SemVer 2.0.0
-  VERSION = version
+  VERSION = version.chomp
 end
