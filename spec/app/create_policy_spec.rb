@@ -19,7 +19,7 @@ describe "create policy command" do
     let(:repo)   { Fabricate(:repo) }
     let(:broker) { Fabricate(:broker) }
 
-    let (:tag1) { Tag.create(:name => "tag1", :rule => ["=", 1, 1] ) }
+    let (:tag1) { Fabricate(:tag) }
 
     let(:policy_hash) do
       # FIXME: Once we have proper helpers to generate these URL's,
@@ -48,6 +48,12 @@ describe "create policy command" do
       last_response.json.keys.should =~ %w[id name spec]
 
       last_response.json["id"].should =~ %r'/api/collections/policies/test%20policy\Z'
+    end
+
+    it "should fail if 'tags' is wrong datatype" do
+      policy_hash[:tags] = ''
+      create_policy
+      last_response.status.should == 422
     end
 
     it "should fail if a nonexisting tag is referenced" do
