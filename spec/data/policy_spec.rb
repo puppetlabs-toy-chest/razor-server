@@ -12,7 +12,7 @@ describe Razor::Data::Policy do
   end
 
   it "binds to a matching node" do
-    pl = Fabricate(:policy, :repo => @repo, :task_name => "some_os")
+    pl = Fabricate(:policy, :repo => @repo)
     pl.add_tag(@tag)
     pl.save
     @node.add_tag(@tag)
@@ -24,17 +24,28 @@ describe Razor::Data::Policy do
   end
 
   it "does not save a policy if the named task does not exist" do
-    pl = Fabricate(:policy, :repo => @repo, :task_name => "some_os")
+    pl = Fabricate(:policy, :repo => @repo)
     expect do
       pl.task_name = "no such task"
       pl.save
     end.to raise_error(Sequel::ValidationFailed)
   end
 
+  it "prefers policy task to repo task" do
+    repo_with_task = Fabricate(:repo, :task_name => 'some_os')
+    pl = Fabricate(:policy, :repo => repo_with_task, :task_name => 'microkernel')
+    pl.task.name.should == 'microkernel'
+  end
+
+  it "defaults to repo task" do
+    repo_with_task = Fabricate(:repo, :task_name => 'some_os')
+    pl = Fabricate(:policy, :repo => repo_with_task, :task_name => nil)
+    pl.task.name.should == 'some_os'
+  end
+
   describe "max_count" do
     it "binds if there is room" do
-      pl = Fabricate(:policy, :repo => @repo, :task_name => "some_os",
-                       :max_count => 1)
+      pl = Fabricate(:policy, :repo => @repo, :max_count => 1)
       pl.add_tag(@tag)
       pl.save
       @node.add_tag(@tag)
@@ -44,8 +55,7 @@ describe Razor::Data::Policy do
     end
 
     it "does not bind if there is no room" do
-      pl = Fabricate(:policy, :repo => @repo, :task_name => "some_os",
-                       :max_count => 0)
+      pl = Fabricate(:policy, :repo => @repo, :max_count => 0)
       pl.add_tag(@tag)
       pl.save
       Policy.bind(@node)
@@ -58,8 +68,7 @@ describe Razor::Data::Policy do
   end
 
   it "does not bind disabled policy" do
-    pl = Fabricate(:policy, :repo => @repo, :task_name => "some_os",
-                     :enabled => false)
+    pl = Fabricate(:policy, :repo => @repo, :enabled => false)
     pl.add_tag(@tag)
     pl.save
     Policy.bind(@node)

@@ -56,11 +56,22 @@ describe "command and query API" do
       last_response.mime_type.downcase.should == 'application/json'
     end
 
+    it "should fail if task-name is omitted" do
+      post '/api/commands/create-repo', {
+          "name"      => "magicos",
+          "iso-url"   => "file:///dev/null",
+          "banana"    => "> orange",
+      }.to_json
+      last_response.status.should == 422
+      last_response.mime_type.downcase.should == 'application/json'
+    end
+
     it "should fail if an extra key is given, if otherwise good" do
       post '/api/commands/create-repo', {
         "name"      => "magicos",
         "iso-url"   => "file:///dev/null",
         "banana"    => "> orange",
+        "task"      => {"name" => "some_os"},
       }.to_json
       last_response.status.should == 422
       last_response.mime_type.downcase.should == 'application/json'
@@ -68,8 +79,9 @@ describe "command and query API" do
 
     it "should return the 202, and the URL of the repo" do
       post '/api/commands/create-repo', {
-        "name" => "magicos",
-        "iso-url" => "file:///dev/null"
+        "name"    => "magicos",
+        "iso-url" => "file:///dev/null",
+        "task"    => {"name" => "some_os"},
       }.to_json
 
       last_response.status.should == 202
@@ -82,8 +94,9 @@ describe "command and query API" do
 
     it "should create an repo record in the database" do
       post '/api/commands/create-repo', {
-        "name" => "magicos",
-        "iso-url" => "file:///dev/null"
+        "name"    => "magicos",
+        "iso-url" => "file:///dev/null",
+        "task"    => {"name" => "some_os"},
       }.to_json
 
       Repo.find(:name => "magicos").should be_an_instance_of Repo

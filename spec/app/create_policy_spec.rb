@@ -26,7 +26,7 @@ describe "create policy command" do
       # use them in these tests
       { :name          => "test policy",
         :repo          => { "name" => repo.name },
-        :task        => { "name" => "some_os" },
+        :task          => {"name" => "some_os"},
         :broker        => { "name" => broker.name },
         :hostname      => "host${id}.example.com",
         :root_password => "geheim",
