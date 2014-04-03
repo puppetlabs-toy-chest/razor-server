@@ -62,6 +62,22 @@ module Razor::Data
       Razor::Task.find(task_name)
     end
 
+    def set_source(command, data)
+      #refresh should default to true
+      data['refresh'] = true if data['refresh'].nil?
+
+      old = self.clone
+      self.iso_url = data['iso_url'] || nil
+      self.url     = data['url']     || nil
+
+      unless self == old
+        self.save
+        self.refresh(command) if data['refresh']
+      end
+
+      self
+    end
+
     # Make the repo accessible on the local system, and then generate
     # a notification.  In the event the repo is remote, it will be downloaded
     # and the temporary file stored for later cleanup.

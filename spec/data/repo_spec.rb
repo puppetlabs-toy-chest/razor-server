@@ -617,4 +617,62 @@ describe Razor::Data::Repo do
       end
     end
   end
+
+  context "set_repo_source" do
+    let :repo do
+      Repo.new(:name => 'update', :iso_url => 'file:///dev/empty', :task_name => 'testing').save
+    end
+
+    it "should update the iso_url when a new one is supplied" do
+      command = Fabricate(:command)
+      repo.set_source(command, { 'iso_url' => 'file:///dev/null' })
+      Repo.find(:name => 'update').iso_url.should == 'file:///dev/null'
+    end
+
+    it "should set the alternative url option and unset the previous one" do
+      command = Fabricate(:command)
+      repo.set_source(command, { 'url' => 'file:///dev/null' })
+      updated = Repo.find(:name => 'update')
+      updated.url.should == 'file:///dev/null'
+      updated.iso_url.should be_nil
+    end
+
+    it "should raise an error if the update tries to set both url and iso_url" do
+      command = Fabricate(:command)
+      expect{ repo.set_source(command, { 'url' => 'file:///dev/null', 'iso_url' => 'file:///dev/random' }) }.to raise_error Sequel::ValidationFailed
+    end
+
+    it "should publish a make_the_repo_accessible job when the repo is updated and refresh is set to true" do
+      command = Fabricate(:command)
+      expect {
+        repo.set_source(command, { 'url' => 'file:///dev/null', 'refresh' => true })
+      }.to have_published(
+        'class'     => repo.class.name,
+        'instance'  => repo.pk_hash,
+        'message'  => 'make_the_repo_accessible'
+      ).on(queue)
+    end
+
+    it "should publish a make_the_repo_accessible job when the repo is updated and refresh is not set (default to true)" do
+      command = Fabricate(:command)
+      expect {
+        repo.set_source(command, { 'url' => 'file:///dev/null' })
+      }.to have_published(
+        'class'     => repo.class.name,
+        'instance'  => repo.pk_hash,
+        'message'  => 'make_the_repo_accessible'
+      ).on(queue)
+    end
+
+    it "should NOT publish a make_the_repo_accessible job when the repo is updated and refresh is set to false" do
+      command = Fabricate(:command)
+      expect {
+        repo.set_source(command, { 'url' => 'file:///dev/null', 'refresh' => false })
+      }.not_to have_published(
+        'class'     => repo.class.name,
+        'instance'  => repo.pk_hash,
+        'message'  => 'make_the_repo_accessible'
+      ).on(queue)
+    end
+  end
 end
