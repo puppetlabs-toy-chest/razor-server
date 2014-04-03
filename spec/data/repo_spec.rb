@@ -675,4 +675,21 @@ describe Razor::Data::Repo do
       ).on(queue)
     end
   end
+  
+  context "refresh" do
+    let :repo do
+      Repo.new(:name => 'refresh', :iso_url => 'file:///dev/empty', :task_name => 'testing').save
+    end
+
+    it "should publish a 'make_repo_accessible' job" do
+      command = Fabricate(:command)
+      expect {
+        repo.refresh(command)
+      }.to have_published(
+        'class'    => repo.class.name,
+        'instance' => repo.pk_hash,
+        'message'  => 'make_the_repo_accessible'
+      ).on(queue)
+    end
+  end
 end

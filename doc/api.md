@@ -150,6 +150,20 @@ or;
       "refresh": false
     }
 
+### Refresh a repo
+
+The `refresh-repo` command will trigger a refresh of the repo content from its configured
+source (iso-url) or (url).
+
+It is also useful when adding additional Razor servers to an existing database
+in that it allows you to populate the repo on the new server.
+
+It accepts the name of a single repo. 
+
+    {
+      "repo" : {"name": "existing-repo"}
+    }
+
 ### Create task
 
 Razor supports both tasks stored in the filesystem and tasks

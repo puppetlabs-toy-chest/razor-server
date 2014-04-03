@@ -62,6 +62,10 @@ module Razor::Data
       Razor::Task.find(task_name)
     end
 
+    def refresh(command)
+      publish('make_the_repo_accessible', command)
+    end
+
     def set_source(command, data)
       #refresh should default to true
       data['refresh'] = true if data['refresh'].nil?
@@ -186,7 +190,8 @@ module Razor::Data
     # done, notify ourselves of that so any cleanup required can be performed.
     def unpack_repo(command, path)
       destination = iso_location
-      destination.mkpath        # in case it didn't already exist
+      FileUtils.remove_entry_secure(destination) if destination.directory? #delete the destination and contents if it already exists
+      destination.mkpath
       Archive.extract(path, destination)
       self.publish('release_temporary_repo', command)
     end
