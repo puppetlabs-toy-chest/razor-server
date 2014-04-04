@@ -333,7 +333,8 @@ class Razor::App < Sinatra::Base
       # have to put the kernel and initrd into the microkernel/ directory
       # in their repo store manually for things to work.
       @repo = Razor::Data::Repo.new(:name => "microkernel",
-                                    :iso_url => "file:///dev/null")
+                                    :iso_url => "file:///dev/null",
+                                    :task_name => @task.name)
     end
     template = @task.boot_template(@node)
 

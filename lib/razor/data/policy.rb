@@ -65,20 +65,18 @@ module Razor::Data
     end
 
     def task
-      Razor::Task.find(task_name)
+      task_name ? Razor::Task.find(task_name) : repo.task
     end
 
     def validate
       super
-
       # Because we allow tasks in the file system, we do not have a fk
       # constraint on +task_name+; this check only helps spot simple
       # typos etc.
       begin
-        self.task
+        Razor::Task.find(task_name) if task_name
       rescue Razor::TaskNotFoundError
-        errors.add(:task_name,
-                   _("task '%{name}' does not exist") % {name: task_name})
+        errors.add(:task, _("task '%{name}' does not exist") % {name: task_name})
       end
     end
 

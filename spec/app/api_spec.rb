@@ -136,7 +136,7 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  Fabricate(:policy, :repo => @repo, :task_name => "some_os")
+      pl =  Fabricate(:policy, :repo => @repo)
       pl.add_tag @tag
 
       get '/api/collections/policies'

@@ -22,7 +22,7 @@ module Razor::Data
     # The only columns that may be set through "mass assignment", which is
     # typically through the constructor.  Only enforced at the Ruby layer, but
     # since we direct everything through the model that is acceptable.
-    set_allowed_columns :name, :iso_url, :url
+    set_allowed_columns :name, :iso_url, :url, :task_name
 
     # When a new instance is saved, we need to make the repo accessible as a
     # local file.
@@ -49,6 +49,10 @@ module Razor::Data
       elsif url.nil? and iso_url.nil?
         errors.add(:urls, _("you must set one of the 'url' or 'iso_url' attributes"))
       end
+    end
+
+    def task
+      Razor::Task.find(task_name)
     end
 
     # Make the repo accessible on the local system, and then generate

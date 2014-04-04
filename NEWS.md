@@ -20,6 +20,9 @@
     3. `tasks/common`
     For a more complete guide to migrating, see
     [This migration page](http://links.puppetlabs.com/razor-migration-task-revamp)
+  + `create-repo` now requires a `task` argument. The argument must have the form:
+    { "name" => "TASK_NAME" } # Where TASK_NAME is the name of an existing task, whether
+    that be stock or custom.
 
 ## 0.13.0 - 2014-01-21
 
