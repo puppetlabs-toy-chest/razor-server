@@ -7,7 +7,9 @@ module Razor::Help
                              "Put the long text into the 'description' instead."
       @summary = value
     end
-    @summary
+    # If we don't have a summary yet, generate one from the first line of the
+    # description (if possible) and stash it away.
+    @summary ||= (description and description.split(/[.\n]/).first)
   end
 
   def description(value = nil)
@@ -20,6 +22,12 @@ module Razor::Help
     value = Razor::Help.scrub(value)
     value.nil? or @example = value
     @example
+  end
+
+  def returns(value = nil)
+    value = Razor::Help.scrub(value)
+    value.nil? or @returns = value
+    @returns
   end
 
 
@@ -86,8 +94,28 @@ module Razor::Help
 % if summary.nil? and description.nil?
 Unfortunately, the `<%= name %>` command has not been documented.
 % else
-Unfortunately, we have not yet written a document template for the
-full help style.  Would be nice if we did, I guess.
+% # summary, description, example
+# SYNOPSIS
+<%= summary %>
+
+# DESCRIPTION
+<%= description %>
+%
+% # @todo danielp 2014-04-04: inject details built from the validation about
+% # the structure and form of the command.
+%
+% if returns
+
+# RETURNS
+<%= returns.gsub(/^/, '  ') %>
+% end
+%
+% if example
+
+# EXAMPLES
+<%= example.gsub(/^/, '  ') %>
+% end
+
 % end
   ERB
 end

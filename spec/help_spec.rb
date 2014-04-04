@@ -194,6 +194,45 @@ but the rest of the text is
         text.should =~
           /Unfortunately, the `test-help-rendering` command has not been documented/
       end
+
+      context "with a description" do
+        before :each do
+          cmd.description <<EOT
+This is a description of the command.
+It has a pile of text, and a couple of paragraphs.
+
+Yup, this is totally a second "paragraph".
+EOT
+        end
+
+        it { should =~ /# SYNOPSIS/ }
+        it { should =~ /# DESCRIPTION/ }
+        it { should_not =~ /# EXAMPLES/ }
+        it { should_not =~ /# RETURNS/ }
+
+        it { should =~ /This is a description of the command/ }
+        it { should =~ /Yup, this is totally a second "paragraph"/ }
+
+        context "synopsis generation" do
+          it "should duplicate the first part of description as the synopsis" do
+            text.should =~ /SYNOPSIS.*This is a description of the command$.*DESCRIPTION/m
+          end
+
+          it "should handle an embedded period nicely" do
+            cmd.description <<EOT
+Add a tag to a policy.  You can specify an existing tag by name, or you can
+blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah
+EOT
+            cmd.summary.should == 'Add a tag to a policy'
+          end
+        end
+
+        it "should override the summary if explicitly supplied" do
+          cmd.summary "hello, world"
+          text.should =~ /SYNOPSIS.*hello, world$.*DESCRIPTION/m
+          text.should =~ /This is a description of the command/
+        end
+      end
     end
   end
 end
