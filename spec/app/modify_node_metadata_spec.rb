@@ -66,6 +66,13 @@ describe "modify node metadata command" do
     last_response.json["error"].should =~ /no_replace must be boolean true or string 'true'/
   end
 
+  it "should reject blank attributes" do
+    data = { 'node' => "node#{node.id}", 'update' => { '' => 'v1'} }
+    modify_metadata(data)
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /blank attribute not allowed/
+  end
+
   describe "when updating metadata on a node" do
 
     it "should create a new metadata item on a node" do
