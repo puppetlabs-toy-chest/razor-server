@@ -48,16 +48,16 @@ class Razor::Validation::ArrayAttribute
         begin
           check[:validate] and check[:validate].call(value)
         rescue => e
-          raise Razor::ValidationFailure, _("attribute %{name} fails type checking for %{type}: %{error}") % {name: name, type: ruby_type_to_json(check[:type]), error: e.to_s}
+          raise Razor::ValidationFailure, _("attribute at index %{index} fails type checking for %{type}: %{error}") % {index: index, type: ruby_type_to_json(check[:type]), error: e.to_s}
         end
 
         # If we got here we passed all the checks, and have a match, so we are good.
         break true
       end or raise Razor::ValidationFailure, n_(
-        "attribute %{name} has wrong type %{actual} where %{expected} was expected",
-        "attribute %{name} has wrong type %{actual} where one of %{expected} was expected",
+        "attribute at position %{index} has wrong type %{actual} where %{expected} was expected",
+        "attribute at position %{index} has wrong type %{actual} where one of %{expected} was expected",
         Array(@type).count) % {
-        name:     name,
+        index:     index,
         actual:   ruby_type_to_json(value),
         expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
@@ -80,6 +80,8 @@ class Razor::Validation::ArrayAttribute
       when Module then
         if entry <= URI then
           {type: String, validate: -> str { URI.parse(str) }}
+        elsif entry <= Hash then
+          {type: Hash, validate: -> hash { raise ArgumentError, "blank hash key not allowed" if hash.keys.include? '' }}
         else
           {type: entry}
         end
