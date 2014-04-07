@@ -108,7 +108,7 @@ class Razor::Validation::HashAttribute
         if entry <= URI then
           {type: String, validate: -> str { URI.parse(str) }}
         elsif entry <= Hash then
-          {type: Hash, validate: -> hash { raise ArgumentError, "blank attribute not allowed" if hash.keys.include? '' }}
+          {type: Hash, validate: -> hash { raise ArgumentError, "blank hash key not allowed" if hash.keys.include? '' }}
         else
           {type: entry}
         end

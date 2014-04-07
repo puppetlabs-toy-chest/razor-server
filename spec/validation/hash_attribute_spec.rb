@@ -71,6 +71,12 @@ describe Razor::Validation::HashAttribute do
         to raise_error(/bad URI/)
     end
 
+    it "should fail if value's key is blank" do
+      attr.type(Hash)
+      expect { attr.validate!({'attr' => {'' => 'abc'}}) }.
+          to raise_error(/blank attribute/)
+    end
+
     context "references" do
       let :node do Fabricate(:node) end
       # Necessary because of the magic in lookups.
