@@ -35,8 +35,8 @@ COMMANDS = {
     end
     # @todo lutter 2014-01-21: figure out a more sustainable way to clean
     # out the database
-    Razor.database.run("DROP TYPE power_state")
-    Razor.database.run("DROP TYPE command_status")
+    Razor.database.run("DROP TYPE IF EXISTS power_state")
+    Razor.database.run("DROP TYPE IF EXISTS command_status")
     Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
     true
   end
