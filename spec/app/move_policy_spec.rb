@@ -31,14 +31,14 @@ describe "move policy command" do
     it "requires a name for the policy to move" do
       move_policy(nil, :after, @p1)
       last_response.status.should == 422
-      last_response.json["error"].should =~ /required attribute name is missing/
+      last_response.json["error"].should =~ /name is a required attribute, but it is not present/
     end
 
     it "rejects moving a nonexisting policy" do
-      @p1.name = @p1.name + "(not really)"
+      @p1.name = @p1.name + " (not really)"
       move_policy(@p1, :after, @p2)
       last_response.status.should == 404
-      last_response.json["error"].should =~ /attribute name must refer to an existing instance/
+      last_response.json["error"].should =~ /name must be the name of an existing policy, but is 'first \(not really\)'/
     end
 
     it "requires either before or after to be present" do

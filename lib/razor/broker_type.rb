@@ -21,6 +21,11 @@ class Razor::BrokerTypeNotFoundError < RuntimeError; end
 class Razor::BrokerTypeInvalidError  < RuntimeError; end
 
 class Razor::BrokerType
+  # Since we behave more or less like a Razor::Data object, we need to include
+  # the same general purpose helper methods they do.
+  extend  Razor::Data::ClassMethods
+  include Razor::Data::InstanceMethods
+
   # Enumerate all instances of brokers available on the system.
   def self.all
     Razor.config.broker_paths.collect do |path|

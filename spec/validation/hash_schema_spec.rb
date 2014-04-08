@@ -81,8 +81,8 @@ describe Razor::Validation::HashSchema do
   context "validate!" do
     [[], 1, 1.1, ""].each do |input|
       it "should fail if the data is an #{input.class}" do
-        expect { schema.validate!(input) }.
-          to raise_error(/expected object but got/)
+        expect { schema.validate!(input, nil) }.
+          to raise_error(/the command should be an object, but got/)
       end
     end
 
@@ -111,22 +111,22 @@ describe Razor::Validation::HashSchema do
 
       it "should fail an invalid authz dependency before authz checking" do
         with_auth('jane', 'jungle') do
-          expect { schema.validate!('after' => true) }.
-            to raise_error(/required attribute before is missing/)
+          expect { schema.validate!({'after' => true}, nil) }.
+            to raise_error(/before is a required attribute, but it is not present/)
         end
       end
 
       it "should fail an invalid login before checking non-authz-dep attributes" do
         with_auth('jane', 'jungle') do
-          expect { schema.validate!('before' => true) }.
+          expect { schema.validate!({'before' => true}, nil) }.
             to raise_error(org.apache.shiro.authz.UnauthenticatedException)
         end
       end
 
       it "should fail non-authz-dep attributes if the login works" do
         with_auth('fred', 'dead') do
-          expect { schema.validate!('before' => true) }.
-            to raise_error(/required attribute after is missing/)
+          expect { schema.validate!({'before' => true}, nil) }.
+            to raise_error(/after is a required attribute, but it is not present/)
         end
       end
     end
@@ -143,22 +143,22 @@ describe Razor::Validation::HashSchema do
       end
 
       it "should fail if none of the attributes are supplied" do
-        expect { schema.validate!({}) }.
-          to raise_error(/one of a, b, c must be supplied/)
+        expect { schema.validate!({}, nil) }.
+          to raise_error(/the command requires one out of the a, b, c attributes to be supplied/)
       end
 
       it "should fail if two of the attributes are supplied" do
-        expect { schema.validate!({'a' => 1, 'b' => 2}) }.
-          to raise_error(/only one of a, b must be supplied/)
-        expect { schema.validate!({'a' => 1, 'c' => 3}) }.
-          to raise_error(/only one of a, c must be supplied/)
-        expect { schema.validate!({'b' => 2, 'c' => 3}) }.
-          to raise_error(/only one of b, c must be supplied/)
+        expect { schema.validate!({'a' => 1, 'b' => 2}, nil) }.
+          to raise_error(/the command requires at most one of a, b to be supplied/)
+        expect { schema.validate!({'a' => 1, 'c' => 3}, nil) }.
+          to raise_error(/the command requires at most one of a, c to be supplied/)
+        expect { schema.validate!({'b' => 2, 'c' => 3}, nil) }.
+          to raise_error(/the command requires at most one of b, c to be supplied/)
       end
 
       it "should fail if all three of the attributes are supplied" do
-        expect { schema.validate!({'a' => 1, 'b' => 2, 'c' => 3}) }.
-          to raise_error(/only one of a, b, c must be supplied/)
+        expect { schema.validate!({'a' => 1, 'b' => 2, 'c' => 3}, nil) }.
+          to raise_error(/the command requires at most one of a, b, c to be supplied/)
       end
     end
 
@@ -168,18 +168,18 @@ describe Razor::Validation::HashSchema do
       end
 
       it "should fail if one extra attribute is present" do
-        expect { schema.validate!({'a' => 1}) }.
-          to raise_error(/extra attribute a was present, but is not allowed/)
+        expect { schema.validate!({'a' => 1}, nil) }.
+          to raise_error(/extra attribute a was present in the command, but is not allowed/)
       end
 
       it "should fail if two extra attributes are present" do
-        expect { schema.validate!({'a' => 1, 'b' => 2}) }.
-          to raise_error(/extra attributes a, b were present, but are not allowed/)
+        expect { schema.validate!({'a' => 1, 'b' => 2}, nil) }.
+          to raise_error(/extra attributes a, b were present in the command, but are not allowed/)
       end
 
       it "should fail if three extra attributes are present" do
-        expect { schema.validate!({'a' => 1, 'b' => 2, 'c' => 3}) }.
-          to raise_error(/extra attributes a, b, c were present, but are not allowed/)
+        expect { schema.validate!({'a' => 1, 'b' => 2, 'c' => 3}, nil) }.
+          to raise_error(/extra attributes a, b, c were present in the command, but are not allowed/)
       end
     end
   end

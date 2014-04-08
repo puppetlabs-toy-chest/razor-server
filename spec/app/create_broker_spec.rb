@@ -49,7 +49,8 @@ describe "create broker command" do
       create_broker broker_command.merge 'broker-type' => 'no-such-broker-for-me'
 
       last_response.status.should == 404
-      last_response.json['error'].should == 'attribute broker-type must refer to an existing instance'
+      last_response.json['error'].should ==
+        "broker-type must be the name of an existing broker type, but is 'no-such-broker-for-me'"
     end
 
     it "should fail cleanly if 'configuration' is a string" do
@@ -57,7 +58,7 @@ describe "create broker command" do
       create_broker broker_command
 
       last_response.status.should == 422
-      last_response.json['error'].should == "expected object but got string"
+      last_response.json['error'].should == "configuration should be an object, but got string"
     end
     # Successful creation
     it "should return 202, and the URL of the broker" do

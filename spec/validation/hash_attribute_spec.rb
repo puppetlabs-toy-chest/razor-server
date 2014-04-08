@@ -42,38 +42,38 @@ describe Razor::Validation::HashAttribute do
 
     it "should fail if the attribute is required but not present" do
       attr.required(true)
-      expect { attr.validate!({}) }.
-        to raise_error(/required attribute attr is missing/)
+      expect { attr.validate!({}, nil) }.
+        to raise_error(/attr is a required attribute, but it is not present/)
     end
 
     it "should return true if the attribute is not required and not present" do
       attr.required(false)
-      attr.validate!({}).should be_true
+      attr.validate!({}, nil).should be_true
     end
 
     it "should fail if it excludes another attribute that is present" do
       attr.exclude('fail')
-      expect { attr.validate!('attr' => true, 'fail' => true) }.
+      expect { attr.validate!({'attr' => true, 'fail' => true}, nil) }.
         to raise_error(/if attr is present, fail must not be present/)
     end
 
     [{}, [], 1, 1.1, true, false, nil].each do |input|
       it "should fail if type is specified (String), and not matched (#{input.inspect})" do
         attr.type(String)
-        expect { attr.validate!({'attr' => input}) }.
-          to raise_error(/attribute attr has wrong type .+ where string was expected/)
+        expect { attr.validate!({'attr' => input}, nil) }.
+          to raise_error(/attr should be a string, but was actually a .+/)
       end
     end
 
     it "should fail if the type is URI, and it has a bad URI passed" do
       attr.type(URI)
-      expect { attr.validate!({'attr' => 'http://'}) }.
+      expect { attr.validate!({'attr' => 'http://'}, nil) }.
         to raise_error(/bad URI/)
     end
 
     it "should fail if value's key is blank" do
       attr.type(Hash)
-      expect { attr.validate!({'attr' => {'' => 'abc'}}) }.
+      expect { attr.validate!({'attr' => {'' => 'abc'}}, nil) }.
           to raise_error(/blank hash key/)
     end
 
@@ -88,15 +88,15 @@ describe Razor::Validation::HashAttribute do
       end
 
       it "should fail if the referenced instance does not exist" do
-        expect { attr.validate!({'id' => node.id + 12}) }.
-          to raise_error(/attribute id must refer to an existing instance/)
+        expect { attr.validate!({'id' => node.id + 12}, nil) }.
+          to raise_error(/id must be the id of an existing node, but is '#{node.id + 12}'/)
       end
 
       it "should have a 404 status on the error when the instance does not exist" do
         test_code_ran = false
 
         begin
-          attr.validate!({'id' => node.id + 12})
+          attr.validate!({'id' => node.id + 12}, nil)
         rescue Razor::ValidationFailure => e
           e.status.should == 404
           test_code_ran = true
@@ -109,7 +109,7 @@ describe Razor::Validation::HashAttribute do
       end
 
       it "should succeed if the referenced instance does exist" do
-        attr.validate!({'id' => node.id}).should be_true
+        attr.validate!({'id' => node.id}, nil).should be_true
       end
     end
   end

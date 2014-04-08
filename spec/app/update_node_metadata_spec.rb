@@ -24,21 +24,24 @@ describe "update node metadata command" do
     data = { 'key' => 'k1', 'value' => 'v1' }
     update_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /required attribute node is missing/
+    last_response.json["error"].should =~
+      /node is a required attribute, but it is not present/
   end
 
   it "should require a key" do
     data = { 'node' => "node#{node.id}", 'value' => 'v1' }
     update_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /one of all, key must be supplied/
+    last_response.json["error"].should =~
+      /the command requires one out of the all, key attributes to be supplied/
   end
 
   it "should require a value" do
     data = { 'node' => "node#{node.id}", 'key' => 'k1' }
     update_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /required attribute value is missing/
+    last_response.json["error"].should =~
+      /value is a required attribute, but it is not present/
   end
 
   it "should require no_replace to equal true" do

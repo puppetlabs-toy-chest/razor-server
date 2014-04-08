@@ -34,23 +34,30 @@ class Razor::Validation::HashSchema
     @attributes[name]
   end
 
-  def validate!(data)
+  def expand(path, attr = nil)
+    path = [path, attr].compact.join('.')
+    path.empty? and _('the command') or path
+  end
+
+  def validate!(data, path)
     checked = {}
 
     # Ensure that we have the correct base data type, since nothing else will
     # work if we don't.
     data.is_a?(Hash) or
-      raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
-      {expected: ruby_type_to_json(Hash), actual: ruby_type_to_json(data)}
+      raise Razor::ValidationFailure,
+        _('%{this} should be an object, but got %{actual}') %
+        {this: expand(path), actual: ruby_type_to_json(data)}
 
     # Ensure that any dependencies of our authz system are satisfied.
     @authz_dependencies.each do |attr|
       next if checked[attr]
-      checked[attr] = @attributes[attr].validate!(data)
+      checked[attr] = @attributes[attr].validate!(data, path)
     end
 
-    # Perform the authz check itself.  Will raise on failure.
-    if Razor.config['auth.enabled']
+    # Perform the authz check itself.  Will raise on failure.  Only applied on
+    # the top-level object to avoid duplicating tests all the way down.
+    if path.nil? and @authz_template and Razor.config['auth.enabled']
       authz = eval(@authz_template)
       org.apache.shiro.SecurityUtils.subject.check_permissions(authz)
     end
@@ -58,7 +65,7 @@ class Razor::Validation::HashSchema
     # Now, check any remaining attributes.
     @attributes.each do |attr, check|
       next if checked[attr]
-      checked[attr] = check.validate!(data)
+      checked[attr] = check.validate!(data, path)
     end
 
     # Check if we have the minimum of multiple required, but not
@@ -66,9 +73,9 @@ class Razor::Validation::HashSchema
     @require_one_of.each do |assert|
       overlap = (data.keys & assert)
       if overlap.count == 0
-        raise Razor::ValidationFailure, _('one of %{assert} must be supplied') % {assert: assert.sort.join(', ')}
+        raise Razor::ValidationFailure, _('%{this} requires one out of the %{assert} attributes to be supplied') % {this: expand(path), assert: assert.sort.join(', ')}
       elsif overlap.count >= 2
-        raise Razor::ValidationFailure, _('only one of %{overlap} must be supplied') % {overlap: overlap.sort.join(', ')}
+        raise Razor::ValidationFailure, _('%{this} requires at most one of %{overlap} to be supplied') % {this: expand(path), overlap: overlap.sort.join(', ')}
       end
     end
 
@@ -80,7 +87,7 @@ class Razor::Validation::HashSchema
     @extra_attr_patterns.each do |pattern, check|
       extra_attributes = extra_attributes.reject do |name|
         next false unless name =~ pattern
-        check.validate!(data, name)
+        check.validate!(data, path, name)
         true
       end
     end
@@ -89,10 +96,10 @@ class Razor::Validation::HashSchema
     # reject you.
     unless extra_attributes.empty?
       msg = n_(
-        'extra attribute %{extra} was present, but is not allowed',
-        'extra attributes %{extra} were present, but are not allowed',
+        'extra attribute %{extra} was present in %{this}, but is not allowed',
+        'extra attributes %{extra} were present in %{this}, but are not allowed',
         extra_attributes.count) %
-        {extra: extra_attributes.sort.join(', ')}
+        {this: expand(path), extra: extra_attributes.sort.join(', ')}
       raise Razor::ValidationFailure, msg
     end
   end
@@ -186,13 +193,10 @@ class Razor::Validation::HashSchema
     extend Forwardable
 
     def initialize(name)
-      @name = name
+      @schema = Razor::Validation::HashSchema.new(name)
     end
 
-    def schema
-      @schema ||= Razor::Validation::HashSchema.new(@name)
-    end
-
+    attr_reader    'schema'
     def_delegators 'schema', *Razor::Validation::HashSchema.public_instance_methods(false)
   end
 

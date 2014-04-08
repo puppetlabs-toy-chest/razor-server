@@ -24,7 +24,7 @@ describe "delete-policy" do
     count = Policy.count
     delete_policy()
     last_response.status.should == 422
-    last_response.json["error"].should =~ /required attribute name is missing/
+    last_response.json["error"].should =~ /name is a required attribute, but it is not present/
     Policy.count.should == count
   end
 

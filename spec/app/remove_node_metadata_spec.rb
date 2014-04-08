@@ -24,14 +24,16 @@ describe "remove node metadata command" do
     data = { 'key' => 'k1', 'value' => 'v1' }
     remove_metadata(data)
     last_response.status.should == 422
-    JSON.parse(last_response.body)["error"].should =~ /required attribute node is missing/
+    JSON.parse(last_response.body)["error"].should ==
+      "node is a required attribute, but it is not present"
   end
 
   it "should require a key or all" do
     data = { 'node' => "node#{node.id}"}
     remove_metadata(data)
     last_response.status.should == 422
-    JSON.parse(last_response.body)["error"].should =~ /one of all, key must be supplied/
+    JSON.parse(last_response.body)["error"].should =~
+      /the command requires one out of the all, key attributes to be supplied/
   end
 
   it "should require all to equal true" do
