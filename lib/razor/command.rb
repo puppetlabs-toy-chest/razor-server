@@ -22,6 +22,8 @@ class Razor::Command
     data = app.json_body
     self.class.validate!(data)
 
+    @command = Razor::Data::Command.start(name, data.dup, app.user.principal)
+
     # @todo danielp 2014-03-26: the magic here feels kind of arbitrary, but
     # replicates current behaviour, so I guess it is correct enough.
     #
@@ -31,6 +33,8 @@ class Razor::Command
     # get into the actual `run` function.
     result = run(app, data)
     result = app.view_object_reference(result) unless result.is_a?(Hash)
+    @command.store
+    result[:command] = app.view_object_url(@command)
     [202, result.to_json]
   end
 

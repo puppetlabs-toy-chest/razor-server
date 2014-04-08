@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "move policy command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -19,7 +19,7 @@ describe "move policy command" do
     input["name"] = what.name if what
     input[where.to_s] = { "name" => other.name } if where
 
-    post '/api/commands/move-policy', input.to_json
+    command 'move-policy', input
   end
 
   def check_order(*list)
@@ -48,11 +48,11 @@ describe "move policy command" do
     end
 
     it "does not allow both before and after" do
-      post '/api/commands/move-policy', {
+      command 'move-policy', {
         :name => @p1.name,
         :before => { :name => @p2.name },
         :after => { :name => @p3.name }
-      }.to_json
+      }
       last_response.status.should == 422
       last_response.json["error"] =~ /one of 'before' or 'after'/
     end

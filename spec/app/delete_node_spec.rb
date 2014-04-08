@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "delete-node" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -11,7 +11,7 @@ describe "delete-node" do
   end
 
   def delete_node(name)
-    post '/api/commands/delete-node', { "name" => name }.to_json
+    command 'delete-node', { "name" => name }
   end
 
   context "/api/commands/delete-node" do

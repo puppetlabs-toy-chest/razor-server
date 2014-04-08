@@ -97,6 +97,31 @@ describe Razor::Messaging::Sequel do
     end
   end
 
+  describe "find_command" do
+    it "should fail when pk_hash is nil" do
+      expect {
+        handler.find_command(nil)
+      }.to raise_error MessageViolatesConsistencyChecks, /when Hash was expected/
+    end
+
+    it "should fail when pk_hash has no id" do
+      expect {
+        handler.find_command({})
+      }.to raise_error MessageViolatesConsistencyChecks, /must be a nonempty Hash/
+    end
+
+    it "should fail when the command is not found" do
+      expect {
+        handler.find_command({:id => 42})
+      }.to raise_error MessageViolatesConsistencyChecks, /Razor::Data::Command with pk {:id=>42}/
+    end
+
+    it "should return the command" do
+      command = Fabricate(:command)
+      handler.find_command(command.pk_hash).should == command
+    end
+  end
+
   describe "update_body_with_exception" do
     # Having a real exception is better than trying to fake one, as some
     # attributes like the backtrace are filled in by the `raise` process, not
@@ -274,6 +299,20 @@ describe Razor::Messaging::Sequel do
       queue.each {|msg| msg.should_not include content }
     end
 
+    it "should queue a retry if the command is not found" do
+      pk = Fabricate(:repo).pk_hash
+      content = {
+        'class'     => 'Razor::Data::Repo',
+        'instance'  => pk,
+        'command'   => { 'id' => 42 },
+        'message'   => 'to_s',
+        'arguments' => []
+      }
+
+      handler.process!(message(content))
+      queue.each {|msg| msg.should_not include content }
+    end
+
     it "should deliver the message if 'arguments' is missing" do
       pk = Fabricate(:repo).pk_hash
       content = {
@@ -382,6 +421,26 @@ EOT
         its(["instance"])  { should == repo.pk_hash }
         its(["message"])   { should == 'to_s' }
         its(["arguments"]) { should == [] }
+        its(["command"])   { should be_nil }
+      end
+
+      # Test the special behavior of 'publish' when the first
+      # argument is a Razor::Data::Command
+      context "publish with command" do
+        let(:command) { Fabricate(:command) }
+        subject do
+          def repo.to_s_with_command(command)
+            to_s
+          end
+          repo.publish('to_s_with_command', command)
+          queue.receive
+        end
+
+        its(["class"])     { should == repo.class.name }
+        its(["instance"])  { should == repo.pk_hash }
+        its(["message"])   { should == 'to_s_with_command' }
+        its(["arguments"]) { should == [] }
+        its(["command"])   { should == command.pk_hash }
       end
 
       context "complex arguments" do

@@ -32,7 +32,24 @@ class Rack::MockResponse
   end
 
   def json
-    JSON::parse(body)
+    parse_body if @json.nil?
+    @json
+  end
+
+  def command
+    if @command.nil?
+      parse_body if @json.nil?
+      if @command_url
+        @command = Razor::Data::Command[@command_url.split('/').last]
+      end
+    end
+    @command
+  end
+
+  private
+  def parse_body
+    @json = JSON::parse(body)
+    @command_url = @json.delete('command')
   end
 end
 
@@ -133,9 +150,46 @@ class TorqueBox::FallbackLogger
   end
 end
 
+# Our own method(s) for testing commands. These will automatically include
+# Rack::Test::Methods
+module Razor::Test
+  module Commands
+    include Rack::Test::Methods
+
+    # A helper to test commands. It translates the +name+ to the correct
+    # command URL, and turns params into JSON
+    #
+    # If the command succeeds, check that the return code is 202, and that
+    # an entry was made into the command log, and check its sanity
+    def command(name, params, opts = {})
+      post "/api/commands/#{name}", params.to_json
+      status = (opts[:status] || 'finished').to_s
+      if last_response.successful?
+        last_response.status.should == 202
+        last_response.command.should_not be_nil
+        last_response.command.command.should == name.to_s
+        last_response.command.params.should == stringify_keys(params)
+        last_response.command.status.should == status
+      end
+    end
+
+    def stringify_keys(hash)
+      hash.inject({}) do |memo, (key, value)|
+        if value.is_a?(Hash)
+          memo[key.to_s] = stringify_keys(value)
+        else
+          memo[key.to_s] = value
+        end
+        memo
+      end
+    end
+  end
+end
+
 # Conveniences for dealing with model objects
 Node   = Razor::Data::Node
 Tag    = Razor::Data::Tag
 Repo   = Razor::Data::Repo
 Policy = Razor::Data::Policy
 Broker = Razor::Data::Broker
+Command= Razor::Data::Command

@@ -3,16 +3,15 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "delete-broker" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
     authorize 'fred', 'dead'
   end
 
-  def delete_broker(name, force=nil)
-    params = { "name" => name }
-    post '/api/commands/delete-broker', params.to_json
+  def delete_broker(name)
+    command 'delete-broker', { "name" => name }
   end
 
   before :each do

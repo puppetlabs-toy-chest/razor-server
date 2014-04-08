@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "delete-tag" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -13,7 +13,7 @@ describe "delete-tag" do
   def delete_tag(name, force=nil)
     params = { "name" => name }
     params["force"] = force unless force.nil?
-    post '/api/commands/delete-tag', params.to_json
+    command 'delete-tag', params
   end
 
   before :each do

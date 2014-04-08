@@ -21,7 +21,7 @@ class Razor::Command::CreateRepo < Razor::Command
       data["task_name"] = data.delete("task")["name"]
     end
 
-    repo = Razor::Data::Repo.new(data).save.freeze
+    repo = Razor::Data::Repo.import(@command, data).save.freeze
 
     # Finally, return the state (started, not complete) and the URL for the
     # final repo to our poor caller, so they can watch progress happen.

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "remove node metadata command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
 
@@ -17,7 +17,7 @@ describe "remove node metadata command" do
   end
 
   def remove_metadata(data)
-    post '/api/commands/remove-node-metadata', data.to_json
+    command 'remove-node-metadata', data
   end
 
   it "should require a node" do

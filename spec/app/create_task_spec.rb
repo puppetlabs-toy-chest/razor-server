@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "create task command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -23,8 +23,7 @@ describe "create task command" do
     end
 
     def create_task(input = nil)
-      input ||= task_hash.to_json
-      post '/api/commands/create-task', input
+      command 'create-task', (input || task_hash)
     end
 
     it "should reject bad JSON" do

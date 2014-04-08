@@ -3,15 +3,15 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "modify-policy-max-count" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
 
   let(:policy) { Fabricate(:policy) }
 
   def set_max_count(count=nil)
-    post '/api/commands/modify-policy-max-count',
-         { "name" => policy.name, "max-count" => count }.to_json
+    command 'modify-policy-max-count',
+         { "name" => policy.name, "max-count" => count }
   end
 
   context "/api/commands/modify-policy-max-count" do
@@ -21,8 +21,8 @@ describe "modify-policy-max-count" do
     end
 
     it "should require that max-count is present" do
-      post '/api/commands/modify-policy-max-count',
-        { "name" => policy.name }.to_json
+      command 'modify-policy-max-count',
+        { "name" => policy.name }
       last_response.status.should == 422
       last_response.body.should =~ /max-count/
     end

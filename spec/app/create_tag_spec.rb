@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "create tag command" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -21,8 +21,8 @@ describe "create tag command" do
     end
 
     def create_tag(input = nil)
-      input ||= tag_hash.to_json
-      post '/api/commands/create-tag', input
+      input ||= tag_hash
+      command 'create-tag', input
     end
 
     it "should reject bad JSON" do

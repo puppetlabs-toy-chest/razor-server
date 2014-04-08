@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "delete-policy" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -13,7 +13,7 @@ describe "delete-policy" do
   def delete_policy(name=nil)
     params = Hash.new
     params["name"] = name unless name.nil?
-    post '/api/commands/delete-policy', params.to_json
+    command 'delete-policy', params
   end
 
   before :each do

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "reinstall-node" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
   before :each do
@@ -11,7 +11,7 @@ describe "reinstall-node" do
   end
 
   def reinstall_node(name)
-    post '/api/commands/reinstall-node', { "name" => name }.to_json
+    command 'reinstall-node', { "name" => name }
   end
 
   context "/api/commands/reinstall-node" do

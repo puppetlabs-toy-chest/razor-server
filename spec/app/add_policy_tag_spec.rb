@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 require_relative '../../app'
 
 describe "policy-add-tag" do
-  include Rack::Test::Methods
+  include Razor::Test::Commands
 
   let(:app) { Razor::App }
 
@@ -12,7 +12,7 @@ describe "policy-add-tag" do
     name and data['name'] = name
     tag and data['tag'] = tag
     rule and data['rule'] = rule
-    post '/api/commands/add-policy-tag', data.to_json
+    command 'add-policy-tag', data
   end
 
   context "/api/commands/policy-add-tag" do
