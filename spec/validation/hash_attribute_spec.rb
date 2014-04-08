@@ -74,7 +74,7 @@ describe Razor::Validation::HashAttribute do
     it "should fail if value's key is blank" do
       attr.type(Hash)
       expect { attr.validate!({'attr' => {'' => 'abc'}}) }.
-          to raise_error(/blank attribute/)
+          to raise_error(/blank hash key/)
     end
 
     context "references" do

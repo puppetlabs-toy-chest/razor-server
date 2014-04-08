@@ -12,7 +12,7 @@ describe Razor::Validation::ArrayAttribute do
     it "should fail if value's key is blank" do
       attr.type(Hash)
       expect { attr.validate!({'' => 'abc'}, 0) }.
-        to raise_error(/blank attribute/)
+        to raise_error(/blank hash key/)
     end
   end
 

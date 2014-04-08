@@ -70,7 +70,7 @@ describe "modify node metadata command" do
     data = { 'node' => "node#{node.id}", 'update' => { '' => 'v1'} }
     modify_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /blank attribute not allowed/
+    last_response.json["error"].should =~ /blank hash key not allowed/
   end
 
   describe "when updating metadata on a node" do
