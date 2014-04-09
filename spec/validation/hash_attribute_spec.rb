@@ -112,6 +112,91 @@ describe Razor::Validation::HashAttribute do
         attr.validate!({'id' => node.id}, nil).should be_true
       end
     end
+
+    context "size" do
+      context "strings" do
+        before :each do
+          attr.type(String)
+          attr.size(2..4)
+        end
+
+        it "should reject an empty string" do
+          expect { attr.validate!({'attr' => ''}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must be between 2 and 4 characters in length, but is 0 characters long'
+        end
+
+        it "should reject a short string" do
+          expect { attr.validate!({'attr' => '1'}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must be between 2 and 4 characters in length, but is 1 character long'
+        end
+
+        it "should reject a long string" do
+          expect { attr.validate!({'attr' => '12345'}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must be between 2 and 4 characters in length, but is 5 characters long'
+        end
+
+        it "should include the start of the range" do
+          attr.validate!({'attr' => '12'}, nil).should be_true
+        end
+
+        it "should include the end of the range" do
+          attr.validate!({'attr' => '1234'}, nil).should be_true
+        end
+
+        it "should work in unicode characters, not bytes" do
+          expect { attr.validate!({'attr' => "\u{2603}"}, nil) }.to raise_error Razor::ValidationFailure, 'attr must be between 2 and 4 characters in length, but is 1 character long'
+          expect { attr.validate!({'attr' => "\u{2603}\u{2603}\u{2603}\u{2603}\u{2603}"}, nil)  }.to raise_error Razor::ValidationFailure, 'attr must be between 2 and 4 characters in length, but is 5 characters long'
+
+          attr.validate!({'attr' => "\u{2603}\u{2603}"}, nil).should be_true
+          attr.validate!({'attr' => "\u{2603}\u{2603}\u{2603}\u{2603}"}, nil).should be_true
+        end
+      end
+
+      context "arrays" do
+        before :each do
+          attr.type(Array)
+          attr.size(2..4)
+        end
+
+        it "should reject an empty array" do
+          expect { attr.validate!({'attr' => []}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 0'
+        end
+
+        it "should reject a short array" do
+          expect { attr.validate!({'attr' => [1]}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 1'
+        end
+
+        it "should reject a long array" do
+          expect { attr.validate!({'attr' => %w[1 2 3 4 5]}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
+        end
+      end
+
+      context "objects (maps)" do
+        before :each do
+          attr.type(Hash)
+          attr.size(2..4)
+        end
+
+        it "should reject an empty object" do
+          expect { attr.validate!({'attr' => {}}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 0'
+        end
+
+        it "should reject a short object" do
+          expect { attr.validate!({'attr' => {'one' => 1}}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 1'
+        end
+
+        it "should reject a long object" do
+          data = {'one' => 1, 'two' => 2, 'three' => 3, 'four' => 4, 'five' => 5}
+          expect { attr.validate!({'attr' => data}, nil) }.
+            to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
+        end
+      end
+    end
   end
 
   context "type" do
@@ -167,6 +252,43 @@ describe Razor::Validation::HashAttribute do
 
     it "should accept a Sequel::Model derived class" do
       expect { attr.references(Razor::Data::Node) }.not_to raise_error
+    end
+  end
+
+  context "size" do
+    let(:schema) do
+      Razor::Validation::HashSchema.new('test').tap do |schema|
+        schema.attr('attr')
+      end
+    end
+
+    subject(:attr) { schema.attribute('attr') }
+
+    it "should fail if no type is required" do
+      expect do
+        attr.size(1..10)
+        attr.finalize(schema)
+      end.to raise_error "a type, from String, Hash, or Array, must be specified if you want to check the size of the attr attribute"
+    end
+
+    [String, Array, Hash].each do |type|
+      it "should work with type #{type}" do
+        expect do
+          attr.type(type)
+          attr.size(1..10)
+          attr.finalize(schema)
+        end.not_to raise_error
+      end
+    end
+
+    [Numeric, Float, :bool].each do |type|
+      it "should fail with type #{type}" do
+        expect do
+          attr.type(type)
+          attr.size(1..10)
+          attr.finalize(schema)
+        end.to raise_error "a type, from String, Hash, or Array, must be specified if you want to check the size of the attr attribute"
+      end
     end
   end
 end

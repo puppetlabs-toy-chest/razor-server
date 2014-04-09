@@ -27,6 +27,11 @@ class Razor::Validation::HashAttribute
     Array(@also).each do |attr|
       schema.attribute(attr) or raise ArgumentError, "additionally required attribute #{attr} by #{@name} is not defined in the schema"
     end
+
+    if @size
+      @type and @type.all? {|t| [String, Hash, Array].member? t[:type] } or
+        raise ArgumentError, "a type, from String, Hash, or Array, must be specified if you want to check the size of the #{@name} attribute"
+    end
   end
 
   def expand(path, name)
@@ -85,6 +90,46 @@ class Razor::Validation::HashAttribute
     if @one_of
       @one_of.any? {|match| value == match } or
         raise Razor::ValidationFailure, _("%{this} must refer to one of %{valid}") % {this: expand(path, name), valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
+    end
+
+    if @size and not @size.include?(value.size)
+      args = {
+        this: expand(path, name),
+        size: value.size,
+        min:  Float(@size.min).infinite? ? nil : @size.min,
+        max:  Float(@size.max).infinite? ? nil : @size.max
+      }
+
+      case value
+      when String
+        if args[:min] and args[:max]
+          msg = n_(
+            '%{this} must be between %{min} and %{max} characters in length, but is %{size} character long',
+            '%{this} must be between %{min} and %{max} characters in length, but is %{size} characters long',
+            value.size)
+        elsif args[:min]
+          msg = n_(
+            '%{this} must be at least %{min} characters in length, but is only %{size} character long',
+            '%{this} must be at least %{min} characters in length, but is only %{size} characters long',
+            value.size)
+        else
+          msg = n_(
+            '%{this} must be at most %{max} characters in length, but is actually %{size} character long',
+            '%{this} must be at most %{max} characters in length, but is actually %{size} characters long',
+            zalue.size)
+        end
+
+      else
+        if args[:min] and args[:max]
+          msg = _('%{this} must have between %{min} and %{max} entries, but actually contains %{size}')
+        elsif args[:min]
+          msg = _('%{this} must have at least %{min} entries, only contains %{size}')
+        else
+          msg = _('%{this} must have at most %{max} entries, but actually contains %{size}')
+        end
+      end
+
+      raise Razor::ValidationFailure, msg % args
     end
 
     # If we have a nested schema, just throw the value into it to see if it
@@ -167,5 +212,14 @@ class Razor::Validation::HashAttribute
       schema.is_a?(Razor::Validation::ArraySchema) or
       raise ArgumentError, "schema must be a schema instance; use 'object' to define this"
     @nested_schema = schema
+  end
+
+  def size(range)
+    range.is_a?(Range) or
+      raise ArgumentError, "size checks take a range; use 0..Float::INFINITY as appropriate"
+    range.exclude_end? and
+      raise ArgumentError, "please just use an inclusive range for your size checks"
+
+    @size = range
   end
 end
