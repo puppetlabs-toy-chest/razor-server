@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 class Razor::Validation::ArrayAttribute
-  def initialize(index, checks = {})
+  def initialize(index, checks)
     case index
     when Hash
       # If we got only a hash, and the default (empty) value for what to
@@ -34,7 +34,11 @@ class Razor::Validation::ArrayAttribute
   def finalize(schema)
   end
 
-  def validate!(value, index)
+  def expand(path, index)
+    "#{path}[#{index}]"
+  end
+
+  def validate!(value, path, index)
     # If that is not in our range, we just return to ignore it.
     return unless @range.include? index
 
@@ -48,23 +52,23 @@ class Razor::Validation::ArrayAttribute
         begin
           check[:validate] and check[:validate].call(value)
         rescue => e
-          raise Razor::ValidationFailure, _("attribute at index %{index} fails type checking for %{type}: %{error}") % {index: index, type: ruby_type_to_json(check[:type]), error: e.to_s}
+          raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, index), type: ruby_type_to_json(check[:type]), error: e.to_s}
         end
 
         # If we got here we passed all the checks, and have a match, so we are good.
         break true
       end or raise Razor::ValidationFailure, n_(
-        "attribute at position %{index} has wrong type %{actual} where %{expected} was expected",
-        "attribute at position %{index} has wrong type %{actual} where one of %{expected} was expected",
+        "%{this} should be a %{expected}, but was actually a %{actual}",
+        "%{this} should be one of %{expected}, but was actually a %{actual}",
         Array(@type).count) % {
-        index:     index,
+        this:     expand(path, index),
         actual:   ruby_type_to_json(value),
         expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
 
     # If we have a nested schema, just throw the value into it to see if it
     # is valid.  That handles the nesting case nicely.
-    if @nested_schema then @nested_schema.validate!(value) end
+    if @nested_schema then @nested_schema.validate!(value, expand(path, index)) end
 
     return true
   end

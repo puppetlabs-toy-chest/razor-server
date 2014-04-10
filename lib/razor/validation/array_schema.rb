@@ -13,17 +13,17 @@ class Razor::Validation::ArraySchema
     @checks.each {|check| check.finalize(self) }
   end
 
-  def validate!(data)
+  def validate!(data, path)
     # Ensure that we have the correct base data type, since nothing else will
     # work if we don't.
     data.is_a?(Array) or
-      raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
-      {expected: ruby_type_to_json(Array), actual: ruby_type_to_json(data)}
+      raise Razor::ValidationFailure, _('%{this} should be an array, but got %{actual}') %
+      {this: path, actual: ruby_type_to_json(data)}
 
     # Validate that all our elements match our object schema, if we have one.
     data.each_with_index do |value, index|
       @checks.each do |check|
-        check.validate!(value, index)
+        check.validate!(value, path, index)
       end
     end
   end
@@ -42,13 +42,10 @@ class Razor::Validation::ArraySchema
     extend Forwardable
 
     def initialize(name)
-      @name = name
+      @schema = Razor::Validation::ArraySchema.new(name)
     end
 
-    def schema
-      @schema ||= Razor::Validation::ArraySchema.new(@name)
-    end
-
+    attr_reader    'schema'
     def_delegators 'schema', *Razor::Validation::ArraySchema.public_instance_methods(false)
   end
 

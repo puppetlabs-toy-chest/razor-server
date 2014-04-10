@@ -11,10 +11,6 @@ describe Razor::Validation::ArrayAttribute do
           to raise_error TypeError, /index must be an integer or a range of integers/
       end
 
-      it "should work if only one argument, a hash, is given" do
-        attr.new(type: String)
-      end
-
       it "should work if nil is given explicitly as the index" do
         attr.new(nil, type: String)
       end
@@ -34,19 +30,19 @@ describe Razor::Validation::ArrayAttribute do
       end
 
       it "should fail if the range starts < 0" do
-        expect { attr.new(-1..1) }.
+        expect { attr.new(-1..1, {}) }.
           to raise_error ArgumentError, /index must start at or above zero/
       end
 
       it "should fail if the range includes nothing" do
-        expect { attr.new(5..1) }.
+        expect { attr.new(5..1, {}) }.
           to raise_error ArgumentError, /index does not contain any values!/
-        expect { attr.new(1...1) }.
+        expect { attr.new(1...1, {}) }.
           to raise_error ArgumentError, /index does not contain any values!/
       end
 
       it "should fail if an array is given" do
-        expect { attr.new([1,2]) }.
+        expect { attr.new([1,2], {}) }.
           to raise_error TypeError, /index must be an integer or a range of integers/
       end
     end

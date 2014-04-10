@@ -2,7 +2,21 @@
 # The persistence layer of Razor; these classes are the primary interface
 # to the Database. Usually, these would be called 'models', but Razor uses
 # the term to mean something else.
-module Razor::Data; end
+#
+# This is also used as a plugin, to allow us to add behaviour across all our
+# models uniformly.
+module Razor::Data
+  module ClassMethods
+    def friendly_name
+      name.split('::').last.scan(/[A-Z][^A-Z]*/).join(' ').downcase
+    end
+  end
+
+  module InstanceMethods
+    extend Forwardable
+    def_delegators 'self.class', 'friendly_name'
+  end
+end
 
 # Configure global model plugins; these require a database connection, so
 # much be established now that we have one.
@@ -17,6 +31,9 @@ Sequel::Model.plugin :auto_validations
 # Add a `publish` method to all Sequel::Model objects, allowing them to be
 # sent messages through the TorqueBox message queue system.
 Sequel::Model.plugin Razor::Messaging::Sequel::Plugin
+
+# Add additional helper methods to all our models
+Sequel::Model.plugin Razor::Data
 
 require_relative 'data/task'
 require_relative 'data/repo'

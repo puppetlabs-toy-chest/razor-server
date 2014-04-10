@@ -24,7 +24,7 @@ describe "modify node metadata command" do
     data = { 'update' => { 'k1' => 'v1'} }
     modify_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /required attribute node is missing/
+    last_response.json["error"].should =~ /node is a required attribute, but it is not present/
   end
 
   it "should require an operation" do

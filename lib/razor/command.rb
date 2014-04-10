@@ -20,7 +20,7 @@ class Razor::Command
   # overridden.
   def handle_http_post(app)
     data = app.json_body
-    self.class.validate!(data)
+    self.class.validate!(data, nil)
 
     @command = Razor::Data::Command.start(name, data.dup, app.user.principal)
 

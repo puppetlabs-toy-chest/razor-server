@@ -45,7 +45,7 @@ describe "policy-remove-tag" do
       last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /required attribute name is missing/
+      last_response.json["error"].should =~ /name is a required attribute, but it is not present/
     end
 
     it "should fail to with no tag name" do
@@ -53,7 +53,7 @@ describe "policy-remove-tag" do
       last_response.status.should == 422
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /required attribute tag is missing/
+      last_response.json["error"].should =~ /tag is a required attribute, but it is not present/
     end
   end
 end

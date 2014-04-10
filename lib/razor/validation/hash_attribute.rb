@@ -29,23 +29,25 @@ class Razor::Validation::HashAttribute
     end
   end
 
-  def validate!(data, name = nil)
-    name ||= @name
+  def expand(path, name)
+    [path, name].compact.join('.')
+  end
 
+  def validate!(data, path, name = @name)
     # if the key is not present, fail if required, otherwise we are done validating.
     unless data.has_key?(name)
       @required and
-        raise Razor::ValidationFailure, _("required attribute %{name} is missing") % {name: name}
+        raise Razor::ValidationFailure, _("%{this} is a required attribute, but it is not present") % {this: expand(path, name)}
       return true
     end
 
     @exclude and @exclude.each do |what|
       data.has_key?(what) and
-        raise Razor::ValidationFailure, _("if %{name} is present, %{exclude} must not be present") % {name: name, exclude: what}
+        raise Razor::ValidationFailure, _("if %{this} is present, %{exclude} must not be present") % {this: expand(path, name), exclude: expand(path, what)}
 
     @also and @also.each do |what|
         data.has_key?(what) or
-          raise Razor::ValidationFailure, _("if %{name} is present, %{also} must also be present") % {name: name, also: @also.join(', ')}
+          raise Razor::ValidationFailure, _("if %{this} is present, %{also} must also be present") % {this: expand(path, name), also: @also.map{|x| expand(path, x)}.join(', ')}
       end
     end
 
@@ -61,33 +63,33 @@ class Razor::Validation::HashAttribute
         begin
           check[:validate] and check[:validate].call(value)
         rescue => e
-          raise Razor::ValidationFailure, _("attribute %{name} fails type checking for %{type}: %{error}") % {name: name, type: ruby_type_to_json(check[:type]), error: e.to_s}
+          raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, name), type: ruby_type_to_json(check[:type]), error: e.to_s}
         end
 
         # If we got here we passed all the checks, and have a match, so we are good.
         break true
       end or raise Razor::ValidationFailure, n_(
-        "attribute %{name} has wrong type %{actual} where %{expected} was expected",
-        "attribute %{name} has wrong type %{actual} where one of %{expected} was expected",
+        "%{this} should be a %{expected}, but was actually a %{actual}",
+        "%{this} should be one of %{expected}, but was actually a %{actual}",
         Array(@type).count) % {
-        name:     name,
+        this:     expand(path, name),
         actual:   ruby_type_to_json(value),
         expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
 
     if @references
       found = @references.find(@refname => value) rescue nil
-      found or raise Razor::ValidationFailure.new(_("attribute %{name} must refer to an existing instance") % {name: name}, 404)
+      found or raise Razor::ValidationFailure.new(_("%{this} must be the %{match} of an existing %{target}, but is '%{value}'") % {this: expand(path, name), match: @refname, target: @references.friendly_name, value: value}, 404)
     end
 
     if @one_of
       @one_of.any? {|match| value == match } or
-        raise Razor::ValidationFailure, _("attribute %{name} must refer to one of %{valid}") % {name: name, valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
+        raise Razor::ValidationFailure, _("%{this} must refer to one of %{valid}") % {this: expand(path, name), valid: @one_of.map {|x| x.nil? ? 'null' : x }.join(', ')}
     end
 
     # If we have a nested schema, just throw the value into it to see if it
     # is valid.  That handles the nesting case nicely.
-    if @nested_schema then @nested_schema.validate!(value) end
+    @nested_schema and @nested_schema.validate!(value, expand(path, name))
 
     return true
   end
