@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::DeleteRepo < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
+  attr  'name', type: String, required: true, size: 1..250
 
   def run(request, data)
     if repo = Razor::Data::Repo[:name => data['name']]

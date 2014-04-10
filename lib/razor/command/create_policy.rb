@@ -2,9 +2,9 @@
 
 class Razor::Command::CreatePolicy < Razor::Command
   authz  '%{name}'
-  attr   'name',          type: String, required: true
-  attr   'hostname',      type: String, required: true
-  attr   'root_password', type: String
+  attr   'name',          type: String, required: true, size: 1..Float::INFINITY
+  attr   'hostname',      type: String, required: true, size: 1..Float::INFINITY
+  attr   'root_password', type: String, size: 1..Float::INFINITY
 
   object 'before', exclude: 'after' do
     attr 'name', type: String, required: true, references: Razor::Data::Policy

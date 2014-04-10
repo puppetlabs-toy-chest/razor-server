@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::DeletePolicy < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
+  attr  'name', type: String, required: true, size: 1..Float::INFINITY
 
   def run(request, data)
     # deleting a policy will first remove the policy from any node associated

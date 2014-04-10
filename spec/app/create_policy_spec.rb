@@ -71,7 +71,7 @@ describe "create policy command" do
     it "should fail if the name is empty" do
       policy_hash[:name] = ""
       create_policy
-      last_response.status.should == 400
+      last_response.status.should == 422
     end
 
     it "should fail if the name is missing" do
