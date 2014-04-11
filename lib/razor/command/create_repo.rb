@@ -2,9 +2,9 @@
 class Razor::Command::CreateRepo < Razor::Command
   authz '%{name}'
 
-  attr  'name',    type: String, required: true
-  attr  'url',     type: URI,    exclude: 'iso-url'
-  attr  'iso-url', type: URI,    exclude: 'url'
+  attr  'name',    type: String, required: true, size: 1..250
+  attr  'url',     type: URI,    exclude: 'iso-url', size: 1..1000
+  attr  'iso-url', type: URI,    exclude: 'url', size: 1..1000
   object 'task', required: true do
     attr 'name', type: String, required: true
   end

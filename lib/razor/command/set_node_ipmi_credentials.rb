@@ -3,9 +3,9 @@
 class Razor::Command::SetNodeIPMICredentials < Razor::Command
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node
-  attr  'ipmi-hostname', type: String
-  attr  'ipmi-username', type: String, also: 'ipmi-hostname'
-  attr  'ipmi-password', type: String, also: 'ipmi-hostname'
+  attr  'ipmi-hostname', type: String, size: 1..255
+  attr  'ipmi-username', type: String, also: 'ipmi-hostname', size: 1..32
+  attr  'ipmi-password', type: String, also: 'ipmi-hostname', size: 1..20
 
   def run(request, data)
     node = Razor::Data::Node[:name => data['name']]

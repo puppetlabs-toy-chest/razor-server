@@ -38,6 +38,13 @@ describe "create tag command" do
       end
     end
 
+    it "should fail if the name is an empty string" do
+      create_tag(name: '', rule: ['=', true, true])
+      last_response.status.should == 422
+      last_response.json['error'].should ==
+        'name must be at least 1 characters in length, but is only 0 characters long'
+    end
+
     # Successful creation
     it "should return 202, and the URL of the tag" do
       create_tag

@@ -2,7 +2,7 @@
 
 class Razor::Command::RemovePolicyTag < Razor::Command
   attr 'name', type: String, required: true, references: Razor::Data::Policy
-  attr 'tag',  type: String, required: true
+  attr 'tag',  type: String, required: true, size: 1..Float::INFINITY
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

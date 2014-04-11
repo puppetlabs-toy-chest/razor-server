@@ -2,7 +2,7 @@
 
 class Razor::Command::UpdateNodeMetadata < Razor::Command
   attr 'node',       type: String, required: true, references: [Razor::Data::Node, :name]
-  attr 'key',        type: String, exclude: 'all'
+  attr 'key',        type: String, exclude: 'all', size: 1..Float::INFINITY
   attr 'all',        type: [String, :bool], exclude: 'key'
   attr 'value',      required: true
   attr 'no_replace', type: [String, :bool]

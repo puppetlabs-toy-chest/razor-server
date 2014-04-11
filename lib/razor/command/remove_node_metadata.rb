@@ -3,7 +3,7 @@
 # Remove a specific key or remove all (works with GET)
 class Razor::Command::RemoveNodeMetadata < Razor::Command
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
-  attr 'key',  type: String
+  attr 'key',  type: String, size: 1..Float::INFINITY
   attr 'all',  type: [String, :bool]
 
   require_one_of 'key', 'all'

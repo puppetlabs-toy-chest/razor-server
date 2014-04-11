@@ -2,7 +2,7 @@
 
 class Razor::Command::DeleteBroker < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
+  attr  'name', type: String, required: true, size: 1..250
 
   def run(request, data)
     if broker = Razor::Data::Broker[:name => data['name']]

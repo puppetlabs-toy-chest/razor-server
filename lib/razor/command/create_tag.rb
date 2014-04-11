@@ -2,7 +2,7 @@
 
 class Razor::Command::CreateTag < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
+  attr  'name', type: String, required: true, size: 1..Float::INFINITY
   attr  'rule', type: Array
 
   def run(request, data)

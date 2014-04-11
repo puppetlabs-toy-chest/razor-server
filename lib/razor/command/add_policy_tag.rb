@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::AddPolicyTag < Razor::Command
   attr 'name', type: String, required: true, references: Razor::Data::Policy
-  attr 'tag',  type: String, required: true
+  attr 'tag',  type: String, required: true, size: 1..Float::INFINITY
   attr 'rule', type: Array
 
   def run(request, data)

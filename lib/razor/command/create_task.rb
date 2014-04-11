@@ -2,8 +2,8 @@
 
 class Razor::Command::CreateTask < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
-  attr  'os',   type: String, required: true
+  attr  'name', type: String, required: true, size: 1..250
+  attr  'os',   type: String, required: true, size: 1..1000
 
   object 'templates', required: true do
     extra_attrs type: String

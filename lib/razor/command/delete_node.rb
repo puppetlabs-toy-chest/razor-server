@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::DeleteNode < Razor::Command
   authz '%{name}'
-  attr  'name', type: String, required: true
+  attr  'name', type: String, required: true, size: 1..250
 
   def run(request, data)
     if node = Razor::Data::Node[:name => data['name']]

@@ -2,7 +2,7 @@
 
 class Razor::Command::DeleteTag < Razor::Command
   authz '%{name}'
-  attr  'name',  type: String, required: true
+  attr  'name',  type: String, required: true, size: 1..Float::INFINITY
   attr  'force', type: :bool
 
   def run(request, data)

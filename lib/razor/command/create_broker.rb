@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::CreateBroker < Razor::Command
   authz  '%{name}'
-  attr   'name', type: String, required: true
+  attr   'name', type: String, required: true, size: 1..250
   attr   'broker-type', type: String, references: [Razor::BrokerType, :name]
   object 'configuration' do
     extra_attrs /./
