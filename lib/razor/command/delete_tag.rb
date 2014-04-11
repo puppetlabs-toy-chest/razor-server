@@ -1,6 +1,26 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::DeleteTag < Razor::Command
+  summary "Delete a tag"
+  description <<-EOT
+The tag will be deleted if it is not used, or if the `force` flag is true.
+
+If `force` is true, the tag will be removed from all policies that use it
+before being deleted.
+  EOT
+
+  example <<-EOT
+Delete a tag, but only if it is not used:
+
+    {"name": "example"}
+    {"name": "example", "force": false}
+
+Delete a tag regardless of it being used:
+
+    {"name": "example", "force": true}
+  EOT
+
+
   authz '%{name}'
   attr  'name',  type: String, required: true, size: 1..Float::INFINITY
   attr  'force', type: :bool

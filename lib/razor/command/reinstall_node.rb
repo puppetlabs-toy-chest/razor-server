@@ -1,6 +1,19 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::ReinstallNode < Razor::Command
+  summary "Remove any policy associated with a node, and make it available for reinstallation"
+  description <<-EOT
+Remove a node's association with any policy and clears its `installed` flag;
+once the node reboots, it will boot back into the Microkernel and go through
+discovery, tag matching and possibly be bound to another policy. This command
+does not change its metadata or facts.
+  EOT
+
+  example <<-EOT
+Make 'node17' available for reinstallation: `{"name": "node17"}`
+  EOT
+
+
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node
 

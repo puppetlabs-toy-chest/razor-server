@@ -1,6 +1,36 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::ModifyNodeMetadata < Razor::Command
+  summary "Perform various editing operations on node metadata"
+  description <<-EOT
+Node metadata can be added, changed, or removed with this command; it contains
+a limited editing language to make changes to the existing metadata in an
+atomic fashion.
+
+It can also clear all metadata from a node, although that operation is
+exclusive to all other editing operations, and cannot be performed atomically
+with them.
+  EOT
+
+  example <<-EOT
+Editing node metadata, by adding and removing some keys, but refusing to
+modify an existing value already present on a node:
+
+    {
+        "node": "node1",
+        "update": {
+            "key1": "value1",
+            "key2": "value2"
+        }
+        "remove": ["key3", "key4"],
+        "no_replace": true
+    }
+
+Removing all node metadata:
+
+    {"node": "node1", "clear": true}
+  EOT
+
   attr 'node',       type: String, required: true, references: [Razor::Data::Node, :name]
   attr 'update',     type: Hash
   attr 'remove',     type: Array

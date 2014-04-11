@@ -1,6 +1,24 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::ModifyPolicyMaxCount < Razor::Command
+  summary "Change the maximum node count for an existing policy"
+  description <<-EOT
+Adjust the maximum node count for a policy.  The new value must be equal to or
+greater than the number of nodes currently bound to the policy; it may also be
+`null` for an "unlimited" count of nodes bound.
+  EOT
+
+  example <<-EOT
+Set a policy to match an unlimited number of nodes:
+
+    {"name": "example", "max-count": null}
+
+Set a policy to a maximum of 15 nodes:
+
+    {"name": "example", "max-count": 15}
+  EOT
+
+
   attr 'name',      type: String, required: true, references: Razor::Data::Policy
   attr 'max-count', required: true
 
