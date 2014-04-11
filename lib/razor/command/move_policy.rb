@@ -1,6 +1,22 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::MovePolicy < Razor::Command
+  summary "Change the order that policies are considered when matching against nodes"
+  description <<-EOT
+Policies can be moved before or after specific policies.
+  EOT
+
+  example <<-EOT
+Move a policy before another policy:
+
+    {"name": "policy", "before": "other"}
+
+Move a policy after another policy:
+
+    {"name": "policy", "after": other"}
+  EOT
+
+
   authz '%{name}'
   attr   'name', type: String, required: true, references: Razor::Data::Policy
 

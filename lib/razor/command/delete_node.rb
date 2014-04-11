@@ -1,5 +1,16 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::DeleteNode < Razor::Command
+  summary "Remove a single node from the database"
+  description <<-EOT
+Remove a single node from the database.  Should the node boot again it will be
+rediscovered and treated as any other new node.
+  EOT
+  example <<-EOT
+Delete the node "node17":
+
+    {"name": "node17"}
+  EOT
+
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..250
 
