@@ -116,7 +116,7 @@ describe "create policy command" do
 
     it "should conform the shortcut syntax" do
       policy_hash[:repo] = repo.name
-      policy_hash[:task] = "some_os"
+      policy_hash[:task] = 'some_os'
       policy_hash[:broker] = broker.name
       policy_hash[:tags] = [ tag1.name ]
 
@@ -127,9 +127,9 @@ describe "create policy command" do
     end
 
     it "should allow mixed forms" do
-      policy_hash[:repo] = { "name" => repo.name }
-      policy_hash[:task] = "some_os"
-      policy_hash[:broker] = { "name" => broker.name }
+      policy_hash[:repo] = { 'name' => repo.name }
+      policy_hash[:task] = 'some_os'
+      policy_hash[:broker] = { 'name' => broker.name }
       policy_hash[:tags] = [ tag1.name, {'name' => tag1.name} ]
 
       create_policy
@@ -182,7 +182,7 @@ describe "create policy command" do
     context "creating references" do
       it "creates tags that have rules" do
         policy_hash[:tags] = [
-            {"name" => "small", "rule" => ["<=", ["num", ["fact", "processorcount"]], 2]}
+            {'name' => 'small', 'rule' => ['<=', ['num', %w(fact processorcount)], 2]}
         ]
 
         create_policy
@@ -191,7 +191,7 @@ describe "create policy command" do
       end
       it "fails when rule does not match existing rule" do
         policy_hash[:tags] = [
-            {"name" => tag1.name, "rule" => ["<=", ["num", ["fact", "processorcount"]], 2]}
+            {'name' => tag1.name, 'rule' => ['<=', ['num', %w(fact processorcount)], 2]}
         ]
 
         create_policy

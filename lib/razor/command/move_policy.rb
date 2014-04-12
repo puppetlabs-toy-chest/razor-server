@@ -13,7 +13,7 @@ Move a policy before another policy:
 
 Move a policy after another policy:
 
-    {"name": "policy", "after": other"}
+    {"name": "policy", "after": "other"}
   EOT
 
 
@@ -40,5 +40,12 @@ Move a policy after another policy:
     policy.save
 
     policy
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      data['before'] = { 'name' => data['before'] } if data['before'].is_a?(String)
+      data['after'] = { 'name' => data['after'] } if data['after'].is_a?(String)
+    end
   end
 end
