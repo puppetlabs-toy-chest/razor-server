@@ -189,7 +189,7 @@ class Razor::Validation::HashAttribute
     end
 
     @references = const
-    @refname    = (key or @name).to_sym
+    @refname    = (key or :name).to_sym
   end
 
   ValidTypesForOneOf = [String, Numeric, TrueClass, FalseClass, NilClass]

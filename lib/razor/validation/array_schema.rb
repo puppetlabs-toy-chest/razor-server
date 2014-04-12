@@ -28,13 +28,24 @@ class Razor::Validation::ArraySchema
     end
   end
 
-  def object(index = nil, checks = {}, &block)
+  # This can be called as any of:
+  # - Index/range plus checks Hash
+  # - Index/range only
+  # - Checks Hash only
+  def object(index_or_checks = 0..Float::INFINITY, checks_or_nil = {}, &block)
     block.is_a?(Proc)  or raise ArgumentError, "an object must have a block to define it"
     schema = Razor::Validation::HashSchema.build(@command, block)
-    @checks << Razor::Validation::ArrayAttribute.new(index, checks.merge(schema: schema))
+    @checks << Razor::Validation::ArrayAttribute.new(index_or_checks, checks_or_nil.merge(schema: schema))
   end
 
+  def element(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
+    @checks << Razor::Validation::ArrayAttribute.new(index_or_checks, checks_or_nil)
+  end
 
+  # This alias may be helpful for readability in cases where no index/range is provided.
+  # That would indicate that the restriction applies to all elements, so you could achieve
+  # the more readable: `elements type: String`.
+  alias_method 'elements', 'element'
 
   ########################################################################
   # Infrastructure for creating the a nested schema.
