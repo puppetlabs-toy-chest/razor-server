@@ -59,7 +59,8 @@ describe "create policy command" do
     it "should fail if a nonexisting tag is referenced" do
       policy_hash[:tags] = [ { "name" => "not_a_tag"} ]
       create_policy
-      last_response.status.should == 404
+      last_response.json['error'].should =~ /A rule must be provided for new tag 'not_a_tag'/
+      last_response.status.should == 400
     end
 
     it "should fail if a nonexisting repo is referenced" do
@@ -83,6 +84,57 @@ describe "create policy command" do
     it "should create a policy in the database" do
       create_policy
 
+      Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
+    end
+
+    it "should fail with the wrong datatype for repo" do
+      policy_hash[:repo] = { }
+      create_policy
+      last_response.json['error'].should =~ /repo\.name is a required attribute, but it is not present/
+    end
+
+    it "should fail with the wrong datatype for task" do
+      policy_hash[:task] = { }
+      create_policy
+      last_response.json['error'].should =~ /task\.name is a required attribute, but it is not present/
+    end
+
+    it "should fail with the wrong datatype for broker" do
+      policy_hash[:broker] = { }
+      create_policy
+      last_response.json['error'].should =~ /broker\.name is a required attribute, but it is not present/
+    end
+
+    it "should fail with the wrong datatype for tags" do
+      policy_hash[:tags] = { }
+      create_policy
+      last_response.json['error'].should =~ /tags should be an array, but got object/
+      policy_hash[:tags] = [ { } ]
+      create_policy
+      last_response.json['error'].should =~ /tags\[0\].name is a required attribute, but it is not present/
+    end
+
+    it "should conform the shortcut syntax" do
+      policy_hash[:repo] = repo.name
+      policy_hash[:task] = "some_os"
+      policy_hash[:broker] = broker.name
+      policy_hash[:tags] = [ tag1.name ]
+
+      create_policy
+
+      last_response.json['error'].should be_nil
+      Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
+    end
+
+    it "should allow mixed forms" do
+      policy_hash[:repo] = { "name" => repo.name }
+      policy_hash[:task] = "some_os"
+      policy_hash[:broker] = { "name" => broker.name }
+      policy_hash[:tags] = [ tag1.name, {'name' => tag1.name} ]
+
+      create_policy
+
+      last_response.json['error'].should be_nil
       Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
     end
 
@@ -124,6 +176,27 @@ describe "create policy command" do
         it "p2 goes to the end of the table" do
           check_order(:after, @p2, [@p1, @p2, :_])
         end
+      end
+    end
+
+    context "creating references" do
+      it "creates tags that have rules" do
+        policy_hash[:tags] = [
+            {"name" => "small", "rule" => ["<=", ["num", ["fact", "processorcount"]], 2]}
+        ]
+
+        create_policy
+
+        Razor::Data::Tag.find(name: 'small').should_not be_nil
+      end
+      it "fails when rule does not match existing rule" do
+        policy_hash[:tags] = [
+            {"name" => tag1.name, "rule" => ["<=", ["num", ["fact", "processorcount"]], 2]}
+        ]
+
+        create_policy
+
+        last_response.json['error'].should =~ /Provided rule and existing rule for existing tag '#{tag1.name}' must be equal/
       end
     end
   end

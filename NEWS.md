@@ -23,6 +23,8 @@
   + `create-repo` now requires a `task` argument. The argument must have the form:
     { "name" => "TASK_NAME" } # Where TASK_NAME is the name of an existing task, whether
     that be stock or custom.
++ `create-policy`, `create-repo`, and `move-policy` now accept the short reference form,
+  e.g. "task": "TASK_NAME" instead of "task": { "name" => "TASK_NAME" }
 
 ## 0.13.0 - 2014-01-21
 
