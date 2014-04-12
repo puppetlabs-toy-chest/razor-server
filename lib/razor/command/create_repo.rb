@@ -13,6 +13,7 @@ by the razor-server in the background:
     {
       "name":    "fedora19",
       "iso-url": "http://example.com/Fedora-19-x86_64-DVD.iso"
+      "task":    "fedora"
     }
 
 You can also unpack an ISO image from a file *on the server*; this does not
@@ -20,6 +21,7 @@ upload the file from the client:
     {
       "name":    "fedora19",
       "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "task":    "fedora"
     }
 
 Finally, you can providing a `url` property when you create the repository;
@@ -29,6 +31,7 @@ downloaded onto the Razor server:
     {
       "name": "fedora19",
       "url":  "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
+      "task": "repo"
     }
   EOT
 
