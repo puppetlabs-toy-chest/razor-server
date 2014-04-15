@@ -141,7 +141,7 @@ class Razor::Validation::HashSchema
     name.is_a?(String) or raise ArgumentError, "attribute name must be a string"
     block.is_a?(Proc)  or raise ArgumentError, "object #{name} must have a block to define it"
     @attributes[name] = Razor::Validation::HashAttribute.
-      new(name, checks.merge(schema: self.class.build(name, block)))
+      new(name, checks.merge(type: Hash, schema: self.class.build(name, block)))
   end
 
   def array(name, checks = {}, &block)
@@ -150,7 +150,7 @@ class Razor::Validation::HashSchema
 
     schema = Razor::Validation::ArraySchema.build(name, block)
     @attributes[name] = Razor::Validation::HashAttribute.
-      new(name, checks.merge(schema: schema))
+      new(name, checks.merge(type: Array, schema: schema))
   end
 
   def require_one_of(*attributes)
