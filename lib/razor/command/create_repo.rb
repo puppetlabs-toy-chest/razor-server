@@ -31,7 +31,7 @@ downloaded onto the Razor server:
     {
       "name": "fedora19",
       "url":  "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
-      "task": "repo"
+      "task": "fedora"
     }
   EOT
 
@@ -61,5 +61,11 @@ downloaded onto the Razor server:
     # Finally, return the state (started, not complete) and the URL for the
     # final repo to our poor caller, so they can watch progress happen.
     repo
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      data['task'] = { 'name' => data['task'] } if data['task'].is_a?(String)
+    end
   end
 end

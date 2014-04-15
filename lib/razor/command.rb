@@ -20,6 +20,19 @@ class Razor::Command
   # overridden.
   def handle_http_post(app)
     data = app.json_body
+    data.is_a?(Hash) or
+        raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
+            {expected: ruby_type_to_json(Hash), actual: ruby_type_to_json(data)}
+    old_data = data.to_json
+    data = self.class.conform!(data)
+    unless data.class <= Hash
+      raise _(<<-ERR) % {class: self.class, type: data.class, body: old_data.inspect}
+Internal error: Please report this to JIRA at http://jira.puppetlabs.com/
+`%{class}.conform!` returned unexpected class %{type} instead of Hash
+Body is: '%{body}'
+      ERR
+    end
+
     self.class.validate!(data, nil)
 
     @command = Razor::Data::Command.start(name, data.dup, app.user.principal)
@@ -36,6 +49,12 @@ class Razor::Command
     @command.store
     result[:command] = app.view_object_url(@command)
     [202, result.to_json]
+  end
+
+  # This method is overridden in subclasses to change data such that it meets
+  # current standards.
+  def self.conform!(data)
+    data
   end
 
   # Handle execution of the command.  We have already decoded and validated

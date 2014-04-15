@@ -168,7 +168,9 @@ module Razor::Test
         last_response.status.should == 202
         last_response.command.should_not be_nil
         last_response.command.command.should == name.to_s
-        last_response.command.params.should == stringify_keys(params)
+        cmd = Razor::Command.find(name: name)
+        params = Hash[params.map{|(k,v)| [k.to_s,v]}]
+        last_response.command.params.should == stringify_keys(cmd.conform!(params))
         last_response.command.status.should == status
       end
     end

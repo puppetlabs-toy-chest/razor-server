@@ -83,8 +83,14 @@ describe Razor::Validation::HashAttribute do
       let :attr do Razor::Validation::HashAttribute.new('id', {}) end
 
       before :each do
-        attr.references(Razor::Data::Node)
+        attr.references([Razor::Data::Node, :id])
         attr.required(true)
+      end
+
+      it "should default to using name as the reference" do
+        attr.references(Razor::Data::Node)
+        expect { attr.validate!({'id' => node.id}, nil) }.
+            to raise_error(/id must be the name of an existing node, but is '#{node.id}'/)
       end
 
       it "should fail if the referenced instance does not exist" do

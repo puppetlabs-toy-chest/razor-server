@@ -1,16 +1,17 @@
 # -*- encoding: utf-8 -*-
 class Razor::Validation::ArrayAttribute
-  def initialize(index, checks)
+  # Method optionally receives a Hash with keys:
+  # - index: Can be an Integer, Range, or Nil (all, default), specifying to what the attribute applies.
+  # - checks: Contains all checks applied to the attribute.
+  def initialize(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
+    index, checks =
+        if index_or_checks.is_a?(Hash)
+          checks_or_nil.nil? or raise TypeError, 'index must be an integer or a range of integers'
+          [0..Float::INFINITY, index_or_checks]
+        else
+          [(index_or_checks or 0..Float::INFINITY), (checks_or_nil or {})]
+        end
     case index
-    when Hash
-      # If we got only a hash, and the default (empty) value for what to
-      # check, then the user has said "entry ${checks}", and implies that they
-      # want this to apply to all array elements.
-      checks.empty? or raise TypeError, "index must be an integer or a range of integers"
-      @range = 0 .. Float::INFINITY
-      checks = index
-    when nil
-      @range = 0 .. Float::INFINITY
     when Integer
       index >= 0 or raise ArgumentError, "index #{index} must be at or above zero"
       @range = index .. index
@@ -21,7 +22,7 @@ class Razor::Validation::ArrayAttribute
 
       @range = index
     else
-      raise TypeError, "index must be an integer or a range of integers"
+      raise TypeError, "index must be an integer or a range of integers, got #{index.class.inspect}"
     end
 
     checks.is_a?(Hash) or raise TypeError, "must be followed by a hash"
@@ -66,6 +67,11 @@ class Razor::Validation::ArrayAttribute
         expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
     end
 
+    if @references
+      found = @references.find(@refname => value) rescue nil
+      found or raise Razor::ValidationFailure.new(_("%{this} must be the %{match} of an existing %{target}, but is '%{value}'") % {this: expand(path, index), match: @refname, target: @references.friendly_name, value: value}, 404)
+    end
+
     # If we have a nested schema, just throw the value into it to see if it
     # is valid.  That handles the nesting case nicely.
     if @nested_schema then @nested_schema.validate!(value, expand(path, index)) end
@@ -100,5 +106,16 @@ class Razor::Validation::ArrayAttribute
       schema.is_a?(Razor::Validation::ArraySchema) or
       raise ArgumentError, "schema must be a schema instance; use 'object' to define this"
     @nested_schema = schema
+  end
+
+  def references(what)
+    const, key = what
+
+    unless const.is_a?(Class) and const.respond_to?('find')
+      raise ArgumentError, "attribute references must be a class that respond to find(key: value)"
+    end
+
+    @references = const
+    @refname    = (key or :name).to_sym
   end
 end
