@@ -215,20 +215,21 @@ and requires full control over the database (eg: add and remove tables):
 
   # Error handlers for node API
   error Razor::TemplateNotFoundError do
-    status [404, env["sinatra.error"].message]
+    status [404, {error: env["sinatra.error"].to_s}.to_json]
   end
 
   error Razor::Util::ConfigAccessProhibited do
-    status [500, env["sinatra.error"].message]
+    status [500, {error: env["sinatra.error"].to_s}.to_json]
   end
 
   error org.apache.shiro.authz.UnauthorizedException do
-    status [403, env["sinatra.error"].to_s]
+    status [403, {error: env["sinatra.error"].to_s}.to_json]
   end
 
   [ArgumentError, TypeError, Sequel::ValidationFailed, Sequel::Error].each do |fault|
     error fault do
-      status [400, env["sinatra.error"].to_s]
+      e = env["sinatra.error"]
+      status [400, {error: e.to_s}.to_json]
     end
   end
 
