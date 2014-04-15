@@ -60,6 +60,7 @@ class Razor::Matcher
         "tag"      => {:expects => [[String]],        :returns => Mixed   },
         "state"    => {:expects => [[String], [String]], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
+        "like"     => {:expects => [String],          :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
         "num"      => {:expects => [Mixed],           :returns => Number  },
@@ -117,6 +118,15 @@ class Razor::Matcher
 
     def eq(*args)
       args[0] == args[1]
+    end
+
+    def like(*args)
+      pos = args[0] =~ Regexp.new(args[1])
+      unless pos.nil?
+        return true
+      else
+        return false
+      end
     end
 
     def neq(*args)
