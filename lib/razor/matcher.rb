@@ -16,6 +16,7 @@ require 'json'
 # The builtin operators are (see +Functions+)
 #   and, or - true if anding/oring arguments is true
 #   =, !=   - true if arg1 =/!= arg2
+#   like    - true if arg1 =~ arg2 (interpreting arg2 as Regex)
 #   in      - true if arg1 is one of arg2 .. argn
 #   fact    - retrieves the fact named arg1 from the node if it exists
 #             If not, an error is raised unless a second argument is given, in
@@ -60,7 +61,7 @@ class Razor::Matcher
         "tag"      => {:expects => [[String]],        :returns => Mixed   },
         "state"    => {:expects => [[String], [String]], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
-        "like"     => {:expects => [String],          :returns => Boolean },
+        "like"     => {:expects => [[String], [String]], :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
         "num"      => {:expects => [Mixed],           :returns => Number  },
@@ -122,11 +123,7 @@ class Razor::Matcher
 
     def like(*args)
       pos = args[0] =~ Regexp.new(args[1])
-      unless pos.nil?
-        return true
-      else
-        return false
-      end
+      not pos.nil?
     end
 
     def neq(*args)
