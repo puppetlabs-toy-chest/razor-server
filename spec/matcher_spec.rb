@@ -103,6 +103,13 @@ describe Razor::Matcher do
       match("=", "abc", "abcd").should == false
     end
 
+    it "like should behave" do
+      match("like", "abc", "abc").should == true
+      match("like", "abc", "def").should == false
+      match("like", "abc", "ab").should == true
+      match("like", "abc", "z").should == false
+    end
+
     it "neq should behave" do
       match("!=", 1, 1).should == false
       match("!=", 1, 2).should == true
@@ -198,6 +205,14 @@ describe Razor::Matcher do
       Matcher.new(["=", true, false]).should be_valid
       Matcher.new(["eq", 1, ["=", 5, "ten"]]).should be_valid
       Matcher.new(["eq", 6.3, 3]).should be_valid
+    end
+
+    it "should allow strings for 'like' function" do
+      Matcher.new(["like", true, false]).should_not be_valid
+      Matcher.new(["like", 1, 2]).should_not be_valid
+      Matcher.new(["like", "abc", false]).should_not be_valid
+      Matcher.new(["like", 1, "abc"]).should_not be_valid
+      Matcher.new(["like", "abc", "def"]).should be_valid
     end
 
     it "should allow all types for '!=' function" do
