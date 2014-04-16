@@ -57,6 +57,10 @@ module Razor::Data
       Razor::Task.find(task_name)
     end
 
+    def refresh(command)
+      publish('make_the_repo_accessible', command)
+    end
+
     # Make the repo accessible on the local system, and then generate
     # a notification.  In the event the repo is remote, it will be downloaded
     # and the temporary file stored for later cleanup.
@@ -165,7 +169,8 @@ module Razor::Data
     # done, notify ourselves of that so any cleanup required can be performed.
     def unpack_repo(command, path)
       destination = repo_store_root + filesystem_safe_name
-      destination.mkpath        # in case it didn't already exist
+      FileUtils.remove_entry_secure(destination) if destination.directory? #delete the destination and contents if it already exists
+      destination.mkpath
       Archive.extract(path, destination)
       self.publish('release_temporary_repo', command)
     end
