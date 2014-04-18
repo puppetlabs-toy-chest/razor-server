@@ -87,10 +87,38 @@ describe "create policy command" do
       Razor::Data::Policy[:name => policy_hash[:name]].should be_an_instance_of Razor::Data::Policy
     end
 
+    it "should default to enabling the policy" do
+      create_policy
+
+      Razor::Data::Policy[:name => policy_hash[:name]].enabled.should be_true
+    end
+
+    it "should allow creating a disabled policy" do
+      policy_hash[:enabled] = false
+
+      create_policy
+
+      Razor::Data::Policy[:name => policy_hash[:name]].enabled.should be_false
+    end
+
+    it "should allow creating a policy with max count" do
+      policy_hash[:max_count] = 10
+
+      create_policy
+
+      Razor::Data::Policy[:name => policy_hash[:name]].max_count.should == 10
+    end
+
     it "should fail with the wrong datatype for repo" do
       policy_hash[:repo] = { }
       create_policy
       last_response.json['error'].should =~ /repo\.name is a required attribute, but it is not present/
+    end
+
+    it "should fail with the wrong datatype for max_count" do
+      policy_hash[:max_count] = { }
+      create_policy
+      last_response.json['error'].should =~ /max_count should be a number, but was actually a object/
     end
 
     it "should fail with the wrong datatype for task" do

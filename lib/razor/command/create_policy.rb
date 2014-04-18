@@ -36,6 +36,8 @@ A sample policy installing CentOS 6.4:
   attr   'name',          type: String, required: true, size: 1..Float::INFINITY
   attr   'hostname',      type: String, required: true, size: 1..Float::INFINITY
   attr   'root_password', type: String, size: 1..Float::INFINITY
+  attr   'enabled',       type: :bool
+  attr   'max_count',     type: Integer
 
   object 'before', exclude: 'after' do
     attr 'name', type: String, required: true, references: Razor::Data::Policy
@@ -83,6 +85,8 @@ A sample policy installing CentOS 6.4:
       position = data["before"] ? "before" : "after"
       neighbor = Razor::Data::Policy[:name => data.delete(position)["name"]]
     end
+
+    data["enabled"] = true if data["enabled"].nil?
 
     # Create the policy
     policy = Razor::Data::Policy.new(data).save
