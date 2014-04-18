@@ -22,6 +22,7 @@ require 'json'
 #             If not, an error is raised unless a second argument is given, in
 #             which case it is returned as the default.
 #   num     - converts arg1 to a numeric value if possible; raises if not
+#   str     - converts arg1 to a string value if possible; raises if not
 #   <, <=   - true if arg1 </<= arg2
 #   >, >=   - true if arg1 >/>= arg2
 #
@@ -65,6 +66,7 @@ class Razor::Matcher
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
         "num"      => {:expects => [Mixed],           :returns => Number  },
+        "str"      => {:expects => [Mixed],           :returns => [String] },
         "gte"      => {:expects => [[Numeric]],       :returns => Boolean },
         "gt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lte"      => {:expects => [[Numeric]],       :returns => Boolean },
@@ -150,6 +152,18 @@ class Razor::Matcher
       end
 
       raise RuleEvaluationError.new _("can't convert %{raw} to number") % {raw: value.inspect}
+    end
+
+    def str(*args)
+      value = args[0]
+      begin
+        return value if value.is_a?(String)
+        return String(value)
+      rescue ArgumentError => e
+        # Ignore this here, since a RuleEvaluationError will be raised later
+      end
+
+      raise RuleEvaluationError.new "can't convert #{value.inspect} to string"
     end
 
     def gte(*args)
