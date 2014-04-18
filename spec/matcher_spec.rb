@@ -190,6 +190,28 @@ describe Razor::Matcher do
       end
     end
 
+    describe "str" do
+      it "should behave for valid integers" do
+        match("=", ["str", 9      ], "9" ).should == true
+        match("=", ["str", "10"   ], "0" ).should == false
+        match("=", ["str", "0xf"  ], "0xf").should == true
+        match("=", ["str", "0b110"], "0b110" ).should == true
+        match("=", ["str", "027"  ], "027").should == true
+      end
+
+      it "should behave for valid floats" do
+        match("=", ["str", 5.4  ], "5.4").should == true
+        match("=", ["str", "2.7"], "2.7").should == true
+        match("=", ["str", "1e5"], "1e5").should == true
+      end
+
+      it "should behave for valid booleans and nil" do
+        match("=", ["str", true ], "true").should == true
+        match("=", ["str", false], "false").should == true
+        match("=", ["str", nil], '').should == true
+      end
+    end
+
     it "gte should behave" do
       match("gte", 3.5, 4).should == false
       match(">=",  4,   4).should == true
@@ -330,7 +352,11 @@ describe Razor::Matcher do
     end
 
     it "should type the return of num as Numeric" do
-      Matcher.new([">", ["num", "7"], 3]). should be_valid
+      Matcher.new([">", ["num", "7"], 3]).should be_valid
+    end
+
+    it "should type the return of num as String" do
+      Matcher.new(["=", ["str", 7], "7"]).should be_valid
     end
 
     it "should validate nested functions" do

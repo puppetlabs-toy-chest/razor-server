@@ -45,6 +45,8 @@
   /api/microkernel/bootstrap must include the `http_port` argument.
 + NEW: The `like` matcher function will allow Regex-based string evaluation
   when matching nodes to tags.
++ NEW: The `str` matcher function will convert numbers, strings, and booleans
+  to strings.
 + BUGFIX: Any metadata that returned an array or hash caused unreliable
   behavior when referenced in tags. This will now return a helpful error.
 + IMPROVEMENT: The task link in `create-policy` is now optional, deferring to
