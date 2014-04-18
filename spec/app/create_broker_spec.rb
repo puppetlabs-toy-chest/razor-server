@@ -58,7 +58,7 @@ describe "create broker command" do
       create_broker broker_command
 
       last_response.status.should == 422
-      last_response.json['error'].should == "configuration should be an object, but got string"
+      last_response.json['error'].should == "configuration should be a object, but was actually a string"
     end
     # Successful creation
     it "should return 202, and the URL of the broker" do

@@ -108,7 +108,7 @@ describe "create policy command" do
     it "should fail with the wrong datatype for tags" do
       policy_hash[:tags] = { }
       create_policy
-      last_response.json['error'].should =~ /tags should be an array, but got object/
+      last_response.json['error'].should =~ /tags should be a array, but was actually a object/
       policy_hash[:tags] = [ { } ]
       create_policy
       last_response.json['error'].should =~ /tags\[0\].name is a required attribute, but it is not present/

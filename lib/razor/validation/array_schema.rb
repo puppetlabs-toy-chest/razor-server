@@ -35,7 +35,8 @@ class Razor::Validation::ArraySchema
   def object(index_or_checks = 0..Float::INFINITY, checks_or_nil = {}, &block)
     block.is_a?(Proc)  or raise ArgumentError, "an object must have a block to define it"
     schema = Razor::Validation::HashSchema.build(@command, block)
-    @checks << Razor::Validation::ArrayAttribute.new(index_or_checks, checks_or_nil.merge(schema: schema))
+    @checks << Razor::Validation::ArrayAttribute.
+      new(index_or_checks, checks_or_nil.merge(type: Hash, schema: schema))
   end
 
   def element(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
