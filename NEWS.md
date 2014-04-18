@@ -2,6 +2,9 @@
 
 ## 0.15.0 - 2014-??-??
 
++ `protect_new_nodes` configuration setting will mark all
+   nodes to be marked as "installed" when first discovered, causing them
+   to boot locally until explicitly reinstalled.
 + incompatible changes
   + the way that tasks and templates are stored on disk has changed.
     The metadata file is changed from `tasks/{name}.yaml` to

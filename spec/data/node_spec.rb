@@ -7,8 +7,7 @@ describe Razor::Data::Node do
   end
 
   let (:policy) { Fabricate(:policy) }
-
-  let (:node) { Fabricate(:node) }
+  let (:node)   { Fabricate(:node) }
 
   context "canonicalize_hw_info" do
     def canonicalize(hw_info)
@@ -198,6 +197,18 @@ describe Razor::Data::Node do
     end
   end
 
+
+  context "protect_new_nodes" do
+    it "should treat a new node as installed if set to true" do
+      Razor.config['protect_new_nodes'] = true
+      node.save.reload.installed.should be_true
+    end
+
+    it "should treat a new node as 'not installed' if set to false" do
+      Razor.config['protect_new_nodes'] = false
+      node.save.reload.installed.should be_false
+    end
+  end
 
   describe "binding on checkin" do
     hw_id = "001122334455"

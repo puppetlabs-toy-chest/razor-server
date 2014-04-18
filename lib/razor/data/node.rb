@@ -63,6 +63,16 @@ module Razor::Data
       publish('eval_tags') if need_eval_tags
     end
 
+    def before_create
+      # Support users configuring that we mark all newly discovered nodes as
+      # "installed" already, despite having no policy.
+      if Razor.config['protect_new_nodes']
+        self.installed    = true
+        self.installed_at = Time.now
+      end
+      super
+    end
+
     # Set the hardware info from a hash.
     def hw_hash=(hw_hash)
       self.hw_info = self.class.canonicalize_hw_info(hw_hash)
