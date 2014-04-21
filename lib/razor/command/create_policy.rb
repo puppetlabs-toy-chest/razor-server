@@ -26,6 +26,7 @@ A sample policy installing CentOS 6.4:
       "root_password": "secret",
       "max_count":     20,
       "before":        "other policy",
+      "node_metadata:  { "key1": "value1", "key2": "value2" },
       "tags": [
         {"name": "small", "rule": ["<=", ["num", ["fact", "processorcount"]], 2]}
       ]
@@ -38,6 +39,7 @@ A sample policy installing CentOS 6.4:
   attr   'root_password', type: String, size: 1..Float::INFINITY
   attr   'enabled',       type: :bool
   attr   'max_count',     type: Integer
+  attr   'node_metadata', type: Hash
 
   object 'before', exclude: 'after' do
     attr 'name', type: String, required: true, references: Razor::Data::Policy
