@@ -5,7 +5,7 @@ require 'forwardable'
 class Razor::Validation::HashSchema
   def initialize(command)
     @command             = command
-    @authz_template      = "\"commands:#{@command}\""
+    @authz_template      = "commands:#{@command}"
     @authz_dependencies  = []
     @attributes          = {}
     @extra_attr_patterns = {}
@@ -58,7 +58,13 @@ class Razor::Validation::HashSchema
     # Perform the authz check itself.  Will raise on failure.  Only applied on
     # the top-level object to avoid duplicating tests all the way down.
     if path.nil? and @authz_template and Razor.config['auth.enabled']
-      authz = eval(@authz_template)
+      fields = @authz_dependencies.inject({}) do |hash, name|
+        hash[name.to_sym] = data[name]
+        hash
+      end
+
+      authz = @authz_template % fields
+
       org.apache.shiro.SecurityUtils.subject.check_permissions(authz)
     end
 
@@ -109,10 +115,12 @@ class Razor::Validation::HashSchema
     pattern.empty? and raise ArgumentError, "the authz pattern must not be empty"
     pattern =~ /\A[-a-z%{}]+\z/ or raise "the authz pattern must contain only a-z, and attribute substitutions"
 
+    @authz_template += ':' + pattern
+
     # Compile the pattern into two things: one, the shiro string that matches
     # what we want to validate, and two, the set of dependent attributes that
     # we need to check before we can verify the authentication string.
-    authz = pattern.gsub(/%{.*?}/) do |match|
+    authz = @authz_template.scan(/%{.*?}/) do |match|
       name = match[2..-2]
       unless name and name =~ /\A[a-z]+\z/
         raise "authz pattern substitution #{match.inspect} is invalid"
@@ -120,16 +128,7 @@ class Razor::Validation::HashSchema
 
       # Stash a reference to our dependencies so we can eval them first.
       @authz_dependencies << name
-
-      # Emit a string that will evaluate using normal string substitution to a
-      # reference to a member of the data object in current scope; we later
-      # use that to create the specific authz matcher.
-      '#{data[' + name.inspect + ']}'
     end
-
-    # Replace the string-inna-string with a version including our extended
-    # template, ready to check the details as well as the coarse permission.
-    @authz_template = @authz_template[0..-2] + ':' + authz + '"'
   end
 
   def attr(name, checks = {})
