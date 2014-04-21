@@ -30,6 +30,37 @@ class Razor::Validation::HashSchema
     @attributes.each {|_, attr| attr.finalize(self) }
   end
 
+  # Turn the schema into a markdown text string detailing ready to include in
+  # our help.  This keeps responsibility for the internals of the schema
+  # documentation inside the object; we just throw it raw into the help
+  # template when required.
+  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+# Access Control
+
+This command's access control pattern: `<%= @authz_template %>`
+
+% unless @authz_dependencies.empty?
+Words surrounded by `%{...}` are substitutions from the input data: typically
+the name of the object being modified, or some other critical detail, these
+allow roles to be granted partial access to modify the system.
+
+% end
+For more detail on how the permission strings are structured and work, you can
+see the [Shiro Permissions documentation][shiro].  That pattern is expanded
+and then a permission check applied to it, before the command is authorized.
+
+% auth = Razor.config['auth.enabled'] ? 'enabled' : 'disabled'
+These checks only apply if security is enabled in the Razor configuration
+file; on this server security is currently <%= auth %>.
+
+[shiro]: http://shiro.apache.org/permissions.html
+
+  ERB
+
+  def to_s
+    HelpTemplate.result(binding)
+  end
+
   def attribute(name)
     @attributes[name]
   end

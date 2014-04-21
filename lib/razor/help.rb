@@ -101,6 +101,11 @@ Unfortunately, the `<%= name %>` command has not been documented.
 # DESCRIPTION
 <%= description %>
 %
+% # Add schema documentation so the user understands the methods and structure
+% # of the code that they are working with.  Blank line intentional.
+
+<%= schema %>
+%
 % # @todo danielp 2014-04-04: inject details built from the validation about
 % # the structure and form of the command.
 %

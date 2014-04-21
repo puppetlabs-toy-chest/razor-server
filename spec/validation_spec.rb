@@ -58,4 +58,33 @@ describe Razor::Validation do
         to raise_error Razor::ValidationFailure, 'a[0].b[0].c is a required attribute, but it is not present'
     end
   end
+
+  context "to_s" do
+    subject :text do schema.to_s end
+
+    context "with authz" do
+      before :each do schema.authz '%{name}' end
+      it "should include the authz header" do should =~ /^# Access Control$/ end
+      it "should include the command name" do should =~ /:test:/ end
+      it "should include the pattern"      do should =~ /%{name}/ end
+      it "should explain substitution"     do
+        should include 'Words surrounded by `%{...}` are substitutions'
+      end
+    end
+
+    it "should not explain substitution when no substitution is present" do
+      schema.authz 'no-substitutions-accepted'
+      should_not include 'Words surrounded by `%{...}` are substitutions'
+    end
+
+    it "should say authz if currently enabled, if it is" do
+      Razor.config['auth.enabled'] = true
+      should =~ /on this server security is currently enabled/
+    end
+
+    it "should say authz if currently disabled, if it is" do
+      Razor.config['auth.enabled'] = false
+      should =~ /on this server security is currently disabled/
+    end
+  end
 end
