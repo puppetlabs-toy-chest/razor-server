@@ -34,6 +34,36 @@ class Razor::Validation::HashAttribute
     end
   end
 
+  # Documentation generation for the attribute.
+  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+% if @required
+- This attribute is required
+% end
+% if @type
+- It must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.
+% end
+% if @exclude
+- If present, <%= @exclude.join(', ') %> must not be present.
+% end
+% if @also
+- If present, <%= @also.join(', ') %> must also be present.
+% end
+% if @references
+- It must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
+% end
+% if @size
+- It must be between <%= @size.min %> and <%= @size.max %> in length.
+% end
+% if @nested_schema
+<%= @nested_schema %>
+% end
+  ERB
+
+  def to_s
+    # We indent so that nested attributes do the right thing.
+    HelpTemplate.result(binding).gsub(/^/, '   ')
+  end
+
   def expand(path, name)
     [path, name].compact.join('.')
   end

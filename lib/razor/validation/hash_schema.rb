@@ -35,6 +35,7 @@ class Razor::Validation::HashSchema
   # documentation inside the object; we just throw it raw into the help
   # template when required.
   HelpTemplate = ERB.new(<<-ERB, nil, '%')
+<%= @help %>
 # Access Control
 
 This command's access control pattern: `<%= @authz_template %>`
@@ -55,6 +56,14 @@ file; on this server security is currently <%= auth %>.
 
 [shiro]: http://shiro.apache.org/permissions.html
 
+% unless @attributes.empty?
+# Attributes
+
+%   @attributes.each do |name, attr|
+ * <%= name %>
+<%= attr.to_s %>
+%   end
+% end
   ERB
 
   def to_s

@@ -13,6 +13,22 @@ class Razor::Validation::ArraySchema
     @checks.each {|check| check.finalize(self) }
   end
 
+  # Turn the schema into a markdown text string detailing ready to include in
+  # our help.  This keeps responsibility for the internals of the schema
+  # documentation inside the object; we just throw it raw into the help
+  # template when required.
+  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+<%= @help %>
+- This value must be an array.
+% @checks.each do |check|
+<%= check %>
+% end
+  ERB
+
+  def to_s
+    HelpTemplate.result(binding)
+  end
+
   def validate!(data, path)
     # Ensure that we have the correct base data type, since nothing else will
     # work if we don't.

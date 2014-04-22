@@ -37,6 +37,37 @@ class Razor::Validation::ArrayAttribute
   def finalize(schema)
   end
 
+  # Documentation generation for the attribute.
+  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+- <%= @help %>
+- This must be an array.
+% if @type
+- <%= index_to_s %> must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.
+% end
+% if @references
+- <%= index_to_s %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
+% end
+% if @nested_schema
+- <%= index_to_s %>:
+<%= @nested_schema.to_s.gsub(/^/, '   ') %>
+% end
+  ERB
+
+  def to_s
+    # We indent so that nested attributes do the right thing.
+    HelpTemplate.result(binding).gsub(/^/, '   ')
+  end
+
+  def index_to_s
+    if Float(@range.max).infinite? and @range.min <= 0
+      "All elements"
+    elsif Float(@range.max).infinite?
+      "Elements from #{@range.min} onward"
+    else
+      "Elements from #{@range.min} to #{@range.max}"
+    end
+  end
+
   def expand(path, index)
     "#{path}[#{index}]"
   end

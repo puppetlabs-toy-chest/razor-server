@@ -78,6 +78,57 @@ describe Razor::Validation::HashSchema do
     end
   end
 
+
+  context "to_s" do
+    subject :text do schema.to_s end
+
+    context "with authz" do
+      before :each do schema.authz '%{name}' end
+      it "should include the authz header" do should =~ /^# Access Control$/ end
+      it "should include the command name" do should =~ /:test:/ end
+      it "should include the pattern"      do should =~ /%{name}/ end
+      it "should explain substitution"     do
+        should include 'Words surrounded by `%{...}` are substitutions'
+      end
+    end
+
+    it "should not explain substitution when no substitution is present" do
+      schema.authz 'no-substitutions-accepted'
+      should_not include 'Words surrounded by `%{...}` are substitutions'
+    end
+
+    it "should say authz if currently enabled, if it is" do
+      Razor.config['auth.enabled'] = true
+      should =~ /on this server security is currently enabled/
+    end
+
+    it "should say authz if currently disabled, if it is" do
+      Razor.config['auth.enabled'] = false
+      should =~ /on this server security is currently disabled/
+    end
+
+    it "should not document attributes if there are none" do
+      should_not =~ /# Attributes/
+    end
+
+    it "should document a single attribute" do
+      schema.attr 'one', type: String, size: 1..Float::INFINITY
+      should =~ /^# Attributes/
+      should =~ / \* one/
+      should =~ /#{Regexp.escape(schema.attribute('one').to_s)}/
+    end
+
+    it "should document multiple attributes" do
+      schema.attr 'one', type: String, size: 1..Float::INFINITY
+      schema.attr 'two', type: Array,  required: true
+      should =~ /^# Attributes/
+      should =~ / \* one/
+      should =~ / \* two/
+      should =~ /#{Regexp.escape(schema.attribute('one').to_s)}/
+      should =~ /#{Regexp.escape(schema.attribute('two').to_s)}/
+    end
+  end
+
   context "validate!" do
     [[], 1, 1.1, ""].each do |input|
       it "should fail if the data is an #{input.class}" do

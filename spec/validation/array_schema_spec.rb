@@ -37,4 +37,32 @@ describe Razor::Validation::ArraySchema do
       schema.validate!(['string', 0], 'path')
     end
   end
+
+  context "to_s" do
+    subject :text do schema.to_s end
+
+    it "should document that this is an array" do
+      should =~ /This value must be an array/
+    end
+
+    it "should document the requirements for all elements" do
+      schema.elements type: String
+      should =~ /All elements must be one of string./
+    end
+
+    it "should document 0..10 correctly" do
+      schema.elements 0..10, references: Razor::Data::Tag
+      should =~ /Elements from 0 to 10 must match the name of an existing tag./
+    end
+
+    it "should document 2..4 correctly" do
+      schema.elements 2..4, references: Razor::Data::Tag
+      should =~ /Elements from 2 to 4 must match the name of an existing tag./
+    end
+
+    it "should document an infinite series correctly" do
+      schema.elements 2..Float::INFINITY, references: Razor::Data::Tag
+      should =~ /Elements from 2 onward must match the name of an existing tag./
+    end
+  end
 end
