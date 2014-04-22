@@ -108,6 +108,7 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
     if body['command']
       # A command is optional for background processing
       command        = find_command(body['command'])
+      return nil if command.cancelled?
     end
     if instance.nil?
       # @todo danielp 2013-07-05: I genuinely don't know the correct way to

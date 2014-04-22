@@ -48,6 +48,14 @@ module Razor::Data
       status == 'finished'
     end
 
+    def cancelled?
+      status == 'cancelled'
+    end
+
+    def failed?
+      status == 'failed'
+    end
+
     # Store (save) the command after setting its status to +status+. If its
     # status is +nil+ and no explicit +status+ is passed in, set it to
     # finished.
@@ -57,7 +65,7 @@ module Razor::Data
       else
         self.status = status if status
       end
-      self.finished_at ||= DateTime.now if finished?
+      self.finished_at ||= DateTime.now if finished? or cancelled? or failed?
       save
     end
 

@@ -299,6 +299,21 @@ describe Razor::Messaging::Sequel do
       queue.should == []
     end
 
+    it "should stop if the command is cancelled" do
+      pk = Fabricate(:repo).pk_hash
+      cmd = Fabricate(:command)
+      cmd.store('cancelled')
+      content = {
+          'class'     => 'Razor::Data::Repo',
+          'instance'  => pk,
+          'message'   => 'doesnt_exist',
+          'command'   => {:id  => cmd.id },
+      }
+
+      handler.process!(message(content))
+      queue.should == []
+    end
+
     it "should not queue a retry if the command is not found" do
       pk = Fabricate(:repo).pk_hash
       content = {
