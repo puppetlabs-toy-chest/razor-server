@@ -3,13 +3,15 @@ class Razor::Validation::ArrayAttribute
   # Method optionally receives a Hash with keys:
   # - index: Can be an Integer, Range, or Nil (all, default), specifying to what the attribute applies.
   # - checks: Contains all checks applied to the attribute.
-  def initialize(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
+  def initialize(index_or_checks = 0..Float::INFINITY, checks_or_nothing = {})
     index, checks =
         if index_or_checks.is_a?(Hash)
-          checks_or_nil.nil? or raise TypeError, 'index must be an integer or a range of integers'
+          checks_or_nothing.empty? or
+            raise TypeError, 'index must be an integer or a range of integers'
+
           [0..Float::INFINITY, index_or_checks]
         else
-          [(index_or_checks or 0..Float::INFINITY), (checks_or_nil or {})]
+          [(index_or_checks or 0..Float::INFINITY), (checks_or_nothing or {})]
         end
     case index
     when Integer

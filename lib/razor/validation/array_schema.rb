@@ -39,8 +39,8 @@ class Razor::Validation::ArraySchema
       new(index_or_checks, checks_or_nil.merge(type: Hash, schema: schema))
   end
 
-  def element(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
-    @checks << Razor::Validation::ArrayAttribute.new(index_or_checks, checks_or_nil)
+  def element(index_or_checks = 0..Float::INFINITY, checks_or_nothing = {})
+    @checks << Razor::Validation::ArrayAttribute.new(index_or_checks, checks_or_nothing)
   end
 
   # This alias may be helpful for readability in cases where no index/range is provided.
