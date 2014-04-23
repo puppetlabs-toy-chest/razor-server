@@ -19,6 +19,8 @@ or remove all keys from a node:
   EOT
 
 
+  authz '%{node}'
+
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
   attr 'key',  type: String, size: 1..Float::INFINITY
   attr 'all',  type: [String, :bool]

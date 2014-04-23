@@ -13,6 +13,8 @@ Remove the tag `virtual` to the policy `example`:
     {"name": "example", "tag": "virtual"}
   EOT
 
+  authz '%{name}:%{tag}'
+
   attr 'name', type: String, required: true, references: Razor::Data::Policy
   attr 'tag',  type: String, required: true, size: 1..Float::INFINITY
 

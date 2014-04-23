@@ -90,21 +90,21 @@ describe Razor::Validation::HashSchema do
       it "should explain substitution"     do
         should include 'Words surrounded by `%{...}` are substitutions'
       end
-    end
 
-    it "should not explain substitution when no substitution is present" do
-      schema.authz 'no-substitutions-accepted'
-      should_not include 'Words surrounded by `%{...}` are substitutions'
-    end
+      it "should not explain substitution when no substitution is present" do
+        schema.authz 'no-substitutions-accepted'
+        should_not include 'Words surrounded by `%{...}` are substitutions'
+      end
 
-    it "should say authz if currently enabled, if it is" do
-      Razor.config['auth.enabled'] = true
-      should =~ /on this server security is currently enabled/
-    end
+      it "should say authz if currently enabled, if it is" do
+        Razor.config['auth.enabled'] = true
+        should =~ /on this server security is currently enabled/
+      end
 
-    it "should say authz if currently disabled, if it is" do
-      Razor.config['auth.enabled'] = false
-      should =~ /on this server security is currently disabled/
+      it "should say authz if currently disabled, if it is" do
+        Razor.config['auth.enabled'] = false
+        should =~ /on this server security is currently disabled/
+      end
     end
 
     it "should not document attributes if there are none" do
@@ -185,6 +185,7 @@ describe Razor::Validation::HashSchema do
     context "require_one_of" do
       before :each do
         Razor.config['auth.enabled'] = false
+        schema.authz 'none'
 
         schema.require_one_of('a', 'b', 'c')
         schema.attr('a', {})
@@ -216,6 +217,7 @@ describe Razor::Validation::HashSchema do
     context "extra attributes" do
       before :each do
         Razor.config['auth.enabled'] = false
+        schema.authz 'none'
       end
 
       it "should fail if one extra attribute is present" do

@@ -31,6 +31,8 @@ Removing all node metadata:
     {"node": "node1", "clear": true}
   EOT
 
+  authz '%{node}'
+
   attr 'node',       type: String, required: true, references: [Razor::Data::Node, :name]
   attr 'update',     type: Hash
   attr 'remove',     type: Array

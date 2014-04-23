@@ -37,6 +37,8 @@ installed, so should not be subject to policy based reinstallation:
 
   EOT
 
+  authz  true
+
   attr   'installed',          type: :bool, required: true
   object 'hw_info',            required: true, size: 1..Float::INFINITY do
     extra_attrs /^net[0-9]+$/, type: String

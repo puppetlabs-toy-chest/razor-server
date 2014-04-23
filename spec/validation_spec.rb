@@ -2,8 +2,12 @@
 require 'spec_helper'
 
 describe Razor::Validation do
-  subject(:schema) { Razor::Validation::HashSchema.new("test") }
-  before :each do Razor.config['auth.enabled'] = false end
+  subject :schema do
+    Razor.config['auth.enabled'] = false
+    Razor::Validation::HashSchema.new("test").tap do |schema|
+      schema.authz 'none'
+    end
+  end
 
   context "nested elements" do
     it "object=>object" do
@@ -56,6 +60,20 @@ describe Razor::Validation do
       data = {'a' => [{'b' => [{}]}]}
       expect { schema.validate!(data, nil) }.
         to raise_error Razor::ValidationFailure, 'a[0].b[0].c is a required attribute, but it is not present'
+    end
+
+    context "to_s" do
+      it "should only talk about authz only in the top level object" do
+        schema.object 'node' do
+          attr 'name', type: String
+        end
+
+        # This line should show up in *all* access control documentation;
+        # hopefully it should count 0 if we change that text and fail to
+        # change this, so that the developer responsible knows they have to do
+        # something here, and changes this text to match the new authz text.
+        schema.to_s.lines.grep(/This command's access control pattern/).count.should == 1
+      end
     end
   end
 end

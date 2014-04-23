@@ -20,6 +20,8 @@ Adding a new tag `virtual` to the policy `example`:
      "rule": ["=" ["fact" "virtual" "false"] "true"]}
   EOT
 
+  authz '%{name}:%{tag}'
+
   attr 'name', type: String, required: true, references: Razor::Data::Policy
   attr 'tag',  type: String, required: true, size: 1..Float::INFINITY
   attr 'rule', type: Array

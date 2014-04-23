@@ -18,6 +18,7 @@ Set a policy to a maximum of 15 nodes:
     {"name": "example", "max-count": 15}
   EOT
 
+  authz '%{name}'
 
   attr 'name',      type: String, required: true, references: Razor::Data::Policy
   attr 'max-count', required: true

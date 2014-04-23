@@ -14,6 +14,8 @@ Set a single key from a node:
     {"node": "node1", "key": "my_key", "value": "twelve"}
   EOT
 
+  authz '%{node}'
+
   attr 'node',       type: String, required: true, references: [Razor::Data::Node, :name]
   attr 'key',        type: String, exclude: 'all', size: 1..Float::INFINITY
   attr 'all',        type: [String, :bool], exclude: 'key'
