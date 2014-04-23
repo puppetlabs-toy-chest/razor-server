@@ -2,9 +2,9 @@
 require_relative '../spec_helper'
 
 describe Razor::Validation::ArraySchema do
-  subject(:schema) { Razor::Validation::ArraySchema.new("test") }
-  context "initialize" do
+  subject :schema do Razor::Validation::ArraySchema.new("test") end
 
+  context "initialize" do
     context "object" do
       it "requires a block" do
         expect { schema.object }.
@@ -27,10 +27,12 @@ describe Razor::Validation::ArraySchema do
     end
 
     it "should perform element checks" do
-      schema.element(0, {type: String})
-      schema.elements(1, {type: Integer})
+      schema.element  0, type: String
+      schema.elements 1, type: Integer
+
       expect { schema.validate!(['string', 'string'], 'path')}.
-          to raise_error Razor::ValidationFailure, /path\[1\] should be a number, but was actually a string/
+          to raise_error Razor::ValidationFailure, 'path[1] should be a number, but was actually a string'
+
       schema.validate!(['string'], 'path')
       schema.validate!(['string', 0], 'path')
     end
