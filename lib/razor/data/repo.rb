@@ -42,6 +42,11 @@ module Razor::Data
       # else that we could do to resolve the situation -- we already tried to
       # delete it once...
       self.tmpdir and FileUtils.remove_entry_secure(self.tmpdir, true)
+
+      # Remove repo directory.
+      if Dir.exist?(iso_location)
+        FileUtils.remove_entry_secure(iso_location, true)
+      end
     end
 
     def validate
@@ -164,11 +169,16 @@ module Razor::Data
     # that we can read, and unpack it into our working directory.  Once we are
     # done, notify ourselves of that so any cleanup required can be performed.
     def unpack_repo(command, path)
-      destination = repo_store_root + filesystem_safe_name
+      destination = iso_location
       destination.mkpath        # in case it didn't already exist
       Archive.extract(path, destination)
       self.publish('release_temporary_repo', command)
     end
+
+    def iso_location
+      repo_store_root + filesystem_safe_name
+    end
+    private :iso_location
 
     # Release any temporary repo previously downloaded.
     def release_temporary_repo(command)

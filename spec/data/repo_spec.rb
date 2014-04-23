@@ -416,6 +416,27 @@ describe Razor::Data::Repo do
       File.should_not be_exist tmpdir
     end
 
+    it "should remove the repo's unpacked iso directory" do
+      tiny_iso = (Pathname(__FILE__).dirname.parent + 'fixtures' + 'iso' + 'tiny.iso').to_s
+      command = Fabricate(:command)
+
+      begin
+        repo_dir = Dir.mktmpdir('test-razor-repo-dir')
+        Razor.config.stub(:[]).with('repo_store_root').and_return(repo_dir)
+
+        repo = Fabricate.build(:repo)
+        repo.unpack_repo(command, tiny_iso)
+        unpacked_iso_dir = File::join(repo_dir, repo.name)
+        Dir.exist?(unpacked_iso_dir).should be_true
+        repo.save
+        repo.destroy
+        Dir.exist?(unpacked_iso_dir).should be_false
+      ensure
+        # Cleanup
+        repo_dir and FileUtils.remove_entry_secure(repo_dir)
+      end
+    end
+
     it "should not fail if there is no temporary directory" do
       repo = Fabricate.build(:repo)
       repo.tmpdir = nil
@@ -514,32 +535,28 @@ describe Razor::Data::Repo do
     end
 
     it "should unpack the repo into the filesystem_safe_name under root" do
-      pending("libarchive ISO support on OSX", :if => ::FFI::Platform.mac?) do
-        Dir.mktmpdir do |root|
-          root = Pathname(root)
-          Razor.config['repo_store_root'] = root
-          repo.unpack_repo(command, tiny_iso)
+      Dir.mktmpdir do |root|
+        root = Pathname(root)
+        Razor.config['repo_store_root'] = root
+        repo.unpack_repo(command, tiny_iso)
 
-          (root + repo.filesystem_safe_name).should exist
-          (root + repo.filesystem_safe_name + 'content.txt').should exist
-          (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
-        end
+        (root + repo.filesystem_safe_name).should exist
+        (root + repo.filesystem_safe_name + 'content.txt').should exist
+        (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
       end
     end
 
     it "should unpack successfully with a unicode name" do
-      #pending("libarchive ISO support on OSX", :if => ::FFI::Platform.mac?) do
-        repo.set(:name => '죾쒃쌼싁씜봜ㅛ짘홒녿').save
-        Dir.mktmpdir do |root|
-          root = Pathname(root)
-          Razor.config['repo_store_root'] = root
-          repo.unpack_repo(command, tiny_iso)
+      repo.set(:name => '죾쒃쌼싁씜봜ㅛ짘홒녿').save
+      Dir.mktmpdir do |root|
+        root = Pathname(root)
+        Razor.config['repo_store_root'] = root
+        repo.unpack_repo(command, tiny_iso)
 
-          (root + repo.filesystem_safe_name).should exist
-          (root + repo.filesystem_safe_name + 'content.txt').should exist
-          (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
-        end
-      #end
+        (root + repo.filesystem_safe_name).should exist
+        (root + repo.filesystem_safe_name + 'content.txt').should exist
+        (root + repo.filesystem_safe_name + 'file-with-filename-that-is-longer-than-64-characters-which-some-unpackers-get-wrong.txt').should exist
+      end
     end
 
     it "should publish 'release_temporary_repo' when unpacking completes" do
