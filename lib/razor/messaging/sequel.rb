@@ -122,9 +122,11 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
     else
       # We might as well be tolerant of our inputs, and treat a nil/missing
       # arguments value as "no arguments"
-      args = Array(body['arguments'])
-      args.unshift(command) if command
-      instance.public_send(body['message'], *args)
+      if command
+        instance.public_send(body['message'], command, *Array(body['arguments']))
+      else
+        instance.public_send(body['message'], *Array(body['arguments']))
+      end
     end
 
     # We don't have anything to send anyone at this point.
