@@ -296,21 +296,36 @@ describe Razor::Messaging::Sequel do
       }
 
       handler.process!(message(content))
-      queue.each {|msg| msg.should_not include content }
+      queue.should == []
     end
 
-    it "should queue a retry if the command is not found" do
+    it "should not queue a retry if the command is not found" do
       pk = Fabricate(:repo).pk_hash
       content = {
         'class'     => 'Razor::Data::Repo',
         'instance'  => pk,
-        'command'   => { 'id' => 42 },
+        'command'   => { :id => 42 },
         'message'   => 'to_s',
         'arguments' => []
       }
 
       handler.process!(message(content))
-      queue.each {|msg| msg.should_not include content }
+      queue.should == []
+    end
+
+    it "should queue a retry if the command throws an exception" do
+      pk = Fabricate(:repo).pk_hash
+      cmd = Fabricate(:command)
+      content = {
+          'class'     => 'Razor::Data::Repo',
+          'instance'  => pk,
+          'command'   => { :id => cmd.id },
+          'message'   => 'unpack_repo',
+          'arguments' => ["doesnt-exist"]
+      }
+
+      expect { handler.process!(message(content)) }.
+          to have_published(content).on(queue)
     end
 
     it "should deliver the message if 'arguments' is missing" do
@@ -322,7 +337,7 @@ describe Razor::Messaging::Sequel do
       }
 
       handler.process!(message(content))
-      queue.each {|msg| msg.should_not include content }
+      queue.should == []
     end
 
     it "should deliver the message if 'arguments' is nil" do
@@ -335,7 +350,7 @@ describe Razor::Messaging::Sequel do
       }
 
       handler.process!(message(content))
-      queue.each {|msg| msg.should_not include content }
+      queue.should == []
     end
   end
 
