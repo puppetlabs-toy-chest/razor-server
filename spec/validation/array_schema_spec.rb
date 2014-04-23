@@ -14,8 +14,8 @@ describe Razor::Validation::ArraySchema do
 
     context "element" do
       it "allows both element and elements" do
-        schema.elements
-        schema.element
+        schema.should respond_to :elements
+        schema.should respond_to :element
       end
     end
   end
