@@ -22,8 +22,16 @@ Delete a tag regardless of it being used:
 
 
   authz '%{name}'
-  attr  'name',  type: String, required: true, size: 1..Float::INFINITY
-  attr  'force', type: :bool
+  attr  'name', type: String, required: true, size: 1..Float::INFINITY,
+                help: _('The name of the tag to delete.')
+
+  attr 'force', type: :bool, help: _(<<-HELP)
+    If the tag is already in use, by default it will not be deleted.
+
+    To make that work, the force option can be supplied, which will cause the
+    tag to be removed from all nodes it is applied to and all policies which
+    reference it before being deleted as a single, atomic action
+  HELP
 
   def run(request, data)
     if tag = Razor::Data::Tag[:name => data["name"]]

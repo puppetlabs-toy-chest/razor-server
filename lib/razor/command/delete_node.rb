@@ -12,7 +12,8 @@ Delete the node "node17":
   EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250
+  attr  'name', type: String, required: true, size: 1..250,
+                help: _('the name of the node to delete')
 
   def run(request, data)
     if node = Razor::Data::Node[:name => data['name']]

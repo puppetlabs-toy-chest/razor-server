@@ -15,7 +15,8 @@ Delete the policy "obsolete":
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..Float::INFINITY
+  attr  'name', type: String, required: true, size: 1..Float::INFINITY,
+                help: _('The name of the policy to delete.')
 
   def run(request, data)
     # deleting a policy will first remove the policy from any node associated

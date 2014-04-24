@@ -20,8 +20,17 @@ Set a policy to a maximum of 15 nodes:
 
   authz '%{name}'
 
-  attr 'name',      type: String, required: true, references: Razor::Data::Policy
-  attr 'max-count', required: true
+  attr 'name', type: String, required: true, references: Razor::Data::Policy,
+               help: _('The name of the policy to modify')
+
+  attr 'max-count', required: true, help: _(<<-HELP)
+    The new maximum number of nodes bound by this policy.  This can be
+    "null", in which case the policy becomes unlimited, or an integer
+    greater than or equal to one.
+
+    You cannot reduce the maximum number of nodes bound to a policy below
+    the number of nodes currently bound to the policy with this command.
+  HELP
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

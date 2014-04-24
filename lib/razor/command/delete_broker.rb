@@ -15,7 +15,8 @@ Delete the unused broker configuration "obsolete":
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250
+  attr  'name', type: String, required: true, size: 1..250,
+                help: _('The name of the broker to delete')
 
   def run(request, data)
     if broker = Razor::Data::Broker[:name => data['name']]

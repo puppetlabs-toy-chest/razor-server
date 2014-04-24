@@ -36,6 +36,7 @@ class Razor::Validation::HashAttribute
 
   # Documentation generation for the attribute.
   HelpTemplate = ERB.new(<<-ERB, nil, '%')
+- <%= @help %>
 % if @required
 - This attribute is required
 % end
@@ -251,5 +252,10 @@ class Razor::Validation::HashAttribute
       raise ArgumentError, "please just use an inclusive range for your size checks"
 
     @size = range
+  end
+
+  def help(text)
+    @help = Razor::Help.scrub(text) or
+      raise ArgumentError, "the attribute summary must be a string"
   end
 end

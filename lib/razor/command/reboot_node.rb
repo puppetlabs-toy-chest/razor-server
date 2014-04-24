@@ -33,7 +33,8 @@ Queue a node reboot: `{"name": "node1"}`
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, references: Razor::Data::Node
+  attr  'name', type: String, required: true, references: Razor::Data::Node,
+                help: _('The name of the node to reboot.')
 
   def run(request, data)
     node = Razor::Data::Node[:name => data['name']]
