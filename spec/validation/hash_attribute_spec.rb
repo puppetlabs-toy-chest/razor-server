@@ -340,7 +340,7 @@ describe Razor::Validation::HashAttribute do
   context "size" do
     let(:schema) do
       Razor::Validation::HashSchema.new('test').tap do |schema|
-        schema.attr('attr')
+        schema.attr('attr', help: 'foo')
       end
     end
 

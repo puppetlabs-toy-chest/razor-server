@@ -32,6 +32,8 @@ class Razor::Validation::HashAttribute
       @type and @type.all? {|t| [String, Hash, Array].member? t[:type] } or
         raise ArgumentError, "a type, from String, Hash, or Array, must be specified if you want to check the size of the #{@name} attribute"
     end
+
+    @help or raise ArgumentError, "#{@name} has no help information"
   end
 
   # Documentation generation for the attribute.

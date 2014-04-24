@@ -140,8 +140,8 @@ describe Razor::Validation::HashSchema do
     context "authz validation" do
       before :each do
         # Set up our schema, ready to test what we need.
-        schema.attr('before', required: true)
-        schema.attr('after',  required: true)
+        schema.attr('before', required: true, help: 'foo')
+        schema.attr('after',  required: true, help: 'foo')
         schema.authz('%{before}')
         schema.finalize
       end
@@ -188,9 +188,9 @@ describe Razor::Validation::HashSchema do
         schema.authz 'none'
 
         schema.require_one_of('a', 'b', 'c')
-        schema.attr('a', {})
-        schema.attr('b', {})
-        schema.attr('c', {})
+        schema.attr('a', help: 'foo')
+        schema.attr('b', help: 'foo')
+        schema.attr('c', help: 'foo')
         schema.finalize
       end
 
