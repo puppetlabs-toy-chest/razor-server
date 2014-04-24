@@ -47,6 +47,7 @@ module Razor::Help
   # to pre-declare it all up front.
   def loading_complete
     super if defined?(super)
+    @description or fail "#{self.class} does not have a description"
   end
 
   def included(where)
