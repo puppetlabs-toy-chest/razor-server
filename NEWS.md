@@ -2,6 +2,8 @@
 
 ## 0.15.0 - 2014-??-??
 
++ DHCP will be retried when it fails, to better support networks that take
+  time to configure.  (802.1x, trunking, and similar issues are common causes.)
 + `sanboot` metadata field support: if this is set to (boolean) true in
    the node metadata, the `sanboot` workaround for firmware PXE booting
    bugs will be enabled on that specific node.

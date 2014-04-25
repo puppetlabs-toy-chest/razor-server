@@ -1,5 +1,14 @@
 #!ipxe
 
+# The number of tries made to obtain DHCP configuration to date, and the
+# maximum number to make before we give up.  Each time DHCP failed we will
+# sleep one secord per attempt already made, starting at one second, and
+# ramping up as we go.
+set tries:uint32    0
+set maxtries:uint32 60
+
+:retry
+
 <%# There is no need to DHCP again if networking is up already. In certain %>
 <%# cases, it's outright problematic                                       %>
 <%# (see https://bugzilla.redhat.com/show_bug.cgi?id=1002734)              %>
@@ -27,6 +36,13 @@ echo successfully completed the chain-loaded script; booting locally with 'exit'
 exit
 
 :error
-echo error handler invoked; waiting one minute and rebooting
+iseq ${tries} ${maxtries} && goto failed
+inc tries
+sleep ${tries}
+goto retry
+
+:failed
+echo failed to obtain DHCP data after ${tries} attempts, giving up.
 sleep 60
 reboot
+
