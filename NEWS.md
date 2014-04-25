@@ -2,6 +2,9 @@
 
 ## 0.15.0 - 2014-??-??
 
++ `sanboot` metadata field support: if this is set to (boolean) true in
+   the node metadata, the `sanboot` workaround for firmware PXE booting
+   bugs will be enabled on that specific node.
 + `protect_new_nodes` configuration setting will mark all
    nodes to be marked as "installed" when first discovered, causing them
    to boot locally until explicitly reinstalled.
