@@ -91,7 +91,7 @@ module Razor::Help
     text.lines.map{|line|line.rstrip}.join("\n").rstrip
   end
 
-  HelpTemplates['full'] = ERB.new(scrub(<<-ERB), nil, '%')
+  HelpTemplates['full'] = ERB.new(scrub(_(<<-ERB)), nil, '%')
 % if summary.nil? and description.nil?
 Unfortunately, the `<%= name %>` command has not been documented.
 % else

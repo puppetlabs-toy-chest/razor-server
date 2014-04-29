@@ -38,7 +38,7 @@ class Razor::Validation::ArrayAttribute
   end
 
   # Documentation generation for the attribute.
-  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
 - <%= @help %>
 - This must be an array.
 % if @type
@@ -60,11 +60,12 @@ class Razor::Validation::ArrayAttribute
 
   def index_to_s
     if Float(@range.max).infinite? and @range.min <= 0
-      "All elements"
+      _("All elements")
     elsif Float(@range.max).infinite?
-      "Elements from #{@range.min} onward"
+      _("Elements from %{min} onward") % {min: @range.min}
     else
-      "Elements from #{@range.min} to #{@range.max}"
+      _("Elements from %{min} to %{max}") %
+        {min: @range.min, max: @range.max}
     end
   end
 

@@ -17,7 +17,7 @@ class Razor::Validation::ArraySchema
   # our help.  This keeps responsibility for the internals of the schema
   # documentation inside the object; we just throw it raw into the help
   # template when required.
-  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
 <%= @help %>
 - This value must be an array.
 % @checks.each do |check|

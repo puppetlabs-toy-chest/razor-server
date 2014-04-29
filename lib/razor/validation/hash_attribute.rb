@@ -37,7 +37,7 @@ class Razor::Validation::HashAttribute
   end
 
   # Documentation generation for the attribute.
-  HelpTemplate = ERB.new(<<-ERB, nil, '%')
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
 - <%= @help %>
 % if @required
 - This attribute is required
