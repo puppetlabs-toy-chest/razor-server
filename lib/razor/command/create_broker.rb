@@ -52,7 +52,7 @@ Creating a simple Puppet broker:
         request.halt [400, _("Broker type '%{name}' not found") % {name: type}]
     end
 
-    Razor::Data::Broker.import(data)
+    Razor::Data::Broker.import(data).first
   end
 end
 

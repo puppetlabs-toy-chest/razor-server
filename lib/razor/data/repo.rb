@@ -28,7 +28,9 @@ module Razor::Data
     # there is one) The +command+ is used to track progress of the import
     # and report any errors that might happen
     def self.import(data, command)
-      super.tap {|repo| repo.publish('make_the_repo_accessible', command) }
+      super.tap do |repo, new|
+        new and repo.publish('make_the_repo_accessible', command)
+      end
     end
 
     # When we are destroyed, if we have a scratch directory, we need to
