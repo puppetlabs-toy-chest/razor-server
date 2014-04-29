@@ -1,6 +1,12 @@
 # -*- encoding: utf-8 -*-
 require 'forwardable'
 
+# Error used to signal a logical conflict in the change a command requests,
+# and the current state of the system.  Maps to HTTP 409 status code if raised
+# through the web application.
+class Razor::Conflict < RuntimeError; end
+
+
 # Define the base class for a command.  This encapsulates the active part, and
 # the metadata of, any individual command we support.  Since these are a
 # fairly fundamental part of our application domain, they get all sorts of
@@ -144,7 +150,6 @@ Body is: '%{body}'
   end
   def_delegators 'self.class', 'name'
 end
-
 
 # Load all the commands!
 Pathname.glob(Pathname(__FILE__).dirname + 'command' + '*.rb').each do |file|
