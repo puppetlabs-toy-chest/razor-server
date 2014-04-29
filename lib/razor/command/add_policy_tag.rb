@@ -20,9 +20,23 @@ Adding a new tag `virtual` to the policy `example`:
      "rule": ["=" ["fact" "virtual" "false"] "true"]}
   EOT
 
-  attr 'name', type: String, required: true, references: Razor::Data::Policy
-  attr 'tag',  type: String, required: true, size: 1..Float::INFINITY
-  attr 'rule', type: Array
+  authz '%{name}:%{tag}'
+
+  attr 'name', type: String, required: true, references: Razor::Data::Policy,
+               help: _('The name of the policy to add the tag to.')
+
+  attr 'tag',  type: String, required: true, size: 1..Float::INFINITY,
+               help: _('The name of the tag to be added to the policy.')
+
+  attr 'rule', type: Array, help: _(<<-HELP)
+    The `rule` is optional.  If you supply this, you are creating a new tag
+    rather than adding an existing tag to the policy.  In that case this
+    contains the tag rule.
+
+    Creating a tag while adding it to the policy is atomic: if it fails for
+    any reason, the policy will not be modified, and the tag will not be
+    created.  You cannot end up with one change without the other.
+  HELP
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

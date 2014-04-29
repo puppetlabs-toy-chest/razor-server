@@ -2,9 +2,9 @@
 require_relative '../spec_helper'
 
 describe Razor::Validation::ArraySchema do
-  subject(:schema) { Razor::Validation::ArraySchema.new("test") }
-  context "initialize" do
+  subject :schema do Razor::Validation::ArraySchema.new("test") end
 
+  context "initialize" do
     context "object" do
       it "requires a block" do
         expect { schema.object }.
@@ -14,8 +14,8 @@ describe Razor::Validation::ArraySchema do
 
     context "element" do
       it "allows both element and elements" do
-        schema.elements
-        schema.element
+        schema.should respond_to :elements
+        schema.should respond_to :element
       end
     end
   end
@@ -27,12 +27,42 @@ describe Razor::Validation::ArraySchema do
     end
 
     it "should perform element checks" do
-      schema.element(0, {type: String})
-      schema.elements(1, {type: Integer})
+      schema.element  0, type: String
+      schema.elements 1, type: Integer
+
       expect { schema.validate!(['string', 'string'], 'path')}.
-          to raise_error Razor::ValidationFailure, /path\[1\] should be a number, but was actually a string/
+          to raise_error Razor::ValidationFailure, 'path[1] should be a number, but was actually a string'
+
       schema.validate!(['string'], 'path')
       schema.validate!(['string', 0], 'path')
+    end
+  end
+
+  context "to_s" do
+    subject :text do schema.to_s end
+
+    it "should document that this is an array" do
+      should =~ /This value must be an array/
+    end
+
+    it "should document the requirements for all elements" do
+      schema.elements type: String
+      should =~ /All elements must be one of string./
+    end
+
+    it "should document 0..10 correctly" do
+      schema.elements 0..10, references: Razor::Data::Tag
+      should =~ /Elements from 0 to 10 must match the name of an existing tag./
+    end
+
+    it "should document 2..4 correctly" do
+      schema.elements 2..4, references: Razor::Data::Tag
+      should =~ /Elements from 2 to 4 must match the name of an existing tag./
+    end
+
+    it "should document an infinite series correctly" do
+      schema.elements 2..Float::INFINITY, references: Razor::Data::Tag
+      should =~ /Elements from 2 onward must match the name of an existing tag./
     end
   end
 end

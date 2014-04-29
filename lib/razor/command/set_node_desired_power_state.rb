@@ -19,8 +19,11 @@ Setting the power state for the node:
   EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true,  references: Razor::Data::Node
-  attr  'to',   type: [String, nil], required: false, one_of: ['on', 'off', nil]
+  attr  'name', type: String, required: true,  references: Razor::Data::Node,
+                help: _('The node to change the desired power state of.')
+
+  attr 'to', type: [String, nil], required: false, one_of: ['on', 'off', nil],
+             help: _('The desired power state -- on, or off.')
 
   def run(request, data)
     node = Razor::Data::Node[:name => data['name']]

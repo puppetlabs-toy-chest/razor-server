@@ -47,6 +47,7 @@ module Razor::Help
   # to pre-declare it all up front.
   def loading_complete
     super if defined?(super)
+    @description or fail "#{self.class} does not have a description"
   end
 
   def included(where)
@@ -90,7 +91,7 @@ module Razor::Help
     text.lines.map{|line|line.rstrip}.join("\n").rstrip
   end
 
-  HelpTemplates['full'] = ERB.new(scrub(<<-ERB), nil, '%')
+  HelpTemplates['full'] = ERB.new(scrub(_(<<-ERB)), nil, '%')
 % if summary.nil? and description.nil?
 Unfortunately, the `<%= name %>` command has not been documented.
 % else
@@ -100,6 +101,11 @@ Unfortunately, the `<%= name %>` command has not been documented.
 
 # DESCRIPTION
 <%= description %>
+%
+% # Add schema documentation so the user understands the methods and structure
+% # of the code that they are working with.  Blank line intentional.
+
+<%= schema %>
 %
 % # @todo danielp 2014-04-04: inject details built from the validation about
 % # the structure and form of the command.

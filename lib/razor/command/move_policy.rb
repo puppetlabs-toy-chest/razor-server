@@ -18,16 +18,23 @@ Move a policy after another policy:
 
 
   authz '%{name}'
-  attr   'name', type: String, required: true, references: Razor::Data::Policy
+  attr   'name', type: String, required: true, references: Razor::Data::Policy,
+                 help: _('The name of the policy to move.')
 
   require_one_of 'before', 'after'
 
-  object 'before', exclude: 'after' do
-    attr 'name', type: String, required: true, references: Razor::Data::Policy
+  object 'before', exclude: 'after', help: _(<<-HELP) do
+    The policy to move this policy before.
+  HELP
+    attr 'name', type: String, required: true, references: Razor::Data::Policy,
+                 help: _('The name of the policy to move before.')
   end
 
-  object 'after', exclude: 'before' do
-    attr 'name', type: String, required: true, references: Razor::Data::Policy
+  object 'after', exclude: 'before', help: _(<<-HELP) do
+    The policy to move this policy after.
+  HELP
+    attr 'name', type: String, required: true, references: Razor::Data::Policy,
+                 help: _('The name of the policy to move after.')
   end
 
   def run(request, data)

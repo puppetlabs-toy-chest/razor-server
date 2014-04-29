@@ -117,6 +117,18 @@ describe Razor::Validation::HashAttribute do
       it "should succeed if the referenced instance does exist" do
         attr.validate!({'id' => node.id}, nil).should be_true
       end
+
+      context "to_s" do
+        subject :text do attr.to_s end
+
+        it "should use the friendly name of the reference type" do
+          should =~ /an existing node\./
+        end
+
+        it "should identify which object slot must match" do
+          should =~ /must match the id of an existing/
+        end
+      end
     end
 
     context "size" do
@@ -156,6 +168,14 @@ describe Razor::Validation::HashAttribute do
           attr.validate!({'attr' => "\u{2603}\u{2603}"}, nil).should be_true
           attr.validate!({'attr' => "\u{2603}\u{2603}\u{2603}\u{2603}"}, nil).should be_true
         end
+
+        context "to_s" do
+          subject :text do attr.to_s end
+
+          it "should identify the actual size required" do
+            should =~ /It must be between 2 and 4 in length./
+          end
+        end
       end
 
       context "arrays" do
@@ -177,6 +197,14 @@ describe Razor::Validation::HashAttribute do
         it "should reject a long array" do
           expect { attr.validate!({'attr' => %w[1 2 3 4 5]}, nil) }.
             to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
+        end
+
+        context "to_s" do
+          subject :text do attr.to_s end
+
+          it "should identify the actual size required" do
+            should =~ /It must be between 2 and 4 in length./
+          end
         end
       end
 
@@ -201,6 +229,14 @@ describe Razor::Validation::HashAttribute do
           expect { attr.validate!({'attr' => data}, nil) }.
             to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
         end
+
+        context "to_s" do
+          subject :text do attr.to_s end
+
+          it "should identify the actual size required" do
+            should =~ /It must be between 2 and 4 in length./
+          end
+        end
       end
     end
   end
@@ -219,6 +255,23 @@ describe Razor::Validation::HashAttribute do
       it "should fail if given an empty collection (#{input.inspect})" do
         expect { attr.type(input) }.
           to raise_error(/type checks must be passed some type to check/)
+      end
+    end
+
+    context "to_s" do
+      subject :text do attr.to_s end
+
+      {
+        String  => 'string',
+        Array   => 'array',
+        Hash    => 'object',
+        :bool   => 'true, false',
+        Integer => 'number'
+      }.each do |type, expect|
+        it "should correctly report #{type} expectations" do
+          attr.type type
+          should =~ /It must be one of #{expect}/
+        end
       end
     end
   end
@@ -244,6 +297,15 @@ describe Razor::Validation::HashAttribute do
           to raise_error(/attribute exclusions must be a string, or an array of strings/)
       end
     end
+
+    context "to_s" do
+      subject :text do attr.to_s end
+
+      it "should document the exclusions" do
+        attr.exclude('test')
+        should =~ /If present, test must not be present./
+      end
+    end
   end
 
   context "references" do
@@ -259,12 +321,26 @@ describe Razor::Validation::HashAttribute do
     it "should accept a Sequel::Model derived class" do
       expect { attr.references(Razor::Data::Node) }.not_to raise_error
     end
+
+    context "to_s" do
+      subject :text do attr.to_s end
+
+      it "should document the thing that is referenced" do
+        attr.references(Razor::Data::Node)
+        should =~ /It must match the name of an existing node./
+      end
+
+      it "should document the slot of the referenced object" do
+        attr.references([Razor::Data::Node, :example])
+        should =~ /It must match the example of an existing node./
+      end
+    end
   end
 
   context "size" do
     let(:schema) do
       Razor::Validation::HashSchema.new('test').tap do |schema|
-        schema.attr('attr')
+        schema.attr('attr', help: 'foo')
       end
     end
 
@@ -285,6 +361,15 @@ describe Razor::Validation::HashAttribute do
           attr.finalize(schema)
         end.not_to raise_error
       end
+
+      context "to_s" do
+        it "should document the required size" do
+          attr.type(type)
+          attr.size(1..10)
+          attr.finalize(schema)
+          attr.to_s.should =~ /It must be between 1 and 10 in length./
+        end
+      end
     end
 
     [Numeric, Float, :bool].each do |type|
@@ -295,6 +380,24 @@ describe Razor::Validation::HashAttribute do
           attr.finalize(schema)
         end.to raise_error "a type, from String, Hash, or Array, must be specified if you want to check the size of the attr attribute"
       end
+    end
+  end
+
+  context "to_s with nested schema" do
+    it "should include documentation from a nested object" do
+      child = Razor::Validation::HashSchema.new('test')
+      child.attr 'name', type: String, required: true
+
+      attr.new('test', required: true, schema: child).to_s.
+        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   '))}~
+    end
+
+    it "should include documentation from a nested array" do
+      child = Razor::Validation::ArraySchema.new('test')
+      child.elements type: String
+
+      attr.new('test', required: true, schema: child).to_s.
+        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   '))}~
     end
   end
 end

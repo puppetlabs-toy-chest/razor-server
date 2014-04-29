@@ -15,7 +15,8 @@ Make 'node17' available for reinstallation: `{"name": "node17"}`
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, references: Razor::Data::Node
+  attr  'name', type: String, required: true, references: Razor::Data::Node,
+                help: _('The name of the node to flag for reinstallation.')
 
   def run(request, data)
     actions = []

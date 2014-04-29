@@ -32,6 +32,39 @@ class Razor::Validation::HashAttribute
       @type and @type.all? {|t| [String, Hash, Array].member? t[:type] } or
         raise ArgumentError, "a type, from String, Hash, or Array, must be specified if you want to check the size of the #{@name} attribute"
     end
+
+    @help or raise ArgumentError, "#{@name} has no help information"
+  end
+
+  # Documentation generation for the attribute.
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
+- <%= @help %>
+% if @required
+- This attribute is required
+% end
+% if @type
+- It must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.
+% end
+% if @exclude
+- If present, <%= @exclude.join(', ') %> must not be present.
+% end
+% if @also
+- If present, <%= @also.join(', ') %> must also be present.
+% end
+% if @references
+- It must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
+% end
+% if @size
+- It must be between <%= @size.min %> and <%= @size.max %> in length.
+% end
+% if @nested_schema
+<%= @nested_schema %>
+% end
+  ERB
+
+  def to_s
+    # We indent so that nested attributes do the right thing.
+    HelpTemplate.result(binding).gsub(/^/, '   ')
   end
 
   def expand(path, name)
@@ -221,5 +254,10 @@ class Razor::Validation::HashAttribute
       raise ArgumentError, "please just use an inclusive range for your size checks"
 
     @size = range
+  end
+
+  def help(text)
+    @help = Razor::Help.scrub(text) or
+      raise ArgumentError, "the attribute summary must be a string"
   end
 end

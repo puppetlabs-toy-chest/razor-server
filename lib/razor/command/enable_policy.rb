@@ -17,7 +17,8 @@ Enable a policy:
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, references: Razor::Data::Policy
+  attr  'name', type: String, required: true, references: Razor::Data::Policy,
+                help: _('The name of the policy to enable')
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

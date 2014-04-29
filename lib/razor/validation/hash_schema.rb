@@ -5,7 +5,7 @@ require 'forwardable'
 class Razor::Validation::HashSchema
   def initialize(command)
     @command             = command
-    @authz_template      = "\"commands:#{@command}\""
+    @authz_template      = nil
     @authz_dependencies  = []
     @attributes          = {}
     @extra_attr_patterns = {}
@@ -28,6 +28,48 @@ class Razor::Validation::HashSchema
     end
 
     @attributes.each {|_, attr| attr.finalize(self) }
+  end
+
+  # Turn the schema into a markdown text string detailing ready to include in
+  # our help.  This keeps responsibility for the internals of the schema
+  # documentation inside the object; we just throw it raw into the help
+  # template when required.
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
+<%= @help %>
+% if @authz_template
+# Access Control
+
+This command's access control pattern: `<%= @authz_template %>`
+
+% unless @authz_dependencies.empty?
+Words surrounded by `%{...}` are substitutions from the input data: typically
+the name of the object being modified, or some other critical detail, these
+allow roles to be granted partial access to modify the system.
+
+% end
+For more detail on how the permission strings are structured and work, you can
+see the [Shiro Permissions documentation][shiro].  That pattern is expanded
+and then a permission check applied to it, before the command is authorized.
+
+% auth = Razor.config['auth.enabled'] ? 'enabled' : 'disabled'
+These checks only apply if security is enabled in the Razor configuration
+file; on this server security is currently <%= auth %>.
+
+[shiro]: http://shiro.apache.org/permissions.html
+
+%end
+% unless @attributes.empty?
+# Attributes
+
+%   @attributes.each do |name, attr|
+ * <%= name %>
+<%= attr.to_s %>
+%   end
+% end
+  ERB
+
+  def to_s
+    HelpTemplate.result(binding)
   end
 
   def attribute(name)
@@ -55,10 +97,28 @@ class Razor::Validation::HashSchema
       checked[attr] = @attributes[attr].validate!(data, path)
     end
 
-    # Perform the authz check itself.  Will raise on failure.  Only applied on
-    # the top-level object to avoid duplicating tests all the way down.
-    if path.nil? and @authz_template and Razor.config['auth.enabled']
-      authz = eval(@authz_template)
+    # Perform the authz check itself.  This also triggers a runtime failure if
+    # the constraint "a toplevel schema must have an authz check" is violated,
+    # since this is not trivial to resolve at compilation time.
+    #
+    # We could relocate this above the dependency check, but in the case where
+    # we have no authz dependencies, there isn't much to gain by doing that;
+    # the check above is a noop, and this concentrates the behaviour in the
+    # correct location.
+    if path.nil? and not @authz_template
+      raise Razor::ValidationFailure, _(<<-EOT) % {this: expand(path)}
+%{this} is a command, but has no access control information.
+This is an internal error; please report it to Puppet Labs
+at https://tickets.puppetlabs.com/
+      EOT
+    elsif @authz_template and Razor.config['auth.enabled']
+      fields = @authz_dependencies.inject({}) do |hash, name|
+        hash[name.to_sym] = data[name]
+        hash
+      end
+
+      authz = @authz_template % fields
+
       org.apache.shiro.SecurityUtils.subject.check_permissions(authz)
     end
 
@@ -105,14 +165,24 @@ class Razor::Validation::HashSchema
   end
 
   def authz(pattern)
-    pattern.is_a?(String) or raise TypeError, "the authz pattern must be a string"
-    pattern.empty? and raise ArgumentError, "the authz pattern must not be empty"
-    pattern =~ /\A[-a-z%{}]+\z/ or raise "the authz pattern must contain only a-z, and attribute substitutions"
+    if pattern.is_a?(String)
+      pattern.empty? and raise ArgumentError, "the authz pattern must not be empty"
+
+      pattern =~ /\A[-:a-z%{}]+\z/ or raise "the authz pattern must contain only a-z, attribute substitutions, or the : to separate hierarchy levels"
+    elsif not pattern == true
+      raise TypeError, "the authz pattern must be a string, or true"
+    end
+
+    # Stash away our template, and reset dependencies; if it is 'true' then we
+    # just skip over the nested stuff, and accept that there is nothing other
+    # than the base command to be tested.
+    @authz_template     = "commands:#{@command}#{pattern == true ? '' : ':' + pattern}"
+    @authz_dependencies = []
 
     # Compile the pattern into two things: one, the shiro string that matches
     # what we want to validate, and two, the set of dependent attributes that
     # we need to check before we can verify the authentication string.
-    authz = pattern.gsub(/%{.*?}/) do |match|
+    @authz_template.scan(/%{.*?}/) do |match|
       name = match[2..-2]
       unless name and name =~ /\A[a-z]+\z/
         raise "authz pattern substitution #{match.inspect} is invalid"
@@ -120,16 +190,7 @@ class Razor::Validation::HashSchema
 
       # Stash a reference to our dependencies so we can eval them first.
       @authz_dependencies << name
-
-      # Emit a string that will evaluate using normal string substitution to a
-      # reference to a member of the data object in current scope; we later
-      # use that to create the specific authz matcher.
-      '#{data[' + name.inspect + ']}'
     end
-
-    # Replace the string-inna-string with a version including our extended
-    # template, ready to check the details as well as the coarse permission.
-    @authz_template = @authz_template[0..-2] + ':' + authz + '"'
   end
 
   def attr(name, checks = {})

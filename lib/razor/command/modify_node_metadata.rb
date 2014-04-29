@@ -31,11 +31,23 @@ Removing all node metadata:
     {"node": "node1", "clear": true}
   EOT
 
-  attr 'node',       type: String, required: true, references: [Razor::Data::Node, :name]
-  attr 'update',     type: Hash
-  attr 'remove',     type: Array
-  attr 'clear',      type: [String, :bool], exclude: ['update', 'remove']
-  attr 'no_replace', type: [String, :bool]
+  authz '%{node}'
+
+  attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
+               help: _('The name of the node to modify metadata of.')
+
+  attr 'update',     type: Hash, help: _('The metadata to update')
+  attr 'remove',     type: Array, help: _('The metadata to remove')
+  attr 'clear',      type: [String, :bool], exclude: ['update', 'remove'], help: _(<<-HELP)
+    Remove all metadata from the node.  Cannot be used together with
+    either 'update' or 'remove'.
+  HELP
+
+  attr 'no_replace', type: [String, :bool], help: _(<<-HELP)
+    If true, the `update` operation will cause this command to fail if the
+    metadata key is already present on the node.  No effect on `remove` or
+    clear.
+  HELP
 
   # Take a bulk operation via POST'ed JSON
   def run(request, data)

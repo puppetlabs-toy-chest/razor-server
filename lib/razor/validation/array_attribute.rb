@@ -3,13 +3,15 @@ class Razor::Validation::ArrayAttribute
   # Method optionally receives a Hash with keys:
   # - index: Can be an Integer, Range, or Nil (all, default), specifying to what the attribute applies.
   # - checks: Contains all checks applied to the attribute.
-  def initialize(index_or_checks = 0..Float::INFINITY, checks_or_nil = {})
+  def initialize(index_or_checks = 0..Float::INFINITY, checks_or_nothing = {})
     index, checks =
         if index_or_checks.is_a?(Hash)
-          checks_or_nil.nil? or raise TypeError, 'index must be an integer or a range of integers'
+          checks_or_nothing.empty? or
+            raise TypeError, 'index must be an integer or a range of integers'
+
           [0..Float::INFINITY, index_or_checks]
         else
-          [(index_or_checks or 0..Float::INFINITY), (checks_or_nil or {})]
+          [(index_or_checks or 0..Float::INFINITY), (checks_or_nothing or {})]
         end
     case index
     when Integer
@@ -33,6 +35,38 @@ class Razor::Validation::ArrayAttribute
   end
 
   def finalize(schema)
+  end
+
+  # Documentation generation for the attribute.
+  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
+- <%= @help %>
+- This must be an array.
+% if @type
+- <%= index_to_s %> must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.
+% end
+% if @references
+- <%= index_to_s %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
+% end
+% if @nested_schema
+- <%= index_to_s %>:
+<%= @nested_schema.to_s.gsub(/^/, '   ') %>
+% end
+  ERB
+
+  def to_s
+    # We indent so that nested attributes do the right thing.
+    HelpTemplate.result(binding).gsub(/^/, '   ')
+  end
+
+  def index_to_s
+    if Float(@range.max).infinite? and @range.min <= 0
+      _("All elements")
+    elsif Float(@range.max).infinite?
+      _("Elements from %{min} onward") % {min: @range.min}
+    else
+      _("Elements from %{min} to %{max}") %
+        {min: @range.min, max: @range.max}
+    end
   end
 
   def expand(path, index)

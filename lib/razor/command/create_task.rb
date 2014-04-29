@@ -37,15 +37,25 @@ EOT
 
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250
-  attr  'os',   type: String, required: true, size: 1..1000
+  attr  'name', type: String, required: true, size: 1..250,
+                help: _('The name of the task')
 
-  object 'templates', required: true do
+  attr 'os', type: String, required: true, size: 1..1000,
+             help: _('A description of the OS to be installed')
+
+  object 'templates', required: true, help: _(<<-HELP) do
+    The templates used for task stages.  These are named.
+  HELP
     extra_attrs type: String
   end
 
-  object 'boot_seq' do
-    attr 'default', type: String
+  object 'boot_seq', help: _(<<-HELP) do
+    The boot sequence -- this is the list of template names to be applied
+    at each stage through the boot sequence of the node.
+  HELP
+    attr 'default', type: String,
+                    help: _('The template to use when no other template applies.')
+
     extra_attrs /^[0-9]+/, type: String
   end
 

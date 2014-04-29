@@ -19,9 +19,16 @@ or remove all keys from a node:
   EOT
 
 
-  attr 'node', type: String, required: true, references: [Razor::Data::Node, :name]
-  attr 'key',  type: String, size: 1..Float::INFINITY
-  attr 'all',  type: [String, :bool]
+  authz '%{node}'
+
+  attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
+               help: _('The node to remove metadata from')
+
+  attr 'key', type: String, size: 1..Float::INFINITY,
+              help: _('The name of the metadata item to remove from the node.')
+
+  attr 'all', type: [String, :bool],
+              help: _('Remove all the metadata from the node.')
 
   require_one_of 'key', 'all'
 

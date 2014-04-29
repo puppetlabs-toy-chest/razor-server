@@ -23,9 +23,20 @@ An example of updating a tag rule, and forcing reevaluation:
   EOT
 
   authz '%{name}'
-  attr  'name',  type: String, required: true, references: Razor::Data::Tag
-  attr  'rule',  type: Array
-  attr  'force', type: :bool
+  attr  'name', type: String, required: true, references: Razor::Data::Tag,
+                help: _('The tag to change the rule of')
+
+  attr 'rule', type: Array, help: _('The new rule to apply to the tag')
+
+  attr 'force', type: :bool, help: _(<<-HELP)
+    By default this command will fail if the tag is in use by an existing
+    policy.  This flag allows you to override that, and force the change to
+    apply despite the tag being in use.
+
+    This will not change policy binding of nodes, which may lead to some
+    counter-intuitive results such as a node that does *not* match policy
+    tags being bound to the policy.
+  HELP
 
   def run(request, data)
     tag = Razor::Data::Tag[:name => data["name"]]

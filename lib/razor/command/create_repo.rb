@@ -36,12 +36,30 @@ downloaded onto the Razor server:
   EOT
 
   authz '%{name}'
-  attr  'name',    type: String, required: true, size: 1..250
-  attr  'url',     type: URI,    exclude: 'iso-url', size: 1..1000
-  attr  'iso-url', type: URI,    exclude: 'url', size: 1..1000
+  attr  'name', type: String, required: true, size: 1..250,
+                help: _('The name of the repository.')
 
-  object 'task', required: true do
-    attr 'name', type: String, required: true
+  attr 'url', type: URI, exclude: 'iso-url', size: 1..1000,
+              help: _('The URL of the remote repository to use.')
+
+  attr 'iso-url', type: URI, exclude: 'url', size: 1..1000, help: _(<<-HELP)
+    The URL of the ISO image to download and unpack to create the
+    repository.  This can be an HTTP or HTTPS URL, or it can be a
+    file URL.
+
+    In the later case, the file path is interpreted as a path on the
+    Razor server, rather than a path on the client.  This requires that
+    you manually place the ISO image on the server before invoking the
+    command.
+  HELP
+
+  object 'task', required: true, help: _(<<-HELP) do
+    The task associated with this repository.  This is used to install
+    nodes that match a policy using this repository; generally it should
+    match the OS that the URL or ISO-URL attributes point to.
+  HELP
+    attr 'name', type: String, required: true,
+                 help: _('The name of the task.')
   end
 
   require_one_of 'url', 'iso-url'

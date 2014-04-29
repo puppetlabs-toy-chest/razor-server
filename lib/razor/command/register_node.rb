@@ -37,12 +37,24 @@ installed, so should not be subject to policy based reinstallation:
 
   EOT
 
-  attr   'installed',          type: :bool, required: true
-  object 'hw_info',            required: true, size: 1..Float::INFINITY do
+  authz  true
+
+  attr   'installed', type: :bool, required: true, help: _(<<-HELP)
+    Should the node be considered 'installed' already?  Installed nodes are
+    not eligible for policy matching, and will simply boot locally.
+  HELP
+
+  object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
+    The hardware information for the node.  This is used to match the node on first
+    boot with the record in the database.  The order of MAC address assignment in
+    this data is not significant, as a node with reordered MAC addresses will be
+    treated as the same node.
+  HELP
     extra_attrs /^net[0-9]+$/, type: String
-    attr 'serial',             type: String
-    attr 'asset',              type: String
-    attr 'uuid',               type: String
+
+    attr 'serial', type: String, help: _('The DMI serial number of the node')
+    attr 'asset',  type: String, help: _('The DMI asset tag of the node')
+    attr 'uuid',   type: String, help: _('The DMI UUID of the node')
   end
 
 
