@@ -5,10 +5,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Razor Server 0.14.1-93-g843082f\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-27 15:44-0800\n"
-"PO-Revision-Date: 2014-02-27 15:44-0800\n"
+"POT-Creation-Date: 2014-04-29 15:49-0700\n"
+"PO-Revision-Date: 2014-04-29 15:49-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,358 +17,698 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../app.rb:44
+#: ../app.rb:30
+msgid ""
+"Hey.  Your database migrations are not current!  Without them being at the\n"
+"exact expected version you can expect all sorts of random looking failures.\n"
+"\n"
+"You should rerun the migrations now.  That will fix things and stop this\n"
+"error from getting in your way.  That is done with the `razor-admin` command,\n"
+"and requires full control over the database (eg: add and remove tables):\n"
+"\n"
+"    ] razor-admin migrate-database\n"
+msgstr ""
+
+#: ../app.rb:66
 msgid "only application/json content is available"
 msgstr ""
 
-#: ../app.rb:77
+#: ../app.rb:99
 msgid "only application/json is accepted here"
 msgstr ""
 
-#: ../app.rb:80
+#: ../app.rb:102
 msgid "unable to parse JSON"
 msgstr ""
 
-#: ../app.rb:117
+#: ../app.rb:139
 msgid "store_metadata_url must include update and/or remove keys"
 msgstr ""
 
-#: ../app.rb:433
+#: ../app.rb:462
 msgid "File %{path} not found"
 msgstr ""
 
-#: ../app.rb:496
-msgid "body must be a JSON object"
+#: ../app.rb:526 ../app.rb:532 ../app.rb:538
+msgid "no tag matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:524
-msgid "Supply 'name' to indicate which repo to delete"
+#: ../app.rb:548 ../app.rb:554
+msgid "no broker matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:530
-msgid "repo destroyed"
+#: ../app.rb:564 ../app.rb:570
+msgid "no policy matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:532
-msgid "no changes; repo %{name} does not exist"
+#: ../app.rb:582
+msgid "Task %{name} does not exist"
 msgstr ""
 
-#: ../app.rb:539
-msgid "Supply 'name' to indicate which node to delete"
+#: ../app.rb:594
+msgid "no repo matched name=%{name}"
 msgstr ""
 
-#: ../app.rb:545
-msgid "node destroyed"
-msgstr ""
-
-#: ../app.rb:547 ../app.rb:671
-msgid "no changes; node %{name} does not exist"
-msgstr ""
-
-#: ../app.rb:557
-msgid "Supply 'name' to indicate which policy to delete"
-msgstr ""
-
-#: ../app.rb:562
-msgid "policy destroyed"
-msgstr ""
-
-#: ../app.rb:564
-msgid "no changes; policy %{name} does not exist"
-msgstr ""
-
-#: ../app.rb:572 ../app.rb:596 ../app.rb:615
-msgid "must supply node"
-msgstr ""
-
-#: ../app.rb:574
-msgid "must supply key"
-msgstr ""
-
-#: ../app.rb:576
-msgid "must supply value"
-msgstr ""
-
-#: ../app.rb:580 ../app.rb:630
-msgid "no_replace must be boolean true or string 'true'"
-msgstr ""
-
-#: ../app.rb:598
-msgid "must supply key or set all to true"
-msgstr ""
-
-#: ../app.rb:608 ../app.rb:641
-msgid "Node %{name} not found"
-msgstr ""
-
-#: ../app.rb:617
-msgid "must supply at least one opperation"
+#: ../app.rb:608 ../app.rb:610
+msgid "no such command"
 msgstr ""
 
 #: ../app.rb:620
-msgid "clear cannot be used with update or remove"
+msgid "no node matched name=%{name}"
 msgstr ""
 
-#: ../app.rb:625
-msgid "clear must be boolean true or string 'true'"
+#: ../app.rb:630
+msgid "no node matched hw_id=%{hw_id}"
 msgstr ""
 
-#: ../app.rb:635
-msgid "cannot update and remove the same key"
+#: ../app.rb:642
+msgid "The nic_max parameter must be an integer not starting with 0"
 msgstr ""
 
-#: ../app.rb:647
-msgid "Supply 'name' to indicate which node to unbind"
+#: ../lib/razor/broker_type.rb:76
+msgid "internal error: %{class} where Razor::Data::Node expected"
 msgstr ""
 
-#: ../app.rb:657
-msgid "node unbound from %{policy}"
+#: ../lib/razor/broker_type.rb:78
+msgid "internal error: %{class} where Razor::Data::Broker expected"
 msgstr ""
 
-#: ../app.rb:663
-msgid "installed flag cleared"
+#: ../lib/razor/broker_type.rb:141
+msgid "%{name} has no install template"
 msgstr ""
 
-#: ../app.rb:666
-msgid "no changes; node %{name} was neither bound nor installed"
+#: ../lib/razor/broker_type.rb:143
+msgid "%{name} has an install template, but it is unreadable"
 msgstr ""
 
-#: ../app.rb:675
-msgid " and "
+#: ../lib/razor/command.rb:24
+msgid "expected %{expected} but got %{actual}"
 msgstr ""
 
-#: ../app.rb:680 ../app.rb:702 ../app.rb:719
-msgid "Supply 'name' to indicate which node to edit"
+#: ../lib/razor/command.rb:29
+msgid ""
+"Internal error: Please report this to JIRA at http://jira.puppetlabs.com/\n"
+"`%{class}.conform!` returned unexpected class %{type} instead of Hash\n"
+"Body is: '%{body}'\n"
 msgstr ""
 
-#: ../app.rb:685 ../app.rb:707 ../app.rb:724
-msgid "node %{name} does not exist"
+#: ../lib/razor/command.rb:67
+msgid "internal error: command %{name} has no execution code!"
 msgstr ""
 
-#: ../app.rb:697
-msgid "updated IPMI details"
+#: ../lib/razor/command/add_policy_tag.rb:26
+msgid "The name of the policy to add the tag to."
 msgstr ""
 
-#: ../app.rb:710
-msgid "node %{name} does not have IPMI credentials set"
+#: ../lib/razor/command/add_policy_tag.rb:29
+msgid "The name of the tag to be added to the policy."
 msgstr ""
 
-#: ../app.rb:714
-msgid "reboot request queued"
+#: ../lib/razor/command/add_policy_tag.rb:31
+msgid ""
+"    The `rule` is optional.  If you supply this, you are creating a new tag\n"
+"    rather than adding an existing tag to the policy.  In that case this\n"
+"    contains the tag rule.\n"
+"\n"
+"    Creating a tag while adding it to the policy is atomic: if it fails for\n"
+"    any reason, the policy will not be modified, and the tag will not be\n"
+"    created.  You cannot end up with one change without the other.\n"
 msgstr ""
 
-#: ../app.rb:729
-msgid "set desired power state to %{state}"
-msgstr ""
-
-#: ../app.rb:731
-msgid "invalid power state %{state}"
-msgstr ""
-
-#: ../app.rb:758
-msgid "Supply a name to indicate which tag to delete"
-msgstr ""
-
-#: ../app.rb:761 ../app.rb:781
-msgid "Tag '%{name}' is used by policies and 'force' is false"
-msgstr ""
-
-#: ../app.rb:765
-msgid "Tag %{name} deleted"
-msgstr ""
-
-#: ../app.rb:767
-msgid "No change. Tag %{name} does not exist."
-msgstr ""
-
-#: ../app.rb:775
-msgid "Supply a name to indicate which tag to update"
-msgstr ""
-
-#: ../app.rb:777
-msgid "Supply a new rule for tag %{name}"
-msgstr ""
-
-#: ../app.rb:779 ../lib/razor/matcher.rb:104
-msgid "Tag '%{name}' does not exist"
-msgstr ""
-
-#: ../app.rb:785
-msgid "Tag %{name} updated"
-msgstr ""
-
-#: ../app.rb:787
-msgid "No change; new rule is the same as the existing rule for %{name}"
-msgstr ""
-
-#: ../app.rb:798
-msgid "Broker type '%{name}' not found"
-msgstr ""
-
-#: ../app.rb:811
-msgid "Supply 'name' to indicate which broker to delete"
-msgstr ""
-
-#: ../app.rb:815
-msgid "Broker %{name} is still used by policies"
-msgstr ""
-
-#: ../app.rb:818
-msgid "broker %{name} destroyed"
-msgstr ""
-
-#: ../app.rb:820
-msgid "no changes; broker %{name} does not exist"
-msgstr ""
-
-#: ../app.rb:834
-msgid "The repo reference must have a 'name'"
-msgstr ""
-
-#: ../app.rb:836
-msgid "Repo '%{name}' not found"
-msgstr ""
-
-#: ../app.rb:841
-msgid "The broker reference must have a 'name'"
-msgstr ""
-
-#: ../app.rb:843
-msgid "Broker '%{name}' not found"
-msgstr ""
-
-#: ../app.rb:857 ../app.rb:889
-msgid "Only specify one of 'before' or 'after'"
-msgstr ""
-
-#: ../app.rb:861 ../app.rb:893
-msgid "The policy reference in '%{position}' must have a name"
-msgstr ""
-
-#: ../app.rb:864 ../app.rb:896
-msgid "Policy '%{name}' referenced in '%{position}' not found"
-msgstr ""
-
-#: ../app.rb:880
-msgid "Supply 'name' to indicate which policy to move"
-msgstr ""
-
-#: ../app.rb:882 ../app.rb:912 ../app.rb:939 ../app.rb:961 ../app.rb:983
-msgid "Policy %{name} does not exist"
-msgstr ""
-
-#: ../app.rb:899
-msgid "You must specify either 'before' or 'after'"
-msgstr ""
-
-#: ../app.rb:910
-msgid "Supply 'name' to indicate which policy to %{verb}"
-msgstr ""
-
-#: ../app.rb:919
-msgid "Policy %{name} %{verb}d"
-msgstr ""
-
-#: ../app.rb:934
-msgid "Supply policy name to which the tag is to be added"
-msgstr ""
-
-#: ../app.rb:936
-msgid "Supply the name of the tag you which to add"
-msgstr ""
-
-#: ../app.rb:943
-msgid "Tag %{name} does not exist and no rule to create it supplied."
-msgstr ""
-
-#: ../app.rb:949
+#: ../lib/razor/command/add_policy_tag.rb:54
 msgid "Tag %{tag} already on policy %{policy}"
 msgstr ""
 
-#: ../app.rb:956
-msgid "Supply policy name to which the tag is to be removed"
+#: ../lib/razor/command/create_broker.rb:26
+msgid ""
+"    The name of the broker, as it will be referenced within Razor.\n"
+"    This is the name that you supply to, eg, `create-policy` to specify\n"
+"    which broker the node will be handed off via after installation.\n"
 msgstr ""
 
-#: ../app.rb:958
-msgid "Supply the name of the tag you which to remove"
+#: ../lib/razor/command/create_broker.rb:33
+msgid ""
+"    The broker type that this broker is created from.  The available\n"
+"    broker types on your server are:\n"
+"    #{Razor::BrokerType.all.map{|n| \"     - #{n}\" }.join(\"\\n\")}\n"
 msgstr ""
 
-#: ../app.rb:969 ../app.rb:973
-msgid "Tag %{tag} was not on policy %{policy}"
+#: ../lib/razor/command/create_broker.rb:39
+msgid ""
+"    The configuration for the broker.  The acceptable values here are\n"
+"    determined by the `broker-type` selected.  In general this has\n"
+"    settings like which server to contact, and other configuration\n"
+"    related to handing on the newly installed system to the final\n"
+"    configuration management system.\n"
 msgstr ""
 
-#: ../app.rb:980
-msgid "Supply the name of the policy to modify"
+#: ../lib/razor/command/create_broker.rb:52
+msgid "Broker type '%{name}' not found"
 msgstr ""
 
-#: ../app.rb:986
-msgid "Supply a new max-count for the policy"
+#: ../lib/razor/command/create_policy.rb:37
+msgid "The name of the policy to create."
 msgstr ""
 
-#: ../app.rb:995
+#: ../lib/razor/command/create_policy.rb:39
+msgid ""
+"    The hostname pattern to use for newly installed nodes.  This is filled\n"
+"    in on a per-node basis, and then supplied to the task to be configured\n"
+"    appropriately on the newly installed node.\n"
+"\n"
+"    Substitutions are performed using `${...}` syntax, and the available\n"
+"    substitution names on your server are:\n"
+"\n"
+"    - id -- the internal node ID number\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:50
+msgid ""
+"    The root password for newly installed systems.  This is passed directly\n"
+"    to the individual task, rather than \"understood\" by the server, so the\n"
+"    valid values are dependent on the individual task capabilities.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:56
+msgid "Is this policy enabled when first created?"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:58
+msgid ""
+"    The maximum number of nodes that can bind to this policy.\n"
+"    If omitted, the policy is 'unlimited', and no maximum is applied.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:63
+msgid ""
+"    The policy to create this policy before in the policy list.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:67
+msgid "The name of the policy to create this policy before."
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:70
+msgid ""
+"    The policy to create this policy after in the policy list.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:74
+msgid "The name of the policy to create this policy after."
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:77
+msgid ""
+"    The array of tags that are used for matching nodes to this policy.\n"
+"\n"
+"    When a node has all these tags matched on it, it will be a candidate\n"
+"    for binding to this policy.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:84
+msgid "The name of the tag."
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:85
+msgid ""
+"        The `rule` is optional.  If you supply this, you are creating a new tag\n"
+"        rather than adding an existing tag to the policy.  In that case this\n"
+"        contains the tag rule.\n"
+"\n"
+"        Creating a tag while adding it to the policy is atomic: if it fails for\n"
+"        any reason, the policy will not be modified, and the tag will not be\n"
+"        created.  You cannot end up with one change without the other.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:97
+msgid ""
+"    The repository containing the OS to be installed by this policy.  This\n"
+"    should match the task assigned, or bad things will happen.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:102
+msgid "The name of the repository to use."
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:105
+msgid ""
+"    The broker to use when the node is fully installed, and is ready to hand\n"
+"    off to the final configuration management system.  If you have no ongoing\n"
+"    configuration management, the supplied `noop` broker will do nothing.\n"
+"\n"
+"    Please note that this is a broker created with the `create-broker` command,\n"
+"    which is distinct from the broker types found on disk.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:114
+msgid "The name of the broker to use."
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:117
+msgid ""
+"    The task used to install nodes that match this policy.  This must match\n"
+"    the selected repo, as it references files contained within that repository.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_policy.rb:122
+msgid "The name of the task to apply."
+msgstr ""
+
+#: ../lib/razor/command/create_repo.rb:40
+msgid "The name of the repository."
+msgstr ""
+
+#: ../lib/razor/command/create_repo.rb:43
+msgid "The URL of the remote repository to use."
+msgstr ""
+
+#: ../lib/razor/command/create_repo.rb:45
+msgid ""
+"    The URL of the ISO image to download and unpack to create the\n"
+"    repository.  This can be an HTTP or HTTPS URL, or it can be a\n"
+"    file URL.\n"
+"\n"
+"    In the later case, the file path is interpreted as a path on the\n"
+"    Razor server, rather than a path on the client.  This requires that\n"
+"    you manually place the ISO image on the server before invoking the\n"
+"    command.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_repo.rb:56
+msgid ""
+"    The task associated with this repository.  This is used to install\n"
+"    nodes that match a policy using this repository; generally it should\n"
+"    match the OS that the URL or ISO-URL attributes point to.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_repo.rb:62
+msgid "The name of the task."
+msgstr ""
+
+#: ../lib/razor/command/create_tag.rb:22
+msgid "The name of the tag"
+msgstr ""
+
+#: ../lib/razor/command/create_tag.rb:24
+msgid ""
+"    The tag matches a node if evaluating this run against the tag’s facts\n"
+"    results in true. Note that tag matching is case sensitive.\n"
+"\n"
+"    For example, here is a tag rule:\n"
+"\n"
+"        [\"or\",\n"
+"         [\"=\", [\"fact\", \"macaddress\"], \"de:ea:db:ee:f0:00\"]\n"
+"         [\"=\", [\"fact\", \"macaddress\"], \"de:ea:db:ee:f0:01\"]]\n"
+"\n"
+"    The tag could also be written like this:\n"
+"\n"
+"        [\"in\", [\"fact\", \"macaddress\"], \"de:ea:db:ee:f0:00\", \"de:ea:db:ee:f0:01\"]\n"
+"\n"
+"    The syntax for rule expressions is defined in\n"
+"    `lib/razor/matcher.rb`. Expressions are of the form `[op arg1 arg2 .. argn]`\n"
+"    where op is one of the operators below, and arg1 through argn are the\n"
+"    arguments for the operator. If they are expressions themselves, they will\n"
+"    be evaluated before op is evaluated\n"
+msgstr ""
+
+#: ../lib/razor/command/create_task.rb:41
+msgid "The name of the task"
+msgstr ""
+
+#: ../lib/razor/command/create_task.rb:44
+msgid "A description of the OS to be installed"
+msgstr ""
+
+#: ../lib/razor/command/create_task.rb:46
+msgid ""
+"    The templates used for task stages.  These are named.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_task.rb:52
+msgid ""
+"    The boot sequence -- this is the list of template names to be applied\n"
+"    at each stage through the boot sequence of the node.\n"
+msgstr ""
+
+#: ../lib/razor/command/create_task.rb:57
+msgid "The template to use when no other template applies."
+msgstr ""
+
+#: ../lib/razor/command/delete_broker.rb:19
+msgid "The name of the broker to delete"
+msgstr ""
+
+#: ../lib/razor/command/delete_broker.rb:24
+msgid "Broker %{name} is still used by policies"
+msgstr ""
+
+#: ../lib/razor/command/delete_broker.rb:27
+msgid "broker %{name} destroyed"
+msgstr ""
+
+#: ../lib/razor/command/delete_broker.rb:29
+msgid "no changes; broker %{name} does not exist"
+msgstr ""
+
+#: ../lib/razor/command/delete_node.rb:16
+msgid "the name of the node to delete"
+msgstr ""
+
+#: ../lib/razor/command/delete_node.rb:21
+msgid "node destroyed"
+msgstr ""
+
+#: ../lib/razor/command/delete_node.rb:23
+msgid "no changes; node %{name} does not exist"
+msgstr ""
+
+#: ../lib/razor/command/delete_policy.rb:19
+msgid "The name of the policy to delete."
+msgstr ""
+
+#: ../lib/razor/command/delete_policy.rb:29
+msgid "policy destroyed"
+msgstr ""
+
+#: ../lib/razor/command/delete_policy.rb:31
+msgid "no changes; policy %{name} does not exist"
+msgstr ""
+
+#: ../lib/razor/command/delete_repo.rb:17
+msgid "The name of the repo to delete"
+msgstr ""
+
+#: ../lib/razor/command/delete_repo.rb:22
+msgid "repo destroyed"
+msgstr ""
+
+#: ../lib/razor/command/delete_repo.rb:24
+msgid "no changes; repo %{name} does not exist"
+msgstr ""
+
+#: ../lib/razor/command/delete_tag.rb:26
+msgid "The name of the tag to delete."
+msgstr ""
+
+#: ../lib/razor/command/delete_tag.rb:28
+msgid ""
+"    If the tag is already in use, by default it will not be deleted.\n"
+"\n"
+"    To make that work, the force option can be supplied, which will cause the\n"
+"    tag to be removed from all nodes it is applied to and all policies which\n"
+"    reference it before being deleted as a single, atomic action\n"
+msgstr ""
+
+#: ../lib/razor/command/delete_tag.rb:39 ../lib/razor/command/update_tag_rule.rb:44
+msgid "Tag '%{name}' is used by policies and 'force' is false"
+msgstr ""
+
+#: ../lib/razor/command/delete_tag.rb:43
+msgid "Tag %{name} deleted"
+msgstr ""
+
+#: ../lib/razor/command/delete_tag.rb:45
+msgid "No change. Tag %{name} does not exist."
+msgstr ""
+
+#: ../lib/razor/command/disable_policy.rb:21
+msgid "The name of the policy to disable."
+msgstr ""
+
+#: ../lib/razor/command/disable_policy.rb:26
+msgid "Policy %{name} disabled"
+msgstr ""
+
+#: ../lib/razor/command/enable_policy.rb:21
+msgid "The name of the policy to enable"
+msgstr ""
+
+#: ../lib/razor/command/enable_policy.rb:26
+msgid "Policy %{name} enabled"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:37
+msgid "The name of the node to modify metadata of."
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:39
+msgid "The metadata to update"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:40
+msgid "The metadata to remove"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:41
+msgid ""
+"    Remove all metadata from the node.  Cannot be used together with\n"
+"    either 'update' or 'remove'.\n"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:46
+msgid ""
+"    If true, the `update` operation will cause this command to fail if the\n"
+"    metadata key is already present on the node.  No effect on `remove` or\n"
+"    clear.\n"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:55
+msgid "at least one operation (update, remove, clear) required"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:57
+msgid "clear must be boolean true or string 'true'"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:59
+msgid "no_replace must be boolean true or string 'true'"
+msgstr ""
+
+#: ../lib/razor/command/modify_node_metadata.rb:63
+msgid "cannot update and remove the same key"
+msgstr ""
+
+#: ../lib/razor/command/modify_policy_max_count.rb:24
+msgid "The name of the policy to modify"
+msgstr ""
+
+#: ../lib/razor/command/modify_policy_max_count.rb:26
+msgid ""
+"    The new maximum number of nodes bound by this policy.  This can be\n"
+"    \"null\", in which case the policy becomes unlimited, or an integer\n"
+"    greater than or equal to one.\n"
+"\n"
+"    You cannot reduce the maximum number of nodes bound to a policy below\n"
+"    the number of nodes currently bound to the policy with this command.\n"
+msgstr ""
+
+#: ../lib/razor/command/modify_policy_max_count.rb:46
 msgid "New max-count '%{raw}' is not a valid integer"
 msgstr ""
 
-#: ../app.rb:999
+#: ../lib/razor/command/modify_policy_max_count.rb:50
 msgid "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}"
 msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../app.rb:1006
+#: ../lib/razor/command/modify_policy_max_count.rb:56
 msgid "Changed max-count for policy %{name} to %{count}"
 msgstr ""
 
-#: ../app.rb:1025 ../app.rb:1031 ../app.rb:1037
-msgid "no tag matched id=%{name}"
+#: ../lib/razor/command/move_policy.rb:22
+msgid "The name of the policy to move."
 msgstr ""
 
-#: ../app.rb:1047 ../app.rb:1053
-msgid "no broker matched id=%{name}"
+#: ../lib/razor/command/move_policy.rb:26
+msgid ""
+"    The policy to move this policy before.\n"
 msgstr ""
 
-#: ../app.rb:1063 ../app.rb:1069
-msgid "no policy matched id=%{name}"
+#: ../lib/razor/command/move_policy.rb:30
+msgid "The name of the policy to move before."
 msgstr ""
 
-#: ../app.rb:1081
-msgid "Task %{name} does not exist"
+#: ../lib/razor/command/move_policy.rb:33
+msgid ""
+"    The policy to move this policy after.\n"
 msgstr ""
 
-#: ../app.rb:1093
-msgid "no repo matched name=%{name}"
+#: ../lib/razor/command/move_policy.rb:37
+msgid "The name of the policy to move after."
 msgstr ""
 
-#: ../app.rb:1103
-msgid "no node matched name=%{name}"
+#: ../lib/razor/command/reboot_node.rb:37
+msgid "The name of the node to reboot."
 msgstr ""
 
-#: ../app.rb:1113
-msgid "no node matched hw_id=%{hw_id}"
+#: ../lib/razor/command/reboot_node.rb:43
+msgid "node %{name} does not have IPMI credentials set"
 msgstr ""
 
-#: ../app.rb:1125
-msgid "The nic_max parameter must be an integer not starting with 0"
+#: ../lib/razor/command/reboot_node.rb:47
+msgid "reboot request queued"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:43
-msgid "No broker %{name}.broker directory on search path"
+#: ../lib/razor/command/register_node.rb:42
+msgid ""
+"    Should the node be considered 'installed' already?  Installed nodes are\n"
+"    not eligible for policy matching, and will simply boot locally.\n"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:67
-msgid "internal error: %{class} where Razor::Data::Node expected"
+#: ../lib/razor/command/register_node.rb:47
+msgid ""
+"    The hardware information for the node.  This is used to match the node on first\n"
+"    boot with the record in the database.  The order of MAC address assignment in\n"
+"    this data is not significant, as a node with reordered MAC addresses will be\n"
+"    treated as the same node.\n"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:69
-msgid "internal error: %{class} where Razor::Data::Broker expected"
+#: ../lib/razor/command/register_node.rb:55
+msgid "The DMI serial number of the node"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:132
-msgid "%{name} has no install template"
+#: ../lib/razor/command/register_node.rb:56
+msgid "The DMI asset tag of the node"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:134
-msgid "%{name} has an install template, but it is unreadable"
+#: ../lib/razor/command/register_node.rb:57
+msgid "The DMI UUID of the node"
+msgstr ""
+
+#: ../lib/razor/command/reinstall_node.rb:19
+msgid "The name of the node to flag for reinstallation."
+msgstr ""
+
+#: ../lib/razor/command/reinstall_node.rb:30
+msgid "node unbound from %{policy}"
+msgstr ""
+
+#: ../lib/razor/command/reinstall_node.rb:37
+msgid "installed flag cleared"
+msgstr ""
+
+#: ../lib/razor/command/reinstall_node.rb:41
+msgid "no changes; node %{name} was neither bound nor installed"
+msgstr ""
+
+#: ../lib/razor/command/reinstall_node.rb:49
+msgid " and "
+msgstr ""
+
+#: ../lib/razor/command/remove_node_metadata.rb:25
+msgid "The node to remove metadata from"
+msgstr ""
+
+#: ../lib/razor/command/remove_node_metadata.rb:28
+msgid "The name of the metadata item to remove from the node."
+msgstr ""
+
+#: ../lib/razor/command/remove_node_metadata.rb:31
+msgid "Remove all the metadata from the node."
+msgstr ""
+
+#: ../lib/razor/command/remove_node_metadata.rb:38
+msgid "invalid value for attribute 'all'"
+msgstr ""
+
+#: ../lib/razor/command/remove_policy_tag.rb:19
+msgid "The policy to remove the tag from."
+msgstr ""
+
+#: ../lib/razor/command/remove_policy_tag.rb:22
+msgid "The tag to remove from the policy."
+msgstr ""
+
+#: ../lib/razor/command/remove_policy_tag.rb:32
+msgid "Tag %{tag} was not on policy %{policy}"
+msgstr ""
+
+#: ../lib/razor/command/set_node_desired_power_state.rb:23
+msgid "The node to change the desired power state of."
+msgstr ""
+
+#: ../lib/razor/command/set_node_desired_power_state.rb:26
+msgid "The desired power state -- on, or off."
+msgstr ""
+
+#: ../lib/razor/command/set_node_desired_power_state.rb:32
+msgid "set desired power state to %{state}"
+msgstr ""
+
+#: ../lib/razor/command/set_node_ipmi_credentials.rb:30
+msgid "The node to set IPMI credentials on."
+msgstr ""
+
+#: ../lib/razor/command/set_node_ipmi_credentials.rb:33
+msgid "The IPMI hostname or IP address of the BMC of this host"
+msgstr ""
+
+#: ../lib/razor/command/set_node_ipmi_credentials.rb:36
+msgid "The IPMI LANPLUS username, if any, for this BMC"
+msgstr ""
+
+#: ../lib/razor/command/set_node_ipmi_credentials.rb:39
+msgid "The IPMI LANPLUS password, if any, for this BMC"
+msgstr ""
+
+#: ../lib/razor/command/set_node_ipmi_credentials.rb:54
+msgid "updated IPMI details"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:20
+msgid "The node to update metadata on"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:23
+msgid "the key to change in the metadata"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:26
+msgid "the value for the metadata"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:29
+msgid "If true, it is an error to try and change an existing key"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:32
+msgid "The update applies to all keys"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:40
+msgid "'no_replace' must be boolean true or string 'true'"
+msgstr ""
+
+#: ../lib/razor/command/update_node_metadata.rb:42
+msgid "'all' must be boolean true or string 'true'"
+msgstr ""
+
+#: ../lib/razor/command/update_tag_rule.rb:27
+msgid "The tag to change the rule of"
+msgstr ""
+
+#: ../lib/razor/command/update_tag_rule.rb:29
+msgid "The new rule to apply to the tag"
+msgstr ""
+
+#: ../lib/razor/command/update_tag_rule.rb:31
+msgid ""
+"    By default this command will fail if the tag is in use by an existing\n"
+"    policy.  This flag allows you to override that, and force the change to\n"
+"    apply despite the tag being in use.\n"
+"\n"
+"    This will not change policy binding of nodes, which may lead to some\n"
+"    counter-intuitive results such as a node that does *not* match policy\n"
+"    tags being bound to the policy.\n"
+msgstr ""
+
+#: ../lib/razor/command/update_tag_rule.rb:48
+msgid "Tag %{name} updated"
+msgstr ""
+
+#: ../lib/razor/command/update_tag_rule.rb:50
+msgid "No change; new rule is the same as the existing rule for %{name}"
 msgstr ""
 
 #: ../lib/razor/config.rb:8
@@ -435,35 +775,35 @@ msgstr ""
 msgid "Multiple nodes match hw_info %{hw_info}. Nodes: %{nodes}"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:196 ../lib/razor/matcher.rb:231
+#: ../lib/razor/data/node.rb:215 ../lib/razor/matcher.rb:247
 msgid "must be an array"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:200
+#: ../lib/razor/data/node.rb:219
 msgid "entry '%{raw}' is not in the format 'key=value'"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:202
+#: ../lib/razor/data/node.rb:221
 msgid "entry '%{raw}' does not have a value"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:204
+#: ../lib/razor/data/node.rb:223
 msgid "entry '%{raw}' uses an unknown key %{key}"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:211 ../lib/razor/data/node.rb:212
+#: ../lib/razor/data/node.rb:230 ../lib/razor/data/node.rb:231
 msgid "you must also set an IPMI hostname"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:239
+#: ../lib/razor/data/node.rb:258
 msgid "update must be a hash"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:246
+#: ../lib/razor/data/node.rb:265
 msgid "remove must be an array"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:335
+#: ../lib/razor/data/node.rb:348
 msgid "Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})"
 msgstr ""
 
@@ -479,19 +819,19 @@ msgstr ""
 msgid "the where parameter must be either 'before' or 'after'"
 msgstr ""
 
-#: ../lib/razor/data/policy.rb:81
+#: ../lib/razor/data/policy.rb:79
 msgid "task '%{name}' does not exist"
 msgstr ""
 
-#: ../lib/razor/data/repo.rb:48
+#: ../lib/razor/data/repo.rb:55
 msgid "only one of the 'url' and 'iso_url' attributes can be set at the same time"
 msgstr ""
 
-#: ../lib/razor/data/repo.rb:50
+#: ../lib/razor/data/repo.rb:57
 msgid "you must set one of the 'url' or 'iso_url' attributes"
 msgstr ""
 
-#: ../lib/razor/data/repo.rb:62
+#: ../lib/razor/data/repo.rb:74
 msgid "unable to read local file %{path}"
 msgstr ""
 
@@ -499,15 +839,11 @@ msgstr ""
 msgid "is not a matcher object"
 msgstr ""
 
-#: ../lib/razor/data/tag.rb:86
-msgid "Tags must have a 'name'"
-msgstr ""
-
-#: ../lib/razor/data/tag.rb:89
+#: ../lib/razor/data/tag.rb:88
 msgid "Provided rule and existing rule for existing tag '%{name}' must be equal"
 msgstr ""
 
-#: ../lib/razor/data/tag.rb:93
+#: ../lib/razor/data/tag.rb:92
 msgid "A rule must be provided for new tag '%{name}'"
 msgstr ""
 
@@ -527,6 +863,41 @@ msgstr ""
 msgid "Task %{name}: no template '%{template}' for this task or its base tasks"
 msgstr ""
 
+#: ../lib/razor/help.rb:94
+msgid ""
+"% if summary.nil? and description.nil?\n"
+"Unfortunately, the `<%= name %>` command has not been documented.\n"
+"% else\n"
+"% # summary, description, example\n"
+"# SYNOPSIS\n"
+"<%= summary %>\n"
+"\n"
+"# DESCRIPTION\n"
+"<%= description %>\n"
+"%\n"
+"% # Add schema documentation so the user understands the methods and structure\n"
+"% # of the code that they are working with.  Blank line intentional.\n"
+"\n"
+"<%= schema %>\n"
+"%\n"
+"% # @todo danielp 2014-04-04: inject details built from the validation about\n"
+"% # the structure and form of the command.\n"
+"%\n"
+"% if returns\n"
+"\n"
+"# RETURNS\n"
+"<%= returns.gsub(/^/, '  ') %>\n"
+"% end\n"
+"%\n"
+"% if example\n"
+"\n"
+"# EXAMPLES\n"
+"<%= example.gsub(/^/, '  ') %>\n"
+"% end\n"
+"\n"
+"% end\n"
+msgstr ""
+
 #: ../lib/razor/ipmi.rb:162
 msgid "node %{name} has no IPMI hostname set"
 msgstr ""
@@ -535,40 +906,56 @@ msgstr ""
 msgid " while evaluating rule: %{rule}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:143
+#: ../lib/razor/matcher.rb:106
+msgid "Tag '%{name}' does not exist"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:145
 msgid "can't convert %{raw} to number"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:170
+#: ../lib/razor/matcher.rb:168
+msgid "argument to 'lower' should be a string but was %{raw}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:175
+msgid "argument to 'upper' should be a string but was %{raw}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:186
 msgid "Couldn't find %{name} '%{raw}' and no default supplied"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:179
+#: ../lib/razor/matcher.rb:195
 msgid "Invalid matcher; couldn't unserialize %{rule_hash}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:192
+#: ../lib/razor/matcher.rb:208
 msgid "rule is not an array"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:233
+#: ../lib/razor/matcher.rb:249
 msgid "must have at least one argument"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:241
+#: ../lib/razor/matcher.rb:257
 msgid "cannot process objects of type %{class}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:249
+#: ../lib/razor/matcher.rb:266
 msgid "uses unrecognized operator '%{name}'; recognized operators are %{operators}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:258
-msgid "attempts to return values of type %{return_type} from %{name}, but only %{required_returns} are allowed"
+#: ../lib/razor/matcher.rb:277
+msgid "could return incompatible datatype(s) from function '%{name}' (%{outliers}). Rule expects (%{required_returns})"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:271
-msgid "attempts to pass %{arg} of type %{type} to '%{name}' for argument %{position}, but only %{expected_types} are accepted"
+#: ../lib/razor/matcher.rb:280
+msgid "could return incompatible datatype(s) from function '%{name}' (%{outliers}) for argument %{position}. Function '%{caller_name}' expects (%{required_returns})"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:292
+msgid "attempts to pass %{arg} of type %{type} to '%{name}' for argument %{position}, but only %{expected} are accepted"
 msgstr ""
 
 #: ../lib/razor/messaging/sequel.rb:102
@@ -579,43 +966,55 @@ msgstr ""
 msgid "message name must be present"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:116
+#: ../lib/razor/messaging/sequel.rb:120
 msgid "Unable to find %{class} with pk %{pk}"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:220
+#: ../lib/razor/messaging/sequel.rb:234
 msgid "`class` must be a string"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:225
+#: ../lib/razor/messaging/sequel.rb:239
 msgid "%{name} is not under Razor::Data namespace"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:230
+#: ../lib/razor/messaging/sequel.rb:244
 msgid "%{name} is not a valid class name"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:233
+#: ../lib/razor/messaging/sequel.rb:247
 msgid "%{name} is a %{class}, when Class was expected"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:247
+#: ../lib/razor/messaging/sequel.rb:261
 msgid "instance ID is %{pk}, when Hash was expected"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:300
-msgid "message is a %{class} where String or Symbol was expected"
+#: ../lib/razor/messaging/sequel.rb:271
+msgid "command ID is %{pk}, when Hash was expected"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:302
+#: ../lib/razor/messaging/sequel.rb:273
+msgid "command ID must be a nonempty Hash but is an empty Hash"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:276
+msgid "Unable to find Razor::Data::Command with pk %{pk}"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:329
 msgid "blocks cannot be published"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:308
+#: ../lib/razor/messaging/sequel.rb:334
+msgid "message is a %{class} where String or Symbol was expected"
+msgstr ""
+
+#: ../lib/razor/messaging/sequel.rb:340
 msgid "variable number of arguments sending %{class}.%{message}"
 msgstr ""
 
-#: ../lib/razor/messaging/sequel.rb:310
+#: ../lib/razor/messaging/sequel.rb:342
 msgid "wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}"
 msgstr ""
 
@@ -627,14 +1026,217 @@ msgstr ""
 msgid "%{name} does not have an os_version"
 msgstr ""
 
-#: ../lib/razor/task.rb:65
+#: ../lib/razor/task.rb:64
 msgid "Task %{name}: %{filename} not on the search path"
 msgstr ""
 
 #: ../lib/razor/task.rb:94
-msgid "No task %{name}.yaml on search path"
+msgid ""
+"Task %{name} appears to be in a legacy format:\n"
+"We found a '%{name}.yaml' file, but modern tasks are in folders named '%{name}.task'\n"
+"containing file 'metadata.yaml'.  For more detail see migration documentation online at\n"
+"http://links.puppetlabs.com/razor-migration-task-revamp\n"
+msgstr ""
+
+#: ../lib/razor/task.rb:101
+msgid "Could not find task %{name} on the search path"
+msgstr ""
+
+#: ../lib/razor/util.rb:21
+msgid "unable to translate \"%{name}\" to JSON type"
 msgstr ""
 
 #: ../lib/razor/util/template_config.rb:13
 msgid "The config setting '%{key}' can not be accessed from templates"
 msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:41
+msgid ""
+"- <%= @help %>\n"
+"- This must be an array.\n"
+"% if @type\n"
+"- <%= index_to_s %> must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.\n"
+"% end\n"
+"% if @references\n"
+"- <%= index_to_s %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.\n"
+"% end\n"
+"% if @nested_schema\n"
+"- <%= index_to_s %>:\n"
+"<%= @nested_schema.to_s.gsub(/^/, '   ') %>\n"
+"% end\n"
+msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:63
+msgid "All elements"
+msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:65
+msgid "Elements from %{min} onward"
+msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:67
+msgid "Elements from %{min} to %{max}"
+msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:90 ../lib/razor/validation/hash_attribute.rb:104
+msgid "%{this} should be a %{type}, but failed validation: %{error}"
+msgstr ""
+
+#: ../lib/razor/validation/array_attribute.rb:95 ../lib/razor/validation/hash_attribute.rb:109
+msgid "%{this} should be a %{expected}, but was actually a %{actual}"
+msgid_plural "%{this} should be one of %{expected}, but was actually a %{actual}"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../lib/razor/validation/array_attribute.rb:106 ../lib/razor/validation/hash_attribute.rb:120
+msgid "%{this} must be the %{match} of an existing %{target}, but is '%{value}'"
+msgstr ""
+
+#: ../lib/razor/validation/array_schema.rb:20
+msgid ""
+"<%= @help %>\n"
+"- This value must be an array.\n"
+"% @checks.each do |check|\n"
+"<%= check %>\n"
+"% end\n"
+msgstr ""
+
+#: ../lib/razor/validation/array_schema.rb:36
+msgid "%{this} should be an array, but got %{actual}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:40
+msgid ""
+"- <%= @help %>\n"
+"% if @required\n"
+"- This attribute is required\n"
+"% end\n"
+"% if @type\n"
+"- It must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.\n"
+"% end\n"
+"% if @exclude\n"
+"- If present, <%= @exclude.join(', ') %> must not be present.\n"
+"% end\n"
+"% if @also\n"
+"- If present, <%= @also.join(', ') %> must also be present.\n"
+"% end\n"
+"% if @references\n"
+"- It must match the <%= @refname %> of an existing <%= @references.friendly_name %>.\n"
+"% end\n"
+"% if @size\n"
+"- It must be between <%= @size.min %> and <%= @size.max %> in length.\n"
+"% end\n"
+"% if @nested_schema\n"
+"<%= @nested_schema %>\n"
+"% end\n"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:78
+msgid "%{this} is a required attribute, but it is not present"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:84
+msgid "if %{this} is present, %{exclude} must not be present"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:88
+msgid "if %{this} is present, %{also} must also be present"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:125
+msgid "%{this} must refer to one of %{valid}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:139
+msgid "%{this} must be between %{min} and %{max} characters in length, but is %{size} character long"
+msgid_plural "%{this} must be between %{min} and %{max} characters in length, but is %{size} characters long"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../lib/razor/validation/hash_attribute.rb:144
+msgid "%{this} must be at least %{min} characters in length, but is only %{size} character long"
+msgid_plural "%{this} must be at least %{min} characters in length, but is only %{size} characters long"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../lib/razor/validation/hash_attribute.rb:149
+msgid "%{this} must be at most %{max} characters in length, but is actually %{size} character long"
+msgid_plural "%{this} must be at most %{max} characters in length, but is actually %{size} characters long"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../lib/razor/validation/hash_attribute.rb:157
+msgid "%{this} must have between %{min} and %{max} entries, but actually contains %{size}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:159
+msgid "%{this} must have at least %{min} entries, only contains %{size}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_attribute.rb:161
+msgid "%{this} must have at most %{max} entries, but actually contains %{size}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:37
+msgid ""
+"<%= @help %>\n"
+"% if @authz_template\n"
+"# Access Control\n"
+"\n"
+"This command's access control pattern: `<%= @authz_template %>`\n"
+"\n"
+"% unless @authz_dependencies.empty?\n"
+"Words surrounded by `%{...}` are substitutions from the input data: typically\n"
+"the name of the object being modified, or some other critical detail, these\n"
+"allow roles to be granted partial access to modify the system.\n"
+"\n"
+"% end\n"
+"For more detail on how the permission strings are structured and work, you can\n"
+"see the [Shiro Permissions documentation][shiro].  That pattern is expanded\n"
+"and then a permission check applied to it, before the command is authorized.\n"
+"\n"
+"% auth = Razor.config['auth.enabled'] ? 'enabled' : 'disabled'\n"
+"These checks only apply if security is enabled in the Razor configuration\n"
+"file; on this server security is currently <%= auth %>.\n"
+"\n"
+"[shiro]: http://shiro.apache.org/permissions.html\n"
+"\n"
+"%end\n"
+"% unless @attributes.empty?\n"
+"# Attributes\n"
+"\n"
+"%   @attributes.each do |name, attr|\n"
+" * <%= name %>\n"
+"<%= attr.to_s %>\n"
+"%   end\n"
+"% end\n"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:81
+msgid "the command"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:91
+msgid "%{this} should be an object, but got %{actual}"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:109
+msgid ""
+"%{this} is a command, but has no access control information.\n"
+"This is an internal error; please report it to Puppet Labs\n"
+"at https://tickets.puppetlabs.com/\n"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:136
+msgid "%{this} requires one out of the %{assert} attributes to be supplied"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:138
+msgid "%{this} requires at most one of %{overlap} to be supplied"
+msgstr ""
+
+#: ../lib/razor/validation/hash_schema.rb:158
+msgid "extra attribute %{extra} was present in %{this}, but is not allowed"
+msgid_plural "extra attributes %{extra} were present in %{this}, but are not allowed"
+msgstr[0] ""
+msgstr[1] ""
