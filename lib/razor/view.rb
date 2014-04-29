@@ -140,7 +140,7 @@ module Razor
         :facts         => node.facts,
         :metadata      => node.metadata,
         :state         => {
-          :installed    => node.installed,
+          :installed    => node.installed || false,
           :installed_at => ts(node.installed_at),
           :stage        => boot_stage,
         }.delete_if { |k,v| v.nil? },
