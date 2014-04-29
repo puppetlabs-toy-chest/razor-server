@@ -624,6 +624,12 @@ describe "command and query API" do
           '$schema'       => 'http://json-schema.org/draft-04/schema#',
           'type'          => 'object',
           'minProperties' => 0,
+          'properties'    => {
+            'installed' => {
+              '$schema'  => 'http://json-schema.org/draft-04/schema#',
+              'type'     => ['string', 'boolean'],
+            }
+          },
           'additionalProperties' => {
             '$schema'   => 'http://json-schema.org/draft-04/schema#',
             'type'      => 'string',
@@ -721,6 +727,36 @@ describe "command and query API" do
       end
 
       it_should_behave_like "a node collection", 10
+    end
+  end
+
+  context "/api/collections/nodes/:name" do
+    let :node do Fabricate(:node) end
+
+    it "should include installed if installed" do
+      node.set(installed: 'nothing').save
+      get "/api/collections/nodes/#{node.name}"
+      last_response.status.should == 200
+
+      last_response.json.should have_key 'state'
+      last_response.json['state'].should include 'installed' => 'nothing'
+    end
+
+    it "should default to installed false" do
+      get "/api/collections/nodes/#{node.name}"
+      last_response.status.should == 200
+
+      last_response.json.should have_key 'state'
+      last_response.json['state'].should include 'installed' => false
+    end
+
+    it "should include installed false if not installed" do
+      node.set(installed: nil).save
+      get "/api/collections/nodes/#{node.name}"
+      last_response.status.should == 200
+
+      last_response.json.should have_key 'state'
+      last_response.json['state'].should include 'installed' => false
     end
   end
 
