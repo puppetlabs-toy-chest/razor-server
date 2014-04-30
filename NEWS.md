@@ -1,7 +1,12 @@
 # Razor Server Release Notes
 
-## 0.15.0 - 2014-??-??
 
+
+<<<<<<< HEAD
++ The `microkernel.extension-zip` configuration setting, if configured with the
+  path of an existing zip file, will be downloaded and unpacked on the MK image
+  before the client runs.  This allows runtime addition of facts, etc, to the
+  MK without a rebuild of the ISO image.
 + incompatible changes
   + the way that tasks and templates are stored on disk has changed.
     The metadata file is changed from `tasks/{name}.yaml` to
