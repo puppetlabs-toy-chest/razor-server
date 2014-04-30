@@ -23,8 +23,8 @@ A sample policy installing CentOS 6.4:
       "broker":        "noop",
       "enabled":       true,
       "hostname":      "host${id}.example.com",
-      "root_password": "secret",
-      "max_count":     20,
+      "root-password": "secret",
+      "max-count":     20,
       "before":        "other policy",
       "tags": [
         {"name": "small", "rule": ["<=", ["num", ["fact", "processorcount"]], 2]}
@@ -47,7 +47,7 @@ A sample policy installing CentOS 6.4:
     - id -- the internal node ID number
   HELP
 
-  attr 'root_password', type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
+  attr 'root-password', required: true, type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
     The root password for newly installed systems.  This is passed directly
     to the individual task, rather than "understood" by the server, so the
     valid values are dependent on the individual task capabilities.
@@ -55,7 +55,7 @@ A sample policy installing CentOS 6.4:
 
   attr 'enabled', type: :bool, help: _('Is this policy enabled when first created?')
 
-  attr 'max_count', type: Integer, help: _(<<-HELP)
+  attr 'max-count', type: Integer, help: _(<<-HELP)
     The maximum number of nodes that can bind to this policy.
     If omitted, the policy is 'unlimited', and no maximum is applied.
   HELP
@@ -144,6 +144,8 @@ A sample policy installing CentOS 6.4:
 
     data["enabled"] = true if data["enabled"].nil?
 
+    data["max_count"] = data.delete("max-count") if data["max-count"]
+    data["root_password"] = data.delete("root-password") if data["root-password"]
     # Create the policy
     policy = Razor::Data::Policy.new(data).save
     tags.each { |t| policy.add_tag(t) }
@@ -161,6 +163,8 @@ A sample policy installing CentOS 6.4:
       data['repo'] = { 'name' => data['repo'] } if data['repo'].is_a?(String)
       data['broker'] = { 'name' => data['broker'] } if data['broker'].is_a?(String)
       data['task'] = { 'name' => data['task'] } if data['task'].is_a?(String)
+      data['root-password'] = data.delete('root_password') if data['root_password']
+      data['max-count'] = data.delete('max_count') if data['max_count']
     end
   end
 end
