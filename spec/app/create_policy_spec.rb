@@ -29,7 +29,7 @@ describe "create policy command" do
         :task          => {"name" => "some_os"},
         :broker        => { "name" => broker.name },
         :hostname      => "host${id}.example.com",
-        :root_password => "geheim",
+        'root-password' => "geheim",
         :tags          => [ { "name" => tag1.name } ]
       }
     end
@@ -81,6 +81,18 @@ describe "create policy command" do
       last_response.status.should == 422
     end
 
+    it "should fail if the root password is missing" do
+      policy_hash.delete('root-password')
+      create_policy
+      last_response.status.should == 422
+    end
+
+    it "should conform root password's legacy syntax" do
+      policy_hash['root_password'] = policy_hash.delete('root-password')
+      create_policy
+      last_response.status.should == 202
+    end
+
     it "should create a policy in the database" do
       create_policy
 
@@ -102,7 +114,7 @@ describe "create policy command" do
     end
 
     it "should allow creating a policy with max count" do
-      policy_hash[:max_count] = 10
+      policy_hash['max-count'] = 10
 
       create_policy
 
@@ -115,10 +127,17 @@ describe "create policy command" do
       last_response.json['error'].should =~ /repo\.name is a required attribute, but it is not present/
     end
 
-    it "should fail with the wrong datatype for max_count" do
-      policy_hash[:max_count] = { }
+    it "should fail with the wrong datatype for max-count" do
+      policy_hash['max-count'] = { }
       create_policy
-      last_response.json['error'].should =~ /max_count should be a number, but was actually a object/
+      last_response.json['error'].should =~ /max-count should be a number, but was actually a object/
+    end
+
+
+    it "should conform max count's legacy syntax" do
+      policy_hash['max_count'] = 10
+      create_policy
+      last_response.status.should == 202
     end
 
     it "should fail with the wrong datatype for task" do
