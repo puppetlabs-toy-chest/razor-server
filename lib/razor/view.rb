@@ -84,8 +84,11 @@ module Razor
     def repo_hash(repo)
       return nil unless repo
 
+      task = Razor::Task.find(repo.task_name) rescue Razor::TaskNotFoundError nil
       view_object_hash(repo).merge({
-        :iso_url => repo.iso_url
+        :iso_url => repo.iso_url,
+        :url => repo.url,
+        :task => view_object_hash(task)
       })
     end
 
@@ -93,7 +96,6 @@ module Razor
       return nil unless broker
 
       view_object_hash(broker).merge(
-        :spec            => compose_url('spec', 'object', 'broker'),
         :configuration   => broker.configuration,
         :"broker-type"   => broker.broker_type,
         :policies        => { :id => view_object_url(broker) + "/policies",
