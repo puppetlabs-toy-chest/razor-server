@@ -84,7 +84,7 @@ module Razor
     def repo_hash(repo)
       return nil unless repo
 
-      task = Razor::Task.find(repo.task_name) rescue Razor::TaskNotFoundError nil
+      task = Razor::Task.find(repo.task_name) rescue nil
       view_object_hash(repo).merge({
         :iso_url => repo.iso_url,
         :url => repo.url,
