@@ -110,6 +110,7 @@ ISO image into its file system:
     {
       "name": "fedora19",
       "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "task": "puppet"
     }
 
 The second form is created by providing a `url` property when you create
@@ -119,7 +120,12 @@ nothing will be downloaded onto the Razor server:
     {
       "name": "fedora19",
       "url": "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
+      "task": "noop"
     }
+
+This command must be supplied a default task, which can be overridden at
+the policy level. If no task is to be used, reference the stock task
+"noop".
 
 ### Delete a repo
 
@@ -143,7 +149,6 @@ database. To create a task, clients post the following to the
     {
       "name": "redhat6",
       "os": "Red Hat Enterprise Linux",
-      "os_version": "6",
       "description": "A basic installer for RHEL6",
       "boot_seq": {
         "1": "boot_install",
@@ -159,7 +164,6 @@ The possible properties in the request are:
 
 name       | The name of the task; must be unique
 os         | The name of the OS; mandatory
-os_version | The version of the operating system
 description| Human-readable description
 boot_seq   | A hash mapping the boot counter or 'default' to a template
 templates  | A hash mapping template names to the actual ERB template text
@@ -244,19 +248,19 @@ will return with status code 400.
 
     {
       "name": "a policy",
-      "repo": { "name": "some_repo" },
-      "task": { "name": "redhat6" },
-      "broker": { "name": "puppet" },
+      "repo": "some_repo",
+      "task": "redhat6",
+      "broker": "puppet",
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
-      "before"|"after": { "name": "other policy" },
+      "before"|"after": "other policy",
       "node_metadata": { "key1": "value1", "key2": "value2" },
-      "tags": [{ "name": "existing_tag"},
+      "tags": ["existing_tag",
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
 
-The overall list of policies is ordered, and polcies are considered in that
+The overall list of policies is ordered, and policies are considered in that
 order. When a new policy is created, the entry `before` or `after` can be
 used to put the new policy into the table before or after another
 policy. If neither `before` or `after` are specified, the policy is
@@ -289,7 +293,7 @@ body like:
 
     {
       "name": "a policy",
-      "before"|"after": { "name": "other policy" }
+      "before"|"after": "other policy"
     }
 
 This will change the policy table so that `a policy` will appear before or
@@ -524,6 +528,30 @@ or
         "node" : "node1",
         "all"  : true,     # Removes all keys
     }
+
+### Set Node Hardware Info
+
+When hardware is changed in a node, such as a network card being replaced,
+the Razor server may need to be informed so that it can correctly match
+the new hardware with the existing node definition.
+
+This command enables replacing the existing hardware info data with new
+data, making it possible to update the existing node record prior to
+booting the new node on the network. For example, to update `node172`
+with new hardware information:
+
+    {
+        "node": "node172",
+        "hw_info": {
+          "net0":   "78:31:c1:be:c8:00",
+          "net1":   "72:00:01:f2:13:f0",
+          "net2":   "72:00:01:f2:13:f1",
+          "serial": "xxxxxxxxxxx",
+          "asset":  "Asset-1234567890",
+          "uuid":   "Not Settable"
+        }
+    }
+
 
 ## Collections
 
