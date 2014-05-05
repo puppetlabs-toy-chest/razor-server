@@ -129,6 +129,41 @@ The `delete-repo` command accepts a single repo name:
       "name": "fedora16"
     }
 
+### Set Source of an Existing Repo
+
+The `set-repo-source` command will update an existing repo with a new source.
+It accepts a repo name and one of 'url' or 'iso-url, and an optional 'refresh'
+option that defaults to true and triggers a refresh of the repo from the new
+source.
+
+    {
+      "repo"   : { 'name': 'exisiting-repo' },
+      "iso-url": "http://new.iso.location",
+      "refresh": true
+    }
+
+or;
+
+    {
+      "repo"   : { 'name': 'exisiting-repo' },
+      "url"    : "http://new.repo.location"
+      "refresh": false
+    }
+
+### Refresh a repo
+
+The `refresh-repo` command will trigger a refresh of the repo content from its configured
+source (iso-url) or (url).
+
+It is also useful when adding additional Razor servers to an existing database
+in that it allows you to populate the repo on the new server.
+
+It accepts the name of a single repo. 
+
+    {
+      "repo" : {"name": "existing-repo"}
+    }
+
 ### Create task
 
 Razor supports both tasks stored in the filesystem and tasks
