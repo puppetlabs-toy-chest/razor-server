@@ -23,6 +23,8 @@ require 'json'
 #   num     - converts arg1 to a numeric value if possible; raises if not
 #   <, <=   - true if arg1 </<= arg2
 #   >, >=   - true if arg1 >/>= arg2
+#   lower   - string result from converting arg1 to lower case
+#   upper   - string result from converting arg1 to upper case
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
