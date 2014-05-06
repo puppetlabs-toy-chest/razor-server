@@ -44,7 +44,6 @@ describe "create policy command" do
       create_policy
 
       last_response.status.should == 202
-      last_response.json?.should be_true
       last_response.json.keys.should =~ %w[id name spec]
 
       last_response.json["id"].should =~ %r'/api/collections/policies/test%20policy\Z'
@@ -85,6 +84,20 @@ describe "create policy command" do
       policy_hash.delete('root-password')
       create_policy
       last_response.status.should == 422
+    end
+
+    it "should fail without repo" do
+      policy_hash.delete(:repo)
+      create_policy
+      last_response.status.should == 422
+      last_response.json['error'].should == "repo is a required attribute, but it is not present"
+    end
+
+    it "should fail without broker" do
+      policy_hash.delete(:broker)
+      create_policy
+      last_response.status.should == 422
+      last_response.json['error'].should == "broker is a required attribute, but it is not present"
     end
 
     it "should conform root password's legacy syntax" do

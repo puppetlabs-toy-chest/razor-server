@@ -94,7 +94,7 @@ A sample policy installing CentOS 6.4:
     end
   end
 
-  object 'repo', help: _(<<-HELP) do
+  object 'repo', required: true, help: _(<<-HELP) do
     The repository containing the OS to be installed by this policy.  This
     should match the task assigned, or bad things will happen.
   HELP
@@ -102,7 +102,7 @@ A sample policy installing CentOS 6.4:
                  help: _('The name of the repository to use.')
   end
 
-  object 'broker', help: _(<<-HELP) do
+  object 'broker', required: true, help: _(<<-HELP) do
     The broker to use when the node is fully installed, and is ready to hand
     off to the final configuration management system.  If you have no ongoing
     configuration management, the supplied `noop` broker will do nothing.
