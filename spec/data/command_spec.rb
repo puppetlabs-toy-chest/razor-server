@@ -101,6 +101,25 @@ describe Razor::Data::Command do
       cmd.finished_at.should_not be_nil
     end
 
+    it "should be cancellable" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.should_not be_cancelled
+      cmd.finished_at.should be_nil
+      cmd.store('cancelled')
+      cmd.reload
+      cmd.should be_cancelled
+      cmd.finished_at.should_not be_nil
+    end
+
+    it "should be failable" do
+      cmd = Command.start('hello', {}, nil)
+      cmd.should_not be_failed
+      cmd.finished_at.should be_nil
+      cmd.store('failed')
+      cmd.should be_failed
+      cmd.finished_at.should_not be_nil
+    end
+
     it "should preserve status if non passed in" do
       cmd = Command.start('hello', {}, nil)
       cmd.status = 'pending'

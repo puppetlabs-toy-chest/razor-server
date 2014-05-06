@@ -35,6 +35,8 @@
   e.g. "task": "TASK_NAME" instead of "task": { "name" => "TASK_NAME" }
 + The matching language for rules now allows both "upper" and "lower" for use
   as functions to convert string values to upper- and lower-case respectively.
++ Added `cancel-command` command to prevent commands (`create-repo` only for now)
+  from being requeued in certain failure cases that would otherwise requeue.
 
 ## 0.13.0 - 2014-01-21
 

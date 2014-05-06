@@ -552,6 +552,17 @@ with new hardware information:
         }
     }
 
+### Cancel Command
+
+When a user issues e.g. `create-repo --iso-url http://example.com/some.iso ...`
+and has a typo in that URL, there is no way for them to cancel that create-repo.
+The command will continue to be re-queued, assuming the ISO is not ready yet.
+This command will cause that `create-repo` command to cease being queued.
+For example, this will cancel a command with name 123:
+
+    {
+      "name": 123
+    }
 
 ## Collections
 
