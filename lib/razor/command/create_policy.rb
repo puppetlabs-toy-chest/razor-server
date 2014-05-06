@@ -159,6 +159,9 @@ A sample policy installing CentOS 6.4:
     data.tap do |_|
       data['before'] = { 'name' => data['before'] } if data['before'].is_a?(String)
       data['after'] = { 'name' => data['after'] } if data['after'].is_a?(String)
+      data['tag'] = Array[data['tag']] unless data['tag'].nil? or data['tag'].is_a?(Array)
+      data['tags'] = [] if data['tags'].nil?
+      data['tags'] = (data['tags'] + data.delete('tag')).uniq if data['tags'].is_a?(Array) and data['tag'].is_a?(Array)
       data['tags'] = data['tags'].map { |item| item.is_a?(String) ? { 'name' => item } : item } if data['tags'].is_a?(Array)
       data['repo'] = { 'name' => data['repo'] } if data['repo'].is_a?(String)
       data['broker'] = { 'name' => data['broker'] } if data['broker'].is_a?(String)
