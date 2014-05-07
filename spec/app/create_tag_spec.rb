@@ -15,14 +15,18 @@ describe "create tag command" do
       header 'content-type', 'application/json'
     end
 
-    let(:tag_hash) do
+    let(:command_hash) do
       { :name => "test",
         :rule => ["=", ["fact", "kernel"], "Linux"] }
     end
 
     def create_tag(input = nil)
-      input ||= tag_hash
+      input ||= command_hash
       command 'create-tag', input
+    end
+
+    describe Razor::Command::CreateTag do
+      it_behaves_like "a command"
     end
 
     it "should reject bad JSON" do
@@ -59,7 +63,7 @@ describe "create tag command" do
     it "should create an tag record in the database" do
       create_tag
 
-      Razor::Data::Tag[:name => tag_hash[:name]].should be_an_instance_of Razor::Data::Tag
+      Razor::Data::Tag[:name => command_hash[:name]].should be_an_instance_of Razor::Data::Tag
     end
   end
 end

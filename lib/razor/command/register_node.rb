@@ -44,7 +44,7 @@ installed, so should not be subject to policy based reinstallation:
     not eligible for policy matching, and will simply boot locally.
   HELP
 
-  object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
+  object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
     The hardware information for the node.  This is used to match the node on first
     boot with the record in the database.  The order of MAC address assignment in
     this data is not significant, as a node with reordered MAC addresses will be
@@ -59,7 +59,13 @@ installed, so should not be subject to policy based reinstallation:
 
 
   def run(request, data)
-    Razor::Data::Node.lookup(data['hw_info']).set(installed: data['installed']).save
+    Razor::Data::Node.lookup(data['hw-info']).set(installed: data['installed']).save
+  end
+
+  def self.conform!(data)
+    data.tap { |_|
+      data['hw-info'] = data.delete('hw_info') if data.has_key?('hw_info')
+    }
   end
 end
 

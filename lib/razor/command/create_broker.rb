@@ -29,7 +29,7 @@ Creating a simple Puppet broker:
     which broker the node will be handed off via after installation.
   HELP
 
-  attr 'broker-type', type: String, references: [Razor::BrokerType, :name],
+  attr 'broker-type', required: true, type: String, references: [Razor::BrokerType, :name],
                       help: _(<<-HELP)
     The broker type that this broker is created from.  The available
     broker types on your server are:
@@ -47,10 +47,8 @@ Creating a simple Puppet broker:
   end
 
   def run(request, data)
-    if type = data.delete("broker-type")
-      data["broker_type"] = Razor::BrokerType.find(name: type) or
-        request.halt [400, _("Broker type '%{name}' not found") % {name: type}]
-    end
+    type = data.delete("broker-type")
+    data["broker_type"] = Razor::BrokerType.find(name: type)
 
     Razor::Data::Broker.import(data).first
   end

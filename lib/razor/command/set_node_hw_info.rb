@@ -21,7 +21,7 @@ Update `node172` with new hardware information:
 
     {
       "node": "node172",
-      "hw_info": {
+      "hw-info": {
         "net0":   "78:31:c1:be:c8:00",
         "net1":   "72:00:01:f2:13:f0",
         "net2":   "72:00:01:f2:13:f1",
@@ -37,7 +37,7 @@ Update `node172` with new hardware information:
     The node to modify the hardware information of
   HELP
 
-  object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
+  object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
     The new hardware information for the node
   HELP
     extra_attrs /^net[0-9]+$/, type: String, help: _(<<-HELP)
@@ -50,15 +50,21 @@ Update `node172` with new hardware information:
   end
 
   def run(request, data)
-    if (data['hw_info'].keys & Razor.config['match_nodes_on']).empty?
-      msg = _('hw_info must contain at least one of the match keys: %{keys}') %
+    if (data['hw-info'].keys & Razor.config['match_nodes_on']).empty?
+      msg = _('hw-info must contain at least one of the match keys: %{keys}') %
         {keys: Razor.config['match_nodes_on'].join(', ')}
       raise Razor::ValidationFailure.new(msg)
     else
       Razor::Data::Node[name: data['node']].tap do |node|
-        node.hw_hash = data['hw_info']
+        node.hw_hash = data['hw-info']
         node.save
       end
     end
+  end
+
+  def self.conform!(data)
+    data.tap { |_|
+      data['hw-info'] = data.delete('hw_info') if data.has_key?('hw_info')
+    }
   end
 end

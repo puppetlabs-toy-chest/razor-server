@@ -27,16 +27,13 @@ or remove all keys from a node:
   attr 'key', type: String, size: 1..Float::INFINITY,
               help: _('The name of the metadata item to remove from the node.')
 
-  attr 'all', type: [String, :bool],
+  attr 'all', type: TrueClass,
               help: _('Remove all the metadata from the node.')
 
   require_one_of 'key', 'all'
 
   # Remove a specific key or remove all (works with GET)
   def run(request, data)
-    (data['all'] and data['all'] == 'true') or
-      request.error 422, :error => _("invalid value for attribute 'all'")
-
     node = Razor::Data::Node[:name => data['node']]
     if data['key']
       operation = { 'remove' => [ data['key'] ] }
@@ -44,5 +41,11 @@ or remove all keys from a node:
       operation = { 'clear' => true }
     end
     node.modify_metadata(operation)
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      data['all'] = true if data['all'] == 'true'
+    end
   end
 end
