@@ -7,6 +7,8 @@ end
 require 'fabrication'
 require 'faker'
 
+Dir.glob(File.join(File::dirname(__FILE__), 'shared_examples', '*.rb')).each {|f| require f }
+
 require 'rack/test'
 require 'json'
 require 'timecop'
