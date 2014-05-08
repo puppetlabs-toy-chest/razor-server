@@ -259,7 +259,7 @@ describe Razor::Data::Repo do
     it "should automatically 'make_the_repo_accessible'" do
       data = Fabricate.build(:repo).to_hash
       command = Fabricate(:command)
-      expect { Razor::Data::Repo.import(command, data) }.
+      expect { Razor::Data::Repo.import(data, command) }.
         to have_published(
         'class'    => Razor::Data::Repo.name,
         # Because we can't look into the future and see what that the PK will

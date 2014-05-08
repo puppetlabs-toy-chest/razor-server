@@ -67,6 +67,6 @@ EOT
         each { |k| boot_seq[k.to_i] = boot_seq.delete(k) }
     end
 
-    Razor::Data::Task.new(data).save.freeze
+    Razor::Data::Task.import(data)
   end
 end

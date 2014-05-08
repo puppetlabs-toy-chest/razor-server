@@ -10,6 +10,37 @@ module Razor::Data
     def friendly_name
       name.split('::').last.scan(/[A-Z][^A-Z]*/).join(' ').downcase
     end
+
+    # Import data from a command as a new object in the database; this has
+    # some semantics tied specifically to our desired behaviour around
+    # idempotent operations:
+    #
+    # * if there is no match in the database, create a new object
+    # * if there is a match in the database, then:
+    #   - if it is exactly identical (eg: same fields present, and same
+    #     values) then return the obect
+    #   - else raise a conflict error
+    #
+    # Specifically, if you submit a command, it matches all supplied fields,
+    # but you include an additional optional field on either side, the result
+    # is failure.
+    #
+    # This implements the generic logic for retries.  It should only need to
+    # be overridden when the child is going to augment the behaviour, and
+    # augmentation should happen *after* the super method is invoked, eg:
+    #
+    #    def self.import(data, command)
+    #      super.tap do |instance|
+    #        instance.publish('do_something', command)
+    #      end
+    #    end
+    def import(data, command = nil)
+      command.nil? or command.is_a?(Razor::Data::Command) or
+        raise _('internal error: got %{type} where Razor::Data::Command expected') %
+          {type: command.class}
+
+      create(data)
+    end
   end
 
   module InstanceMethods

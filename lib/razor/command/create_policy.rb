@@ -146,8 +146,10 @@ A sample policy installing CentOS 6.4:
 
     data["max_count"] = data.delete("max-count") if data["max-count"]
     data["root_password"] = data.delete("root-password") if data["root-password"]
+
     # Create the policy
-    policy = Razor::Data::Policy.new(data).save
+    policy = Razor::Data::Policy.import(data)
+
     tags.each { |t| policy.add_tag(t) }
     position and policy.move(position, neighbor)
     policy.save

@@ -27,10 +27,8 @@ module Razor::Data
     # Create a new repo and kick off the background import of its ISO (if
     # there is one) The +command+ is used to track progress of the import
     # and report any errors that might happen
-    def self.import(command, data)
-      repo = create(data)
-      repo.publish('make_the_repo_accessible', command)
-      return repo
+    def self.import(data, command)
+      super.tap {|repo| repo.publish('make_the_repo_accessible', command) }
     end
 
     # When we are destroyed, if we have a scratch directory, we need to
