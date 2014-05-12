@@ -7,15 +7,15 @@ describe "set-node-ipmi-credentials" do
 
   let(:app)  { Razor::App }
   let(:node) { Fabricate(:node).save }
+  let(:command_hash) { { "name" => node.name } }
 
   before :each do
     header 'content-type', 'application/json'
     authorize 'fred', 'dead'
   end
 
-  it "should fail if the node name is not given" do
-    command 'set-node-ipmi-credentials', {}
-    last_response.status.should == 422
+  describe Razor::Command::SetNodeIPMICredentials do
+    it_behaves_like "a command"
   end
 
   it "should report 'no such node' if the name isn't found" do
@@ -51,15 +51,15 @@ describe "reboot-node" do
   let(:app)   { Razor::App }
   let(:node)  { Fabricate(:node_with_ipmi).save }
   let(:queue) { fetch('/queues/razor/sequel-instance-messages') }
+  let(:command_hash) { { "name" => node.name } }
 
   before :each do
     header 'content-type', 'application/json'
     authorize 'fred', 'dead'
   end
 
-  it "should fail if no node is included" do
-    command 'reboot-node', {}
-    last_response.status.should == 422
+  describe Razor::Command::RebootNode do
+    it_behaves_like "a command"
   end
 
   it "should work" do
@@ -133,15 +133,15 @@ describe "set-node-desired-power-state" do
 
   let(:app)   { Razor::App }
   let(:node)  { Fabricate(:node_with_ipmi).save }
+  let(:command_hash) { { "name" => node.name } }
 
   before :each do
     header 'content-type', 'application/json'
     authorize 'fred', 'dead'
   end
 
-  it "should fail if the name is absent" do
-    command 'set-node-desired-power-state', {}
-    last_response.status.should == 422
+  describe Razor::Command::SetNodeDesiredPowerState do
+    it_behaves_like "a command"
   end
 
   it "should 404 if the node does not exist" do

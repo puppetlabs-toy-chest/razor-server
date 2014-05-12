@@ -10,6 +10,14 @@ describe "update node metadata command" do
   let(:node) do
     Fabricate(:node)
   end
+  let(:command_hash) do
+    {
+        'node' => node.name,
+        'value' => 'v1',
+        'key' => 'k1',
+        'no_replace' => 'true'
+    }
+  end
 
   before :each do
     header 'content-type', 'application/json'
@@ -20,28 +28,8 @@ describe "update node metadata command" do
     command 'update-node-metadata', data
   end
 
-  it "should require a node" do
-    data = { 'key' => 'k1', 'value' => 'v1' }
-    update_metadata(data)
-    last_response.status.should == 422
-    last_response.json["error"].should =~
-      /node is a required attribute, but it is not present/
-  end
-
-  it "should require a key" do
-    data = { 'node' => "node#{node.id}", 'value' => 'v1' }
-    update_metadata(data)
-    last_response.status.should == 422
-    last_response.json["error"].should =~
-      /the command requires one out of the all, key attributes to be supplied/
-  end
-
-  it "should require a value" do
-    data = { 'node' => "node#{node.id}", 'key' => 'k1' }
-    update_metadata(data)
-    last_response.status.should == 422
-    last_response.json["error"].should =~
-      /value is a required attribute, but it is not present/
+  describe Razor::Command::UpdateNodeMetadata do
+    it_behaves_like "a command"
   end
 
   it "should require no_replace to equal true" do

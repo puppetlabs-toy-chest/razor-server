@@ -17,6 +17,15 @@ describe "commands to change a policy's 'enabled' flag" do
     end
 
     let(:policy)   { Fabricate(:policy) }
+    let(:command_hash) { { "name" => policy.name } }
+
+    describe Razor::Command::EnablePolicy do
+      it_behaves_like "a command"
+    end
+
+    describe Razor::Command::DisablePolicy do
+      it_behaves_like "a command"
+    end
 
     ["enable", "disable"].each do |verb|
       other_verb = verb == "enable" ? "disable" : "enable"

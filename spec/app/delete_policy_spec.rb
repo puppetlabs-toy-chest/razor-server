@@ -6,6 +6,8 @@ describe "delete-policy" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:policy) { Fabricate(:policy)}
+  let(:command_hash) { { "name" => Fabricate(:policy).name } }
   before :each do
     authorize 'fred', 'dead'
   end
@@ -16,16 +18,12 @@ describe "delete-policy" do
     command 'delete-policy', params
   end
 
-  before :each do
-    header 'content-type', 'application/json'
+  describe Razor::Command::DeletePolicy do
+    it_behaves_like "a command"
   end
 
-  it "should complain about no policy name" do
-    count = Policy.count
-    delete_policy()
-    last_response.status.should == 422
-    last_response.json["error"].should =~ /name is a required attribute, but it is not present/
-    Policy.count.should == count
+  before :each do
+    header 'content-type', 'application/json'
   end
 
   it "should advise about policy not existing" do

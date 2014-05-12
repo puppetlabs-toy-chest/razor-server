@@ -8,12 +8,23 @@ describe "modify node metadata command" do
   let(:node) do
     Fabricate(:node)
   end
+  let(:command_hash) do
+    {
+        "node" => node.name,
+        'update' => { 'k1' => 'v2', 'k2' => 'v2'},
+        'no_replace' => true
+    }
+  end
 
   let(:app) { Razor::App }
 
   before :each do
     header 'content-type', 'application/json'
     authorize 'fred', 'dead'
+  end
+
+  describe Razor::Command::ModifyNodeMetadata do
+    it_behaves_like "a command", always_require: ['update']
   end
 
   def modify_metadata(data)

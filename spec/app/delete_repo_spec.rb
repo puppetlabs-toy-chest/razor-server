@@ -6,6 +6,8 @@ describe "delete-repo" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:repo) { Fabricate(:repo) }
+  let(:command_hash) { { "name" => repo.name } }
   before :each do
     authorize 'fred', 'dead'
   end
@@ -17,6 +19,10 @@ describe "delete-repo" do
   context "/api/commands/delete-repo" do
     before :each do
       header 'content-type', 'application/json'
+    end
+
+    describe Razor::Command::DeleteRepo do
+      it_behaves_like "a command"
     end
 
     it "should delete an existing repo" do

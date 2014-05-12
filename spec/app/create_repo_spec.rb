@@ -6,6 +6,13 @@ describe "command and query API" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:command_hash) do
+    {
+        "name" => "magicos",
+        "iso-url" => "file:///dev/null",
+        "task"    => {'name' => "some_os"},
+    }
+  end
   before :each do
     authorize 'fred', 'dead'
   end
@@ -13,6 +20,10 @@ describe "command and query API" do
   context "/api/commands/create-repo" do
     before :each do
       header 'content-type', 'application/json'
+    end
+
+    describe Razor::Command::CreateRepo do
+      it_behaves_like "a command", status: 'pending'
     end
 
     it "should reject bad JSON" do
@@ -40,33 +51,6 @@ describe "command and query API" do
     it "should fail with only bad key present in input" do
       post '/api/commands/create-repo', {"cats" => "> dogs"}.to_json
       last_response.json['error'].should =~ /name is a required attribute, but it is not present/
-      last_response.status.should == 422
-    end
-
-    it "should fail if iso-url and url are omitted" do
-      post '/api/commands/create-repo', {"name" => "magicos", "task" => {"name" => "some_os"}}.to_json
-      last_response.json['error'].should =~ /the command requires one out of the iso-url, url attributes to be supplied/
-      last_response.status.should == 422
-    end
-
-    it "should fail if task is omitted" do
-      post '/api/commands/create-repo', {
-          "name"      => "magicos",
-          "iso-url"   => "file:///dev/null",
-          "banana"    => "> orange",
-      }.to_json
-      last_response.json['error'].should =~ /task is a required attribute, but it is not present/
-      last_response.status.should == 422
-    end
-
-    it "should fail if task's name is omitted" do
-      post '/api/commands/create-repo', {
-          "name"      => "magicos",
-          "iso-url"   => "file:///dev/null",
-          "banana"    => "> orange",
-          "task"      => { }
-      }.to_json
-      last_response.json['error'].should =~ /task\.name is a required attribute, but it is not present/
       last_response.status.should == 422
     end
 

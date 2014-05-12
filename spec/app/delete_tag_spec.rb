@@ -6,6 +6,8 @@ describe "delete-tag" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:tag) { Fabricate(:tag) }
+  let(:command_hash) { { "name" => tag.name } }
   before :each do
     authorize 'fred', 'dead'
   end
@@ -18,6 +20,10 @@ describe "delete-tag" do
 
   before :each do
     header 'content-type', 'application/json'
+  end
+
+  describe Razor::Command::DeleteTag do
+    it_behaves_like "a command"
   end
 
   it "should delete an existing tag" do
