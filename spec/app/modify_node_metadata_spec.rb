@@ -12,7 +12,7 @@ describe "modify node metadata command" do
     {
         "node" => node.name,
         'update' => { 'k1' => 'v2', 'k2' => 'v2'},
-        'no_replace' => true
+        'no-replace' => true
     }
   end
 
@@ -67,14 +67,14 @@ describe "modify node metadata command" do
     data = { 'node' => "node#{node.id}", 'clear' => 'something' }
     modify_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /clear must be boolean true or string 'true'/
+    last_response.json["error"].should =~ /clear should be a boolean, but was actually a string/
   end
 
-  it "should complain if no_replace is not boolean true or string 'true'" do
-    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'no_replace' => 'something' }
+  it "should complain if no-replace is not boolean true or string 'true'" do
+    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'no-replace' => 'something' }
     modify_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /no_replace must be boolean true or string 'true'/
+    last_response.json["error"].should =~ /no-replace should be a boolean, but was actually a string/
   end
 
   it "should reject blank attributes" do
@@ -106,7 +106,19 @@ describe "modify node metadata command" do
       node_metadata['k1'].should == 'v2'
     end
 
-    it "should NOT update the value of an existing tag if no_replace is set" do
+    it "should NOT update the value of an existing tag if no-replace is set" do
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
+      modify_metadata(data)
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no-replace' => true }
+      modify_metadata(data)
+      last_response.status.should == 202
+      node_metadata = Node[:id => id].metadata
+      node_metadata['k1'].should == 'v1'  #should not have updated.
+      node_metadata['k2'].should == 'v2'  #still should have added this.
+    end
+
+    it "should work for no_replace" do
       id = node.id
       data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)

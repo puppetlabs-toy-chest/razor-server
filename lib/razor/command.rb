@@ -85,7 +85,8 @@ Body is: '%{body}'
 
     {
       name: name,
-      help: self.class.help
+      help: self.class.help,
+      schema: self.class.schema
     }.to_json
   end
 

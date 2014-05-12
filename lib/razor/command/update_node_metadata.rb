@@ -25,26 +25,30 @@ Set a single key from a node:
   attr 'value', required: true,
                 help: _('the value for the metadata')
 
-  attr 'no_replace', type: [String, :bool],
+  attr 'no-replace', type: :bool,
                      help: _('If true, it is an error to try and change an existing key')
 
-  attr 'all', type: [String, :bool], exclude: 'key',
+  attr 'all', type: :bool, exclude: 'key',
               help: _('The update applies to all keys')
 
   require_one_of 'key', 'all'
 
   # Update/add specific metadata key (works with GET)
   def run(request, data)
-    # This will get removed when coercion is no longer supported.
-    (!data['no_replace'] or ['true', true].include? data['no_replace']) or
-      request.error 422, :error => _("'no_replace' must be boolean true or string 'true'")
-    (!data['all'] or (['true', true].include? data['all'])) or
-      request.error 422, :error => _("'all' must be boolean true or string 'true'")
-
     node = Razor::Data::Node[:name => data['node']]
     operation = { 'update' => { data['key'] => data['value'] } }
-    operation['no_replace'] = true unless operation['no_replace'].nil?
+    operation['no_replace'] = data['no-replace']
 
     node.modify_metadata(operation)
+  end
+  
+  def self.conform!(data)
+    data.tap do |_|
+      data['no-replace'] = data.delete('no_replace') if data.has_key?('no_replace')
+      data['all'] = true if data['all'] == 'true'
+      data['all'] = false if data['all'] == 'false'
+      data['no-replace'] = true if data['no-replace'] == 'true'
+      data['no-replace'] = false if data['no-replace'] == 'false'
+    end
   end
 end

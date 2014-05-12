@@ -47,7 +47,7 @@ describe Razor::Validation::ArraySchema do
 
     it "should document the requirements for all elements" do
       schema.elements type: String
-      should =~ /All elements must be one of string./
+      should =~ /All elements must be of type string./
     end
 
     it "should document 0..10 correctly" do

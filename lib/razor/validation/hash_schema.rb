@@ -164,6 +164,10 @@ at https://tickets.puppetlabs.com/
     end
   end
 
+  def to_json(arg)
+    @attributes.to_json
+  end
+
   def authz(pattern)
     if pattern.is_a?(String)
       pattern.empty? and raise ArgumentError, "the authz pattern must not be empty"

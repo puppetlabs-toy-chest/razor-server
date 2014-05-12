@@ -42,7 +42,7 @@ describe "remove node metadata command" do
     data = { 'node' => "node#{node.id}", 'all' => 'not true' }
     remove_metadata(data)
     last_response.status.should == 422
-    JSON.parse(last_response.body)["error"].should == "all should be a true, but was actually a string"
+    JSON.parse(last_response.body)["error"].should == "all should be a boolean, but was actually a string"
   end
 
   #Defer to the modify-node-metadata tests for the verification of the
