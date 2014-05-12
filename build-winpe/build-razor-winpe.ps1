@@ -31,6 +31,7 @@ re-run this script yourself.  Sorry.
 $cwd    = get-currentdirectory
 $output = join-path $cwd "razor-winpe"
 $mount  = join-path $cwd "razor-winpe-mount"
+$drivers = join-path $cwd "drivers"
 
 
 ########################################################################
@@ -41,9 +42,8 @@ $mount  = join-path $cwd "razor-winpe-mount"
 # Default install root for the ADK; since the installer database
 # does not contain custom paths, if any, this was installed to,
 # we are stuck with just defaulting and failing.
-$adk = @([Environment]::GetFolderPath('ProgramFilesX86'),
-         [Environment]::GetFolderPath('ProgramFiles')) |
-           % { join-path $_ 'Windows Kits\8.0\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64' } |
+$adk = @((Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots").KitsRoot) |
+           % { join-path $_ 'Assessment and Deployment Kit\Windows Preinstallation Environment\amd64' } |
            ? { test-path  $_ } |
            select-object -First 1
 
@@ -91,6 +91,9 @@ write-host "adding powershell, and dependencies, to the image"
     $pkg = join-path $packages "$_.cab"
     add-windowspackage -packagepath $pkg -path $mount
 }
+
+write-host "adding drivers to the image"
+add-windowsdriver -driver $drivers -recurse -path $mount
 
 write-host "writing startup PowerShell script"
 $file   = join-path $mount "razor-client.ps1"
