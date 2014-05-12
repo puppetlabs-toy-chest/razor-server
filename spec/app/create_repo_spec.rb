@@ -10,7 +10,7 @@ describe "command and query API" do
     {
         "name" => "magicos",
         "iso-url" => "file:///dev/null",
-        "task"    => {'name' => "some_os"},
+        "task"    => "some_os",
     }
   end
   before :each do
@@ -59,7 +59,7 @@ describe "command and query API" do
         "name"      => "magicos",
         "iso-url"   => "file:///dev/null",
         "banana"    => "> orange",
-        "task"      => {'name' => "some_os"},
+        "task"      => "some_os",
       }.to_json
       last_response.json['error'].should =~ /extra attribute banana was present in the command, but is not allowed/
       last_response.status.should == 422
@@ -69,7 +69,7 @@ describe "command and query API" do
       command 'create-repo', {
         "name" => "magicos",
         "iso-url" => "file:///dev/null",
-        "task"    => {'name' => "some_os"},
+        "task"    => "some_os",
       }, :status => :pending
 
       last_response.status.should == 202
@@ -86,7 +86,7 @@ describe "command and query API" do
         data = {
           'name'    => repo.name,
           'iso-url' => repo.iso_url,
-          'task'    => {'name' => repo.task.name}
+          'task'    => repo.task.name
         }
 
         command 'create-repo', data
@@ -99,7 +99,7 @@ describe "command and query API" do
         data = {
           'name' => repo.name,
           'url'  => repo.iso_url,
-          'task' => {'name' => repo.task.name}
+          'task' => repo.task.name
         }
 
         command 'create-repo', data
@@ -114,17 +114,17 @@ describe "command and query API" do
       command 'create-repo', {
         "name" => "magicos",
         "iso-url" => "file:///dev/null",
-        "task"    => {'name' => "some_os"},
+        "task"    => "some_os",
       }, :status => :pending
 
       Repo.find(:name => "magicos").should be_an_instance_of Repo
     end
 
-    it "should conform to allow task-name shortcut" do
+    it "should conform to allow task-name long form" do
       command 'create-repo', {
           "name" => "magicos",
           "iso-url" => "file:///dev/null",
-          "task"    => "some_os",
+          "task"    => {'name' => 'some_os'},
       }, :status => :pending
 
       Repo.find(:name => "magicos").should be_an_instance_of Repo

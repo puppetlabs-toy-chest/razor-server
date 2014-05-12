@@ -23,24 +23,18 @@ Move a policy after another policy:
 
   require_one_of 'before', 'after'
 
-  object 'before', exclude: 'after', help: _(<<-HELP) do
-    The policy to move this policy before.
+  attr 'before', type: String, exclude: 'after', references: Razor::Data::Policy, help: _(<<-HELP)
+    The name of the policy to move this policy before.
   HELP
-    attr 'name', type: String, required: true, references: Razor::Data::Policy,
-                 help: _('The name of the policy to move before.')
-  end
 
-  object 'after', exclude: 'before', help: _(<<-HELP) do
-    The policy to move this policy after.
+  attr 'after', type: String, exclude: 'before', references: Razor::Data::Policy, help: _(<<-HELP)
+    The name of the policy to move this policy after.
   HELP
-    attr 'name', type: String, required: true, references: Razor::Data::Policy,
-                 help: _('The name of the policy to move after.')
-  end
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]
     position = data["before"] ? "before" : "after"
-    name = data[position]["name"]
+    name = data[position]
     neighbor = Razor::Data::Policy[:name => name]
 
     policy.move(position, neighbor)
@@ -51,8 +45,8 @@ Move a policy after another policy:
 
   def self.conform!(data)
     data.tap do |_|
-      data['before'] = { 'name' => data['before'] } if data['before'].is_a?(String)
-      data['after'] = { 'name' => data['after'] } if data['after'].is_a?(String)
+      data['before'] = data['before']['name'] if data['before'].is_a?(Hash) and data['before'].keys == ['name']
+      data['after'] = data['after']['name'] if data['after'].is_a?(Hash) and data['after'].keys == ['name']
     end
   end
 end
