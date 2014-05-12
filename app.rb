@@ -238,6 +238,10 @@ and requires full control over the database (eg: add and remove tables):
     status [e.status, {error: e.to_s}.to_json]
   end
 
+  error Razor::Conflict do
+    status [409, {error: env['sinatra.error'].to_s}.to_json]
+  end
+
 
   # Convenience for /svc/boot and /svc/file
   def render_template(name)

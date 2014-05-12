@@ -95,6 +95,37 @@ describe "command and query API" do
       data["id"].should =~ %r'/api/collections/repos/magicos\Z'
     end
 
+    context "with an existing repo" do
+      let :repo do Fabricate(:repo) end
+
+      it "should return 202 if the repo is identical" do
+        data = {
+          'name'    => repo.name,
+          'iso-url' => repo.iso_url,
+          'task'    => {'name' => repo.task.name}
+        }
+
+        command 'create-repo', data
+
+        last_response.json['name'].should == repo.name
+        last_response.status.should == 202
+      end
+
+      it "should return 409 if the repo is not identical" do
+        data = {
+          'name' => repo.name,
+          'url'  => repo.iso_url,
+          'task' => {'name' => repo.task.name}
+        }
+
+        command 'create-repo', data
+
+        last_response.json['error'].should ==
+          "The repo #{repo.name} already exists, and the iso_url, url fields do not match"
+        last_response.status.should == 409
+      end
+    end
+
     it "should create an repo record in the database" do
       command 'create-repo', {
         "name" => "magicos",
