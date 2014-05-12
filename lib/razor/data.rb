@@ -65,8 +65,9 @@ module Razor::Data
         # this open-codes the comparison here.  Perhaps we should make this
         # generic, but I would rather have at least one more example before we
         # do that.
+        new_obj = new(data)
         different = fields_for_command_comparison.reject do |key|
-          duplicate.send(key) == data[key]
+          duplicate.send(key) == new_obj.send(key)
         end
 
         # If we found differences, we want to inform the user of them.
