@@ -6,6 +6,9 @@ describe "reinstall-node" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:node) { Fabricate(:node) }
+  let(:command_hash) { { 'name' => node.name } }
+
   before :each do
     authorize 'fred', 'dead'
   end
@@ -17,6 +20,10 @@ describe "reinstall-node" do
   context "/api/commands/reinstall-node" do
     before :each do
       header 'content-type', 'application/json'
+    end
+
+    describe Razor::Command::ReinstallNode do
+      it_behaves_like "a command"
     end
 
     it "should reinstall a bound node" do

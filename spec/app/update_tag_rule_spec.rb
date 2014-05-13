@@ -22,11 +22,16 @@ describe "update-tag-rule" do
   end
 
   let (:tag) { Fabricate(:tag, :rule => ["=", 1, 1]) }
+  let (:command_hash) do
+    {
+        'name' => tag.name,
+        'rule' => ["!=", 1, 1],
+        'force' => true
+    }
+  end
 
-  it "should require a rule" do
-    update_tag_rule(tag.name)
-    last_response.status.should == 400
-    Tag[:id => tag.id].rule.should == tag.rule
+  describe Razor::Command::UpdateTagRule do
+    it_behaves_like "a command"
   end
 
   it "should update an existing tag" do

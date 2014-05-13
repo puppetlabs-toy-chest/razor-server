@@ -21,7 +21,7 @@ Create a simple tag:
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
                 help: _('The name of the tag')
 
-  attr 'rule', type: Array, help: _(<<-HELP)
+  attr 'rule', required: true, type: Array, help: _(<<-HELP)
     The tag matches a node if evaluating this run against the tag’s facts
     results in true. Note that tag matching is case sensitive.
 
@@ -43,7 +43,7 @@ Create a simple tag:
   HELP
 
   def run(request, data)
-    Razor::Data::Tag.find_or_create_with_rule(data)
+    Razor::Data::Tag.import(data).first
   end
 end
 

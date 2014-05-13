@@ -6,12 +6,18 @@ describe "delete-broker" do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
+  let(:broker) { Fabricate(:broker)}
+  let(:command_hash) { { "name" => broker.name } }
   before :each do
     authorize 'fred', 'dead'
   end
 
   def delete_broker(name)
     command 'delete-broker', { "name" => name }
+  end
+
+  describe Razor::Command::DeleteBroker do
+    it_behaves_like "a command"
   end
 
   before :each do

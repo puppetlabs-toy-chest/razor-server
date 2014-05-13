@@ -21,10 +21,14 @@ describe "create broker command" do
         (Pathname(__FILE__).dirname.parent + 'fixtures' + 'brokers').realpath.to_s
     end
 
-    let :broker_command do
+    let :command_hash do
       { 'name'        => Faker::Commerce.product_name,
         'broker-type' => 'test'
       }
+    end
+
+    describe Razor::Command::CreateBroker do
+      it_behaves_like "a command"
     end
 
     def create_broker(params)
@@ -46,7 +50,7 @@ describe "create broker command" do
     end
 
     it "should fail if the named broker does not actually exist" do
-      create_broker broker_command.merge 'broker-type' => 'no-such-broker-for-me'
+      create_broker command_hash.merge 'broker-type' => 'no-such-broker-for-me'
 
       last_response.status.should == 404
       last_response.json['error'].should ==
@@ -54,15 +58,15 @@ describe "create broker command" do
     end
 
     it "should fail cleanly if 'configuration' is a string" do
-      broker_command['configuration'] = '{"arg1": "value1"}'
-      create_broker broker_command
+      command_hash['configuration'] = '{"arg1": "value1"}'
+      create_broker command_hash
 
       last_response.status.should == 422
       last_response.json['error'].should == "configuration should be a object, but was actually a string"
     end
     # Successful creation
     it "should return 202, and the URL of the broker" do
-      command = create_broker broker_command
+      command = create_broker command_hash
 
       last_response.status.should == 202
       last_response.json?.should be_true
@@ -73,7 +77,7 @@ describe "create broker command" do
     end
 
     it "should create an broker record in the database" do
-      command = create_broker broker_command
+      command = create_broker command_hash
 
       Razor::Data::Broker[:name => command['name']].should be_an_instance_of Razor::Data::Broker
     end

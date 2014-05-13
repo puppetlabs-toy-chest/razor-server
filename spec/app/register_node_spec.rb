@@ -2,10 +2,17 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe Razor::Command::RegisterNode do
+describe "register node" do
   include Razor::Test::Commands
 
   let :app do Razor::App end
+  let :node do Fabricate(:node) end
+  let :command_hash do
+    {
+        'hw-info' => node_hw_hash_to_hw_info(node.hw_hash),
+        'installed' => true
+    }
+  end
 
   before :each do
     authorize 'fred', 'dead'
@@ -29,8 +36,12 @@ describe Razor::Command::RegisterNode do
     end
   end
 
+  describe Razor::Command::RegisterNode do
+    it_behaves_like "a command"
+  end
+
   it "should create a new node based on the input data" do
-    register_node 'installed' => true, 'hw_info' => {'net0' => '00:0c:29:08:06:e0'}
+    register_node 'installed' => true, 'hw-info' => {'net0' => '00:0c:29:08:06:e0'}
     last_response.status.should == 202
     data = last_response.json
     data['name'].should =~ /^node\d+$/
@@ -40,7 +51,7 @@ describe Razor::Command::RegisterNode do
 
   it "should return an existing node matching the input data" do
     node = Fabricate(:node)
-    register_node 'installed' => true, 'hw_info' => node_hw_hash_to_hw_info(node.hw_hash)
+    register_node 'installed' => true, 'hw-info' => node_hw_hash_to_hw_info(node.hw_hash)
 
     last_response.status.should == 202
     data = last_response.json
@@ -50,7 +61,7 @@ describe Razor::Command::RegisterNode do
   end
 
   it "should set installed to true if created with install set to true" do
-    register_node 'installed' => true, 'hw_info' => {'net0' => '00:0c:29:08:06:e0'}
+    register_node 'installed' => true, 'hw-info' => {'net0' => '00:0c:29:08:06:e0'}
     last_response.status.should == 202
     data = last_response.json
     data['name'].should =~ /^node\d+$/
@@ -59,7 +70,7 @@ describe Razor::Command::RegisterNode do
   end
 
   it "should set installed to false if created with install set to false" do
-    register_node 'installed' => false, 'hw_info' => {'net0' => '00:0c:29:08:06:e0'}
+    register_node 'installed' => false, 'hw-info' => {'net0' => '00:0c:29:08:06:e0'}
     last_response.status.should == 202
     data = last_response.json
     data['name'].should =~ /^node\d+$/
@@ -69,30 +80,22 @@ describe Razor::Command::RegisterNode do
 
   it "should set installed to true if existing node" do
     node = Fabricate(:node, installed: false)
-    register_node 'installed' => true, 'hw_info' => node_hw_hash_to_hw_info(node.hw_hash)
+    register_node 'installed' => true, 'hw-info' => node_hw_hash_to_hw_info(node.hw_hash)
     last_response.status.should == 202
     node.reload.installed.should be_true
   end
 
   it "should set installed to false if existing node" do
     node = Fabricate(:node, installed: true)
-    register_node 'installed' => false, 'hw_info' => node_hw_hash_to_hw_info(node.hw_hash)
+    register_node 'installed' => false, 'hw-info' => node_hw_hash_to_hw_info(node.hw_hash)
     last_response.status.should == 202
     node.reload.installed.should be_false
   end
 
-
-  it "should fail if hw_info is missing" do
-    register_node 'installed' => true
+  it "should fail if hw-info is empty" do
+    register_node 'installed' => true, 'hw-info' => {}
     last_response.json['error'].should ==
-      'hw_info is a required attribute, but it is not present'
-    last_response.status.should == 422
-  end
-
-  it "should fail if hw_info is empty" do
-    register_node 'installed' => true, 'hw_info' => {}
-    last_response.json['error'].should ==
-      'hw_info must have at least 1 entries, only contains 0'
+      'hw-info must have at least 1 entries, only contains 0'
     last_response.status.should == 422
   end
 
@@ -102,46 +105,51 @@ describe Razor::Command::RegisterNode do
       hash
     end
 
-    register_node 'installed' => true, 'hw_info' => hw_info
+    register_node 'installed' => true, 'hw-info' => hw_info
     last_response.status.should == 202
   end
 
   it "should accept serial numbers" do
-    register_node 'installed' => true, 'hw_info' => {'serial' => '00000'}
+    register_node 'installed' => true, 'hw-info' => {'serial' => '00000'}
     last_response.status.should == 202
   end
 
   it "should accept asset tags" do
-    register_node 'installed' => true, 'hw_info' => {'asset' => '00000'}
+    register_node 'installed' => true, 'hw-info' => {'asset' => '00000'}
     last_response.status.should == 202
   end
 
   it "should accept UUID" do
-    register_node 'installed' => true, 'hw_info' => {'uuid' => '00000'}
+    register_node 'installed' => true, 'hw-info' => {'uuid' => '00000'}
     last_response.status.should == 202
   end
 
   it "should work with installed true" do
-    register_node 'installed' => true, 'hw_info' => {'net0' => '00:0c:29:b0:96:df'}
+    register_node 'installed' => true, 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.status.should == 202
   end
 
   it "Should work with installed false" do
-    register_node 'installed' => false, 'hw_info' => {'net0' => '00:0c:29:b0:96:df'}
+    register_node 'installed' => false, 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.status.should == 202
   end
 
   it "should fail if installed is a string true" do
-    register_node 'installed' => "true", 'hw_info' => {'net0' => '00:0c:29:b0:96:df'}
+    register_node 'installed' => "true", 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.json['error'].should ==
       'installed should be one of true, false, but was actually a string'
     last_response.status.should == 422
   end
 
   it "should fail if installed is a string false" do
-    register_node 'installed' => "false", 'hw_info' => {'net0' => '00:0c:29:b0:96:df'}
+    register_node 'installed' => "false", 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.json['error'].should ==
       'installed should be one of true, false, but was actually a string'
     last_response.status.should == 422
+  end
+
+  it "should conform the old 'hw_info' syntax" do
+    register_node 'installed' => false, 'hw_info' => {'net0' => '00:0c:29:b0:96:df'}
+    last_response.status.should == 202
   end
 end

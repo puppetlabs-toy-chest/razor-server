@@ -15,7 +15,7 @@ describe "create task command" do
       header 'content-type', 'application/json'
     end
 
-    let(:task_hash) do
+    let(:command_hash) do
       { :name => "task",
         :os => "SomeOS",
         :templates => { "name" => "erb template" },
@@ -23,7 +23,11 @@ describe "create task command" do
     end
 
     def create_task(input = nil)
-      command 'create-task', (input || task_hash)
+      command 'create-task', (input || command_hash)
+    end
+
+    describe Razor::Command::CreateTask do
+      it_behaves_like "a command"
     end
 
     it "should reject bad JSON" do
@@ -39,26 +43,14 @@ describe "create task command" do
       end
     end
 
-    it "should fail if name is missing" do
-      task_hash.delete(:name)
-      create_task
-      last_response.status.should == 422
-    end
-
-    it "should fail if os is missing" do
-      task_hash.delete(:os)
-      create_task
-      last_response.status.should == 422
-    end
-
     it "should fail if boot_seq hash has keys that are strings != 'default'" do
-      task_hash[:boot_seq]["sundays"] = "local"
+      command_hash[:boot_seq]["sundays"] = "local"
       create_task
       last_response.status.should == 422
     end
 
     it "should fail if templates is not a hash" do
-      task_hash[:templates] = ["stuff"]
+      command_hash[:templates] = ["stuff"]
       create_task
       last_response.status.should == 422
     end
@@ -76,7 +68,7 @@ describe "create task command" do
     it "should create an repo record in the database" do
       create_task
 
-      Razor::Data::Task[:name => task_hash[:name]].should be_an_instance_of Razor::Data::Task
+      Razor::Data::Task[:name => command_hash[:name]].should be_an_instance_of Razor::Data::Task
     end
   end
 end

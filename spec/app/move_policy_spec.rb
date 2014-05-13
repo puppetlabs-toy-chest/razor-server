@@ -13,6 +13,12 @@ describe "move policy command" do
     @p2 = Fabricate(:policy, :name => 'second', :rule_number => 2)
     @p3 = Fabricate(:policy, :name => 'third', :rule_number => 3)
   end
+  let(:command_hash) do
+    {
+        "name" => @p1.name,
+        "after" => @p2.name
+    }
+  end
 
   def move_policy(what, where, other)
     input = {}
@@ -26,6 +32,10 @@ describe "move policy command" do
     last_response.json['error'].should be_nil
     last_response.status.should == 202
     Policy.all.map { |p| p.id }.should == list.map { |x| x.id }
+  end
+
+  describe Razor::Command::MovePolicy do
+    it_behaves_like "a command"
   end
 
   describe "spec" do

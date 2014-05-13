@@ -23,6 +23,17 @@ describe "policy-add-tag" do
 
     let(:policy) { Fabricate(:policy_with_tag) }
     let(:tag)    { Fabricate(:tag) }
+    let(:command_hash) do
+      {
+          :name => policy.name,
+          :tag => policy.tags.first.name,
+          :rule => policy.tags.first.rule
+      }
+    end
+
+    describe Razor::Command::AddPolicyTag do
+      it_behaves_like "a command"
+    end
 
     it "should advise that that tag is already on policy" do
       count = policy.tags.count
@@ -56,22 +67,6 @@ describe "policy-add-tag" do
       add_policy_tag(policy.name, tag_name)
       policy.tags(true).count.should == count
       last_response.status.should == 422
-    end
-
-    it "should fail with no policy name" do
-      add_policy_tag(nil, tag.name)
-      last_response.status.should == 422
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /name is a required attribute, but it is not present/
-    end
-
-    it "should fail with no tag name" do
-      add_policy_tag(policy.name)
-      last_response.status.should == 422
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /tag is a required attribute, but it is not present/
     end
   end
 end

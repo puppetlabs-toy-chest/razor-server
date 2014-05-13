@@ -6,14 +6,21 @@ describe Razor::Command::SetNodeHWInfo do
   include Razor::Test::Commands
 
   let :app do Razor::App end
+  let :node do Fabricate(:node) end
+  let :command_hash do
+    {
+        'node' => node.name,
+        'hw-info' => node_hw_hash_to_hw_info(node.hw_hash)
+    }
+  end
 
   before :each do
     authorize 'fred', 'dead'
     header    'content-type', 'application/json'
   end
 
-  def set_node_hw_info(params)
-    command 'set-node-hw-info', params
+  def set_node_hw_info
+    command 'set-node-hw-info', command_hash
   end
 
   # Build something suitable for sending in, from the hardware info stored in
@@ -29,46 +36,49 @@ describe Razor::Command::SetNodeHWInfo do
     end
   end
 
+  describe Razor::Command::SetNodeHWInfo do
+    it_behaves_like "a command"
+  end
+
   it "should fail if the node does not exist" do
-    set_node_hw_info(node: 'freddy', hw_info: {serial: '1234'})
+    command_hash['node'] = 'freddy'
+    set_node_hw_info
     last_response.json['error'].
       should == "node must be the name of an existing node, but is 'freddy'"
      last_response.status.should == 404
   end
 
-  it "should fail if the hw_info is not present" do
-    node = Fabricate(:node)
-    set_node_hw_info(node: node.name)
-    last_response.json['error'].
-      should == "hw_info is a required attribute, but it is not present"
-     last_response.status.should == 422
-  end
-
-  it "should fail if the hw_info does not contain any match keys" do
+  it "should fail if the hw-info does not contain any match keys" do
     Razor.config['match_nodes_on'] = ['mac'] # default, but be safe!
-    node = Fabricate(:node)
-    set_node_hw_info(node: node.name, hw_info: {serial: '1234'})
+    command_hash['hw-info'] = {serial: '1234'}
+    set_node_hw_info
     last_response.json['error'].
-      should == "hw_info must contain at least one of the match keys: mac"
+      should == "hw-info must contain at least one of the match keys: mac"
      last_response.status.should == 422
   end
 
   it "should succeed but not change the node hw_info if it is the same" do
-    node = Fabricate(:node)
-    set_node_hw_info(node: node.name, hw_info: node_hw_hash_to_hw_info(node.hw_hash))
+    command_hash['hw_info'] = node_hw_hash_to_hw_info(node.hw_hash)
+    set_node_hw_info
     last_response.status.should == 202
     Razor::Data::Node[id: node.id].hw_hash.should == node.hw_hash
   end
 
   it "should update the node hw_info if it is different" do
-    node = Fabricate(:node)
     before = node.hw_hash
     before.should_not == {'serial' => '1234'}
 
-    set_node_hw_info(node: node.name, hw_info: {serial: '1234'})
+    command_hash['hw-info'] = {serial: '1234'}
+    set_node_hw_info
     last_response.status.should == 202
 
     Razor::Data::Node[id: node.id].hw_hash.should == {'serial' => '1234'}
     Razor::Data::Node[id: node.id].should_not == before
+  end
+
+  it "should conform the old 'hw_info' syntax" do
+    command_hash['hw_info'] = command_hash.delete('hw-info')
+    set_node_hw_info
+    last_response.status.should == 202
   end
 end

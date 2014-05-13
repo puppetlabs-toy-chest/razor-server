@@ -8,6 +8,7 @@ describe "modify-policy-max-count" do
   let(:app) { Razor::App }
 
   let(:policy) { Fabricate(:policy) }
+  let(:command_hash) { { "name" => policy.name, "max-count" => 1 } }
 
   def set_max_count(count=nil)
     command 'modify-policy-max-count',
@@ -20,11 +21,8 @@ describe "modify-policy-max-count" do
       authorize 'fred', 'dead'
     end
 
-    it "should require that max-count is present" do
-      command 'modify-policy-max-count',
-        { "name" => policy.name }
-      last_response.status.should == 422
-      last_response.body.should =~ /max-count/
+    describe Razor::Command::ModifyPolicyMaxCount do
+      it_behaves_like "a command"
     end
 
     it "should accept a string for max-count" do

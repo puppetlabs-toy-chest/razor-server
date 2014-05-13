@@ -22,6 +22,16 @@ describe "policy-remove-tag" do
 
     let(:tag)    { Fabricate(:tag) }
     let(:policy) { Fabricate(:policy_with_tag) }
+    let(:command_hash) do
+      {
+          'name' => policy.name,
+          'tag' => policy.tags.first.name
+      }
+    end
+
+    describe Razor::Command::RemovePolicyTag do
+      it_behaves_like "a command"
+    end
 
     it "should remove a tag from a policy" do
       count = policy.tags.count
@@ -38,22 +48,6 @@ describe "policy-remove-tag" do
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[result]
       last_response.json["result"].should =~ /was not on policy/
-    end
-
-    it "should fail to with no policy name" do
-      remove_policy_tag(nil, tag.name)
-      last_response.status.should == 422
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /name is a required attribute, but it is not present/
-    end
-
-    it "should fail to with no tag name" do
-      remove_policy_tag(policy.name)
-      last_response.status.should == 422
-      last_response.json?.should be_true
-      last_response.json.keys.should =~ %w[error]
-      last_response.json["error"].should =~ /tag is a required attribute, but it is not present/
     end
   end
 end
