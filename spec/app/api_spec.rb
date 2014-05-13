@@ -91,7 +91,7 @@ describe "command and query API" do
     it "should match the shape of our command handler" do
       get '/api'
       data = last_response.json
-      data.keys.should =~ %w[commands collections]
+      data.keys.should =~ %w[commands collections version]
       data["commands"].all? {|x| x.keys.should =~ %w[id rel name]}
     end
 

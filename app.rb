@@ -495,7 +495,8 @@ and requires full control over the database (eg: add and remove tables):
       "collections" => COLLECTIONS.map do |coll|
         { "name" => coll, "rel" => spec_url("/collections/#{coll}"),
           "id" => url("/api/collections/#{coll}")}
-      end
+      end,
+      "version" => { "server" => Razor::VERSION }
     }.to_json
   end
 
