@@ -23,6 +23,7 @@
   + `create-repo` now requires a `task` argument. The argument must have the form:
     { "name" => "TASK_NAME" } # Where TASK_NAME is the name of an existing task, whether
     that be stock or custom.
+  + The `create-policy` function no longer creates tags in addition to creating a policy.
 + DHCP will be retried when it fails, to better support networks that take
   time to configure.  (802.1x, trunking, and similar issues are common causes.)
 + `sanboot` metadata field support: if this is set to (boolean) true in

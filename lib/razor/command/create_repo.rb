@@ -53,14 +53,11 @@ downloaded onto the Razor server:
     command.
   HELP
 
-  object 'task', required: true, help: _(<<-HELP) do
-    The task associated with this repository.  This is used to install
-    nodes that match a policy using this repository; generally it should
-    match the OS that the URL or ISO-URL attributes point to.
+  attr 'task', type: String, required: true, help: _(<<-HELP)
+    The name of the task associated with this repository.  This is used to
+    install nodes that match a policy using this repository; generally it
+    should match the OS that the URL or ISO-URL attributes point to.
   HELP
-    attr 'name', type: String, required: true,
-                 help: _('The name of the task.')
-  end
 
   require_one_of 'url', 'iso-url'
 
@@ -70,16 +67,14 @@ downloaded onto the Razor server:
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
     data["iso_url"] = data.delete("iso-url")
-    if data["task"]
-      data["task_name"] = data.delete("task")["name"]
-    end
+    data["task_name"] = data.delete("task")
 
     Razor::Data::Repo.import(data, @command).first
   end
 
   def self.conform!(data)
     data.tap do |_|
-      data['task'] = { 'name' => data['task'] } if data['task'].is_a?(String)
+      data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
     end
   end
 end
