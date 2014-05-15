@@ -10,6 +10,8 @@ override_dh_install:
 # The hackery to put our init script into place is kind of evil, but whatever.
 override_dh_auto_install:
 	mv ext/razor-server.init debian/razor-server.init
+	rm ext/redhat/razor-server.spec ext/debian/changelog ext/debian/control
+	rmdir ext/debian ext/redhat
 	rmdir ext		# should be emptied by now
 
 	mkdir -p $(ROOT)/etc/razor
