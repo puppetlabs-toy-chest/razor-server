@@ -108,7 +108,14 @@ describe Razor::Data::Tag do
 
   describe "updating the tag's rule" do
 
-    let(:tag) { Fabricate(:tag, :name => "aTag", :rule => ["=", 1, 1]) }
+    let(:tag) do
+      Fabricate(:tag, :name => "aTag", :rule => ["=", 1, 1]).tap do |_|
+        # Clean up the queue - we do not care about the message that
+        # the initial tag.save generates
+        queue = fetch('/queues/razor/sequel-instance-messages')
+        queue.remove_messages
+      end
+    end
 
     it "should tag a matching existing node" do
       node # Cause node to be created

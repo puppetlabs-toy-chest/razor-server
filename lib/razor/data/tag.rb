@@ -49,9 +49,9 @@ class Razor::Data::Tag < Sequel::Model
 
   def around_save
     # We need to defer publishing eval_nodes until after self has been
-    # saved so that for newly created nodes the message inlcudes the actual
+    # saved so that for newly created nodes the message includes the actual
     # id
-    need_eval_nodes = new? or changed_columns.include?(:matcher)
+    need_eval_nodes = new? || changed_columns.include?(:matcher)
     super
     publish('eval_nodes') if need_eval_nodes
   end
