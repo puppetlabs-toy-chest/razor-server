@@ -120,11 +120,13 @@ A sample policy installing CentOS 6.4:
     data["root_password"] = data.delete("root-password") if data["root-password"]
 
     # Create the policy
-    policy = Razor::Data::Policy.import(data).first
+    policy, is_new = Razor::Data::Policy.import(data)
 
-    tags.each { |t| policy.add_tag(t) }
-    position and policy.move(position, neighbor)
-    policy.save
+    if is_new
+      tags.each { |t| policy.add_tag(t) }
+      position and policy.move(position, neighbor)
+      policy.save
+    end
 
     return policy
   end

@@ -225,6 +225,29 @@ describe "create policy command" do
       Razor::Data::Policy[:name => command_hash['name']].should be_an_instance_of Razor::Data::Policy
     end
 
+    it "should return 202 if the policy is identical" do
+      create_policy
+      create_policy
+
+      last_response.json['error'].should be_nil
+      last_response.json['name'].should == command_hash['name']
+      last_response.status.should == 202
+    end
+
+    it "should return 409 if the policy is not identical" do
+      create_policy
+      other_repo = Fabricate(:repo)
+      other_broker = Fabricate(:broker)
+      command_hash['repo'] = other_repo.name
+      command_hash['broker'] = other_broker.name
+
+      create_policy
+
+      last_response.json['error'].should ==
+          "The policy #{command_hash['name']} already exists, and the repo_id, broker_id fields do not match"
+      last_response.status.should == 409
+    end
+
     context "ordering" do
       before('each') do
         @p1 = Fabricate('policy')

@@ -80,6 +80,10 @@ module Razor::Data
       end
     end
 
+    def self.fields_for_command_comparison
+      super - %w{rule_number}
+    end
+
     def self.bind(node)
       node_tags = node.tags
       # The policies that could be bound must
