@@ -22,8 +22,8 @@ RSpec::Matchers.define :have_published do |expected|
     raise "queue was not set with `on`" unless @queue
     before = @queue.count - 1   # only newly published messages count
     code_to_run.call            # don't care if you throw past me
-    after = @queue.peek_at_all.slice(before .. -1).map{|msg| msg[:body]}
-    after.any? do |msg|
+    after = @queue.peek_at_all.slice(before .. -1) || []
+    after.map{|msg| msg[:body]}.any? do |msg|
       expected.all? do |k, v|
         # The comparison on the right allows us to use rspec matchers, as well
         # as Class instances, regexp vs string, etc, smart matching.
