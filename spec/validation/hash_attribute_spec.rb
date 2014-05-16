@@ -247,14 +247,14 @@ describe Razor::Validation::HashAttribute do
     ["String", true, false, 1, 1.1, :string].each do |input|
       it "should fail unless the type is a class or module (#{input.inspect})" do
         expect { attr.type(input) }.
-          to raise_error(/type checks must be passed a class, module, nil, or an array of the same/)
+          to raise_error(/type checks must be passed a class, module, or nil/)
       end
     end
 
     [[], {}].each do |input|
       it "should fail if given an empty collection (#{input.inspect})" do
         expect { attr.type(input) }.
-          to raise_error(/type checks must be passed some type to check/)
+          to raise_error(/type checks must be passed a class, module, or nil/)
       end
     end
 
@@ -265,12 +265,12 @@ describe Razor::Validation::HashAttribute do
         String  => 'string',
         Array   => 'array',
         Hash    => 'object',
-        :bool   => 'true, false',
+        :bool   => 'boolean',
         Integer => 'number'
       }.each do |type, expect|
         it "should correctly report #{type} expectations" do
           attr.type type
-          should =~ /It must be one of #{expect}/
+          should =~ /It must be of type #{expect}/
         end
       end
     end

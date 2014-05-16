@@ -137,14 +137,14 @@ describe "register node" do
   it "should fail if installed is a string true" do
     register_node 'installed' => "true", 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.json['error'].should ==
-      'installed should be one of true, false, but was actually a string'
+      'installed should be a boolean, but was actually a string'
     last_response.status.should == 422
   end
 
   it "should fail if installed is a string false" do
     register_node 'installed' => "false", 'hw-info' => {'net0' => '00:0c:29:b0:96:df'}
     last_response.json['error'].should ==
-      'installed should be one of true, false, but was actually a string'
+      'installed should be a boolean, but was actually a string'
     last_response.status.should == 422
   end
 

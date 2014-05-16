@@ -42,7 +42,7 @@ class Razor::Validation::ArrayAttribute
 - <%= @help %>
 - This must be an array.
 % if @type
-- <%= index_to_s %> must be one of <%= @type.map{|entry| ruby_type_to_json(entry[:type])}.join(', ') %>.
+- <%= index_to_s %> must be of type <%= ruby_type_to_json(@type[:type]) %>.
 % end
 % if @references
 - <%= index_to_s %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
@@ -78,27 +78,19 @@ class Razor::Validation::ArrayAttribute
     return unless @range.include? index
 
     if @type
-      Array(@type).any? do |check|
-        # If we don't match the base type, go to the next one; if none match our
-        # final validation failure will trigger and raise.
-        next false unless value.class <= check[:type]
+      # If we don't match the base type, go to the next one; if none match our
+      # final validation failure will trigger and raise.
+      raise Razor::ValidationFailure, _("%{this} should be a %{expected}, but was actually a %{actual}") % {
+          this:     expand(path, index),
+          actual:   ruby_type_to_json(value),
+          expected: ruby_type_to_json(@type[:type])} unless Array(@type[:type]).any? { |_| value.class <= _ }
 
-        # If there is a validation
-        begin
-          check[:validate] and check[:validate].call(value)
-        rescue => e
-          raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, index), type: ruby_type_to_json(check[:type]), error: e.to_s}
-        end
-
-        # If we got here we passed all the checks, and have a match, so we are good.
-        break true
-      end or raise Razor::ValidationFailure, n_(
-        "%{this} should be a %{expected}, but was actually a %{actual}",
-        "%{this} should be one of %{expected}, but was actually a %{actual}",
-        Array(@type).count) % {
-        this:     expand(path, index),
-        actual:   ruby_type_to_json(value),
-        expected: Array(@type).map {|x| ruby_type_to_json(x[:type]) }.join(', ')}
+      # If there is a validation
+      begin
+        @type[:validate] and @type[:validate].call(value)
+      rescue => e
+        raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, index), type: ruby_type_to_json(@type[:type]), error: e.to_s}
+      end
     end
 
     if @references
@@ -114,25 +106,22 @@ class Razor::Validation::ArrayAttribute
   end
 
   def type(which)
-    which = Array(which)
-    which.empty? and raise ArgumentError, "type checks must be passed some type to check"
+    which.nil? and raise ArgumentError, "type checks must be passed some type to check"
 
-    @type = which.map do |entry|
-      case entry
+    @type = case which
       when nil    then {type: NilClass}
-      when :bool  then [{type: TrueClass}, {type: FalseClass}]
+      when :bool  then {type: [TrueClass, FalseClass]}
       when Module then
-        if entry <= URI then
+        if which <= URI then
           {type: String, validate: -> str { URI.parse(str) }}
-        elsif entry <= Hash then
+        elsif which <= Hash then
           {type: Hash, validate: -> hash { raise ArgumentError, "blank hash key not allowed" if hash.keys.include? '' }}
         else
-          {type: entry}
+          {type: which}
         end
       else
-        raise ArgumentError, "type checks must be passed a class, module, nil, or an array of the same (got #{which.inspect})"
-      end
-    end.flatten
+        raise ArgumentError, "type checks must be passed a class, module, or nil (got #{which.inspect})"
+    end
   end
 
   def schema(schema)

@@ -15,7 +15,7 @@ describe "update node metadata command" do
         'node' => node.name,
         'value' => 'v1',
         'key' => 'k1',
-        'no_replace' => 'true'
+        'no-replace' => 'true'
     }
   end
 
@@ -32,22 +32,29 @@ describe "update node metadata command" do
     it_behaves_like "a command"
   end
 
-  it "should require no_replace to equal true" do
+  it "should require no-replace to equal true" do
+    data = { 'node' => "node#{node.id}", 'key' => 'k1', 'value' => 'v1', 'no-replace' => 'not true' }
+    update_metadata(data)
+    last_response.status.should == 422
+    last_response.json["error"].should =~ /no-replace should be a boolean, but was actually a string/
+  end
+
+  it "should conform no_replace" do
     data = { 'node' => "node#{node.id}", 'key' => 'k1', 'value' => 'v1', 'no_replace' => 'not true' }
     update_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /'no_replace' must be boolean true or string 'true'/
+    last_response.json["error"].should =~ /no-replace should be a boolean, but was actually a string/
   end
 
   it "should require all to equal true" do
     data = { 'node' => "node#{node.id}", 'value' => 'v1', 'all' => 'not true' }
     update_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /'all' must be boolean true or string 'true'/
+    last_response.json["error"].should =~ /all should be a boolean, but was actually a string/
   end
 
-  it "should succeed with 'all' and 'no_replace'" do
-    data = { 'node' => "node#{node.id}", 'value' => 'v1', 'all' => 'true', 'no_replace' => 'true' }
+  it "should succeed with 'all' and 'no-replace'" do
+    data = { 'node' => "node#{node.id}", 'value' => 'v1', 'all' => 'true', 'no-replace' => 'true' }
     update_metadata(data)
     last_response.status.should == 202
   end

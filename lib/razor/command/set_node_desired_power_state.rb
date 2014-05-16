@@ -22,7 +22,7 @@ Setting the power state for the node:
   attr  'name', type: String, required: true,  references: Razor::Data::Node,
                 help: _('The node to change the desired power state of.')
 
-  attr 'to', type: [String, nil], required: false, one_of: ['on', 'off', nil],
+  attr 'to', type: String, required: false, one_of: ['on', 'off', nil],
              help: _('The desired power state -- on, or off.')
 
   def run(request, data)
@@ -30,5 +30,11 @@ Setting the power state for the node:
 
     node.set(desired_power_state: data['to']).save
     {result: _("set desired power state to %{state}") % {state: data['to'] || 'ignored (null)'}}
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      data.delete('to') if data['to'].nil?
+    end
   end
 end
