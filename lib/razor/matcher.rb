@@ -179,7 +179,7 @@ class Razor::Matcher
 
     private
     def value_lookup(map_name, args)
-      map = @values[map_name]
+      map = @values[map_name] || {}
       case
       when map.include?(args[0]) then map[args[0]]
       when args.length > 1 then args[1]

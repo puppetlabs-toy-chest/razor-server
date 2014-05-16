@@ -35,6 +35,25 @@ describe Razor::Data::Tag do
     end
   end
 
+  describe "match?" do
+    it "is true when the rule matches" do
+      node = Fabricate(:node, :facts => { "f1" => "a" })
+      tag0.match?(node)
+    end
+
+    it "is false when the rule does not match" do
+      node = Fabricate(:node, :facts => { "f1" => "x" })
+      tag0.match?(node)
+    end
+
+    it "raises RuleEvaluationError when facts are nil" do
+      node = Fabricate(:node, :facts => nil)
+      expect do
+        tag0.match?(node)
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
+  end
+
   context "when rule is nil" do
     subject(:tag) {Tag.create(:name => "t1", :rule => ["=", 1, 1])}
     it { should be_valid }
