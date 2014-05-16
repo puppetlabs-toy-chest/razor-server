@@ -22,8 +22,7 @@ namespace :db do
     env = args[:env] || "development"
     Rake::Task['environment'].invoke(env)
 
-    require 'sequel/extensions/migration'
-    Sequel::Migrator.apply(Razor.database, "db/migrate")
+    sh "./bin/razor-admin -e #{env} migrate-database"
   end
 
   desc "Rollback the database"
@@ -40,13 +39,7 @@ namespace :db do
   task :nuke, :env do |cmd, args|
     env = args[:env] || "development"
     Rake::Task['environment'].invoke(env)
-    Razor.database.tables.each do |table|
-      Razor.database.run("DROP TABLE #{table} CASCADE")
-    end
-    # @todo lutter 2014-01-16: figure out a more sustainable way to
-    # clean out the database
-    Razor.database.run("DROP TYPE IF EXISTS power_state")
-    Razor.database.run("DROP TYPE IF EXISTS command_status")
+    sh "./bin/razor-admin -e #{env} reset-database"
   end
 
   desc "Reset the database"
