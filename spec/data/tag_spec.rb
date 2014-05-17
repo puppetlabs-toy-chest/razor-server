@@ -165,6 +165,20 @@ describe Razor::Data::Tag do
 
       node.tags.should_not include(tag)
     end
+
+    it "should succeed and log a rule evaluation error to the node's log" do
+      node = Fabricate(:node, :facts => nil)
+      tag.rule = ["=", ["fact", "a"], 42]
+      tag.save
+
+      check_and_process_eval_nodes(tag)
+      node.tags.should_not include(tag)
+      err = node.log.last
+      err.should_not be_nil
+      err['severity'].should == 'error'
+      err['error'].should == 'tag_match'
+      err['msg'].should_not be_nil
+    end
   end
 
   it "should not publish 'eval_nodes' if the rule hasn't changed" do
