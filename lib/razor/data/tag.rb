@@ -60,14 +60,27 @@ class Razor::Data::Tag < Sequel::Model
     Razor::Data::Node.all.each do |node|
       node_tags = node.tags
 
-      if self.match?(node)
-        unless node_tags.include?(self)
-          node.add_tag(self)
+      begin
+        if self.match?(node)
+          unless node_tags.include?(self)
+            node.add_tag(self)
+          end
+        else
+          if node_tags.include?(self)
+            node.remove_tag(self)
+          end
         end
-      else
-        if node_tags.include?(self)
-          node.remove_tag(self)
-        end
+      rescue Razor::Matcher::RuleEvaluationError => e
+        node.log_append(
+          severity: :error,
+          error: 'tag_match',
+          msg: "Matching tag '#{name}': " + e.message)
+        # @todo lutter 2014-05-16: eventually, we need the command that
+        # causes eval_nodes to be called here and report the evaluation
+        # failure as part of the command, too.  This will require passing
+        # the command through a call to Tag#save and involves some
+        # gymnastics. Once we move background processing of commands into
+        # the commands, this will be much easier to achieve
       end
     end
     self
