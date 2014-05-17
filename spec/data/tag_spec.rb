@@ -33,6 +33,14 @@ describe Razor::Data::Tag do
       bad_tag = Tag.create(:name=> "bad", :rule => ["=", 1, ["fact", "not"]])
       expect { Tag.match(MockNode.new()) }.to raise_error ArgumentError
     end
+
+    it "raises when rule evaluation fails" do
+      # Node.checkin depends on this behavior
+      tag0
+      expect do
+        Tag.match(MockNode.new("f2" => "x"))
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
   end
 
   describe "match?" do
