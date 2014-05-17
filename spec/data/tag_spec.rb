@@ -33,6 +33,33 @@ describe Razor::Data::Tag do
       bad_tag = Tag.create(:name=> "bad", :rule => ["=", 1, ["fact", "not"]])
       expect { Tag.match(MockNode.new()) }.to raise_error ArgumentError
     end
+
+    it "raises when rule evaluation fails" do
+      # Node.checkin depends on this behavior
+      tag0
+      expect do
+        Tag.match(MockNode.new("f2" => "x"))
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
+  end
+
+  describe "match?" do
+    it "is true when the rule matches" do
+      node = Fabricate(:node, :facts => { "f1" => "a" })
+      tag0.match?(node)
+    end
+
+    it "is false when the rule does not match" do
+      node = Fabricate(:node, :facts => { "f1" => "x" })
+      tag0.match?(node)
+    end
+
+    it "raises RuleEvaluationError when facts are nil" do
+      node = Fabricate(:node, :facts => nil)
+      expect do
+        tag0.match?(node)
+      end.to raise_error Razor::Matcher::RuleEvaluationError
+    end
   end
 
   context "when rule is nil" do
@@ -137,6 +164,20 @@ describe Razor::Data::Tag do
       check_and_process_eval_nodes(tag)
 
       node.tags.should_not include(tag)
+    end
+
+    it "should succeed and log a rule evaluation error to the node's log" do
+      node = Fabricate(:node, :facts => nil)
+      tag.rule = ["=", ["fact", "a"], 42]
+      tag.save
+
+      check_and_process_eval_nodes(tag)
+      node.tags.should_not include(tag)
+      err = node.log.last
+      err.should_not be_nil
+      err['severity'].should == 'error'
+      err['error'].should == 'tag_match'
+      err['msg'].should_not be_nil
     end
   end
 

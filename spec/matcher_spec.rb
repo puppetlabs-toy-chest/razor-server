@@ -78,6 +78,16 @@ describe Razor::Matcher do
       match("fact", "f2", false, { "f1" => true }).should == false
     end
 
+    ["fact", "metadata", "state"].each do |func|
+      it "#{func} should work if nil is passed in for #{func}" do
+        m = Matcher.new([func, "f1"])
+        expect do
+          # This used to fail trying to call nil.[]
+          m.match?({})
+        end.to  raise_error Razor::Matcher::RuleEvaluationError
+      end
+    end
+
     describe "tag function" do
       it "should complain when tag does not exist" do
         expect do
