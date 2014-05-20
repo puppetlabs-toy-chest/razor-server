@@ -97,3 +97,15 @@ all:
       - /swap.*/
       - timezone
       - /uptime.*/
+    # Facts that should be used to match nodes on; these are useful if the
+    # primary hardware information like MAC addresses has changed (e.g.,
+    # because of a motherboard replacement), but you want to make sure that
+    # an existing node is still identified as the 'old' node. These facts
+    # must be unique across all nodes that Razor manages - otherwise, it
+    # will erroneously identify two physically different nodes as the same.
+    #
+    # The entries in the array follow the same format as those for
+    # facts.blacklist
+    #match_on:
+    #  - unique_fact
+    #  - /other_facts_.*/

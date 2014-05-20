@@ -150,8 +150,16 @@ module Razor::Data
       # (otherwise we could have symbols, which will turn into strings on
       # reloading)
       entry = JSON::parse(entry.to_json)
-      TorqueBox::Logger.new.info("#{name}: #{entry.inspect}")
+
       add_node_log_entry(:entry => entry)
+    end
+
+    # Return +true+ if the node has fully registered, i.e. has sent us its
+    # facts at least once. This supposes that the application makes sure
+    # that facts are initially, and whenever the need arises to change
+    # hw_info based on facts, set through +Node.register+
+    def registered?
+      ! facts.nil?
     end
 
     def installed=(value)
@@ -219,7 +227,7 @@ module Razor::Data
             errors.add(:hw_info, _("entry '%{raw}' is not in the format 'key=value'") % {raw: p})
           (pair[1].nil? or pair[1] == "") and
             errors.add(:hw_info, _("entry '%{raw}' does not have a value") % {raw: p})
-          Razor::Config::HW_INFO_KEYS.include?(pair[0]) or
+          (Razor::Config::HW_INFO_KEYS.include?(pair[0]) or pair[0] =~ /^fact_/) or
             errors.add(:hw_info, _("entry '%{raw}' uses an unknown key %{key}") % {raw: p, key: pair[0]})
           # @todo lutter 2013-09-03: we should do more checking, e.g. that
           # MAC addresses are sane
@@ -310,25 +318,49 @@ module Razor::Data
     # Besides the keys coming in from the MK, +hw_info+ might also be a
     # +hw_hash+, implying that +mac+ might be an array of MAC addresses
     def self.canonicalize_hw_info(hw_info)
-      if macs = hw_info["mac"]
-        macs = [ macs ] unless macs.is_a? Array
-        macs = macs.map { |mac| mac.gsub(":", "-") }
-        # hw_info might contain an array of mac's; spread that out
-        hw_info = hw_info.to_a.reject! {|k,v| k == "mac" } +
-                  ["mac"].product(macs)
-      end
-      hw_info.map do |k,v|
+      hw_info = hw_info.dup
+
+      facts = (hw_info.delete("facts") || {}).map { |k,v| ["fact_#{k}",v] }
+
+      # Spread the (possible) array of macs out into a list of pairs
+      # [["mac", ..], ["mac", ..]]
+      macs = Array(hw_info.delete("mac")).map { |mac| mac.gsub(":", "-") }
+      macs = ["mac"].product(macs)
+
+      (hw_info.to_a + facts + macs).reject do |_,v|
+        v.nil? || v.strip == ""
+      end.map do |k,v|
         # We treat the netXXX keys special so that our hw_info is
         # independent of the order in which the BIOS enumerates NICs. We
         # also don't care about case
         k = "mac" if k =~ /net[0-9]+/
         [k.downcase, v.strip.downcase]
-      end.select do |k, v|
-        Razor::Config::HW_INFO_KEYS.include?(k) && v && v != ""
+      end.select do |k, _|
+        Razor::Config::HW_INFO_KEYS.include?(k) || k.start_with?('fact_')
       end.sort do |a, b|
         # Sort the [key, value] pairs lexicographically
         a[0] == b[0] ? a[1] <=> b[1] : a[0] <=> b[0]
-      end.map { |pair| "#{pair[0]}=#{pair[1]}" }
+      end.map do |k,v|
+        "#{k}=#{v}"
+      end
+    end
+
+    # Find all nodes matching the hardware criteria in +params+ which must
+    # be in a format that +canonicalize_hw_info+ understands. Return a
+    # pair, where the first part is an array of nodes, and the second part
+    # the +hw_info+ that was used for the lookup
+    def self.find_by_hw_info(params)
+      # For matching nodes, we only consider the +hw_info+ values named in
+      # the 'match_nodes_on' config setting.
+      hw_match = canonicalize_hw_info(params).select do |p|
+        name = p.split("=")[0]
+        Razor.config['match_nodes_on'].include?(name) or
+          name.start_with?('fact_')
+      end
+
+      hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
+
+      [self.where(:hw_info.pg_array.overlaps(hw_match)).all, hw_match]
     end
 
     # Look up a node by its hw_info; any node whose hw_info overlaps with
@@ -339,30 +371,75 @@ module Razor::Data
       dhcp_mac = params.delete("dhcp_mac")
       dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
 
-      hw_info = canonicalize_hw_info(params)
-      # For matching nodes, we only consider the +hw_info+ values named in
-      # the 'match_nodes_on' config setting
-      hw_match = hw_info.select do |p|
-        Razor.config['match_nodes_on'].include?(p.split("=")[0])
-      end
-      hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
-      nodes = self.where(:hw_info.pg_array.overlaps(hw_match)).all
+      nodes, hw_info = self.find_by_hw_info(params)
       if nodes.size == 0
         self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
       elsif nodes.size == 1
         node = nodes.first
+        # We do not want to update the hw_info at this point; all we know
+        # is what iPXE sees and that might not be the complete picture. If
+        # we fail to identify an existing node because of HW changes, we
+        # rely on the fact that a new node gets created, and we later on
+        # call register to merge the existing and the new node
         unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
           node.dhcp_mac = dhcp_mac
-          node.save
-        end
-        if hw_info != node.hw_info
-          node.hw_info = hw_info
           node.save
         end
         node
       else
         # We have more than one node matching hw_info; fail
         raise DuplicateNodeError.new(hw_info, nodes)
+      end
+    end
+
+    # Use the facts +facts+ to fully register the node; this is a
+    # counterpart to +lookup+; while +lookup+ uses the much more restricted
+    # information provided by iPXE, this method relies on all the facts
+    # we've gathered and can therefore use much more thorough information
+    # about the node to set +hw_info+
+    #
+    # As an example, iPXE generally (because we use undionly.kpxe) will
+    # only see one NIC, whereas we have all of them in our facts
+    def self.register(facts)
+      macs = facts.select { |k,_| k.start_with?('macaddress') }.
+        map { |_, v| v }.uniq
+
+      # @todo lutter 2014-05-19: we should also fill the asset tag; I am
+      # not sure which fact coresponds to the asset tag
+      nodes, hw_info = self.find_by_hw_info({
+        'mac'    => macs,
+        'serial' => facts['serialnumber'],
+        'uuid'   => facts['uuid'],
+        'facts'  => facts.select { |k, _| Razor.config.fact_match_on?(k) }
+      })
+
+      if nodes.size == 0
+        # Should not happen
+        Razor.logger.error("Failed to find node with facts #{facts.inspect} for registration")
+        return nil
+      else
+        # If all but one of the nodes have not been registered yet, we can
+        # merge them into the registered node. Otherwise, we complain
+        if nodes.any? { |n| n.registered? }
+          keep_node  = nodes.find { |n| n.registered? }
+          kill_nodes = nodes.reject { |n| n.registered? }
+          if kill_nodes.size != nodes.size - 1
+            # We found more than one node that was already registered
+            raise DuplicateNodeError.new(hw_info, nodes)
+          end
+        else
+          keep_node  = nodes.first
+          kill_nodes = nodes[1..-1]
+        end
+
+        keep_node.hw_info = hw_info
+
+        kill_nodes.each do |kill_node|
+          kill_node.node_log_entries_dataset.update(:node_id => keep_node.id)
+          kill_node.destroy
+        end
+        keep_node.save
+        keep_node
       end
     end
 

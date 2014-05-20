@@ -292,7 +292,20 @@ and requires full control over the database (eg: add and remove tables):
     return 400 unless json['facts']
     begin
       node = Razor::Data::Node[params["id"]] or return 404
+      unless node.registered?
+        # This is a newly created node (created by /svc/boot) and we haven't
+        # fully identified it yet. Since the facts tell us much more about
+        # the node than iPXE does, look the node up again, which, as a
+        # sideeffect will amend the node's hw_info
+        node = Razor::Data::Node.register(json['facts'])
+        return 404 unless node
+      end
       node.checkin(json).to_json
+    rescue Razor::Data::DuplicateNodeError => e
+      # Raised by register
+      e.log_to_nodes!
+      logger.error(e.message)
+      return 400
     rescue Razor::Matcher::RuleEvaluationError => e
       logger.error("during checkin of #{node.name}: " + e.message)
       { :action => :none }.to_json
