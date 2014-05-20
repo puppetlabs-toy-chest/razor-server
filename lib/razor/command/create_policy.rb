@@ -26,7 +26,8 @@ A sample policy installing CentOS 6.4:
       "root-password": "secret",
       "max-count":     20,
       "before":        "other policy",
-      "tags":          ["small"]
+      "tags":          ["small"],
+      "node-metadata": {"key": "value"}
     }
   EOT
 
@@ -94,6 +95,12 @@ A sample policy installing CentOS 6.4:
     match the selected repo, as it references files contained within that repository.
   HELP
 
+  attr 'node-metadata', type: Hash, help: _(<<-HELP)
+    Allows a policy to apply metadata to a node when it binds. This is NON
+    AUTHORITATIVE in that it will not replace existing metadata on the node
+    with the same keys it will only add keys that are missing.
+  HELP
+
   def run(request, data)
     tags = (data.delete("tags") || []).map do |t|
       Razor::Data::Tag.find(name: t)
@@ -109,15 +116,16 @@ A sample policy installing CentOS 6.4:
     data["hostname_pattern"] = data.delete("hostname")
 
     # Handle positioning in the policy table
-    if data["before"] or data["after"]
-      position = data["before"] ? "before" : "after"
+    if data.has_key?("before") or data.has_key?("after")
+      position = data.has_key?("before") ? "before" : "after"
       neighbor = Razor::Data::Policy[:name => data.delete(position)]
     end
 
     data["enabled"] = true if data["enabled"].nil?
 
-    data["max_count"] = data.delete("max-count") if data["max-count"]
-    data["root_password"] = data.delete("root-password") if data["root-password"]
+    data["max_count"] = data.delete("max-count") if data.has_key?("max-count")
+    data["root_password"] = data.delete("root-password") if data.has_key?("root-password")
+    data["node_metadata"] = data.delete("node-metadata") if data.has_key?("node-metadata")
 
     # Create the policy
     policy, is_new = Razor::Data::Policy.import(data)
@@ -144,6 +152,7 @@ A sample policy installing CentOS 6.4:
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
       data['root-password'] = data.delete('root_password') if data['root_password']
       data['max-count'] = data.delete('max_count') if data['max_count']
+      data['node-metadata'] = data.delete('node_metadata') if data['node_metadata']
     end
   end
 end

@@ -138,6 +138,13 @@ describe "create policy command" do
       Razor::Data::Policy[:name => command_hash['name']].max_count.should == 10
     end
 
+    it "should allow creating a policy with node_metadata" do
+      metadata = { "key1" => "value1", "key2" => "value2" }
+      command_hash['node-metadata'] = metadata
+      create_policy
+      Razor::Data::Policy[:name => command_hash['name']].node_metadata.should == metadata
+    end
+
     it "should fail with the wrong datatype for repo" do
       command_hash['repo'] = { }
       create_policy
