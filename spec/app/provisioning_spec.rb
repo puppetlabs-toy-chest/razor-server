@@ -332,7 +332,7 @@ describe "provisioning API" do
     end
 
     it "should return 200 if tag evaluation fails and log an error" do
-      node = Fabricate(:node)
+      node = Fabricate(:node_with_facts)
       # This will cause a RuleEvaluationError since there is no 'none' fact
       # in the checkin
       tag = Fabricate(:tag, :rule => ["=", ["fact", "none"], "1"])
@@ -346,6 +346,116 @@ describe "provisioning API" do
 
       node.reload
       node.log.last["severity"].should == "error"
+    end
+
+    it "should update the hw_info" do
+      Razor.config['match_nodes_on'] = ['mac', 'serial']
+      Razor.config['facts.match_on'] = ['/f\d+/']
+
+      node = Fabricate(:node, :hw_info => [ 'serial=1234' ])
+
+      header 'Content-Type', 'application/json'
+      body = { "facts" => { "serialnumber" => "1234",
+                            "f1" => "a",
+                            "g1" => "b",
+                            "macaddress_eth0" => "de:ad:be:ef:00:01",
+                            "macaddress_eth1" => "de:ad:be:ef:00:02"} }.to_json
+      post "/svc/checkin/#{node.id}", body
+
+      last_response.status.should == 200
+      last_response.json.should == { "action" => "none" }
+
+      node.reload
+      node.hw_info.should == ["fact_f1=a",
+                              "mac=de-ad-be-ef-00-01", "mac=de-ad-be-ef-00-02",
+                              "serial=1234"]
+    end
+
+    describe "with multiple nodes" do
+      before(:each) do
+        Razor.config['match_nodes_on'] = ['serial']
+        Razor.config['facts.match_on'] = ['/f\d+/']
+      end
+
+      it "should merge nodes into one that is registered" do
+        n1 = Fabricate(:node, :hw_info => [ 'serial=1', 'fact_f1=a' ],
+                       :facts => { "f1" => "a" })
+        n2 = Fabricate(:node, :hw_info => [ 'serial=2' ])
+        n3 = Fabricate(:node, :hw_info => [ 'serial=2' ])
+
+        header 'Content-Type', 'application/json'
+        body = { "facts" => { "serialnumber" => "2",
+                              "f1" => "a"} }.to_json
+        post "/svc/checkin/#{n2.id}", body
+
+        last_response.status.should == 200
+        last_response.json.should == { "action" => "none" }
+
+        n1.reload
+        n1.hw_info.should == ["fact_f1=a", "serial=2"]
+        Node[n2.id].should be_nil
+        Node[n3.id].should be_nil
+      end
+
+      it "should merge unregistered nodes into one of them" do
+        nodes = [Fabricate(:node, :hw_info => [ 'serial=1', 'fact_f1=a' ]),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ]),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ])]
+
+        header 'Content-Type', 'application/json'
+        body = { "facts" => { "serialnumber" => "2",
+                              "f1" => "a"} }.to_json
+        post "/svc/checkin/#{nodes[1].id}", body
+
+        last_response.status.should == 200
+        last_response.json.should == { "action" => "none" }
+
+        new_nodes = nodes.map { |n| Node[n.id] }.compact
+
+        new_nodes.size.should == 1
+        new_nodes[0].registered?.should be_true
+      end
+
+      it "should fail when multiple registered nodes match the checkin for an unregistered one" do
+        nodes = [Fabricate(:node, :hw_info => [ 'serial=1', 'fact_f1=a' ],
+                           :facts => { 'f1' => 'a' }),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ],
+                           :facts => { 'g1' => 'x' }),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ])]
+
+        header 'Content-Type', 'application/json'
+        body = { "facts" => { "serialnumber" => "2",
+                              "f1" => "a"} }.to_json
+        post "/svc/checkin/#{nodes[2].id}", body
+
+        last_response.status.should == 400
+
+        new_nodes = nodes.map { |n| Node[n.id] }.compact
+        new_nodes.size.should == 3
+      end
+
+      it "should succeed when multiple registered nodes match the checkin for a registered one" do
+        # This is a side-effect of only calling Node.register on
+        # unregistered nodes. It may (or may not) be desirable to always
+        # call register on such nodes in the future; for a real node,
+        # Node.lookup, called from /svc/boot would have raised an error
+        # already and the node would have never gotten this far
+        nodes = [Fabricate(:node, :hw_info => [ 'serial=1', 'fact_f1=a' ],
+                           :facts => { 'f1' => 'a' }),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ],
+                           :facts => { 'g1' => 'x' }),
+                 Fabricate(:node, :hw_info => [ 'serial=2' ])]
+
+        header 'Content-Type', 'application/json'
+        body = { "facts" => { "serialnumber" => "2",
+                              "f1" => "a"} }.to_json
+        post "/svc/checkin/#{nodes[1].id}", body
+
+        last_response.status.should == 200
+
+        new_nodes = nodes.map { |n| Node[n.id] }.compact
+        new_nodes.size.should == 3
+      end
     end
   end
 

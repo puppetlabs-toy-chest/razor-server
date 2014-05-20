@@ -65,8 +65,13 @@ module Razor
       !! facts_blacklist_rx.match(name)
     end
 
+    def fact_match_on?(name)
+      !! facts_match_on_rx.match(name)
+    end
+
     def validate!
-      validate_facts_blacklist_rx
+      validate_rx_array("facts.blacklist")
+      validate_rx_array("facts.match_on")
       validate_repo_store_root
       validate_match_nodes_on
     end
@@ -87,14 +92,21 @@ module Razor
     end
 
     def facts_blacklist_rx
-      @facts_blacklist_rx ||=
-        Regexp.compile("\\A((" + Array(self["facts.blacklist"]).map do |s|
-                         if s =~ %r{\A/(.*)/\Z}
-                           $1
-                         else
-                           Regexp.quote(s)
-                         end
-                       end.join(")|(") + "))\\Z")
+      @facts_blacklist_rx ||= rx_from_array("facts.blacklist")
+    end
+
+    def facts_match_on_rx
+      @facts_match_on_rx ||= rx_from_array("facts.match_on")
+    end
+
+    def rx_from_array(name)
+      Regexp.compile("\\A((" + Array(self[name]).map do |s|
+                       if s =~ %r{\A/(.*)/\Z}
+                         $1
+                       else
+                         Regexp.quote(s)
+                       end
+                     end.join(")|(") + "))\\Z")
     end
 
     # Validations
@@ -102,13 +114,13 @@ module Razor
       raise InvalidConfigurationError.new(key, msg)
     end
 
-    def validate_facts_blacklist_rx
-      list = Array(self["facts.blacklist"])
+    def validate_rx_array(name)
+      list = Array(self[name])
       list.map { |s| s =~ %r{\A/(.*)/\Z} and $1 }.compact.each do |s|
         begin
           Regexp.compile(s)
         rescue RegexpError => e
-          raise_ice("facts.blacklist",
+          raise_ice(name,
                     _("entry %{raw} is not a valid regular expression: %{error}") % {raw: s, error: e.message})
         end
       end
