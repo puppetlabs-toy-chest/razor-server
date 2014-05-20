@@ -38,6 +38,15 @@ all:
   microkernel:
     debug_level: debug
     kernel_args:
+    # If this value is present, and points to a zip file, it will be
+    # downloaded and unpacked by the MK client prior to checkin.  This allows
+    # for custom facts and other code to be shipped to the client without
+    # having to rebuild the ISO image.
+    #
+    # If it is not set, no update will be sent, and the ISO will use only the
+    # default facts, etc, available in the default build.
+    #
+    # extension-zip: /etc/razor/mk-extension.zip
 
   # Should newly discovered nodes be marked installed?
   protect_new_nodes: false
