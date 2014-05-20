@@ -54,7 +54,11 @@ module Razor
     end
 
     def boot_template(node)
-      @boot_seq[node.boot_count] || @boot_seq["default"]
+      if node
+        @boot_seq[node.boot_count] || @boot_seq["default"]
+      else 
+        @boot_seq["default"]
+      end
     end
 
     def find_file(filename)

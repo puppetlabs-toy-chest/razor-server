@@ -143,7 +143,7 @@ module Razor::Data
     # @todo lutter 2013-09-06: narrow down and document what actions and
     # events can be logged, together with the additional information for
     # each
-    def log_append(entry)
+    def log_append(entry, timestamp=nil)
       entry[:severity] ||= 'info'
       # Roundtrip the hash through JSON to make sure we always have the
       # same entries in the log that we would get from loading from DB
@@ -151,7 +151,41 @@ module Razor::Data
       # reloading)
       entry = JSON::parse(entry.to_json)
       TorqueBox::Logger.new.info("#{name}: #{entry.inspect}")
-      add_node_log_entry(:entry => entry)
+
+      if timestamp
+        add_node_log_entry(:timestamp => timestamp, :entry => entry)
+      else
+        add_node_log_entry(:entry => entry)
+      end
+    end
+
+    def is_new
+      @is_new = true
+      self
+    end
+
+    def is_new?
+      @is_new ? true : false
+    end
+
+    #Return an array containing fact regexes that can be used to match nodes
+    #These facts will be added to the hw_info
+    def self.match_nodes_on_facts
+      if Razor.config['match_nodes_on_facts']
+        if Razor.config['match_nodes_on_facts'].is_a?(Array)
+          criteria = Razor.config['match_nodes_on_facts']
+        else
+          criteria = [ Razor.config['match_nodes_on_facts'] ]
+        end
+      else
+        criteria = []
+      end
+
+      criteria.collect do |c|
+        c.sub!('^\^','')
+        c.sub!('\$$','')
+        "^#{c}$"
+      end
     end
 
     def installed=(value)
@@ -219,7 +253,7 @@ module Razor::Data
             errors.add(:hw_info, _("entry '%{raw}' is not in the format 'key=value'") % {raw: p})
           (pair[1].nil? or pair[1] == "") and
             errors.add(:hw_info, _("entry '%{raw}' does not have a value") % {raw: p})
-          Razor::Config::HW_INFO_KEYS.include?(pair[0]) or
+          (Razor::Config::HW_INFO_KEYS.include?(pair[0]) or pair[0] =~ /^fact_/) or
             errors.add(:hw_info, _("entry '%{raw}' uses an unknown key %{key}") % {raw: p, key: pair[0]})
           # @todo lutter 2013-09-03: we should do more checking, e.g. that
           # MAC addresses are sane
@@ -289,6 +323,26 @@ module Razor::Data
       if facts != new_facts
         self.facts = new_facts
       end
+
+      #Update the hw_info with what facts should be in it
+      hw_info_hash = hw_hash.delete_if do |k,v|
+        k =~ /^fact_/
+      end
+
+      body['facts'].each do |f,v|
+        self.class.match_nodes_on_facts.each do |r|
+          if f =~ %r[#{r}]
+            hw_info_hash['facts'] ||= {}
+            hw_info_hash['facts'][f] = v
+          end
+        end
+      end
+
+      hw_info_hash = self.class.canonicalize_hw_info(hw_info_hash)
+      if hw_info != hw_info_hash
+        self.hw_info = hw_info_hash
+      end
+
       # @todo lutter 2013-09-09: we'd really like to use the DB's idea of
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
@@ -310,6 +364,11 @@ module Razor::Data
     # Besides the keys coming in from the MK, +hw_info+ might also be a
     # +hw_hash+, implying that +mac+ might be an array of MAC addresses
     def self.canonicalize_hw_info(hw_info)
+      facts = []
+      if hw_info["facts"]
+        hw_info.delete("facts").each{|k,v| facts.push( ["fact_#{k}",v] ) }
+      end
+
       if macs = hw_info["mac"]
         macs = [ macs ] unless macs.is_a? Array
         macs = macs.map { |mac| mac.gsub(":", "-") }
@@ -317,14 +376,16 @@ module Razor::Data
         hw_info = hw_info.to_a.reject! {|k,v| k == "mac" } +
                   ["mac"].product(macs)
       end
-      hw_info.map do |k,v|
+
+      (hw_info.to_a + facts).map do |k,v|
         # We treat the netXXX keys special so that our hw_info is
         # independent of the order in which the BIOS enumerates NICs. We
         # also don't care about case
         k = "mac" if k =~ /net[0-9]+/
         [k.downcase, v.strip.downcase]
       end.select do |k, v|
-        Razor::Config::HW_INFO_KEYS.include?(k) && v && v != ""
+        Razor::Config::HW_INFO_KEYS.include?(k) && v && v != "" or
+          k =~ /^fact_/
       end.sort do |a, b|
         # Sort the [key, value] pairs lexicographically
         a[0] == b[0] ? a[1] <=> b[1] : a[0] <=> b[0]
@@ -335,31 +396,101 @@ module Razor::Data
     # the given hw_info is considered to match. If there is more than one
     # matching node, throw a +DuplicateNodeError+. If there is none, create
     # a new node
-    def self.lookup(params)
-      dhcp_mac = params.delete("dhcp_mac")
-      dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
+    def self.lookup(data)
+      data['facts'] or data['hw_info'] or
+        raise ArgumentError, "Must supply a hash with keys 'facts' or 'hw_info'"
 
-      hw_info = canonicalize_hw_info(params)
+      # If we have facts, the attempt to ID during boot failed.
+      if facts = data['facts']
+        hw_info_facts = {}
+        match_nodes_on_facts.each do |regex|
+          facts.keys.each do |fact|
+            if fact =~ %r[#{regex}]
+              hw_info_facts[fact] = facts[fact]
+            end
+          end
+        end
+
+        # Set up what this nodes hw_info and dhcp mac fields should look like
+        hw_info = canonicalize_hw_info({
+          'mac'   => facts['macaddress'],
+          'uuid'  => facts['uuid'],
+          'facts' => hw_info_facts,
+        })
+        dhcp_mac = facts['macaddress'].gsub(':','-').strip.downcase
+      else
+        params = data['hw_info']
+        dhcp_mac = params.delete("dhcp_mac")
+        dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
+
+        hw_info = canonicalize_hw_info(params)
+      end
+
       # For matching nodes, we only consider the +hw_info+ values named in
-      # the 'match_nodes_on' config setting
+      # the 'match_nodes_on' config setting or facts that match the match_nodes_on_facts config setting
       hw_match = hw_info.select do |p|
-        Razor.config['match_nodes_on'].include?(p.split("=")[0])
+        Razor.config['match_nodes_on'].include?(p.split("=")[0]) or p.split("=")[0] =~ /^fact_/
       end
       hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
       nodes = self.where(:hw_info.pg_array.overlaps(hw_match)).all
-      if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+
+      if nodes.nil? or nodes.size == 0
+        node = self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        node.is_new
       elsif nodes.size == 1
         node = nodes.first
+
+        #Update the dhcp mac if required
         unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
           node.dhcp_mac = dhcp_mac
           node.save
         end
-        if hw_info != node.hw_info
-          node.hw_info = hw_info
+
+        #Update the hw_info.
+        if hw_info.reject{|h| h =~ /^fact_/} != node.hw_info.reject{|h| h =~ /^fact_/}
+          if hw_info.select{|h| h =~ /^fact_/}
+            #We were given facts so update the facts
+            node.hw_info = hw_info
+          else
+            #otherwise preserve the exising facts
+            facts = node.hw_info.select{|h| h =~ /^fact_/}
+            node.hw_info = hw_info + facts
+          end
           node.save
         end
+
         node
+      elsif nodes.size == 2
+        #This will happen if a machine could not be ID'ed during boot and has now
+        #been identified using facts during the checkin.  One will have facts in its
+        #hw_info and the other will not. The real one will be the one with facts.
+        #Update the hw_info of the real one and merge the log from the fake one to the
+        #new one.
+        real_node = nil
+        fake_node = nil
+
+        nodes.each do |node|
+          if node.hw_info.select{ |h| h =~ /fact_/ }.length > 0
+            real_node = node
+          else
+            fake_node = node
+          end
+        end
+
+        unless real_node && fake_node
+          #Neither have facts this is duplicate error
+          raise DuplicateNodeError.new(hw_info, nodes)
+        end
+
+        #update the hw_info of the real_node
+        real_node.hw_info = hw_info
+
+        fake_node.node_log_entries_dataset.each do |log|
+          real_node.log_append(log.entry, log.timestamp)
+        end
+
+        fake_node.destroy
+        real_node.save
       else
         # We have more than one node matching hw_info; fail
         raise DuplicateNodeError.new(hw_info, nodes)
