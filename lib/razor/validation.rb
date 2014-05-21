@@ -20,7 +20,7 @@ module Razor::Validation
 
   # Kind of cheap, but this should forward all the instance methods along, but
   # only if they are defined specifically on that class.
-  def_delegators('schema', *Razor::Validation::HashSchema.public_instance_methods(false))
+  def_delegators('schema', :array, :attr, :object, :require_one_of, :authz, :extra_attrs, :validate!)
 end
 
 class Razor::ValidationFailure < TypeError
