@@ -16,7 +16,7 @@ sleep 3
 <%
   facts = node.facts || {}
   if !facts["is_virtual"] or facts["is_virtual"] != "false" or
-      node.metadata['sanboot']) %>
+      node.metadata['sanboot'] %>
 echo forcing local booting with sanboot 0x80
 sanboot --no-describe --drive 0x80
 <% end %>
