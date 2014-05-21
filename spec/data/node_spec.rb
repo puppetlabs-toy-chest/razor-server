@@ -286,6 +286,21 @@ describe Razor::Data::Node do
       node.policy.should be_nil
     end
 
+    it "should not bind if the node is marked installed" do
+      node.installed = 'test'
+      node.save
+
+      policy = Fabricate(:policy, :rule_number => 20)
+      policy.add_tag(tag)
+      policy.save
+
+      node.checkin('facts' => { 'f1' => 'a' })
+
+      node.reload
+      node.policy.should be_nil
+      node.installed.should == 'test'
+    end
+
     describe "of a bound node" do
       let (:repo) { Fabricate(:repo) }
 
