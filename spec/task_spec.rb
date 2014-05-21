@@ -79,7 +79,7 @@ describe Razor::Task do
   describe "all" do
     it "lists file tasks" do
       Task.all.map { |t| t.name }.should =~
-        ["microkernel", "shadowed", "some_os", "some_os/base", "some_os/derived"]
+        ["microkernel", "noop", "shadowed", "some_os", "some_os/base", "some_os/derived"]
     end
 
     it "lists database tasks" do
@@ -87,7 +87,7 @@ describe Razor::Task do
                                       :os => 'SomeOS',
                                       :os_version => '6')
       Task.all.map { |t| t.name }.should =~
-        ["microkernel", "shadowed", "some_os", "some_os/base", "some_os/derived", "dbinst"]
+        ["microkernel", "noop", "shadowed", "some_os", "some_os/base", "some_os/derived", "dbinst"]
     end
   end
 

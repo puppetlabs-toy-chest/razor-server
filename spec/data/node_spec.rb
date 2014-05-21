@@ -53,6 +53,36 @@ describe Razor::Data::Node do
     end
   end
 
+  context "task" do
+    it "returns the policy's task for a bound node" do
+      node = Fabricate(:bound_node)
+      node.task.name.should == node.policy.task.name
+    end
+
+    it "returns the noop task for installed and registered nodes" do
+      node = Fabricate(:installed_node)
+      node.facts = { 'f1' => 'a' }
+      node.task.name.should == Razor::Task.noop_task.name
+    end
+
+    describe "returns the microkernel task" do
+      it "for new nodes" do
+        node = Fabricate(:node)
+        node.task.name.should == Razor::Task.mk_task.name
+      end
+
+      it "for nodes that are installed but not registered" do
+        node = Fabricate(:installed_node)
+        node.task.name.should == Razor::Task.mk_task.name
+      end
+
+      it "for nodes that are registered but not installed" do
+        node = Fabricate(:node, :facts => { 'f1' => 'a' })
+        node.task.name.should == Razor::Task.mk_task.name
+      end
+    end
+  end
+
   # @todo danielp 2014-03-11: This kind of does test "is it on", but it was
   # previously application level logic, so better to translate the tests and
   # make sure they pass.
@@ -284,6 +314,21 @@ describe Razor::Data::Node do
       node.log[0]["severity"].should == "error"
       node.log[0]["msg"].should =~ /typo/
       node.policy.should be_nil
+    end
+
+    it "should not bind if the node is marked installed" do
+      node.installed = 'test'
+      node.save
+
+      policy = Fabricate(:policy, :rule_number => 20)
+      policy.add_tag(tag)
+      policy.save
+
+      node.checkin('facts' => { 'f1' => 'a' })
+
+      node.reload
+      node.policy.should be_nil
+      node.installed.should == 'test'
     end
 
     describe "of a bound node" do

@@ -13,9 +13,10 @@ sleep 3
 <%# testing "is_virtual" exists technically isn't necessary, since we have  %>
 <%# full control over the client, but just in case someone builds a custom  %>
 <%# kernel image that doesn't include it, or something...                   %>
-<% if !node.facts["is_virtual"] or
-       node.facts["is_virtual"] != "false" or
-       node.metadata['sanboot'] %>
+<%
+  facts = node.facts || {}
+  if !facts["is_virtual"] or facts["is_virtual"] != "false" or
+      node.metadata['sanboot']) %>
 echo forcing local booting with sanboot 0x80
 sanboot --no-describe --drive 0x80
 <% end %>

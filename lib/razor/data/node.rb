@@ -46,6 +46,23 @@ module Razor::Data
 
     plugin :typecast_on_load, :hw_info
 
+    # The policy that governs how this node is to be or has been
+    # installed. Having policy set does not mean that the node is
+    # installed.  A node is only considered installed when the policy's
+    # task has successfully completed and stage_done('finished') has been
+    # called; once a node is installed we must consider what's on it
+    # precious to the user and will not try to alter the node without
+    # explicit user interaction, e.g. the user calling 'reinstall-node'.
+    #
+    # To be precise, here are the combinations of +policy+ and +installed+
+    # for a node and what they mean:
+    #
+    #   policy  | installed | meaning
+    #  -------------------------------------------------------------------
+    #   truthy  |  truthy   | successfully finished installation
+    #   truthy  |   nil     | in process of working through task
+    #     nil   |  truthy   | installed, but we don't know how it was done
+    #     nil   |   nil     | available for policy matching
     many_to_one :policy
     one_to_many :node_log_entries
 
@@ -67,7 +84,7 @@ module Razor::Data
       # Support users configuring that we mark all newly discovered nodes as
       # "installed" already, despite having no policy.
       if Razor.config['protect_new_nodes']
-        self.installed    = true
+        self.installed    = '+protected'
         self.installed_at = Time.now
       end
       super
@@ -97,7 +114,7 @@ module Razor::Data
     def task
       if policy
         policy.task
-      elsif installed
+      elsif installed and registered?
         Razor::Task.noop_task
       else
         Razor::Task.mk_task
@@ -301,14 +318,15 @@ module Razor::Data
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
-      action = :none
-      match_and_bind unless policy
+      match_and_bind unless (installed or policy)
       if policy
         log_append(:action => :reboot, :policy => policy.name)
-        action = :reboot
+      elsif installed
+        log_append(:action => :reboot, :task => 'noop',
+          :msg => _("Node has no policy but is installed. Booting locally"))
       end
       save_changes
-      { :action => action }
+      { :action => (installed or policy) ? :reboot : :none }
     end
 
     # Normalize the hardware info. Be very careful when you change this
