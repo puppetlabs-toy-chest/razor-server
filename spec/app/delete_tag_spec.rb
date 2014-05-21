@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "delete-tag" do
+describe Razor::Command::DeleteTag do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -22,9 +22,7 @@ describe "delete-tag" do
     header 'content-type', 'application/json'
   end
 
-  describe Razor::Command::DeleteTag do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should delete an existing tag" do
     tag = Fabricate(:tag)

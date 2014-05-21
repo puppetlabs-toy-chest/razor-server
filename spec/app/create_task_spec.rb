@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "create task command" do
+describe Razor::Command::CreateTask do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -26,9 +26,7 @@ describe "create task command" do
       command 'create-task', (input || command_hash)
     end
 
-    describe Razor::Command::CreateTask do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should reject bad JSON" do
       create_task '{"json": "not really..."'

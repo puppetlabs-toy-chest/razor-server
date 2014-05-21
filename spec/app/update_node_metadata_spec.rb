@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "update node metadata command" do
+describe Razor::Command::UpdateNodeMetadata do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -28,9 +28,7 @@ describe "update node metadata command" do
     command 'update-node-metadata', data
   end
 
-  describe Razor::Command::UpdateNodeMetadata do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should require no-replace to equal true" do
     data = { 'node' => "node#{node.id}", 'key' => 'k1', 'value' => 'v1', 'no-replace' => 'not true' }

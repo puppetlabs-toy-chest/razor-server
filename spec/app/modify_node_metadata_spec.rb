@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "modify node metadata command" do
+describe Razor::Command::ModifyNodeMetadata do
   include Razor::Test::Commands
 
   let(:node) do

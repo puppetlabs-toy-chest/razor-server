@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "set-node-ipmi-credentials" do
+describe Razor::Command::SetNodeIPMICredentials do
   include Razor::Test::Commands
 
   let(:app)  { Razor::App }
@@ -14,9 +14,7 @@ describe "set-node-ipmi-credentials" do
     authorize 'fred', 'dead'
   end
 
-  describe Razor::Command::SetNodeIPMICredentials do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should report 'no such node' if the name isn't found" do
     command 'set-node-ipmi-credentials', {:name => 'bananaman'}
@@ -44,7 +42,7 @@ describe "set-node-ipmi-credentials" do
   end
 end
 
-describe "reboot-node" do
+describe Razor::Command::RebootNode do
   include Razor::Test::Commands
   include TorqueBox::Injectors
 
@@ -58,9 +56,7 @@ describe "reboot-node" do
     authorize 'fred', 'dead'
   end
 
-  describe Razor::Command::RebootNode do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should work" do
     command 'reboot-node', {'name' => node.name}
@@ -128,7 +124,7 @@ EOT
   end
 end
 
-describe "set-node-desired-power-state" do
+describe Razor::Command::SetNodeDesiredPowerState do
   include Razor::Test::Commands
 
   let(:app)   { Razor::App }
@@ -140,9 +136,7 @@ describe "set-node-desired-power-state" do
     authorize 'fred', 'dead'
   end
 
-  describe Razor::Command::SetNodeDesiredPowerState do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should 404 if the node does not exist" do
     command 'set-node-desired-power-state', {name: node.name + '-really'}

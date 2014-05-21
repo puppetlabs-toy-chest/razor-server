@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "delete-node" do
+describe Razor::Command::DeleteNode do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -21,9 +21,7 @@ describe "delete-node" do
       header 'content-type', 'application/json'
     end
 
-    describe Razor::Command::DeleteNode do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should delete an existing node" do
       node = Fabricate(:node)

@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "update-tag-rule" do
+describe Razor::Command::UpdateTagRule do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -30,9 +30,7 @@ describe "update-tag-rule" do
     }
   end
 
-  describe Razor::Command::UpdateTagRule do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should update an existing tag" do
     update_tag_rule(tag.name, ["!=", 1, 1])

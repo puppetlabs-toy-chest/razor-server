@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "policy-remove-tag" do
+describe Razor::Command::RemovePolicyTag do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -29,9 +29,7 @@ describe "policy-remove-tag" do
       }
     end
 
-    describe Razor::Command::RemovePolicyTag do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should remove a tag from a policy" do
       count = policy.tags.count

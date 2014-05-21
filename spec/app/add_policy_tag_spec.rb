@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "policy-add-tag" do
+describe Razor::Command::AddPolicyTag do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -31,9 +31,7 @@ describe "policy-add-tag" do
       }
     end
 
-    describe Razor::Command::AddPolicyTag do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should advise that that tag is already on policy" do
       count = policy.tags.count

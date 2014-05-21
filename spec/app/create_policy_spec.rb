@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "create policy command" do
+describe Razor::Command::CreatePolicy do
   include Razor::Test::Commands
 
   let('app') { Razor::App }
@@ -34,9 +34,7 @@ describe "create policy command" do
       }
     end
 
-    describe Razor::Command::CreatePolicy do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     def create_policy(input = nil)
       input ||= command_hash

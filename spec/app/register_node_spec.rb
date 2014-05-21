@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "register node" do
+describe Razor::Command::RegisterNode do
   include Razor::Test::Commands
 
   let :app do Razor::App end
@@ -36,9 +36,7 @@ describe "register node" do
     end
   end
 
-  describe Razor::Command::RegisterNode do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should create a new node based on the input data" do
     register_node 'installed' => true, 'hw-info' => {'net0' => '00:0c:29:08:06:e0'}

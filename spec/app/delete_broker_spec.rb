@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "delete-broker" do
+describe Razor::Command::DeleteBroker do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -16,9 +16,7 @@ describe "delete-broker" do
     command 'delete-broker', { "name" => name }
   end
 
-  describe Razor::Command::DeleteBroker do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   before :each do
     header 'content-type', 'application/json'

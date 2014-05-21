@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "move policy command" do
+describe Razor::Command::MovePolicy do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -34,9 +34,7 @@ describe "move policy command" do
     Policy.all.map { |p| p.id }.should == list.map { |x| x.id }
   end
 
-  describe Razor::Command::MovePolicy do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   describe "spec" do
     it "requires a name for the policy to move" do

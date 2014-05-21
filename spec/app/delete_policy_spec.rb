@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "delete-policy" do
+describe Razor::Command::DeletePolicy do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -18,9 +18,7 @@ describe "delete-policy" do
     command 'delete-policy', params
   end
 
-  describe Razor::Command::DeletePolicy do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   before :each do
     header 'content-type', 'application/json'
