@@ -84,7 +84,7 @@ module Razor::Data
       # Support users configuring that we mark all newly discovered nodes as
       # "installed" already, despite having no policy.
       if Razor.config['protect_new_nodes']
-        self.installed    = true
+        self.installed    = '+protected'
         self.installed_at = Time.now
       end
       super
@@ -114,7 +114,7 @@ module Razor::Data
     def task
       if policy
         policy.task
-      elsif installed
+      elsif installed and registered?
         Razor::Task.noop_task
       else
         Razor::Task.mk_task

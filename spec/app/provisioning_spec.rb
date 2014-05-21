@@ -62,14 +62,67 @@ describe "provisioning API" do
       @mac = @node.hw_hash["mac"].first
     end
 
-    it "without policy should boot the microkernel" do
-      get "/svc/boot?net0=#{@mac}"
-      assert_booting("Microkernel")
-      @node.reload
-      @node.log.last["event"].should == "boot"
-      @node.log.last["task"].should == "microkernel"
-      @node.log.last["template"].should == "boot"
-      @node.log.last["repo"].should == "microkernel"
+    describe "without policy" do
+      def assert_microkernel_boot
+        assert_booting("Microkernel")
+        @node.reload
+
+        entry = @node.log.last
+        entry.should_not be_nil
+        entry.delete('timestamp').should_not be_nil
+        entry.should == {
+          "severity" => "info",
+          "event" => "boot",
+          "task" => "microkernel",
+          "template" => "boot",
+          "repo" => "microkernel"
+        }
+      end
+
+      it "boots the microkernel for a node neither installed nor registered" do
+        get "/svc/boot?net0=#{@mac}"
+        assert_microkernel_boot
+      end
+
+      it "boots the microkernel for an installed node that is not registered" do
+        @node.installed = '+test'
+        @node.installed_at = Time.now
+        @node.save
+
+        get "/svc/boot?net0=#{@mac}"
+        assert_microkernel_boot
+      end
+
+      it "boots the microkernel for a registered node that is not installed" do
+        @node.facts = { 'f1' => 'a' }
+        @node.save
+        @node.registered?.should be_true
+
+        get "/svc/boot?net0=#{@mac}"
+        assert_microkernel_boot
+      end
+
+      it "boots a node that is registered and installed locally" do
+        @node.installed = '+test'
+        @node.installed_at = Time.now
+        @node.facts = { 'f1' => 'a' }
+        @node.save
+        @node.registered?.should be_true
+
+        get "/svc/boot?net0=#{@mac}"
+        assert_booting("Boot local")
+
+        @node.reload
+        entry = @node.log.last
+        entry.delete("timestamp").should_not be_nil
+        entry.should == {
+          "severity" => "info",
+          "repo" => "microkernel",
+          "event" => "boot",
+          "task" => "noop",
+          "template" => "boot_local"
+        }
+      end
     end
 
     describe "booting repeatedly with policy" do
@@ -306,6 +359,11 @@ describe "provisioning API" do
   describe "node checkin" do
     hw_id = "001122334455"
 
+    def checkin(node, facts)
+      header 'Content-Type', 'application/json'
+      post "/svc/checkin/#{node.id}", { "facts" => facts }.to_json
+    end
+
     it "should return 400 for non-json requests" do
       header 'Content-Type', 'text/plain'
       post "/svc/checkin/42", "{}"
@@ -455,6 +513,27 @@ describe "provisioning API" do
 
         new_nodes = nodes.map { |n| Node[n.id] }.compact
         new_nodes.size.should == 3
+      end
+    end
+
+    describe "of an installed node" do
+      it "should reboot and not bind when the node has no policy" do
+        tag = Fabricate(:tag)
+        policy = Fabricate(:policy, :tags => [ tag ])
+        node = Fabricate(:installed_node, :hw_hash => { 'serial' => '1' })
+        installed = node.installed
+
+        checkin node, 'serialnumber' => '1'
+
+        last_response.status.should == 200
+        last_response.json['action'].should == 'reboot'
+
+        node.reload
+        node.registered?.should be_true
+        node.installed.should == installed
+        node.policy.should be_nil
+        # Checkin will not try to evaluate tags on installed nodes
+        node.tags.should be_empty
       end
     end
   end

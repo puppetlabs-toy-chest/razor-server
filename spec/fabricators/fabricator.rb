@@ -91,6 +91,11 @@ Fabricator(:node_with_metadata, from: :node) do
   metadata { { "m1" => "a" } }
 end
 
+Fabricator(:installed_node, from: :node) do
+  installed "+test"
+  installed_at { Time.now }
+end
+
 Fabricator(:bound_node, from: :node) do
   policy
 
