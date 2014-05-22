@@ -36,9 +36,7 @@ describe Razor::Command::SetNodeHWInfo do
     end
   end
 
-  describe Razor::Command::SetNodeHWInfo do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   it "should fail if the node does not exist" do
     command_hash['node'] = 'freddy'

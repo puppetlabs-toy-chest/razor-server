@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "remove node metadata command" do
+describe Razor::Command::RemoveNodeMetadata do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -22,9 +22,7 @@ describe "remove node metadata command" do
     authorize 'fred', 'dead'
   end
 
-  describe Razor::Command::RemoveNodeMetadata do
-    it_behaves_like "a command"
-  end
+  it_behaves_like "a command"
 
   def remove_metadata(data)
     command 'remove-node-metadata', data

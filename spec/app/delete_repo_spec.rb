@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "delete-repo" do
+describe Razor::Command::DeleteRepo do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -21,9 +21,7 @@ describe "delete-repo" do
       header 'content-type', 'application/json'
     end
 
-    describe Razor::Command::DeleteRepo do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should delete an existing repo" do
       repo = Fabricate(:repo)

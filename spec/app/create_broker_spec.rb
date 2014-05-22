@@ -4,7 +4,7 @@ require_relative '../../app'
 
 require 'pathname'
 
-describe "create broker command" do
+describe Razor::Command::CreateBroker do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -27,9 +27,7 @@ describe "create broker command" do
       }
     end
 
-    describe Razor::Command::CreateBroker do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     def create_broker(params)
       command 'create-broker', params

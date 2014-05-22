@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "create tag command" do
+describe Razor::Command::CreateTag do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -25,9 +25,7 @@ describe "create tag command" do
       command 'create-tag', input
     end
 
-    describe Razor::Command::CreateTag do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should reject bad JSON" do
       create_tag '{"json": "not really..."'

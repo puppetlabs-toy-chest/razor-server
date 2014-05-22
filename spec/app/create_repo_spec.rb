@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "command and query API" do
+describe Razor::Command::CreateRepo do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }

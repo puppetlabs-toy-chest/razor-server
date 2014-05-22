@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../../app'
 
-describe "reinstall-node" do
+describe Razor::Command::ReinstallNode do
   include Razor::Test::Commands
 
   let(:app) { Razor::App }
@@ -22,9 +22,7 @@ describe "reinstall-node" do
       header 'content-type', 'application/json'
     end
 
-    describe Razor::Command::ReinstallNode do
-      it_behaves_like "a command"
-    end
+    it_behaves_like "a command"
 
     it "should reinstall a bound node" do
       node = Fabricate(:bound_node)
