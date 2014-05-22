@@ -68,7 +68,11 @@ class Razor::Validation::HashAttribute
   end
 
   def to_json(arg)
-    {'type' => ruby_type_to_json(@type[:type])}.to_json
+    if @type.nil?
+      {}.to_json
+    else
+      {'type' => ruby_type_to_json(@type[:type])}.to_json
+    end
   end
 
   def expand(path, name)
