@@ -248,15 +248,15 @@ will return with status code 400.
 
     {
       "name": "a policy",
-      "repo": "some_repo",
-      "task": "redhat6",
-      "broker": "puppet",
+      "repo": { "name": "some_repo" },
+      "task": { "name": "redhat6" },
+      "broker": { "name": "puppet" },
       "hostname": "host${id}.example.com",
       "root_password": "secret",
       "max_count": "20",
-      "before"|"after": "other policy",
+      "before"|"after": { "name": "other policy" },
       "node_metadata": { "key1": "value1", "key2": "value2" },
-      "tags": ["existing_tag",
+      "tags": [{ "name": "existing_tag"},
                { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
     }
 
@@ -293,7 +293,7 @@ body like:
 
     {
       "name": "a policy",
-      "before"|"after": "other policy"
+      "before"|"after": { "name": "other policy" }
     }
 
 This will change the policy table so that `a policy` will appear before or
