@@ -61,6 +61,9 @@ class Razor::BrokerType
 
   alias_method 'to_s', 'name'
 
+  def ==(o)
+    o.is_a?(Razor::BrokerType) && o.name == name
+  end
 
   # Return the fully interpolated install script, ready to run on a node.
   #
