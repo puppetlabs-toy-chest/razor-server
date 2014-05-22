@@ -79,5 +79,13 @@ describe Razor::Command::CreateBroker do
 
       Razor::Data::Broker[:name => command['name']].should be_an_instance_of Razor::Data::Broker
     end
+    # Successful creation
+    it "should return 202 when repeated with the same parameters" do
+      command = create_broker command_hash
+      command = create_broker command_hash
+
+      last_response.status.should == 202
+      last_response.json['id'].should =~ %r'/api/collections/brokers/#{URI.escape(command_hash['name'])}\Z'
+    end
   end
 end
