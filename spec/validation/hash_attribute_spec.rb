@@ -389,7 +389,7 @@ describe Razor::Validation::HashAttribute do
       child.attr 'name', type: String, required: true
 
       attr.new('test', required: true, schema: child).to_s.
-        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   '))}~
+        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   ').rstrip)}~
     end
 
     it "should include documentation from a nested array" do
@@ -397,7 +397,7 @@ describe Razor::Validation::HashAttribute do
       child.elements type: String
 
       attr.new('test', required: true, schema: child).to_s.
-        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   '))}~
+        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '  ').rstrip)}~
     end
   end
 end

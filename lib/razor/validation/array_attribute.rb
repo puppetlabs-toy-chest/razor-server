@@ -39,8 +39,9 @@ class Razor::Validation::ArrayAttribute
 
   # Documentation generation for the attribute.
   HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
+% if @help
 - <%= @help %>
-- This must be an array.
+%end
 % if @type
 - <%= index_to_s %> must be of type <%= ruby_type_to_json(@type[:type]) %>.
 % end
@@ -49,13 +50,13 @@ class Razor::Validation::ArrayAttribute
 % end
 % if @nested_schema
 - <%= index_to_s %>:
-<%= @nested_schema.to_s.gsub(/^/, '   ') %>
+<%= @nested_schema.to_s.gsub(/^/, '  ') %>
 % end
   ERB
 
   def to_s
     # We indent so that nested attributes do the right thing.
-    HelpTemplate.result(binding).gsub(/^/, '   ')
+    HelpTemplate.result(binding).gsub(/^/, '  ').rstrip
   end
 
   def index_to_s
