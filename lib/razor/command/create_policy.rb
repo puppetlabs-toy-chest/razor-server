@@ -68,7 +68,7 @@ A sample policy installing CentOS 6.4:
   HELP
 
   array 'tags', help: _(<<-HELP) do
-    The array of names of tags that are used for matching nodes to this policy.
+    The names of tags that are used for matching nodes to this policy.
 
     When a node has all these tags matched on it, it will be a candidate
     for binding to this policy.

@@ -28,7 +28,9 @@ see power transitions in the record, or through the node object if polling.
   EOT
 
   example <<-EOT
-Queue a node reboot: `{"name": "node1"}`
+Queue a node reboot:
+
+    {"name": "node1"}
   EOT
 
 

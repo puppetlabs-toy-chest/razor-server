@@ -14,7 +14,7 @@ Delete the "fedora16" repo:
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..250,
-        help: _('The name of the repo to delete')
+        help: _('The name of the repo to delete.')
 
   def run(request, data)
     if repo = Razor::Data::Repo[:name => data['name']]

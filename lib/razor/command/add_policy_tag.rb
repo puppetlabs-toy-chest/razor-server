@@ -23,7 +23,7 @@ Adding a new tag `virtual` to the policy `example`:
   authz '%{name}:%{tag}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The name of the policy to add the tag to.')
+               help: _('The name of the policy to which to add the tag.')
 
   attr 'tag',  type: String, required: true, size: 1..Float::INFINITY,
                help: _('The name of the tag to be added to the policy.')

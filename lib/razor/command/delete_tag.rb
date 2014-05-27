@@ -30,7 +30,7 @@ Delete a tag regardless of it being used:
 
     To make that work, the force option can be supplied, which will cause the
     tag to be removed from all nodes it is applied to and all policies which
-    reference it before being deleted as a single, atomic action
+    reference it before being deleted as a single, atomic action.
   HELP
 
   def run(request, data)

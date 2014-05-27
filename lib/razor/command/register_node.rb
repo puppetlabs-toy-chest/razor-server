@@ -21,7 +21,7 @@ existing before hand or not.
 
   example <<-EOT
 Register a machine before you boot it, and note that it already has an OS
-installed, so should not be subject to policy based reinstallation:
+installed, so should not be subject to policy-based reinstallation:
 
     {
       "hw_info": {
