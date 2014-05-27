@@ -41,10 +41,6 @@ describe Razor::Validation::ArraySchema do
   context "to_s" do
     subject :text do schema.to_s end
 
-    it "should document that this is an array" do
-      should =~ /This value must be an array/
-    end
-
     it "should document the requirements for all elements" do
       schema.elements type: String
       should =~ /All elements must be of type string./

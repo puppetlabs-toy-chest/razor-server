@@ -60,8 +60,8 @@ file; on this server security is currently <%= auth %>.
 %end
 % unless @attributes.empty?
 # Attributes
-
 %   @attributes.each do |name, attr|
+
  * <%= name %>
 <%= attr.to_s %>
 %   end

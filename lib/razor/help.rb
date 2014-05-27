@@ -104,24 +104,21 @@ Unfortunately, the `<%= name %>` command has not been documented.
 %
 % # Add schema documentation so the user understands the methods and structure
 % # of the code that they are working with.  Blank line intentional.
-
 <%= schema %>
 %
 % # @todo danielp 2014-04-04: inject details built from the validation about
 % # the structure and form of the command.
 %
 % if returns
-
 # RETURNS
 <%= returns.gsub(/^/, '  ') %>
 % end
 %
 % if example
-
 # EXAMPLES
+
 <%= example.gsub(/^/, '  ') %>
 % end
-
 % end
   ERB
 end
