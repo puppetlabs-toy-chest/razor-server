@@ -17,19 +17,19 @@ Set a single key from a node:
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The node to update metadata on')
+               help: _('The node for which to update metadata.')
 
   attr 'key', type: String, exclude: 'all', size: 1..Float::INFINITY,
-              help: _('the key to change in the metadata')
+              help: _('The key to change in the metadata.')
 
   attr 'value', required: true,
-                help: _('the value for the metadata')
+                help: _('The value for the metadata.')
 
   attr 'no-replace', type: :bool,
-                     help: _('If true, it is an error to try and change an existing key')
+                     help: _('If true, it is an error to try to change an existing key')
 
   attr 'all', type: :bool, exclude: 'key',
-              help: _('The update applies to all keys')
+              help: _('If true, the update applies to all keys.')
 
   require_one_of 'key', 'all'
 

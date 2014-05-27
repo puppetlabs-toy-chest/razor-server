@@ -38,9 +38,11 @@ class Razor::Validation::HashAttribute
 
   # Documentation generation for the attribute.
   HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
-- <%= @help %>
+% if @help
+- <%= @help.gsub("\n", "\n  ") %>
+% end
 % if @required
-- This attribute is required
+- This attribute is required.
 % end
 % if @type
 - It must be of type <%= ruby_type_to_json(@type[:type]) %>.
@@ -64,7 +66,7 @@ class Razor::Validation::HashAttribute
 
   def to_s
     # We indent so that nested attributes do the right thing.
-    HelpTemplate.result(binding).gsub(/^/, '   ')
+    HelpTemplate.result(binding).gsub(/^/, '  ').rstrip
   end
 
   def to_json(arg)

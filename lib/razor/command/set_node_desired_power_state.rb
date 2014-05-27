@@ -20,7 +20,7 @@ Setting the power state for the node:
 
   authz '%{name}'
   attr  'name', type: String, required: true,  references: Razor::Data::Node,
-                help: _('The node to change the desired power state of.')
+                help: _('The node for which to change the desired power state.')
 
   attr 'to', type: String, required: false, one_of: ['on', 'off', nil],
              help: _('The desired power state -- on, or off.')

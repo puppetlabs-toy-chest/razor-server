@@ -24,8 +24,8 @@ upload the file from the client:
       "task":    "fedora"
     }
 
-Finally, you can providing a `url` property when you create the repository;
-this form is merely a pointer to a resource somehwere and nothing will be
+Finally, you can provide a `url` property when you create the repository;
+this form is merely a pointer to a resource somewhere and nothing will be
 downloaded onto the Razor server:
 
     {
@@ -47,7 +47,7 @@ downloaded onto the Razor server:
     repository.  This can be an HTTP or HTTPS URL, or it can be a
     file URL.
 
-    In the later case, the file path is interpreted as a path on the
+    In the latter case, the file path is interpreted as a path on the
     Razor server, rather than a path on the client.  This requires that
     you manually place the ISO image on the server before invoking the
     command.

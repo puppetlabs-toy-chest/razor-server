@@ -10,7 +10,9 @@ does not change its metadata or facts.
   EOT
 
   example <<-EOT
-Make 'node17' available for reinstallation: `{"name": "node17"}`
+Make 'node17' available for reinstallation:
+
+    {"name": "node17"}
   EOT
 
 

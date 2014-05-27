@@ -34,7 +34,7 @@ Removing all node metadata:
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The name of the node to modify metadata of.')
+               help: _('The name of the node for which to modify metadata.')
 
   attr 'update',     type: Hash, help: _('The metadata to update')
   attr 'remove',     type: Array, help: _('The metadata to remove')
