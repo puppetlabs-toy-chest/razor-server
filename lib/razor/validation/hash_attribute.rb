@@ -39,7 +39,7 @@ class Razor::Validation::HashAttribute
   # Documentation generation for the attribute.
   HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
 % if @help
-- <%= @help.gsub(/\n/, "\n  ") %>
+- <%= @help.gsub("\n", "\n  ") %>
 % end
 % if @required
 - This attribute is required.

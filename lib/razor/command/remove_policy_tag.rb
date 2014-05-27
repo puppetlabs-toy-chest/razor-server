@@ -16,7 +16,7 @@ Remove the tag `virtual` to the policy `example`:
   authz '%{name}:%{tag}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The policy to remove the tag from.')
+               help: _('The policy from which to remove the tag.')
 
   attr 'tag', type: String, required: true, size: 1..Float::INFINITY,
               help: _('The tag to remove from the policy.')

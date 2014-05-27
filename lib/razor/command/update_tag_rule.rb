@@ -24,9 +24,9 @@ An example of updating a tag rule, and forcing reevaluation:
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Tag,
-                help: _('The tag to change the rule of')
+                help: _('The tag for which to change the rule.')
 
-  attr 'rule', required: true, type: Array, help: _('The new rule to apply to the tag')
+  attr 'rule', required: true, type: Array, help: _('The new rule to apply to the tag.')
 
   attr 'force', type: :bool, help: _(<<-HELP)
     By default this command will fail if the tag is in use by an existing

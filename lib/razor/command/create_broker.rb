@@ -31,9 +31,9 @@ Creating a simple Puppet broker:
 
   attr 'broker-type', required: true, type: String, references: [Razor::BrokerType, :name],
                       help: _(<<-HELP)
-    The broker type that this broker is created from.  The available
+    The broker type from which this broker is created.  The available
     broker types on your server are:
-    #{Razor::BrokerType.all.map{|n| "     - #{n}" }.join("\n")}
+#{Razor::BrokerType.all.map{|n| "    - #{n}" }.join("\n")}
   HELP
 
   object 'configuration', help: _(<<-HELP) do

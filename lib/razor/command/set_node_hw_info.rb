@@ -34,11 +34,11 @@ Update `node172` with new hardware information:
 
   authz  '%{node}'
   attr   'node', required: true, references: Razor::Data::Node, help: _(<<-HELP)
-    The node to modify the hardware information of
+    The node for which to modify hardware information.
   HELP
 
   object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
-    The new hardware information for the node
+    The new hardware information for the node.
   HELP
     extra_attrs /^net[0-9]+$/, type: String, help: _(<<-HELP)
       The MAC address of a network adapter associated with the node.

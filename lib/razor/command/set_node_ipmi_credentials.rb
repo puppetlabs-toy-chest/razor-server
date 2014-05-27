@@ -27,16 +27,16 @@ optional, and the system will work with either or both absent.
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node,
-                help: _('The node to set IPMI credentials on.')
+                help: _('The node on which to set IPMI credentials.')
 
   attr 'ipmi-hostname', type: String, size: 1..255,
-                        help: _('The IPMI hostname or IP address of the BMC of this host')
+                        help: _('The IPMI hostname or IP address of the BMC of this host.')
 
   attr 'ipmi-username', type: String, also: 'ipmi-hostname', size: 1..32,
-                        help: _('The IPMI LANPLUS username, if any, for this BMC')
+                        help: _('The IPMI LANPLUS username, if any, for this BMC.')
 
   attr 'ipmi-password', type: String, also: 'ipmi-hostname', size: 1..20,
-                        help: _('The IPMI LANPLUS password, if any, for this BMC')
+                        help: _('The IPMI LANPLUS password, if any, for this BMC.')
 
   def run(request, data)
     node = Razor::Data::Node[:name => data['name']]
