@@ -256,8 +256,7 @@ will return with status code 400.
       "max_count": "20",
       "before"|"after": "other policy",
       "node_metadata": { "key1": "value1", "key2": "value2" },
-      "tags": ["existing_tag",
-               { "name": "new_tag", "rule": ["=", "dollar", "dollar"]}]
+      "tags": ["existing_tag"]
     }
 
 The overall list of policies is ordered, and policies are considered in that
@@ -266,9 +265,7 @@ used to put the new policy into the table before or after another
 policy. If neither `before` or `after` are specified, the policy is
 appended to the policy table.
 
-Tags, brokers, tasks and repos are referenced by their name. Tags can
-also be created by providing a rule; if a tag with that name already
-exists, the rule must be equal to the rule of the existing tag.
+Tags, brokers, tasks and repos are referenced by their name.
 
 Hostname is a pattern for the host names of the nodes bound to the policy;
 eventually you'll be able to use facts and other fun stuff there. For now,
