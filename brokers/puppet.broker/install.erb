@@ -13,22 +13,22 @@ cmd()  { hash "$1" >&/dev/null; } # portable 'which'
 # family we are running on.  Then get `lsb_release` installed on
 # this platform.
 #
-# Thankfully, we don't care which variant we are on because they are uniformly
-# enough structured to make sense.
+# Thankfully, the variants are structured uniformly
+# enough to make sense.
 if cmd lsb_release; then
     :                           # nothing to do
 elif cmd apt-get; then
-    # All the distributions I am familiar with inherited this package name
+    # Many known distributions inherited this package name
     # from Debian itself.
     apt-get -y install lsb-release
     apt_install
 elif cmd yum; then
-    # We try the second path just in case some distribution comes up with the
-    # brilliant idea that this needs to work before `/usr` can be mounted or
+    # Try the second path just in case a distribution decides
+    # that this needs to work before `/usr` can be mounted or
     # something akin to that.
     #
     # This installs a lot of potentially undesirable packages on EL5 systems.
-    # Sorry about that -- take it up with your upstream.  EL6+ improve that.
+    # Sorry about that. EL6+ should improve that.
     yum -y install /usr/bin/lsb_release || \
         yum -y install /bin/lsb_release || \
         fail "neither /usr/bin/lsb_release or /bin/lsb_release found with yum!"
@@ -37,8 +37,8 @@ else
 fi
 
 
-# Now we have that, we can install our platform specific package to define
-# the repositories.  Thankfully this is also pretty damn simple to get right.
+# Now that we have that, we can install our platform specific package to define
+# the repositories.  Thankfully, this is also pretty simple to get right.
 # In this case we don't skip installation even if the package was already
 # present, since the tool should handle that, and it may gather updates as a
 # consequence of taking the action.
@@ -113,9 +113,7 @@ esac
 
 
 <% unless broker.empty? %>
-# Now, configuration.  Much as I love the idea of editing an ini file with
-# basic Unix tools like sed and awk, this seems much less worse, even if it
-# puts a puppet module you might not expect into place on disk.
+# Now, configuration.  
 puppet module install puppetlabs/inifile
 
 # Update the ini file with the resource tool.
