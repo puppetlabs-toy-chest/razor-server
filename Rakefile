@@ -85,6 +85,8 @@ task :archive do
     puts "Specify the version for the archive with VERSION="
     exit 1
   end
+  require 'torquebox-rake-support'
+
   topdir = Pathname.new(File::expand_path(File::dirname(__FILE__)))
   pkgdir = topdir + "pkg"
   pkgdir.mkpath
