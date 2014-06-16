@@ -1,21 +1,21 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::CreateTask < Razor::Command
-  summary "Create a new task, stored entirely in the database"
+  summary "Creates a new task that's stored entirely in the database."
   description <<-EOT
 
-Razor supports both tasks stored in the filesystem and tasks stored in the
+Razor supports both tasks stored in the file system and tasks stored in the
 database; in general, it is highly recommended that you store your tasks in
-the filesystem. Details about that can be found [on the Wiki][tasks]
+the file system. Details about storing tasks can be found [on the Wiki][tasks].
 
-For production setups, you may want to store your tasks in the database.
-This command allows you to do that, though it is absolutely not required.
+For production setups, you might want to store your tasks in the database.
+This command allows you to do that, though storing tasks in the database is not required.
 
 [tasks]: https://github.com/puppetlabs/razor-server/wiki/Writing-tasks
   EOT
 
   example <<-EOT
-Define the RedHat task included with Razor using this command:
+To define the RedHat task included with Razor:
 
     {
       "name":        "redhat6",

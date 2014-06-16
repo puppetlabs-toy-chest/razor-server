@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::DeleteRepo < Razor::Command
-  summary "Delete a repo, removing any local files it downloaded"
+  summary "Deletes a repo, removing any local files it downloaded."
   description <<-EOT
-The repo, and any associated content on disk, will be removed.  This will fail
+The repo and any associated content on disk, will be removed.  DeleteRepo will fail
 if the repo is in use with an existing policy.
   EOT
 
   example <<-EOT
-Delete the "fedora16" repo:
+To delete the "fedora16" repo:
 
     {"name": "fedora16"}
   EOT
@@ -19,9 +19,9 @@ Delete the "fedora16" repo:
   def run(request, data)
     if repo = Razor::Data::Repo[:name => data['name']]
       repo.destroy
-      action = _("repo destroyed")
+      action = _("Repo destroyed.")
     else
-      action = _("no changes; repo %{name} does not exist") % {name: data["name"]}
+      action = _("No changes; repo %{name} does not exist.") % {name: data["name"]}
     end
     { :result => action }
   end

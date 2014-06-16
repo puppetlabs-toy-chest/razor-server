@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::CreateTag < Razor::Command
-  summary "Create a new tag"
+  summary "Creates a new tag."
   description <<-EOT
-Create a new tag, and set the rule it will use to match on facts and node
+Creates a new tag, and sets the rule it will use to match facts and node
 metadata.
   EOT
 
   example <<-EOT
-Create a simple tag:
+To create a simple tag:
 
     {
       "name": "small",

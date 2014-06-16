@@ -1,23 +1,23 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::SetNodeHWInfo < Razor::Command
-  summary "Change the hardware info on an existing node"
+  summary "Changes the hardware info on an existing node."
   description <<-EOT
     When hardware is changed in a node, such as a network card being replaced,
-    the Razor server may need to be informed so that it can correctly match
+    the Razor server might need to be informed so that it can correctly match
     the new hardware with the existing node definition.
 
-    This command enables replacing the existing hardware info data with new
+    This command enables you to replace the existing hardware data with new
     data, making it possible to update the existing node record prior to
     booting the new node on the network.
 
     The supplied hardware info must include at least one key that is configured
-    as part of the matching process; on your razor-server that is one of:
+    as part of the matching process. On your razor-server that is one of the following:
     #{Razor.config['match_nodes_on'].map{|n| " * #{n}"}.join("\n")}
   EOT
 
   example <<-EOT
-Update `node172` with new hardware information:
+To update `node172` with new hardware information:
 
     {
       "node": "node172",
@@ -34,7 +34,7 @@ Update `node172` with new hardware information:
 
   authz  '%{node}'
   attr   'node', required: true, references: Razor::Data::Node, help: _(<<-HELP)
-    The node for which to modify hardware information.
+    The node to modify the hardware information of.
   HELP
 
   object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
@@ -44,9 +44,9 @@ Update `node172` with new hardware information:
       The MAC address of a network adapter associated with the node.
     HELP
 
-    attr 'serial', type: String, help: _('The DMI serial number of the node')
-    attr 'asset', type: String, help: _('The DMI asset tag of the node')
-    attr 'uuid', type: String, help: _('The DMI UUID of the node')
+    attr 'serial', type: String, help: _('The DMI serial number of the node.')
+    attr 'asset', type: String, help: _('The DMI asset tag of the node.')
+    attr 'uuid', type: String, help: _('The DMI UUID of the node.')
   end
 
   def run(request, data)

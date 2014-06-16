@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::UpdateNodeMetadata < Razor::Command
-  summary "Update one key in a nodes metadata"
+  summary "Updates one key in a node's metadata."
   description <<-EOT
 This is a shortcut to `modify-node-metadata` that allows for updating or
-adding removing a single key, in a simpler form that the full
+adding or removing a single key, in a simpler form than the full
 editing language.
   EOT
 
   example <<-EOT
-Set a single key from a node:
+To set a single key from a node:
 
     {"node": "node1", "key": "my_key", "value": "twelve"}
   EOT
@@ -17,7 +17,7 @@ Set a single key from a node:
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The node for which to update metadata.')
+               help: _('The node to update metadata on.')
 
   attr 'key', type: String, exclude: 'all', size: 1..Float::INFINITY,
               help: _('The key to change in the metadata.')
@@ -25,11 +25,11 @@ Set a single key from a node:
   attr 'value', required: true,
                 help: _('The value for the metadata.')
 
-  attr 'no-replace', type: :bool,
-                     help: _('If true, it is an error to try to change an existing key')
+  attr 'no_replace', type: [String, :bool],
+                     help: _('If true, it is an error to try and change an existing key.')
 
-  attr 'all', type: :bool, exclude: 'key',
-              help: _('If true, the update applies to all keys.')
+  attr 'all', type: [String, :bool], exclude: 'key',
+              help: _('The update applies to all keys.')
 
   require_one_of 'key', 'all'
 

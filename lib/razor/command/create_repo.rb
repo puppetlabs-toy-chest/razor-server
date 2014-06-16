@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::CreateRepo < Razor::Command
-  summary "Create a new repository, from an ISO image or a URL"
+  summary "Creates a new repository, from an ISO image or a URL."
   description <<-EOT
-Create a new repository, which can either contain the content to install a
-node, or simply point to an existing online repository by URL.
+Creates a new repository, which can either contain the content to install a
+node, or can simply point to an existing online repository by URL.
   EOT
 
   example <<-EOT
-Create a repository from an ISO image, which will be downloaded and unpacked
-by the razor-server in the background:
+Creates a repository from an ISO image, which will be downloaded and unpacked
+by the Razor server in the background:
 
     {
       "name":    "fedora19",
@@ -16,7 +16,7 @@ by the razor-server in the background:
       "task":    "fedora"
     }
 
-You can also unpack an ISO image from a file *on the server*; this does not
+You can also unpack an ISO image from a file *on the server*. Doing so does not
 upload the file from the client:
     {
       "name":    "fedora19",
@@ -24,9 +24,8 @@ upload the file from the client:
       "task":    "fedora"
     }
 
-Finally, you can provide a `url` property when you create the repository;
-this form is merely a pointer to a resource somewhere and nothing will be
-downloaded onto the Razor server:
+Finally, you can provide a `url` property when you create the repository.
+This form is only a pointer to a resource somewhere and nothing will be downloaded onto the Razor server:
 
     {
       "name": "fedora19",
@@ -55,17 +54,17 @@ downloaded onto the Razor server:
 
   attr 'task', type: String, required: true, help: _(<<-HELP)
     The name of the task associated with this repository.  This is used to
-    install nodes that match a policy using this repository; generally it
+    install nodes that match a policy using this repository Generally it
     should match the OS that the URL or ISO-URL attributes point to.
   HELP
 
   require_one_of 'url', 'iso-url'
 
   def run(request, data)
-    # Create our shiny new repo.  This will implicitly, thanks to saving
-    # changes, trigger our loading saga to begin.  (Which takes place in the
-    # same transactional context, ensuring we don't send a message to our
-    # background workers without also committing this data to our database.)
+    # Create a new repo.  This will implicitly, thanks to saving
+    # changes, trigger the loading saga to begin.  (Which takes place in the
+    # same transactional context, ensuring you don't send a message to your
+    # background workers without also committing this data to your database.)
     data["iso_url"] = data.delete("iso-url")
     data["task_name"] = data.delete("task")
 

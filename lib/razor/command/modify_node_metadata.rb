@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::ModifyNodeMetadata < Razor::Command
-  summary "Perform various editing operations on node metadata"
+  summary "Performs various editing operations on node metadata."
   description <<-EOT
-Node metadata can be added, changed, or removed with this command; it contains
+Node metadata can be added, changed, or removed with this command. ModifyNodeMetadata contains
 a limited editing language to make changes to the existing metadata in an
 atomic fashion.
 
@@ -13,7 +13,7 @@ with them.
   EOT
 
   example <<-EOT
-Editing node metadata, by adding and removing some keys, but refusing to
+To edit node metadata by adding and removing some keys, but refusing to
 modify an existing value already present on a node:
 
     {
@@ -26,7 +26,7 @@ modify an existing value already present on a node:
         "no-replace": true
     }
 
-Removing all node metadata:
+To remove all node metadata:
 
     {"node": "node1", "clear": true}
   EOT
@@ -36,9 +36,9 @@ Removing all node metadata:
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
                help: _('The name of the node for which to modify metadata.')
 
-  attr 'update',     type: Hash, help: _('The metadata to update')
-  attr 'remove',     type: Array, help: _('The metadata to remove')
-  attr 'clear',      type: :bool, exclude: ['update', 'remove'], help: _(<<-HELP)
+  attr 'update',     type: Hash, help: _('The metadata to update.')
+  attr 'remove',     type: Array, help: _('The metadata to remove.')
+  attr 'clear',      type: [String, :bool], exclude: ['update', 'remove'], help: _(<<-HELP)
     Remove all metadata from the node.  Cannot be used together with
     either 'update' or 'remove'.
   HELP
@@ -49,7 +49,7 @@ Removing all node metadata:
     clear.
   HELP
 
-  # Take a bulk operation via POST'ed JSON
+  # Take a bulk operation via posted JSON.
   def run(request, data)
     data['update'] or data['remove'] or data['clear'] or
       request.error 422, :error => _("at least one operation (update, remove, clear) required")

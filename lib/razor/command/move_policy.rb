@@ -1,17 +1,17 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::MovePolicy < Razor::Command
-  summary "Change the order that policies are considered when matching against nodes"
+  summary "Changes the order in which policies are considered when matching against nodes."
   description <<-EOT
 Policies can be moved before or after specific policies.
   EOT
 
   example <<-EOT
-Move a policy before another policy:
+To move a policy before another policy:
 
     {"name": "policy", "before": "other"}
 
-Move a policy after another policy:
+To move a policy after another policy:
 
     {"name": "policy", "after": "other"}
   EOT
@@ -24,11 +24,11 @@ Move a policy after another policy:
   require_one_of 'before', 'after'
 
   attr 'before', type: String, exclude: 'after', references: Razor::Data::Policy, help: _(<<-HELP)
-    The name of the policy to move this policy before.
+    The name of the policy that this policy should be placed before.
   HELP
 
   attr 'after', type: String, exclude: 'before', references: Razor::Data::Policy, help: _(<<-HELP)
-    The name of the policy to move this policy after.
+    The name of the policy that this policy should be moved after.
   HELP
 
   def run(request, data)

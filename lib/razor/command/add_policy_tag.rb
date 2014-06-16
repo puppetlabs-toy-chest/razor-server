@@ -1,20 +1,20 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::AddPolicyTag < Razor::Command
-  summary "Add a tag to an existing policy"
+  summary "Adds a tag to an existing policy."
   description <<-EOT
-Add a tag to an existing policy.  You can either specify an existing tag by
+Adds a tag to an existing policy.  You can either specify an existing tag by
 name, or you can create a new one by supplying the rule as well as the name.
 
-In the later case the tag is atomically created, before adding it to the
+In the latter case, the tag is atomically created before it's added to the
 policy.  If one fails, neither will take effect.
   EOT
 
   example <<-EOT
-Adding the existing tag `virtual` to the policy `example`:
+To add the existing tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual"}
 
-Adding a new tag `virtual` to the policy `example`:
+To add a new tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual",
      "rule": ["=" ["fact" "virtual" "false"] "true"]}
@@ -51,7 +51,7 @@ Adding a new tag `virtual` to the policy `example`:
       policy.add_tag(tag)
       policy
     else
-      action = _("Tag %{tag} already on policy %{policy}") % {tag: data['tag'], policy: data['name']}
+      action = _("Tag %{tag} already on policy %{policy}.") % {tag: data['tag'], policy: data['name']}
       { :result => action }
     end
   end
