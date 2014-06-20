@@ -70,7 +70,12 @@ module Razor::Data
         # do that.
         new_obj = new(data)
         different = fields_for_command_comparison.reject do |key|
-          duplicate.send(key) == new_obj.send(key)
+          attr = duplicate.send(key)
+          if attr.respond_to?('equals?')
+            attr.equals?(new_obj.send(key))
+          else
+            attr == new_obj.send(key)
+          end
         end
 
         # If we found differences, we want to inform the user of them.

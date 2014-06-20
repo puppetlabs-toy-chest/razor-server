@@ -63,5 +63,12 @@ describe Razor::Command::CreateTag do
 
       Razor::Data::Tag[:name => command_hash[:name]].should be_an_instance_of Razor::Data::Tag
     end
+
+    it "should no-op on multiple calls" do
+      create_tag
+      Razor::Data::Tag[:name => command_hash[:name]].should be_an_instance_of Razor::Data::Tag
+      create_tag
+      last_response.json['error'].should be_nil
+    end
   end
 end

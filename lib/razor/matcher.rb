@@ -204,6 +204,10 @@ class Razor::Matcher
     { "rule" => @rule }.to_json
   end
 
+  def equals?(other)
+    other.is_a?(Razor::Matcher) && @rule == other.rule
+  end
+
   attr_reader :rule
   # +rule+ must be an Array
   def initialize(rule)
