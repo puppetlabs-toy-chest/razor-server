@@ -31,6 +31,10 @@ export JBOSS_PIDFILE="/var/run/${NAME}/torquebox.pid"
 export JBOSS_LOG_DIR="/var/log/${NAME}"
 export JBOSS_CONSOLE_LOG="${JBOSS_LOG_DIR}/console.log"
 
+JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
+JAVA_OPTS="-Xms128m -Xmx1024m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true"
+export JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
+
 JBOSS_USER="razor"
 
 JBOSS_CONFIG="standalone.xml"
