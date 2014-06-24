@@ -38,7 +38,7 @@ details; in particular look at
 * [Getting started](https://github.com/puppetlabs/razor-server/wiki/Getting-started): using the CLI to do useful things
 * [Developer setup](https://github.com/puppetlabs/razor-server/wiki/Developer-setup): for when you feel like hacking
 
-## What does Razor do anyway ?
+## What does Razor do anyway?
 
 Razor is a power control, provisioning, and management application designed
 to deploy both bare-metal and virtual computer resources. Razor provides
