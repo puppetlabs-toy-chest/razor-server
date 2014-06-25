@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
 require_relative './util'
-require_relative '../../lib/razor/initialize'
-require_relative '../../lib/razor'
 
 def get_new_name(class_name, current_name, differentiator = 1)
   if class_name.find(name: current_name + differentiator.to_s).nil?
@@ -42,6 +40,9 @@ end
 Sequel.migration do
   up do
     extension(:constraint_validations)
+
+    require_relative '../../lib/razor'
+    require_relative '../../lib/razor/initialize'
 
     alter_table :tags do
       resolve_duplicates(Razor::Data::Tag)
