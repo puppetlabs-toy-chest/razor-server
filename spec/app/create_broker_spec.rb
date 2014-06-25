@@ -82,10 +82,11 @@ describe Razor::Command::CreateBroker do
     # Successful creation
     it "should return 202 when repeated with the same parameters" do
       command = create_broker command_hash
+      command_hash['name'] = command_hash['name'].upcase
       command = create_broker command_hash
 
-      last_response.status.should == 202
-      last_response.json['id'].should =~ %r'/api/collections/brokers/#{URI.escape(command_hash['name'])}\Z'
+      last_response.status.should == 409
+      last_response.json['error'].should == "The broker #{command_hash['name'].upcase} already exists, and the name fields do not match"
     end
   end
 end
