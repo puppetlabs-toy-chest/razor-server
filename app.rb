@@ -360,9 +360,12 @@ and requires full control over the database (eg: add and remove tables):
     end
 
     @task = @node.task
+    template = @task.boot_template(@node)
 
     if @node.policy
       @repo = @node.policy.repo
+      @node.log_append(:event => :boot, :task => @task.name,
+                       :template => template, :repo => @repo.name)
     else
       # @todo lutter 2013-08-19: We have no policy on the node, and will
       # therefore boot into the MK. This is a gigantic hack; all we need is
@@ -375,11 +378,10 @@ and requires full control over the database (eg: add and remove tables):
       @repo = Razor::Data::Repo.new(:name => "microkernel",
                                     :iso_url => "file:///dev/null",
                                     :task_name => @task.name)
-    end
-    template = @task.boot_template(@node)
 
-    @node.log_append(:event => :boot, :task => @task.name,
-                     :template => template, :repo => @repo.name)
+      @node.log_append(:event => :boot, :task => @task.name,
+                       :template => template)
+    end
     @node.save
     render_template(template)
   end

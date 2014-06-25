@@ -74,8 +74,7 @@ describe "provisioning API" do
           "severity" => "info",
           "event" => "boot",
           "task" => "microkernel",
-          "template" => "boot",
-          "repo" => "microkernel"
+          "template" => "boot"
         }
       end
 
@@ -117,7 +116,6 @@ describe "provisioning API" do
         entry.delete("timestamp").should_not be_nil
         entry.should == {
           "severity" => "info",
-          "repo" => "microkernel",
           "event" => "boot",
           "task" => "noop",
           "template" => "boot_local"
