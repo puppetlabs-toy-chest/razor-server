@@ -1,34 +1,35 @@
 # -*- encoding: utf-8 -*-
 require_relative './util'
 
-def get_new_name(class_name, current_name, differentiator = 1)
-  if class_name.find(name: current_name + differentiator.to_s).nil?
+def get_new_name(clazz, current_name, differentiator = 1)
+  to_test = current_name + differentiator.to_s
+  if clazz.find(name: /^#{Regexp.escape(to_test)}$/i).nil?
     # Not there, ship it
-    current_name + differentiator.to_s
+    to_test
   else
     # This is not the name you're looking for
-    get_new_name(class_name, current_name, differentiator + 1) unless exists
+    get_new_name(clazz, current_name, differentiator + 1)
   end
 end
 
-def resolve_duplicates(class_name)
+def resolve_duplicates(clazz, attribute_name)
   # Get all tags, grouped by lowercase name
-  all = class_name.all
+  all = clazz.all
   uniq = Hash.new { Array.new }
   all.each do |item|
-    key = item.send(:name).downcase
+    key = item.send(attribute_name).downcase
     uniq.store(key, uniq[key] << item)
     # Sorting and reversing so "abc" will be before "Abc".
     # Kind of arbitrary, but it's more deterministic this way.
-    uniq[key] = uniq[key].sort_by(&:name).reverse
+    uniq[key] = uniq[key].sort_by(&attribute_name).reverse
   end
   uniq.each do |_, items|
     _, *rest = *items
     # The first can remain the same, but the rest need to change.
     rest.each do |item|
-      old_name = item.send(:name)
-      item.send("#{:name.to_s}=", get_new_name(Razor::Data::Tag, item.send(:name)))
-      puts "#{class_name}: Changing #{old_name} to #{item.name} to resolve duplicate issue"
+      old_name = item.send(attribute_name)
+      item.send("#{attribute_name.to_s}=", get_new_name(clazz, item.send(attribute_name)))
+      puts "#{clazz}: Changing #{old_name} to #{item.send(attribute_name)} to resolve duplicate issue"
       item.save
     end
   end
@@ -45,7 +46,7 @@ Sequel.migration do
     require_relative '../../lib/razor/initialize'
 
     alter_table :tags do
-      resolve_duplicates(Razor::Data::Tag)
+      resolve_duplicates(Razor::Data::Tag, :name)
 
       drop_constraint :tags_name_key
       add_index  Sequel.function(:lower, :name), :unique => true, :name => 'tags_name_index'

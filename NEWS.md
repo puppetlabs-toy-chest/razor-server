@@ -1,5 +1,14 @@
 # Razor Server Release Notes
 
+## Next
+
+### Incompatible changes
+
++ Tags will be unique in a case-insensitive manner. Previously, tags
+  could have existed as e.g. 'mytag' and 'MyTag'. A migration in this
+  release will rename conflicting tags, appending a digit to the end,
+  e.g. 'mytag' and 'MyTag1'.
+
 ## 0.15.0 - 2014-05-22
 
 ### Incompatible changes
