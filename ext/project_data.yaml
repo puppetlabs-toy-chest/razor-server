@@ -24,6 +24,9 @@ update_version_file: true
 # files and gem_files are space separated lists (or arrays)
 files:
   - ext/razor-server.init.erb
+  - ext/redhat/razor-server.service
+  - ext/redhat/razor-server.env
+  - ext/redhat/razor-server-tmpfiles.conf
   - 'Gemfile*'
   - .bundle
   - config.ru
