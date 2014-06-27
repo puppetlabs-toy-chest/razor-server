@@ -153,6 +153,8 @@ module Razor
         }.delete_if { |k,v| v.nil? },
         :hostname      => node.hostname,
         :root_password => node.root_password,
+        :ipmi          => { :hostname => node.ipmi_hostname,
+                            :username => node.ipmi_username },
         :last_checkin  => ts(node.last_checkin)
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
