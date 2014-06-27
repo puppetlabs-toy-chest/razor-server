@@ -1,0 +1,73 @@
+{
+    "hook": {
+        "name": "counter",
+        "config": {
+            "value": 0
+        }
+    },
+    "node": {
+        "name": "node10",
+        "hw_info": {
+            "mac": [ "52-54-00-30-8e-45" ],
+            "serial": "watz0815",
+            "uuid": "ea7c46f8-615f-234f-c1a4-20f0d3edac3d"
+        },
+        "dhcp_mac": "52-54-00-30-8e-45",
+        "tags": ["compute", "anything", "any", "new"],
+        "facts": {
+            "memorysize_mb": "995.05",
+            "myfact": "0815",
+            "facterversion": "2.0.1",
+            "architecture": "x86_64",
+            "hardwaremodel": "x86_64",
+            "processor0": "QEMU Virtual CPU version 1.6.2",
+            "processorcount": "1",
+            "ipaddress": "192.168.100.196",
+            "hardwareisa": "x86_64",
+            "netmask": "255.255.255.0",
+            "uniqueid": "007f0100",
+            "physicalprocessorcount": "1",
+            "virtual": "kvm",
+            "is_virtual": "true",
+            "interfaces": "eth0,lo",
+            "ipaddress_eth0": "192.168.100.196",
+            "macaddress_eth0": "52:54:00:30:8e:45",
+            "netmask_eth0": "255.255.255.0",
+            "ipaddress_lo": "127.0.0.1",
+            "netmask_lo": "255.0.0.0",
+            "network_eth0": "192.168.100.0",
+            "network_lo": "127.0.0.0",
+            "macaddress": "52:54:00:30:8e:45",
+            "blockdevice_vda_size": 4294967296,
+            "blockdevice_vda_vendor": "0x1af4",
+            "blockdevices": "vda",
+            "bios_vendor": "Watzmann Ops",
+            "bios_version": "08.15",
+            "bios_release_date": "01/01/2011",
+            "manufacturer": "Watzmann BIOS",
+            "productname": "Bochs",
+            "serialnumber": "WATZ0815",
+            "uuid": "EA7C46F8-615F-234F-C1A4-20F0D3EDAC3D",
+            "type": "Other"
+        },
+        "state": {
+            "installed": false
+        },
+        "hostname": "client-l.watzmann.net",
+        "root_password": "secret",
+        "last_checkin": "2014-05-21T03:45:47+02:00"
+    },
+    "policy": {
+        "name": "client-l",
+        "repo": "centos-6.4",
+        "task": "ubuntu",
+        "broker": "noop",
+        "enabled": true,
+        "hostname_pattern": "client-l.watzmann.net",
+        "root_password": "secret",
+        "tags": ["client-l"],
+        "nodes": {
+            "count": 0
+        }
+    }
+}

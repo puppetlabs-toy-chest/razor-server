@@ -1,0 +1,4 @@
+---
+value:
+  description: "The current value of the counter"
+  default: 0

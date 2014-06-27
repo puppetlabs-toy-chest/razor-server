@@ -1,0 +1,19 @@
+#! /bin/bash
+
+json=$(< /dev/stdin)
+
+name=$(jq '.hook.name' <<< $json)
+value=$(( $(jq '.hook.config.value' <<< $json) + 1 ))
+
+cat <<EOF
+{
+  "hook": {
+    "configuration": {
+      "value": $value
+    }
+  },
+  "metadata": {
+    $name: $value
+  }
+}
+EOF
