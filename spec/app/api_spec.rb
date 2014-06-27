@@ -665,6 +665,10 @@ describe "command and query API" do
             }
           },
           'additionalProperties' => false,
+        },
+        'ipmi' => {
+            'hostname' => nil,
+            'username' => nil
         }
       },
       'additionalProperties' => false,
