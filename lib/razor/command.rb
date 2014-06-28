@@ -63,6 +63,35 @@ Body is: '%{body}'
     data
   end
 
+  # This is a convenience method for adding aliases between two hashes. It
+  # will remove any references to the alias in `data`, merging it with the
+  # object in `real_attribute`. Data for both `real_attribute` and
+  # `alias_name` will be ignored if not `nil` or a Hash.
+  def self.add_hash_alias(data, real_attribute, alias_name)
+    self.add_alias(data, real_attribute, alias_name, Hash, {}) do |first, second|
+      first.merge(second)
+    end
+  end
+
+  # This is a convenience method for adding aliases between two arrays. It
+  # will remove any references to the alias in `data`, merging it with the
+  # object in `real_attribute`. Data for both `real_attribute` and
+  # `alias_name` will be ignored if not `nil` or an Array.
+  def self.add_array_alias(data, real_attribute, alias_name)
+    self.add_alias(data, real_attribute, alias_name, Array, []) do |first, second|
+      first + second
+    end
+  end
+
+  def self.add_alias(data, real_attribute, alias_name, clazz, default)
+    data[alias_name] = default if data[alias_name].nil?
+    data[real_attribute] = default if data[real_attribute].nil?
+
+    if data[alias_name].is_a?(clazz) and data[real_attribute].is_a?(clazz)
+      data[real_attribute] = yield data[real_attribute], data.delete(alias_name)
+    end
+  end
+
   # Handle execution of the command.  We have already decoded and validated
   # the input, and are confident that it meets our internal API requirement to
   # be used for operation.

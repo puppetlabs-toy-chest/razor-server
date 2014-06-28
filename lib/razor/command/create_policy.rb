@@ -143,20 +143,19 @@ A sample policy installing CentOS 6.4:
     data.tap do |_|
       data['before'] = data['before']['name'] if data['before'].is_a?(Hash) and data['before'].keys == ['name']
       data['after'] = data['after']['name'] if data['after'].is_a?(Hash) and data['after'].keys == ['name']
-      # Wrap data['tag'] and data['tags'] if necessary.
-      data['tag'] = Array[data['tag']] unless data['tag'].nil? or data['tag'].is_a?(Array)
-      data['tags'] = Array[data['tags']] unless data['tags'].nil? or data['tags'].is_a?(Array)
-      data['tags'] = [] if data['tags'].nil?
-      # Combine data['tag'] and data['tags']
-      data['tags'] = (data['tags'] + data.delete('tag')).uniq if data['tags'].is_a?(Array) and data['tag'].is_a?(Array)
 
+      data['tag'] = Array[data['tag']] unless [NilClass, Array, Hash].include?(data['tag'].class)
+      data['tags'] = Array[data['tags']] unless [NilClass, Array, Hash].include?(data['tags'].class)
+      add_array_alias(data, 'tags', 'tag')
+      
       # Removed feature: Cannot create tags in create-policy
       if data['tags'].is_a?(Array) && data['tags'].any? {|tag_pair| tag_pair.is_a?(Hash) and tag_pair.keys == ['name', 'rule'] }
         raise Razor::ValidationFailure, _('this command can no longer create tags; see `razor help create-tag`')
       end
-
+      
       # Conform {"name": "tagname"} into just "tagname"
       data['tags'] = data['tags'].map { |item| item.is_a?(Hash) && item.keys == ['name'] ? item['name'] : item } if data['tags'].is_a?(Array)
+
       data['repo'] = data['repo']['name'] if data['repo'].is_a?(Hash) and data['repo'].keys == ['name']
       data['broker'] = data['broker']['name'] if data['broker'].is_a?(Hash) and data['broker'].keys == ['name']
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
