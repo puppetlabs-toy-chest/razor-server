@@ -42,6 +42,8 @@ Creating a simple Puppet broker:
     settings like which server to contact, and other configuration
     related to handing on the newly installed system to the final
     configuration management system.
+
+    This attribute can be abbreviated as `c` for convenience.
   HELP
     extra_attrs /./
   end
@@ -51,6 +53,13 @@ Creating a simple Puppet broker:
     data["broker_type"] = Razor::BrokerType.find(name: type)
 
     Razor::Data::Broker.import(data).first
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      # Allow "c" as a shorthand.
+      add_hash_alias(data, 'configuration', 'c')
+    end
   end
 end
 

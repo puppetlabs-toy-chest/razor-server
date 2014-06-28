@@ -88,5 +88,53 @@ describe Razor::Command::CreateBroker do
       last_response.status.should == 409
       last_response.json['error'].should == "The broker #{command_hash['name'].upcase} already exists, and the name fields do not match"
     end
+
+    it "should validate valid configuration" do
+      command_hash['broker-type'] = 'with_configuration'
+      command_hash['configuration'] = {'some-key' => 'valid-value'}
+      command = create_broker command_hash
+
+      last_response.status.should == 202
+      Razor::Data::Broker[:name => command['name']].configuration['some-key'].should == 'valid-value'
+    end
+
+    it "should validate invalid configuration" do
+      command_hash['broker-type'] = 'with_configuration'
+      command_hash['configuration'] = {'not-valid-key' => 'not-valid-value'}
+      command = create_broker command_hash
+
+      last_response.json['error'].should == "configuration key 'not-valid-key' is not defined for this broker type"
+      last_response.status.should == 400
+    end
+
+    it "should validate valid configuration abbreviation" do
+      command_hash['broker-type'] = 'with_configuration'
+      command_hash['c'] = {'some-key' => 'valid-value'}
+      command = create_broker command_hash
+
+      last_response.status.should == 202
+      Razor::Data::Broker[:name => command['name']].configuration['some-key'].should == 'valid-value'
+    end
+
+    it "should validate invalid configuration abbreviation" do
+      command_hash['broker-type'] = 'with_configuration'
+      command_hash['c'] = {'not-valid-key' => 'not-valid-value'}
+      command = create_broker command_hash
+
+      last_response.json['error'].should == "configuration key 'not-valid-key' is not defined for this broker type"
+      last_response.status.should == 400
+    end
+
+    it "should validate mixed shorthand and longhand configuration" do
+      command_hash['broker-type'] = 'with_configuration'
+      command_hash['c'] = {'some-key' => 'valid-value'}
+      command_hash['configuration'] = {'some-other-key' => 'other-valid-value'}
+      command = create_broker command_hash
+
+      last_response.status.should == 202
+      configuration = Razor::Data::Broker[:name => command['name']].configuration
+      configuration['some-key'].should == 'valid-value'
+      configuration['some-other-key'].should == 'other-valid-value'
+    end
   end
 end
