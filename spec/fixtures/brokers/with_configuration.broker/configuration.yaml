@@ -1,0 +1,5 @@
+---
+some-key:
+  description: "Some variable."
+some-other-key:
+  description: "Some other variable."
