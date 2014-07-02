@@ -3,7 +3,7 @@ class Razor::Command::DeletePolicy < Razor::Command
   summary "Deletes a policy from Razor so that it no longer matches new nodes."
   description <<-EOT
 Deletes a single policy, removing it from Razor.  This will work regardless of
-the number of nodes bound to that policy.  Any node that has already been installed will
+the number of nodes bound to that policy. Any node that has previously installed will
 remain "installed", and will not be matched to by another policy.
   EOT
 

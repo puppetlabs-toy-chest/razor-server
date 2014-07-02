@@ -6,7 +6,7 @@ Adds a tag to an existing policy.  You can either specify an existing tag by
 name, or you can create a new one by supplying the rule as well as the name.
 
 In the latter case, the tag is atomically created before it's added to the
-policy.  If one fails, neither will take effect.
+policy.  If creating the policy or the tag fails, neither will take effect.
   EOT
 
   example <<-EOT
@@ -29,8 +29,8 @@ To add a new tag `virtual` to the policy `example`:
                help: _('The name of the tag to be added to the policy.')
 
   attr 'rule', type: Array, help: _(<<-HELP)
-    The `rule` is optional.  If you supply this, you are creating a new tag
-    rather than adding an existing tag to the policy.  In that case this
+    The `rule` is optional.  If you supply this rule, you are creating a new tag
+    rather than adding an existing tag to the policy.  In that case this rule
     contains the tag rule.
 
     Creating a tag while adding it to the policy is atomic: if it fails for

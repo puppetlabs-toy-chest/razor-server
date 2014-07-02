@@ -60,11 +60,11 @@ To create a sample policy installing CentOS 6.4:
   HELP
 
   attr 'before', type: String, references: Razor::Data::Policy, exclude: 'after', help: _(<<-HELP)
-    The name of the policy that will come after this policy in the policy list.
+    The name of the policy that this policy will immediately precede in the policy list.
   HELP
 
   attr 'after', type: String, exclude: 'before', references: Razor::Data::Policy, help: _(<<-HELP)
-    The name of the policy that this policy will come after in the policy list.
+    The name of the policy that this policy will follow in the policy list.
   HELP
 
   array 'tags', help: _(<<-HELP) do
@@ -77,8 +77,8 @@ To create a sample policy installing CentOS 6.4:
   end
 
   attr 'repo', type: String, required: true, references: Razor::Data::Repo, help: _(<<-HELP)
-    The name of the repository containing the OS to be installed by this policy.
-    This should match the assigned task.
+    The name of the repo containing the OS to be installed by this policy.
+    This should match the assigned task or installation will fail.
   HELP
 
   attr 'broker', type: String, required: true, references: Razor::Data::Broker, help: _(<<-HELP)
@@ -92,7 +92,7 @@ To create a sample policy installing CentOS 6.4:
 
   attr 'task', type: String, required: true, help: _(<<-HELP)
     The name of the task used to install nodes that match this policy.  This must
-    match the selected repository, as it references files contained within that repo.
+    match the selected repo, as it references files contained within that repo.
   HELP
 
   attr 'node-metadata', type: Hash, help: _(<<-HELP)

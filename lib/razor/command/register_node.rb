@@ -3,11 +3,11 @@
 class Razor::Command::RegisterNode < Razor::Command
   summary "Registers a node with Razor before it is discovered."
   description <<-EOT
-In order to make brownfield deployments of Razor easier we allow users to
-register nodes explicitly.  This command allows you to perform the same
+In order to make it easier to deploy Razor on a network where some nodes already have operating systems installed,  we allow users to
+register nodes explicitly. This command allows you to perform the same
 registration that would happen when a new node checked in, ahead of time.
 
-In order for existing nodes to register effectively, `hw_info` must contain enough information
+In order for nodes to register effectively, `hw_info` must contain enough information
 that the node can successfully be matched during the iPXE boot phase.
 
 If the node matches an existing node in keeping with the overall policy of
@@ -19,7 +19,7 @@ desired installed state will be present in the database, regardless of whether i
   EOT
 
   example <<-EOT
-To register a machine that already has an OS installed and therefore should not be subject to policy-based reinstallation before you boot it:
+To register a machine before you boot it to let Razor know it already has an OS installed:
 
     {
       "hw_info": {

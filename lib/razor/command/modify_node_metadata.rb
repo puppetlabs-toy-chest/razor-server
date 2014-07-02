@@ -3,8 +3,7 @@
 class Razor::Command::ModifyNodeMetadata < Razor::Command
   summary "Performs various editing operations on node metadata."
   description <<-EOT
-Node metadata can be added, changed, or removed with this command. ModifyNodeMetadata contains
-a limited editing language to make changes to the existing metadata in an
+Node metadata can be added, changed, or removed with this command. The arguments to this command contain a limited editing language to make changes to the existing metadata in an
 atomic fashion.
 
 It can also clear all metadata from a node, although that operation is
@@ -38,7 +37,7 @@ To remove all node metadata:
 
   attr 'update',     type: Hash, help: _('The metadata to update.')
   attr 'remove',     type: Array, help: _('The metadata to remove.')
-  attr 'clear',      type: [String, :bool], exclude: ['update', 'remove'], help: _(<<-HELP)
+  attr 'clear',      type: :bool, exclude: ['update', 'remove'], help: _(<<-HELP)
     Remove all metadata from the node.  Cannot be used together with
     either 'update' or 'remove'.
   HELP
@@ -49,7 +48,7 @@ To remove all node metadata:
     clear.
   HELP
 
-  # Take a bulk operation via posted JSON.
+  # Take a bulk operation via POSTed JSON.
   def run(request, data)
     data['update'] or data['remove'] or data['clear'] or
       request.error 422, :error => _("at least one operation (update, remove, clear) required")

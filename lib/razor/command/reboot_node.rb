@@ -6,7 +6,7 @@ class Razor::Command::RebootNode < Razor::Command
 Razor can request a node reboot through IPMI, if the node has IPMI credentials
 associated.  This command only supports hard power cycle reboots.
 
-RebootNode is applied in the background, and will run as soon as execution
+This command is applied in the background, and will run as soon as execution
 slots are available for the task -- IPMI communication has some generous
 internal rate limits to prevent it from overwhelming the network or host server.
 
@@ -20,7 +20,7 @@ no limitation on how frequently a node can be rebooted.
 
 If the IPMI request fails -- ipmitool reports it is unable to
 communicate with the node -- the request will be retried.  The results of the reboot attempt aren't provided, so you might not know if the command is
-delivered and fails to reboot the system.
+delivered and fails to reboot the system. Eventually, an entry in the node's log will show the timestamp and event (boot), when it the node boots successfully. The time it takes to appear in the log can vary.
 
 This command is not integrated with the IPMI power state monitoring, and you might not
 see power transitions in the record, or through the node object if you're polling.

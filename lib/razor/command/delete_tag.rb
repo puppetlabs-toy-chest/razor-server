@@ -28,8 +28,8 @@ To delete a tag regardless of it being used:
   attr 'force', type: :bool, help: _(<<-HELP)
     If the tag is already in use, by default it will not be deleted.
 
-    The force option can be supplied, which will cause the
-    tag to be removed from all nodes it is applied to and all policies that reference it before the tag is deleted as a single, atomic action.
+    You can supply the force option, which will cause the
+    tag to be removed from all nodes it is applied to and all policies that reference it before the tag is deleted.
   HELP
 
   def run(request, data)

@@ -28,7 +28,7 @@ To move a policy after another policy:
   HELP
 
   attr 'after', type: String, exclude: 'before', references: Razor::Data::Policy, help: _(<<-HELP)
-    The name of the policy that this policy should be moved after.
+    The name of the policy that this policy should be placed after.
   HELP
 
   def run(request, data)

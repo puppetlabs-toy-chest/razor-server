@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::CreateRepo < Razor::Command
-  summary "Creates a new repository, from an ISO image or a URL."
+  summary "Creates a new repo, from an ISO image or a URL."
   description <<-EOT
-Creates a new repository, which can either contain the content to install a
-node, or can simply point to an existing online repository by URL.
+Creates a new repo, which can either contain the content to install a
+node, or can simply point to an existing online repo by URL.
   EOT
 
   example <<-EOT
-Creates a repository from an ISO image, which will be downloaded and unpacked
+Creates a repo from an ISO image, which will be downloaded and unpacked
 by the Razor server in the background:
 
     {
@@ -24,7 +24,7 @@ upload the file from the client:
       "task":    "fedora"
     }
 
-Finally, you can provide a `url` property when you create the repository.
+Finally, you can provide a `url` property when you create the repo.
 This form is only a pointer to a resource somewhere and nothing will be downloaded onto the Razor server:
 
     {
@@ -36,14 +36,14 @@ This form is only a pointer to a resource somewhere and nothing will be download
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..250,
-                help: _('The name of the repository.')
+                help: _('The name of the repo.')
 
   attr 'url', type: URI, exclude: 'iso-url', size: 1..1000,
-              help: _('The URL of the remote repository to use.')
+              help: _('The URL of the remote repo to use.')
 
   attr 'iso-url', type: URI, exclude: 'url', size: 1..1000, help: _(<<-HELP)
     The URL of the ISO image to download and unpack to create the
-    repository.  This can be an HTTP or HTTPS URL, or it can be a
+    repo.  This can be an HTTP or HTTPS URL, or it can be a
     file URL.
 
     In the latter case, the file path is interpreted as a path on the
@@ -53,8 +53,8 @@ This form is only a pointer to a resource somewhere and nothing will be download
   HELP
 
   attr 'task', type: String, required: true, help: _(<<-HELP)
-    The name of the task associated with this repository.  This is used to
-    install nodes that match a policy using this repository Generally it
+    The name of the task associated with this repo.  This is used to
+    install nodes that match a policy using this repo. Generally it
     should match the OS that the URL or ISO-URL attributes point to.
   HELP
 
@@ -62,7 +62,7 @@ This form is only a pointer to a resource somewhere and nothing will be download
 
   def run(request, data)
     # Create a new repo.  This will implicitly, thanks to saving
-    # changes, trigger the loading saga to begin.  (Which takes place in the
+    # changes, trigger the loading saga to begin.  (This takes place in the
     # same transactional context, ensuring you don't send a message to your
     # background workers without also committing this data to your database.)
     data["iso_url"] = data.delete("iso-url")

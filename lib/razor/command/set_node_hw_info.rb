@@ -7,7 +7,7 @@ class Razor::Command::SetNodeHWInfo < Razor::Command
     the Razor server might need to be informed so that it can correctly match
     the new hardware with the existing node definition.
 
-    This command enables you to replace the existing hardware data with new
+    This command enables you to replace the existing hardware info data with new
     data, making it possible to update the existing node record prior to
     booting the new node on the network.
 
