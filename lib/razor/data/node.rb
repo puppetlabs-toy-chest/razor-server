@@ -209,6 +209,8 @@ module Razor::Data
       if policy.node_metadata
         modify_metadata('no_replace' => true, 'update' => policy.node_metadata)
       end
+      
+      self.run_event_hooks('node_bind_policy')
 
       self
     end
@@ -329,6 +331,10 @@ module Razor::Data
       { :action => (installed or policy) ? :reboot : :none }
     end
 
+    def run_event_hooks(event)
+      Razor::Hook.run_event_hooks(self, event)
+    end
+
     # Normalize the hardware info. Be very careful when you change this
     # as this might require a DB migration so that existing nodes can
     # still be found after the change
@@ -391,7 +397,9 @@ module Razor::Data
 
       nodes, hw_info = self.find_by_hw_info(params)
       if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        node = self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        node.run_event_hooks('node_create')
+        node
       elsif nodes.size == 1
         node = nodes.first
         # We do not want to update the hw_info at this point; all we know
@@ -457,6 +465,8 @@ module Razor::Data
           kill_node.destroy
         end
         keep_node.save
+
+        keep_node.run_event_hooks('node_register')
         keep_node
       end
     end

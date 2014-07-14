@@ -91,6 +91,12 @@ Fabricator(:node_with_metadata, from: :node) do
   metadata { { "m1" => "a" } }
 end
 
+Fabricator(:node_with_facts_and_metadata, from: :node) do
+  hw_info  { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+  facts   { { "f1" => "a" } }
+  metadata { { "m1" => "a" } }
+end
+
 Fabricator(:installed_node, from: :node) do
   installed "+test"
   installed_at { Time.now }

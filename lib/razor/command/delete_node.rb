@@ -18,6 +18,7 @@ Delete the node "node17":
   def run(request, data)
     if node = Razor::Data::Node[:name => data['name']]
       node.destroy
+      node.run_event_hooks('node_destroy')
       action = _("node destroyed")
     else
       action = _("no changes; node %{name} does not exist") % {name: data['name']}
