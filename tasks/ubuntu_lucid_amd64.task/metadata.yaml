@@ -1,0 +1,6 @@
+---
+
+os_version: lucid
+architecture: amd64
+label: Ubuntu Lucid 10.04 amd64
+base: ubuntu
