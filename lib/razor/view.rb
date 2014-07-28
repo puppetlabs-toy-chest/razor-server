@@ -198,8 +198,11 @@ module Razor
     def hook_hash(hook)
       view_object_hash(hook).merge(
       {
+        :name          => hook.name,
         :"hook-type"   => hook.hook_type,
         :configuration => hook.configuration,
+        :log           => { :id => view_object_url(hook) + "/log",
+                            :name => "log" },
       }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) })
     end
 

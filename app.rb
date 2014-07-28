@@ -683,6 +683,16 @@ and requires full control over the database (eg: add and remove tables):
     hook_hash(hook).to_json
   end
 
+  get '/api/collections/hooks/:name/log' do
+    check_permissions!("query:hooks:#{params[:name]}")
+    hook = Razor::Data::Hook[:name => params[:name]] or
+        error 404, :error => _("no hook matched name=%{name}") % {name: params[:name]}
+    {
+        "spec" => spec_url("collections", "hooks", "log"),
+        "items" => hook.log
+    }.to_json
+  end
+
   get '/api/collections/nodes' do
     collection_view Razor::Data::Node.search(params), 'nodes'
   end
