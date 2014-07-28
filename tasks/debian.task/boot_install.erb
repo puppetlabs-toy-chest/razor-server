@@ -30,6 +30,7 @@ echo No AMD64 installer present, expected install.amd directory
 <% if repo_file('install.386') %>
 kernel <%= repo_url('install.386/vmlinuz') %> ${cmdline}        || goto error
 initrd <%= repo_url('install.386/initrd.gz') %>                 || goto error
+boot
 <% else %>
 echo No i386 installer present, expected install.386 directory
 <% end %>
