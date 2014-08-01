@@ -57,9 +57,11 @@ class Razor::Data::Broker < Sequel::Model
   #
   # @param node [Razor::Data::Node] the node we are producing an install
   # script for.
+  # @param script [String] the name of the resulting install script, excluding
+  # its `.erb` extension. If this is omitted, it will look for `install.erb`
   #
   # @return [String] the compiled installation script, ready to run.
-  def install_script_for(node)
-    broker_type.install_script(node, self)
+  def install_script_for(node, script = 'install')
+    broker_type.install_script(node, self, script)
   end
 end

@@ -142,8 +142,9 @@ and requires full control over the database (eg: add and remove tables):
       url "/svc/store_metadata/#{@node.id}?#{q}"
     end
 
-    def broker_install_url
-      url "/svc/broker/#{@node.id}/install"
+    def broker_install_url(script = nil)
+      args = "?script=#{script}" unless script.nil?
+      url "/svc/broker/#{@node.id}/install#{args}"
     end
 
     def node_url
@@ -423,15 +424,20 @@ and requires full control over the database (eg: add and remove tables):
     render_template(params[:template])
   end
 
-  # If we support more than just the `install` script in brokers, this should
-  # expand to take the template identifier like the file service does.
+  # This accepts a `script` parameter, which defaults to `install` for the file `install.erb`.
   get '/svc/broker/:node_id/install' do
     node = Razor::Data::Node[params[:node_id]]
     halt 404 unless node
-    halt 409 unless node.policy
+    error 409, :error => _("node %{node} not bound to a policy yet") % {node: node.id} unless node.policy
 
     content_type 'text/plain'   # @todo danielp 2013-09-24: ...or?
-    node.policy.broker.install_script_for(node)
+    script_name = params['script'] || 'install'
+    begin
+      node.policy.broker.install_script_for(node, script_name)
+    rescue Razor::InstallTemplateNotFoundError => e
+      error 404, :error => _("install template %{name}.erb does not exist") % {name: script_name},
+            :details => e.to_s
+    end
   end
 
   get '/svc/log/:node_id' do

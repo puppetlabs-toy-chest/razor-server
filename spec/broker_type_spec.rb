@@ -132,7 +132,7 @@ describe Razor::BrokerType do
         with_brokers_in(paths.first => broker) do
           expect {
             Razor::BrokerType.find(name: 'test')
-          }.to raise_error Razor::BrokerTypeInvalidError, /install template/
+          }.to raise_error Razor::BrokerTypeInvalidError, 'test has no install script template'
         end
       end
 
@@ -142,7 +142,7 @@ describe Razor::BrokerType do
           (Pathname(paths.first) + 'test.broker' + 'install.erb').chmod(0000)
           expect {
             Razor::BrokerType.find(name: 'test')
-          }.to raise_error Razor::BrokerTypeInvalidError, /install template/
+          }.to raise_error Razor::BrokerTypeInvalidError, 'test has install template install.erb, but it is unreadable'
         end
       end
     end
@@ -175,7 +175,7 @@ describe Razor::BrokerType do
           broker = Razor::BrokerType.find(name: 'test')
           broker.should be_an_instance_of Razor::BrokerType
           broker.name.should == 'test'
-          broker.send(:install_template_path).to_s.should start_with(paths.first)
+          broker.send(:install_template_path, 'install').to_s.should start_with(paths.first)
         end
       end
 
@@ -203,6 +203,110 @@ describe Razor::BrokerType do
             Razor::BrokerType.find(name: name).name.should == name
           end
         end
+      end
+    end
+  end
+
+  context 'finding install script' do
+    around :each do |test|
+      Dir.mktmpdir do |dir|
+        Razor.config['broker_path'] = dir
+        test.run
+      end
+    end
+
+    it "should find the powershell script if specified" do
+      brokers = {'test' => {'install.erb' => "# this is the bash broker\n",
+                            'install.ps1.erb' => "# this is the powershell broker\n"}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+        node.policy.broker.install_script_for(node, 'install.ps1').to_s.should == "# this is the powershell broker\n"
+      end
+    end
+
+    it "should find the powershell script if '.erb' is included" do
+      brokers = {'test' => {'install.erb' => "# this is the bash broker\n",
+                            'install.ps1.erb' => "# this is the powershell broker\n"}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+        node.policy.broker.install_script_for(node, 'install.ps1.erb').to_s.should == "# this is the powershell broker\n"
+      end
+    end
+
+    it "should find the bash script if specified" do
+      brokers = {'test' => {'install.erb' => "# this is the bash broker\n",
+                            'install.ps1.erb' => "# this is the powershell broker\n"}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+        node.policy.broker.install_script_for(node, 'install').to_s.should == "# this is the bash broker\n"
+      end
+    end
+
+    it "should find the bash script if not specified" do
+      brokers = {'test' => {'install.erb' => "# this is the bash broker\n",
+                            'install.ps1.erb' => "# this is the powershell broker\n"}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+        node.policy.broker.install_script_for(node).to_s.should == "# this is the bash broker\n"
+      end
+    end
+
+    it "should fail if the requested file does not exist" do
+      brokers = {'test' => {'install.erb' => "# this is the bash broker\n",
+                            'install.ps1.erb' => "# this is the powershell broker\n"}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+        expect { node.policy.broker.install_script_for(node, 'does-not-exist') }.
+            to raise_error(Razor::InstallTemplateNotFoundError,
+                           "could not find install template 'does-not-exist.erb' for broker 'test'")
+      end
+    end
+
+    it "should throw error if 'install.erb' does not exist but is expected" do
+      brokers = {'test' => {'install.ps1.erb' => '# some powershell script'}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+
+        expect { node.policy.broker.install_script_for(node, 'install') }.
+            to raise_error(Razor::InstallTemplateNotFoundError,
+                           'could not find install template \'install.erb\' for broker \'test\'')
+      end
+    end
+
+    it "should return the correct powershell script" do
+      brokers = {'test' => {'install.ps1.erb' => '# some powershell script'}}
+      with_brokers_in(path => brokers) do
+        brokertype = Razor::BrokerType.find(name: 'test')
+        task = Fabricate(:task)
+        broker = Razor::Data::Broker.new(name: 'test', broker_type: brokertype).save
+        policy = Fabricate(:policy, task_name: task.name, broker: broker)
+        node = Fabricate(:bound_node, :policy => policy)
+
+        node.policy.broker.install_script_for(node, 'install.ps1').should == '# some powershell script'
       end
     end
   end

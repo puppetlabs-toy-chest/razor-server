@@ -19,6 +19,7 @@ end
 # Signal that a broker was not found when requested by name.
 class Razor::BrokerTypeNotFoundError < RuntimeError; end
 class Razor::BrokerTypeInvalidError  < RuntimeError; end
+class Razor::InstallTemplateNotFoundError < RuntimeError; end
 
 class Razor::BrokerType
   # Since we behave more or less like a Razor::Data object, we need to include
@@ -68,10 +69,11 @@ class Razor::BrokerType
   # Return the fully interpolated install script, ready to run on a node.
   #
   # @param node [Razor::Data::Node] the node instance to generate for.
+  # @param script [String] the name of the script requested by the node.
   #
   # The node is directly exposed to the script, in case any data from it is
   # required, but only the broker metadata is exposed.
-  def install_script(node, broker)
+  def install_script(node, broker, script = 'install')
     # While this is unlikely, if you could pass an arbitrary object here you
     # could theoretically exploit this to do bad things based on the
     # template actions.  Better safe than sorry...
@@ -96,7 +98,12 @@ class Razor::BrokerType
     # @todo danielp 2013-08-09: this is only a shallow clone, and a shallow
     # freeze; we can do deeper versions of both, but that is time expensive in
     # Ruby, which has crappy support for them.  I feel like this is sufficient.
-    Tilt.new(install_template_path.to_s).render(
+    script = script + '.erb' unless script.end_with?('.erb')
+    install_template_path(script).exist? && install_template_path(script).readable? or
+        raise Razor::InstallTemplateNotFoundError,
+              _('could not find install template \'%{name}\' for broker \'%{broker_name}\'') %
+                  {name: install_template_path(script).basename, broker_name: broker.name}
+    Tilt.new(install_template_path(script).to_s).render(
       # The namespace to work in: a new, blank, disconnected, immutable
       # object, to prevent users getting odd expectations or visibility into,
       # eg, our local scope.
@@ -138,17 +145,20 @@ class Razor::BrokerType
     @name = path.basename('.broker').to_s
 
     # The only mandatory part of the broker is the script to run on the node,
-    # the `install.erb` file.  We assert nothing about it beyond the most
-    # basic existence.
-    install_template_path.exist? or
-      raise Razor::BrokerTypeInvalidError, _("%{name} has no install template") % {name: @name}
-    install_template_path.readable? or
-      raise Razor::BrokerTypeInvalidError, _("%{name} has an install template, but it is unreadable") % {name: @name}
+    # e.g. the `install.erb` file. However, any `.erb` file may exist, so
+    # this just verifies that there exists some value for which this broker
+    # can successfully return a script, i.e. there is a readable `.erb` file.
+    Dir.glob(@path + '*.erb').any? do |script_path|
+      # If an install template path exists, it needs to be readable too
+      Pathname(script_path).readable? or raise Razor::BrokerTypeInvalidError,
+          _("%{name} has install template %{file}, but it is unreadable") %
+              {name: @name, file: Pathname(script_path).basename}
+    end or raise Razor::BrokerTypeInvalidError, _("%{name} has no install script template") % {name: @name}
   end
 
   # Return the name of the installer template file.
-  def install_template_path
-    @path + 'install.erb'
+  def install_template_path(script)
+    @path + script
   end
 
   def configuration_path
