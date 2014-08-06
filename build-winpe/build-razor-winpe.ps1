@@ -4,6 +4,11 @@
 #
 # For release we should sign the script, I guess?
 
+# Parameters
+#   - workdir: where to create the WinPE image and intermediate files
+#              Defaults to the directory containing this script
+param([String] $workdir)
+
 function test-administrator {
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($Identity)
@@ -28,9 +33,13 @@ re-run this script yourself.  Sorry.
 
 
 # Basic location stuff...
-$cwd    = get-currentdirectory
-$output = join-path $cwd "razor-winpe"
-$mount  = join-path $cwd "razor-winpe-mount"
+$cwd = get-currentdirectory
+if ($workdir -eq "") {
+    $workdir = $cwd
+}
+
+$output = join-path $workdir "razor-winpe"
+$mount  = join-path $workdir "razor-winpe-mount"
 
 
 ########################################################################
