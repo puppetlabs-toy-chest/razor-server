@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 class Razor::Command::CreateBroker < Razor::Command
-  summary "Create a new broker configuration for hand-off of installed nodes"
+  summary "Creates a new broker configuration for handing off installed nodes."
   description <<-EOT
-Create a new broker configuration.  Brokers are responsible for handing a node
-off to a config management system, such as Puppet or Chef.  In cases where you
+Creates a new broker configuration.  Brokers are responsible for handing a node
+off to a configuration management system.  In cases where you
 have no configuration management system, you can use the `noop` broker.
   EOT
 
   example <<-EOT
-Creating a simple Puppet broker:
+To create a simple Puppet broker:
 
     {
       "name": "puppet",
@@ -25,8 +25,8 @@ Creating a simple Puppet broker:
   attr  'name', type: String, required: true, size: 1..250,
                  help: _(<<-HELP)
     The name of the broker, as it will be referenced within Razor.
-    This is the name that you supply to, eg, `create-policy` to specify
-    which broker the node will be handed off via after installation.
+    This is the name that you supply to, for example, `create-policy` to specify
+    which broker will be used to hand off the node after installation.
   HELP
 
   attr 'broker-type', required: true, type: String, references: [Razor::BrokerType, :name],
@@ -38,8 +38,8 @@ Creating a simple Puppet broker:
 
   object 'configuration', help: _(<<-HELP) do
     The configuration for the broker.  The acceptable values here are
-    determined by the `broker-type` selected.  In general this has
-    settings like which server to contact, and other configuration
+    determined by the `broker-type` selected.  In general, this has
+    settings for which server to contact and other configuration
     related to handing on the newly installed system to the final
     configuration management system.
 

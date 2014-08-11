@@ -7,8 +7,7 @@ fail() { echo >&2 "$@"; exit 1; }
 warn() { echo >&2 "$@"; }
 cmd()  { hash "$1" >&/dev/null; } # portable 'which'
 
-# If this fails I don't even know what to do, but theoretically the #! above
-# could have been ignored or something.
+# If this fails, the #! above might have been ignored.
 cmd bash || fail "we need bash available to be able to run the installer"
 
 # ...our nice, generic, delegatable script.

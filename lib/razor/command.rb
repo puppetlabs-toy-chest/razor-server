@@ -7,11 +7,8 @@ require 'forwardable'
 class Razor::Conflict < RuntimeError; end
 
 
-# Define the base class for a command.  This encapsulates the active part, and
-# the metadata of, any individual command we support.  Since these are a
-# fairly fundamental part of our application domain, they get all sorts of
-# magic and convention-over-configuration applied to them; this is where the
-# magic is made to happen.
+# Defines the base class for a command.  This encapsulates the active part, and
+# the metadata of, any individual command we support.  
 class Razor::Command
   extend Forwardable
   extend Razor::Validation
@@ -22,7 +19,7 @@ class Razor::Command
 
   # Handle a raw HTTP POST request from the web interface, and translate it
   # into the internal command execution.  Nominally a command could override
-  # this, but that makes little sense -- instead, the `#run` method should be
+  # this, but instead, the `#run` method should be
   # overridden.
   def handle_http_post(app)
     data = app.json_body

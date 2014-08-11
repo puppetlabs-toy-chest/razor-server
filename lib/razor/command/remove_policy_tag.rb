@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::RemovePolicyTag < Razor::Command
-  summary "Remove a tag from an existing policy"
+  summary "Removes a tag from an existing policy."
   description <<-EOT
-This will remove a tag already present from a policy.  This change has no
+Removes a tag that's already present from a policy.  This change has no
 effect on nodes already bound to the policy.
   EOT
 
   example <<-EOT
-Remove the tag `virtual` to the policy `example`:
+To remove the tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual"}
   EOT
@@ -29,7 +29,7 @@ Remove the tag `virtual` to the policy `example`:
       policy.remove_tag(tag)
       policy
     else
-      action = _("Tag %{tag} was not on policy %{policy}") % {tag: data['tag'], policy: data['name']}
+      action = _("Tag %{tag} was not on policy %{policy}.") % {tag: data['tag'], policy: data['name']}
       { :result => action }
     end
   end

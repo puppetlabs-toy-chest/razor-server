@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::CreatePolicy < Razor::Command
-  summary "Create a new policy"
+  summary "Creates a new policy."
   description <<-EOT
 Policies tie together the rules, as tags, with the task and repo containing
 the OS to install, and the broker for post-install configuration.
 
-The overall list of policies is ordered, and policies are considered in that
+The overall list of policies is ordered, and policies are considered in the designated
 order. When a new policy is created, the entry `before` or `after` can be
 used to put the new policy into the table before or after another
 policy. If neither `before` or `after` are specified, the policy is
@@ -14,7 +14,7 @@ appended to the policy table.
   EOT
 
   example <<-EOT
-A sample policy installing CentOS 6.4:
+To create a sample policy installing CentOS 6.4:
 
     {
       "name":          "centos-for-small",
@@ -60,11 +60,11 @@ A sample policy installing CentOS 6.4:
   HELP
 
   attr 'before', type: String, references: Razor::Data::Policy, exclude: 'after', help: _(<<-HELP)
-    The name of the policy to create this policy before in the policy list.
+    The name of the policy that this policy will immediately precede in the policy list.
   HELP
 
   attr 'after', type: String, exclude: 'before', references: Razor::Data::Policy, help: _(<<-HELP)
-    The name of the policy to create this policy after in the policy list.
+    The name of the policy that this policy will follow in the policy list.
   HELP
 
   array 'tags', help: _(<<-HELP) do
@@ -77,13 +77,13 @@ A sample policy installing CentOS 6.4:
   end
 
   attr 'repo', type: String, required: true, references: Razor::Data::Repo, help: _(<<-HELP)
-    The name of the repository containing the OS to be installed by this policy.
-    This should match the task assigned, or bad things will happen.
+    The name of the repo containing the OS to be installed by this policy.
+    This should match the assigned task or installation will fail.
   HELP
 
   attr 'broker', type: String, required: true, references: Razor::Data::Broker, help: _(<<-HELP)
     The name of the broker to use when the node is fully installed, and is ready
-    to hand off to the final configuration management system.  If you have no
+    to hand off to the configuration management system.  If you have no
     ongoing configuration management, the supplied `noop` broker will do nothing.
 
     Please note that this is a broker created with the `create-broker` command,
@@ -92,7 +92,7 @@ A sample policy installing CentOS 6.4:
 
   attr 'task', type: String, required: true, help: _(<<-HELP)
     The name of the task used to install nodes that match this policy.  This must
-    match the selected repo, as it references files contained within that repository.
+    match the selected repo, as it references files contained within that repo.
   HELP
 
   attr 'node-metadata', type: Hash, help: _(<<-HELP)

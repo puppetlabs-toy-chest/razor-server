@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 
-# Remove a specific key or remove all (works with GET)
+# Removes a specific key or removes all (works with GET)
 class Razor::Command::RemoveNodeMetadata < Razor::Command
-  summary "Remove one, or all, keys from a nodes metadata"
+  summary "Removes one or all keys from a node's metadata."
   description <<-EOT
-This is a shortcut to `modify-node-metadata` that allows for removing a single
-key OR all keys in a simpler form.
+This is a shortcut to `modify-node-metadata` that allows you to remove a single
+key or all keys.
   EOT
 
   example <<-EOT
-Remove a single key from a node:
+To remove a single key from a node:
 
     {"node": "node1", "key": "my_key"}
 
-or remove all keys from a node:
+Or, to remove all keys from a node:
 
     {"node": "node1", "all": true}
   EOT
@@ -22,7 +22,7 @@ or remove all keys from a node:
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The node from which to remove metadata')
+               help: _('The node to remove metadata from.')
 
   attr 'key', type: String, size: 1..Float::INFINITY,
               help: _('The name of the metadata item to remove from the node.')
