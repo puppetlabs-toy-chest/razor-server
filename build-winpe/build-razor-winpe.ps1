@@ -1,13 +1,16 @@
 # -*- powershell -*-
 # Run this script as:
-#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 -workdir C:\build-winpe
+#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 \
+#     -razorurl http://razor:8080/svc -workdir C:\build-winpe
 #
 # Produce a WinPE image suitable for use with Razor
 
 # Parameters
+#   - razorurl: the URL of the Razor server, something like
+#     http://razor-server:8080/svc (note the /svc at the end, not /api)
 #   - workdir: where to create the WinPE image and intermediate files
 #              Defaults to the directory containing this script
-param([String] $workdir)
+param([String] $workdir, [Parameter(Mandatory=$true)][String] $razorurl)
 
 function test-administrator {
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -31,6 +34,16 @@ re-run this script yourself.
     exit 1
 }
 
+# Validate the razorurl
+$uri = $razorurl -as [System.Uri]
+if (-not $uri.scheme -eq 'http' -or -not $uri.scheme -eq 'https') {
+  write-error "razor-url must be a http or https URL"
+  exit 1
+}
+if (-not $uri.AbsolutePath.split('/')[-1] -eq 'svc') {
+  write-error "razor-url must end with '/svc'"
+  exit 1
+}
 
 # Basic location stuff...
 $cwd = get-currentdirectory
@@ -128,16 +141,21 @@ $file   = join-path $mount "razor-client.ps1"
 $client = join-path $cwd "razor-client.ps1"
 copy-item $client $file
 
+$file   = join-path $mount "razor-client-config.ps1"
+set-content $file @"
+`$baseurl = "$razorurl"
+"@
+
 write-host "* Writing Windows\System32\startnet.cmd script"
 $file = join-path $mount "Windows\System32\startnet.cmd"
-set-content $file @'
+set-content $file @"
 @echo off
 echo starting wpeinit to detect and boot network hardware
 wpeinit
 echo starting the razor client
 powershell -executionpolicy bypass -noninteractive -file %SYSTEMDRIVE%\razor-client.ps1
 echo dropping to a command shell now...
-'@
+"@
 
 write-host "* Unmounting and saving the wim image"
 dismount-windowsimage -save -path $mount -erroraction stop

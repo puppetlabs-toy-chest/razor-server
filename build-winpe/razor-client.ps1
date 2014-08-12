@@ -1,11 +1,12 @@
 # -*- powershell -*-
 
-# If we have a configuration file, source it in.
+# If we have a configuration file, source it in. The file must set
+# $baseurl to something like http://razor:8080/svc
 $configfile = join-path $env:SYSTEMDRIVE "razor-client-config.ps1"
 if (test-path $configfile) {
     write-host "sourcing configuration from $configfile"
     . $configfile
-    # $server is now set
+    # $baseurl is now set
 } else {
     # No sign of a configuration file, guess that our DHCP server is also our
     # Razor server, and point at that.  Could easily be wrong, but what else
@@ -20,10 +21,9 @@ if (test-path $configfile) {
                           $_.dhcpleaseobtained } |
                   select -uniq -first 1 -expandproperty dhcpserver
 
+    write-host "using server $server"
+    $baseurl = "http://${server}:8080/svc"
 }
-
-$baseurl = "http://${server}:8080/svc"
-
 
 # Figure out our node hardware ID details, since we can't get at anything more
 # useful from our boot environment.  Sadly, rediscovery is the order of the
