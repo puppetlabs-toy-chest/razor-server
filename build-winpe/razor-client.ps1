@@ -37,7 +37,24 @@ $hwid = $hwid -join '&' -replace ':', '-'
 # number that we can use for our next step -- accessing our bound
 # installer templates.
 write-host "contact ${baseurl}/nodeid?${hwid} for ID mapping"
-$data = invoke-restmethod "${baseurl}/nodeid?${hwid}"
+# Try contacting the Razor server up to 10 times over 30s. Sometimes, the
+# first few tries fail, presumably because the network isn't up fully yet
+$tries = 0
+$err = @()
+do {
+   if ($tries -gt 0) {
+     write-host " ... will retry in 3s"
+     start-sleep 3
+   }
+   $data = Invoke-RestMethod "${baseurl}/nodeid?${hwid}" -ErrorAction SilentlyContinue -ErrorVariable err
+   $tries = $tries + 1
+} while ($tries -lt 10 -and $err.count -gt 0)
+
+if ($err.count -gt 0) {
+  write-error "Failed to contact ${baseurl}/nodeid?${hwid}; giving up"
+  exit 1
+}
+
 $id = $data.id
 write-host "mapped myself to node ID ${id}"
 
