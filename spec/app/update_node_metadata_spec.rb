@@ -44,19 +44,6 @@ describe Razor::Command::UpdateNodeMetadata do
     last_response.json["error"].should =~ /no-replace should be a boolean, but was actually a string/
   end
 
-  it "should require all to equal true" do
-    data = { 'node' => "node#{node.id}", 'value' => 'v1', 'all' => 'not true' }
-    update_metadata(data)
-    last_response.status.should == 422
-    last_response.json["error"].should =~ /all should be a boolean, but was actually a string/
-  end
-
-  it "should succeed with 'all' and 'no-replace'" do
-    data = { 'node' => "node#{node.id}", 'value' => 'v1', 'all' => 'true', 'no-replace' => 'true' }
-    update_metadata(data)
-    last_response.status.should == 202
-  end
-
   #Defer to the modify-node-metadata tests for the verification of the
   #actual work.
 end

@@ -8,6 +8,12 @@
   could have existed as e.g. 'mytag' and 'MyTag'. A migration in this
   release will rename conflicting tags, appending a digit to the end,
   e.g. 'mytag' and 'MyTag1'.
++ The `update-node-metadata` command no longer accepts the `all`
+  argument. This argument should have never been accepted by the 
+  command, and had no effect. Instead, `modify-node-metadata` can be 
+  called with either the `clear` argument to remove all keys, or the 
+  `update` argument to set all keys to certain values, which achieves 
+  the same function. 
 
 ## 0.15.0 - 2014-05-22
 

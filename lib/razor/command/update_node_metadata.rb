@@ -4,7 +4,7 @@ class Razor::Command::UpdateNodeMetadata < Razor::Command
   summary "Update one key in a nodes metadata"
   description <<-EOT
 This is a shortcut to `modify-node-metadata` that allows for updating or
-adding removing a single key, in a simpler form that the full
+adding a single key, in a simpler form than the full
 editing language.
   EOT
 
@@ -19,7 +19,7 @@ Set a single key from a node:
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
                help: _('The node for which to update metadata.')
 
-  attr 'key', type: String, exclude: 'all', size: 1..Float::INFINITY,
+  attr 'key', required: true, type: String, size: 1..Float::INFINITY,
               help: _('The key to change in the metadata.')
 
   attr 'value', required: true,
@@ -27,11 +27,6 @@ Set a single key from a node:
 
   attr 'no-replace', type: :bool,
                      help: _('If true, it is an error to try to change an existing key')
-
-  attr 'all', type: :bool, exclude: 'key',
-              help: _('If true, the update applies to all keys.')
-
-  require_one_of 'key', 'all'
 
   # Update/add specific metadata key (works with GET)
   def run(request, data)
