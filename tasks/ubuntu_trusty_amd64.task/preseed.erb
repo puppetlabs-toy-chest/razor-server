@@ -5,7 +5,7 @@ d-i netcfg/get_hostname string <%= node.hostname %>
 d-i netcfg/get_domain string <%= node.domainname %>
 d-i netcfg/no_default_route boolean true
 # This is the only line that differs from the `ubuntu` preseed file.
-d-i live-installer/net-image string <%= repo_file("install/filesystem.squashfs") %>
+d-i live-installer/net-image string <%= repo_url("install/filesystem.squashfs") %>
 d-i mirror/protocol string <%= repo_uri.scheme %>
 d-i mirror/country string manual
 d-i mirror/http/hostname string <%= "#{repo_uri.host}:#{repo_uri.port}" %>
