@@ -60,14 +60,9 @@ class Razor::Validation::HashAttribute
 - It must be between <%= @size.min %> and <%= @size.max %> in length.
 % end
 % if @nested_schema
-<%= @nested_schema %>
+<%= @nested_schema.help %>
 % end
   ERB
-
-  def to_s
-    # We indent so that nested attributes do the right thing.
-    HelpTemplate.result(binding).gsub(/^/, '   ').rstrip
-  end
 
   def to_json(arg)
     if @type.nil?
@@ -151,7 +146,7 @@ class Razor::Validation::HashAttribute
           msg = n_(
             '%{this} must be at most %{max} characters in length, but is actually %{size} character long',
             '%{this} must be at most %{max} characters in length, but is actually %{size} characters long',
-            zalue.size)
+            value.size)
         end
 
       else
@@ -255,8 +250,13 @@ class Razor::Validation::HashAttribute
     @size = range
   end
 
-  def help(text)
-    @help = Razor::Help.scrub(text) or
-      raise ArgumentError, "the attribute summary must be a string"
+  def help(text = nil)
+    if text.nil?
+      # We indent so that nested attributes do the right thing.
+      HelpTemplate.result(binding).gsub(/^/, '   ').rstrip
+    else
+      @help = Razor::Help.scrub(text) or
+        raise ArgumentError, "the attribute summary must be a string"
+    end
   end
 end

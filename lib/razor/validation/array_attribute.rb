@@ -43,23 +43,23 @@ class Razor::Validation::ArrayAttribute
 - <%= @help %>
 %end
 % if @type
-- <%= index_to_s %> must be of type <%= ruby_type_to_json(@type[:type]) %>.
+- <%= index_help %> must be of type <%= ruby_type_to_json(@type[:type]) %>.
 % end
 % if @references
-- <%= index_to_s %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
+- <%= index_help %> must match the <%= @refname %> of an existing <%= @references.friendly_name %>.
 % end
 % if @nested_schema
-- <%= index_to_s %>:
-<%= @nested_schema.to_s.gsub(/^/, '  ') %>
+- <%= index_help %>:
+<%= @nested_schema.help.gsub(/^/, '  ') %>
 % end
   ERB
 
-  def to_s
+  def help
     # We indent so that nested attributes do the right thing.
     HelpTemplate.result(binding).gsub(/^/, '  ').rstrip
   end
 
-  def index_to_s
+  def index_help
     if Float(@range.max).infinite? and @range.min <= 0
       _("All elements")
     elsif Float(@range.max).infinite?
@@ -90,7 +90,7 @@ class Razor::Validation::ArrayAttribute
       begin
         @type[:validate] and @type[:validate].call(value)
       rescue => e
-        raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, index), type: ruby_type_to_json(@type[:type]), error: e.to_s}
+        raise Razor::ValidationFailure, _("%{this} should be a %{type}, but failed validation: %{error}") % {this: expand(path, index), type: ruby_type_to_json(@type[:type]), error: e.help}
       end
     end
 

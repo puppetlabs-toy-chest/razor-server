@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'set'
 require 'forwardable'
+require_relative '../help'
 
 class Razor::Validation::HashSchema
   def initialize(command)
@@ -34,7 +35,7 @@ class Razor::Validation::HashSchema
   # our help.  This keeps responsibility for the internals of the schema
   # documentation inside the object; we just throw it raw into the help
   # template when required.
-  HelpTemplate = ERB.new(_(<<-ERB), nil, '%')
+  HelpTemplate = ERB.new(Razor::Help.scrub(_(<<-ERB)), nil, '%')
 <%= @help %>
 % if @authz_template
 # Access Control
@@ -63,13 +64,15 @@ file; on this server security is currently <%= auth %>.
 %   @attributes.each do |name, attr|
 
  * <%= name %>
-<%= attr.to_s %>
+<%= attr.help %>
 %   end
 % end
   ERB
 
-  def to_s
-    HelpTemplate.result(binding)
+  def help
+    if @authz_template or not @attributes.empty?
+      HelpTemplate.result(binding)
+    end
   end
 
   def attribute(name)

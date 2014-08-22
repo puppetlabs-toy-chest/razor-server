@@ -118,8 +118,8 @@ describe Razor::Validation::HashAttribute do
         attr.validate!({'id' => node.id}, nil).should be_true
       end
 
-      context "to_s" do
-        subject :text do attr.to_s end
+      context "help" do
+        subject :text do attr.help end
 
         it "should use the friendly name of the reference type" do
           should =~ /an existing node\./
@@ -169,8 +169,8 @@ describe Razor::Validation::HashAttribute do
           attr.validate!({'attr' => "\u{2603}\u{2603}\u{2603}\u{2603}"}, nil).should be_true
         end
 
-        context "to_s" do
-          subject :text do attr.to_s end
+        context "help" do
+          subject :text do attr.help end
 
           it "should identify the actual size required" do
             should =~ /It must be between 2 and 4 in length./
@@ -199,8 +199,8 @@ describe Razor::Validation::HashAttribute do
             to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
         end
 
-        context "to_s" do
-          subject :text do attr.to_s end
+        context "help" do
+          subject :text do attr.help end
 
           it "should identify the actual size required" do
             should =~ /It must be between 2 and 4 in length./
@@ -230,8 +230,8 @@ describe Razor::Validation::HashAttribute do
             to raise_error Razor::ValidationFailure, 'attr must have between 2 and 4 entries, but actually contains 5'
         end
 
-        context "to_s" do
-          subject :text do attr.to_s end
+        context "help" do
+          subject :text do attr.help end
 
           it "should identify the actual size required" do
             should =~ /It must be between 2 and 4 in length./
@@ -258,8 +258,8 @@ describe Razor::Validation::HashAttribute do
       end
     end
 
-    context "to_s" do
-      subject :text do attr.to_s end
+    context "help" do
+      subject :text do attr.help end
 
       {
         String  => 'string',
@@ -298,8 +298,8 @@ describe Razor::Validation::HashAttribute do
       end
     end
 
-    context "to_s" do
-      subject :text do attr.to_s end
+    context "help" do
+      subject :text do attr.help end
 
       it "should document the exclusions" do
         attr.exclude('test')
@@ -322,8 +322,8 @@ describe Razor::Validation::HashAttribute do
       expect { attr.references(Razor::Data::Node) }.not_to raise_error
     end
 
-    context "to_s" do
-      subject :text do attr.to_s end
+    context "help" do
+      subject :text do attr.help end
 
       it "should document the thing that is referenced" do
         attr.references(Razor::Data::Node)
@@ -362,12 +362,12 @@ describe Razor::Validation::HashAttribute do
         end.not_to raise_error
       end
 
-      context "to_s" do
+      context "help" do
         it "should document the required size" do
           attr.type(type)
           attr.size(1..10)
           attr.finalize(schema)
-          attr.to_s.should =~ /It must be between 1 and 10 in length./
+          attr.help.should =~ /It must be between 1 and 10 in length./
         end
       end
     end
@@ -383,21 +383,21 @@ describe Razor::Validation::HashAttribute do
     end
   end
 
-  context "to_s with nested schema" do
+  context "help with nested schema" do
     it "should include documentation from a nested object" do
       child = Razor::Validation::HashSchema.new('test')
       child.attr 'name', type: String, required: true
 
-      attr.new('test', required: true, schema: child).to_s.
-        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '   ').rstrip)}~
+      attr.new('test', required: true, schema: child).help.
+        should =~ %r~#{Regexp.escape(child.help.gsub(/^/, '   ').rstrip)}~
     end
 
     it "should include documentation from a nested array" do
       child = Razor::Validation::ArraySchema.new('test')
       child.elements type: String
 
-      attr.new('test', required: true, schema: child).to_s.
-        should =~ %r~#{Regexp.escape(child.to_s.gsub(/^/, '  ').rstrip)}~
+      attr.new('test', required: true, schema: child).help.
+        should =~ %r~#{Regexp.escape(child.help.gsub(/^/, '  ').rstrip)}~
     end
   end
 end

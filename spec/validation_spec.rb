@@ -62,7 +62,7 @@ describe Razor::Validation do
         to raise_error Razor::ValidationFailure, 'a[0].b[0].c is a required attribute, but it is not present'
     end
 
-    context "to_s" do
+    context "help" do
       it "should only talk about authz only in the top level object" do
         schema.object 'node' do
           attr 'name', type: String
@@ -72,7 +72,7 @@ describe Razor::Validation do
         # hopefully it should count 0 if we change that text and fail to
         # change this, so that the developer responsible knows they have to do
         # something here, and changes this text to match the new authz text.
-        schema.to_s.lines.grep(/This command's access control pattern/).count.should == 1
+        schema.help.lines.grep(/This command's access control pattern/).count.should == 1
       end
     end
   end

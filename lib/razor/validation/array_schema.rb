@@ -22,11 +22,11 @@ class Razor::Validation::ArraySchema
 <%= @help %>
 %end
 % @checks.each do |check|
-<%= check %>
+<%= check.help %>
 % end
   ERB
 
-  def to_s
+  def help
     HelpTemplate.result(binding)
   end
 

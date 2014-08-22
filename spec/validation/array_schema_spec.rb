@@ -38,8 +38,8 @@ describe Razor::Validation::ArraySchema do
     end
   end
 
-  context "to_s" do
-    subject :text do schema.to_s end
+  context "help" do
+    subject :text do schema.help end
 
     it "should document the requirements for all elements" do
       schema.elements type: String

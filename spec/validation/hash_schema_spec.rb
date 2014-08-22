@@ -79,8 +79,8 @@ describe Razor::Validation::HashSchema do
   end
 
 
-  context "to_s" do
-    subject :text do schema.to_s end
+  context "help" do
+    subject :text do schema.help end
 
     context "with authz" do
       before :each do schema.authz '%{name}' end
@@ -115,7 +115,7 @@ describe Razor::Validation::HashSchema do
       schema.attr 'one', type: String, size: 1..Float::INFINITY
       should =~ /^# Attributes/
       should =~ / \* one/
-      should =~ /#{Regexp.escape(schema.attribute('one').to_s)}/
+      should =~ /#{Regexp.escape(schema.attribute('one').help)}/
     end
 
     it "should document multiple attributes" do
@@ -124,8 +124,8 @@ describe Razor::Validation::HashSchema do
       should =~ /^# Attributes/
       should =~ / \* one/
       should =~ / \* two/
-      should =~ /#{Regexp.escape(schema.attribute('one').to_s)}/
-      should =~ /#{Regexp.escape(schema.attribute('two').to_s)}/
+      should =~ /#{Regexp.escape(schema.attribute('one').help)}/
+      should =~ /#{Regexp.escape(schema.attribute('two').help)}/
     end
   end
 
