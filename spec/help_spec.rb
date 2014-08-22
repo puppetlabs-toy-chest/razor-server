@@ -28,7 +28,7 @@ describe Razor::Help do
 
     it "should fail if the summary contains a newline" do
       expect { help.summary("test\ncontent") }.
-        to raise_error(/Command summaries should be a single line/)
+          to raise_error(/Command summaries should be a single line/)
     end
   end
 
@@ -63,34 +63,56 @@ EOT
     end
   end
 
-  context "example" do
+  context "examples" do
     it "should return nil if no example is set" do
-      help.example.should be_nil
+      help.examples.should be_nil
     end
 
-    it "should accept a example value" do
-      expect { help.example('testing') }.not_to raise_error
-    end
-
-    it "should return the new example value" do
-      help.example('test').should == 'test'
-    end
-
-    it "should retain the example value" do
-      help.example('test')
-      help.example.should == 'test'
+    it "should return and retain the example value" do
+      help.example(api: 'test')[:api].should == 'test'
+      help.examples[:api].should == 'test'
     end
 
     it "should work if the example contains a newline" do
-      expect { help.example("test\ncontent") }.not_to raise_error
+      expect { help.example(api: "test\ncontent") }.not_to raise_error
     end
 
     it "should strip indents" do
-      help.example <<EOT
+      help.example api: <<EOT
         This text is indented.
         We should see something strip that off.
 EOT
-      help.example.should =~ /^This text/
+      help.examples[:api].should =~ /^This text/
+    end
+
+    it "should allow cli examples" do
+      help.example(cli: 'cli example 1')[:cli].should == 'cli example 1'
+      help.examples[:cli].should == 'cli example 1'
+    end
+
+    it "should disallow a second example of the same type" do
+      help.example(cli: 'cli example 1')
+      expect { help.example(cli: 'cli example 2') }.to raise_error(ArgumentError, 'Examples already declared for type cli')
+    end
+
+    it "should allow both cli and api examples" do
+      help.example(cli: 'cli example')
+      help.example(api: 'api example')
+      help.examples[:cli].should == 'cli example'
+      help.examples[:api].should == 'api example'
+    end
+
+    it "should default to api" do
+      help.example('default example')
+      help.examples[:api].should == 'default example'
+    end
+
+    it "should not allow an unexpected example" do
+      expect { help.example(other: 'other example') }.to raise_error(ArgumentError, /unexpected type 'other' for example/)
+    end
+
+    it "should not allow a bad datatype for the example" do
+      expect { help.example(1) }.to raise_error(ArgumentError, /unexpected datatype 'Fixnum' for example/)
     end
   end
 
@@ -184,7 +206,41 @@ but the rest of the text is
 
     it "should fail with an unknown help format" do
       expect { cmd.help('awesome') }.
-        to raise_error ArgumentError, /unknown help format awesome/
+          to raise_error ArgumentError, /unknown help format awesome/
+    end
+
+    context "composed help" do
+      it "should be nil without summary" do
+        cmd.help.keys.should_not include 'summary'
+      end
+      it "should include summary" do
+        cmd.help.should_not include 'summary'
+        cmd.summary 'this is a summary'
+        cmd.help['summary'].should == 'this is a summary'
+      end
+      it "should include description" do
+        cmd.help.should_not include 'description'
+        cmd.description 'this is a description'
+        cmd.help['description'].should == 'this is a description'
+      end
+      it "should include returns" do
+        cmd.help.should_not include 'returns'
+        cmd.returns 'this is a returns'
+        cmd.help['returns'].should == 'this is a returns'
+      end
+      it "should include schema" do
+        cmd.help.should_not include 'schema'
+        cmd.attr('this-is-an-attribute')
+        cmd.help['schema'].should =~ /this-is-an-attribute/
+      end
+      it "should include examples" do
+        cmd.help.should_not include 'examples'
+        cmd.example api: 'this is an API example'
+        cmd.example cli: 'this is a CLI example'
+        cmd.help['examples']['api'].should == 'this is an API example'
+        cmd.help['examples']['cli'].should == 'this is a CLI example'
+      end
+
     end
 
     context "full help" do
@@ -192,7 +248,7 @@ but the rest of the text is
 
       it "should return a sensible message with no help text" do
         text.should =~
-          /Unfortunately, the `test-help-rendering` command has not been documented/
+            /Unfortunately, the `test-help-rendering` command has not been documented/
       end
 
       context "with a description" do

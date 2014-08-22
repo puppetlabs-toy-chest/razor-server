@@ -3,8 +3,8 @@ module Razor::Help
   def summary(value = nil)
     if value = Razor::Help.scrub(value)
       value =~ /\n/ and
-        raise ArgumentError, "Command summaries should be a single line.\n" +
-                             "Put the long text into the 'description' instead."
+          raise ArgumentError, "Command summaries should be a single line.\n" +
+              "Put the long text into the 'description' instead."
       @summary = value
     end
     # If we don't have a summary yet, generate one from the first line of the
@@ -18,10 +18,21 @@ module Razor::Help
     @description
   end
 
-  def example(value = nil)
-    value = Razor::Help.scrub(value)
-    value.nil? or @example = value
-    @example
+  def example(value)
+    value = { :api => value } if value.is_a?(String)
+    value.is_a?(Hash) or raise ArgumentError, "unexpected datatype '%{class}' for example" % {class: value.class}
+
+    @examples ||= {}
+    value.each do |key, value|
+      [:cli, :api].include?(key) or raise ArgumentError, "unexpected type '%{type}' for example" % {type: key}
+      raise ArgumentError, "Examples already declared for type #{key}" if @examples[key]
+      @examples[key] = Razor::Help.scrub(value)
+    end
+    @examples
+  end
+
+  def examples
+    @examples
   end
 
   def returns(value = nil)
@@ -33,13 +44,40 @@ module Razor::Help
 
   # Format the help text into something usable by the client.
   # See the bottom of the file for the actual templates.
-  HelpTemplates = Hash.new {|_, name| raise ArgumentError, "unknown help format #{name}" }
+  HelpTemplates = Hash.new {|_, name| raise ArgumentError, _("unknown help format #{name}") }
   def help(format = nil)
     if format
-      HelpTemplates[format].result(binding)
+      make_templates(HelpTemplates[format])
     else
+      # These top-level templates are special cases because they should only be included if their corresponding
+      # attribute is present ('summary' to '@summary'). Otherwise, we'll be generating blank ERB templates for
+      # help formats that shouldn't be present. E.g. If '@returns' is absent, the 'returns' template should be too.
+      templates = HelpTemplates.reject do |template_key, template_erb|
+        case template_key
+          when 'summary'
+            summary.nil?
+          when 'description'
+            description.nil?
+          when 'returns'
+            returns.nil?
+          when 'examples'
+            examples.nil?
+          when 'schema'
+            schema.help.nil?
+          else
+            false
+        end
+      end
+      templates.merge(make_templates(templates))
+    end
+  end
+
+  def make_templates(templates)
+    if templates.is_a?(ERB)
+      templates.result(binding)
+    elsif templates.is_a?(Hash)
       # produce a new hash with the same output keys, but mutated output values
-      HelpTemplates.merge(HelpTemplates) {|_, erb| erb.result(binding) }
+      templates.merge(templates) {|_, arr| make_templates(arr)}
     end
   end
 
@@ -91,11 +129,19 @@ module Razor::Help
     text.lines.map{|line|line.rstrip}.join("\n").rstrip
   end
 
+  HelpTemplates['summary'] = ERB.new(scrub(_('<%= summary %>')), nil, '%')
+  HelpTemplates['description'] = ERB.new(scrub(_('<%= description %>')), nil, '%')
+  HelpTemplates['returns'] = ERB.new(scrub(_('<%= returns %>')), nil, '%')
+  HelpTemplates['schema'] = ERB.new(scrub(_('<%= schema.help %>')), nil, '%')
+  HelpTemplates['examples'] = {}
+  HelpTemplates['examples']['api'] = ERB.new(scrub(_('<%= examples[:api] %>')), nil, '%')
+  HelpTemplates['examples']['cli'] = ERB.new(scrub(_('<%= examples[:cli] %>')), nil, '%')
+
   HelpTemplates['full'] = ERB.new(scrub(_(<<-ERB)), nil, '%')
 % if summary.nil? and description.nil?
 Unfortunately, the `<%= name %>` command has not been documented.
 % else
-% # summary, description, example
+% # summary, description, examples[:api]
 # SYNOPSIS
 <%= summary %>
 
@@ -106,18 +152,15 @@ Unfortunately, the `<%= name %>` command has not been documented.
 % # of the code that they are working with.
 <%= schema %>
 %
-% # @todo danielp 2014-04-04: inject details built from the validation about
-% # the structure and form of the command.
-%
 % if returns
 # RETURNS
 <%= returns.gsub(/^/, '  ') %>
 % end
 %
-% if example
+% if examples && examples[:api]
 # EXAMPLES
 
-<%= example.gsub(/^/, '  ') %>
+<%= examples[:api].gsub(/^/, '  ') %>
 % end
 % end
   ERB
