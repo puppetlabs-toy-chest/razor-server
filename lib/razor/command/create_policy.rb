@@ -13,7 +13,7 @@ policy. If neither `before` or `after` are specified, the policy is
 appended to the policy table.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 A sample policy installing CentOS 6.4:
 
     {
@@ -29,6 +29,16 @@ A sample policy installing CentOS 6.4:
       "tags":          ["small"],
       "node-metadata": {"key": "value"}
     }
+  EOT
+
+  example cli: <<-EOT
+A sample policy installing CentOS 6.4:
+
+    razor create-policy --name centos-for-small \\
+      --repo centos-6.4 --task centos --broker noop \\
+      --enabled --hostname "host${id}.example.com" \\
+      --root-password secret --max-count 20 \\
+      --before "other policy" --tag small --node-metadata key=value
   EOT
 
   authz '%{name}'

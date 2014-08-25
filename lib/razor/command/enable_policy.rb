@@ -9,10 +9,16 @@ nodes again.  This does not cause nodes to be matched against the policy until
 the next time they check in.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Enable a policy:
 
     {"name": "example"}
+  EOT
+
+  example cli: <<-EOT
+Enable a policy:
+
+    razor enable-policy --name example
   EOT
 
 

@@ -9,10 +9,16 @@ discovery, tag matching and possibly be bound to another policy. This command
 does not change its metadata or facts.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Make 'node17' available for reinstallation:
 
     {"name": "node17"}
+  EOT
+
+  example cli: <<-EOT
+Make 'node17' available for reinstallation:
+
+    razor reinstall-node --name node17
   EOT
 
 

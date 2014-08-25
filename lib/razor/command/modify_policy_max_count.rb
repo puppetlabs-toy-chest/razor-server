@@ -8,7 +8,7 @@ greater than the number of nodes currently bound to the policy; it may also be
 `null` for an "unlimited" count of nodes bound.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
     {"name": "example", "max-count": null}
@@ -16,6 +16,16 @@ Set a policy to match an unlimited number of nodes:
 Set a policy to a maximum of 15 nodes:
 
     {"name": "example", "max-count": 15}
+  EOT
+
+  example cli: <<-EOT
+Set a policy to match an unlimited number of nodes:
+
+    razor --name example --max-count null
+
+Set a policy to a maximum of 15 nodes:
+
+    razor --name example --max-count 15
   EOT
 
   authz '%{name}'

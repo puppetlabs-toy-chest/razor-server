@@ -9,7 +9,7 @@ If `force` is true, the tag will be removed from all policies that use it
 before being deleted.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Delete a tag, but only if it is not used:
 
     {"name": "example"}
@@ -18,6 +18,17 @@ Delete a tag, but only if it is not used:
 Delete a tag regardless of it being used:
 
     {"name": "example", "force": true}
+  EOT
+
+  example cli: <<-EOT
+Delete a tag, but only if it is not used:
+
+    razor delete-tag --name example
+    razor delete-tag --name example --force false
+
+Delete a tag regardless of it being used:
+
+    razor delete-tag --name example --force
   EOT
 
 

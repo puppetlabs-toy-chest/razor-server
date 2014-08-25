@@ -7,10 +7,16 @@ Delete a broker configuration from Razor.  If the broker is currently used by
 a policy the attempt will fail.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Delete the unused broker configuration "obsolete":
 
     {"name": "obsolete"}
+  EOT
+
+  example cli: <<-EOT
+Delete the unused broker configuration "obsolete":
+
+    razor delete-broker --name obsolete
   EOT
 
 

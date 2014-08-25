@@ -16,13 +16,24 @@ As with the IPMI authentication standard, both username and password are
 optional, and the system will work with either or both absent.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
+Set IPMI credentials for node 'node17':
+
     {
       "name":          "node17",
       "ipmi-hostname": "bmc17.example.com",
       "ipmi-username": null,
       "ipmi-password": "sekretskwirrl"
     }
+  EOT
+
+  example cli: <<-EOT
+Set IPMI credentials for node 'node17':
+
+    razor set-node-ipmi-credentials --name node17 \\
+        --ipmi-hostname bmc17.example.com \\
+        --ipmi-username null \\
+        --ipmi-password sekretskwirrl
   EOT
 
   authz '%{name}'

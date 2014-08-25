@@ -19,12 +19,12 @@ desired installed state, will be present in the database, regardless of it
 existing before hand or not.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Register a machine before you boot it, and note that it already has an OS
 installed, so should not be subject to policy-based reinstallation:
 
     {
-      "hw_info": {
+      "hw-info": {
         "net0":   "78:31:c1:be:c8:00",
         "net1":   "72:00:01:f2:13:f0",
         "net2":   "72:00:01:f2:13:f1",
@@ -35,6 +35,19 @@ installed, so should not be subject to policy-based reinstallation:
       "installed": true
     }
 
+  EOT
+
+  example cli: <<-EOT
+Register a machine before you boot it, and note that it already has an OS
+installed, so should not be subject to policy-based reinstallation:
+
+    razor register-node --hw-info net0=78:31:c1:be:c8:00 \\
+        --hw-info net1=72:00:01:f2:13:f0 \\
+        --hw-info net2=72:00:01:f2:13:f1 \\
+        --hw-info serial=xxxxxxxxxxx \\
+        --hw-info asset=Asset-1234567890 \\
+        --hw-info uuid="Not Settable" \\
+        --installed
   EOT
 
   authz  true

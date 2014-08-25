@@ -9,10 +9,16 @@ stop installing if that was triggered by matching this policy prior to the
 disable command.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Disable a policy:
 
     {"name": "example"}
+  EOT
+
+  example cli: <<-EOT
+Disable a policy:
+
+    razor delete-policy --name example
   EOT
 
 

@@ -7,10 +7,16 @@ This will remove a tag already present from a policy.  This change has no
 effect on nodes already bound to the policy.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Remove the tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual"}
+  EOT
+
+  example cli: <<-EOT
+Remove the tag `virtual` to the policy `example`:
+
+    razor remove-policy-tag --name example --tag virtual
   EOT
 
   authz '%{name}:%{tag}'

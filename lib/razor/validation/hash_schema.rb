@@ -36,7 +36,6 @@ class Razor::Validation::HashSchema
   # documentation inside the object; we just throw it raw into the help
   # template when required.
   HelpTemplate = ERB.new(Razor::Help.scrub(_(<<-ERB)), nil, '%')
-<%= @help %>
 % if @authz_template
 # Access Control
 

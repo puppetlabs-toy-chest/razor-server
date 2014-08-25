@@ -6,7 +6,7 @@ Create a new repository, which can either contain the content to install a
 node, or simply point to an existing online repository by URL.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Create a repository from an ISO image, which will be downloaded and unpacked
 by the razor-server in the background:
 
@@ -33,6 +33,30 @@ downloaded onto the Razor server:
       "url":  "http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/"
       "task": "fedora"
     }
+  EOT
+
+  example cli: <<-EOT
+Create a repository from an ISO image, which will be downloaded and unpacked
+by the razor-server in the background:
+
+    razor create-repo --name fedora19 \\
+        --iso-url http://example.com/Fedora-19-x86_64-DVD.iso \\
+        --task fedora
+
+You can also unpack an ISO image from a file *on the server*; this does not
+upload the file from the client:
+
+    razor create-repo --name fedora19 \\
+        --iso-url file:///tmp/Fedora-19-x86_64-DVD.iso \\
+        --task fedora
+
+Finally, you can provide a `url` property when you create the repository;
+this form is merely a pointer to a resource somewhere and nothing will be
+downloaded onto the Razor server:
+
+    razor create-repo --name fedora19 --iso-url \\
+        http://mirrors.n-ix.net/fedora/linux/releases/19/Fedora/x86_64/os/ \\
+        --task fedora
   EOT
 
   authz '%{name}'

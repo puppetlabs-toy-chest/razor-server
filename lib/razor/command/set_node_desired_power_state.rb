@@ -9,13 +9,20 @@ node is observed to be in a different power state an IPMI command will be
 issued to change to the desired state.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Setting the power state for the node:
 
     {
       "name": "node1234",
       "to":   "on"|"off"|null
     }
+  EOT
+
+  example cli: <<-EOT
+Setting the power state for the node:
+
+    razor set-node-desired-power-state --name node1234 \\
+        --to on|off|null
   EOT
 
   authz '%{name}'

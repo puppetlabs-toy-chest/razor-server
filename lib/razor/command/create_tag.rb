@@ -7,14 +7,19 @@ Create a new tag, and set the rule it will use to match on facts and node
 metadata.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Create a simple tag:
 
     {
       "name": "small",
       "rule": ["=", ["fact", "processorcount"], "2"]
     }
+  EOT
 
+  example cli: <<-EOT
+Create a simple tag:
+
+    razor create-tag --name small --rule '["=", ["fact", "processorcount"], "2"]'
   EOT
 
   authz '%{name}'

@@ -9,7 +9,7 @@ In the later case the tag is atomically created, before adding it to the
 policy.  If one fails, neither will take effect.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Adding the existing tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual"}
@@ -17,7 +17,18 @@ Adding the existing tag `virtual` to the policy `example`:
 Adding a new tag `virtual` to the policy `example`:
 
     {"name": "example", "tag": "virtual",
-     "rule": ["=" ["fact" "virtual" "false"] "true"]}
+     "rule": ["=", ["fact", "virtual", "false"], "true"]}
+  EOT
+
+  example cli: <<-EOT
+Adding the existing tag `virtual` to the policy `example`:
+
+    razor add-policy-tag --name example --tag virtual
+
+Adding a new tag `virtual` to the policy `example`:
+
+    razor add-policy-tag --name example --tag virtual \\
+        --rule '["=", ["fact", "virtual", "false"], "true"]'
   EOT
 
   authz '%{name}:%{tag}'

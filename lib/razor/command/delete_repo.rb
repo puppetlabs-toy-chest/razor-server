@@ -6,10 +6,16 @@ The repo, and any associated content on disk, will be removed.  This will fail
 if the repo is in use with an existing policy.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Delete the "fedora16" repo:
 
     {"name": "fedora16"}
+  EOT
+
+  example cli: <<-EOT
+Delete the "fedora16" repo:
+
+    razor delete-repo --name fedora16
   EOT
 
   authz '%{name}'

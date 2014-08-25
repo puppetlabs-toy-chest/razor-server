@@ -6,7 +6,7 @@ class Razor::Command::MovePolicy < Razor::Command
 Policies can be moved before or after specific policies.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Move a policy before another policy:
 
     {"name": "policy", "before": "other"}
@@ -14,6 +14,16 @@ Move a policy before another policy:
 Move a policy after another policy:
 
     {"name": "policy", "after": "other"}
+  EOT
+
+  example cli: <<-EOT
+Move a policy before another policy:
+
+    razor move-policy --name policy --before other
+
+Move a policy after another policy:
+
+    razor move-policy --name policy --after other
   EOT
 
 

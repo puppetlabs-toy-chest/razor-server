@@ -12,7 +12,7 @@ exclusive to all other editing operations, and cannot be performed atomically
 with them.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Editing node metadata, by adding and removing some keys, but refusing to
 modify an existing value already present on a node:
 
@@ -29,6 +29,18 @@ modify an existing value already present on a node:
 Removing all node metadata:
 
     {"node": "node1", "clear": true}
+  EOT
+
+  example cli: <<-EOT
+Editing node metadata, by adding and removing some keys, but refusing to
+modify an existing value already present on a node:
+
+    razor modify-node-metadata --node node1 --update key1=value1 \\
+        --update key2=value2 --remove key3 --remove key4 --noreplace
+
+Removing all node metadata:
+
+    razor modify-node-metadata --node node1 --clear
   EOT
 
   authz '%{node}'

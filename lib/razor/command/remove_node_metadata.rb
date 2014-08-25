@@ -8,7 +8,7 @@ This is a shortcut to `modify-node-metadata` that allows for removing a single
 key OR all keys in a simpler form.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Remove a single key from a node:
 
     {"node": "node1", "key": "my_key"}
@@ -16,6 +16,16 @@ Remove a single key from a node:
 or remove all keys from a node:
 
     {"node": "node1", "all": true}
+  EOT
+
+  example cli: <<-EOT
+Remove a single key from a node:
+
+    razor remove-node-metadata --node node1 --key my_key
+
+or remove all keys from a node:
+
+    razor remove-node-metadata --node node1 --all
   EOT
 
 

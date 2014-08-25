@@ -8,10 +8,17 @@ adding a single key, in a simpler form than the full
 editing language.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Set a single key from a node:
 
     {"node": "node1", "key": "my_key", "value": "twelve"}
+  EOT
+
+  example cli: <<-EOT
+Set a single key from a node:
+
+    razor update-node-metadata --node node1 \\
+        --key my_key --value twelve
   EOT
 
   authz '%{node}'

@@ -7,7 +7,7 @@ off to a config management system, such as Puppet or Chef.  In cases where you
 have no configuration management system, you can use the `noop` broker.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Creating a simple Puppet broker:
 
     {
@@ -20,6 +20,12 @@ Creating a simple Puppet broker:
     }
   EOT
 
+  example cli: <<-EOT
+Creating a simple Puppet broker:
+
+    razor create-broker --name puppet -c server=puppet.example.org \\
+        -c environment=production --broker-type puppet
+  EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..250,

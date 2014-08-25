@@ -27,10 +27,16 @@ This is not integrated with the IPMI power state monitoring, and you may not
 see power transitions in the record, or through the node object if polling.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Queue a node reboot:
 
     {"name": "node1"}
+  EOT
+
+  example cli: <<-EOT
+Queue a node reboot:
+
+    razor reboot-node --name node1
   EOT
 
 

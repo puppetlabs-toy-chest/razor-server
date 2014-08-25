@@ -16,7 +16,7 @@ class Razor::Command::SetNodeHWInfo < Razor::Command
     #{Razor.config['match_nodes_on'].map{|n| " * #{n}"}.join("\n")}
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 Update `node172` with new hardware information:
 
     {
@@ -30,6 +30,18 @@ Update `node172` with new hardware information:
         "uuid":   "Not Settable"
       }
     }
+  EOT
+
+  example cli: <<-EOT
+Update `node172` with new hardware information:
+
+    razor set-node-hw-info --node node172 \\
+        --hw-info net0=78:31:c1:be:c8:00 \\
+        --hw-info net1=72:00:01:f2:13:f0 \\
+        --hw-info net2=72:00:01:f2:13:f1 \\
+        --hw-info serial=xxxxxxxxxxx \\
+        --hw-info asset=Asset-1234567890 \\
+        --hw-info uuid="Not Settable"
   EOT
 
   authz  '%{node}'

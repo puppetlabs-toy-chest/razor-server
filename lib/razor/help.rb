@@ -150,7 +150,7 @@ Unfortunately, the `<%= name %>` command has not been documented.
 %
 % # Add schema documentation so the user understands the methods and structure
 % # of the code that they are working with.
-<%= schema %>
+<%= schema.help %>
 %
 % if returns
 # RETURNS

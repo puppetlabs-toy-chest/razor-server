@@ -12,7 +12,7 @@ If the tag is used by any policies, the update will only be performed if the
 optional parameter `force` is set to `true`. Otherwise, it will fail.
   EOT
 
-  example <<-EOT
+  example api: <<-EOT
 An example of updating a tag rule, and forcing reevaluation:
 
     {
@@ -20,6 +20,13 @@ An example of updating a tag rule, and forcing reevaluation:
       "rule": ["<=", ["fact", "processorcount"], "2"],
       "force": true
     }
+  EOT
+
+  example cli: <<-EOT
+An example of updating a tag rule, and forcing reevaluation:
+
+    razor update-tag-rule --name small --force \\
+        --rule '["<=", ["fact", "processorcount"], "2"]'
   EOT
 
   authz '%{name}'
