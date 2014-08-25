@@ -17,7 +17,7 @@ systems).
 
 ***
 
-This is a [0.x release](http://semvber.org); that means that we might make
+This is a [0.x release](http://semver.org); that means that we might make
 backwards incompatible changes, especially to the database schema which
 would force you to rebuild all the machines that Razor is managing. The
 current code base is perfectly suitable for evaluation and smaller lab
