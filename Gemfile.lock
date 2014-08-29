@@ -110,7 +110,7 @@ DEPENDENCIES
   rspec-mocks (~> 2.13.1)
   sequel
   simplecov
-  sinatra
+  sinatra (>= 1.4.4)
   timecop
   torquebox (~> 3.1.1)
   torquebox-server (~> 3.1.1)

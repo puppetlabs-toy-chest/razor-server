@@ -19,7 +19,7 @@ source 'https://rubygems.org'
 ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.13'
 
 gem 'torquebox', '~> 3.1.1'
-gem 'sinatra'
+gem 'sinatra', '>= 1.4.4'
 gem 'sequel'
 gem 'jdbc-postgres'
 gem 'archive'
