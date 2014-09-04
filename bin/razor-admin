@@ -5,6 +5,7 @@ require 'bundler/setup'
 
 MIGRATION_DIR=File::expand_path(File::join(File::dirname(__FILE__), "../db/migrate"))
 show_help=false
+target_revision = nil
 optparse = OptionParser.new do |opts|
   opts.banner = <<EOS
 Usage: razor-admin [options] command
@@ -19,6 +20,13 @@ EOS
   opts.on "-h", "--help", "print this help message" do
     show_help = true
   end
+  opts.on "-r", "--revision NUM", "migrate to this revision" do |rev|
+    unless rev =~ /^[0-9]+$/
+      puts 'revision must be a number'
+      exit 1
+    end
+    target_revision = Integer(rev)
+  end
 end
 
 COMMANDS = {
@@ -26,7 +34,7 @@ COMMANDS = {
     Sequel::Migrator.is_current?(Razor.database, MIGRATION_DIR)
   end,
   "migrate-database" => Proc.new do
-    Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
+    Sequel::Migrator.apply(Razor.database, MIGRATION_DIR, target_revision)
     true
   end,
   "reset-database" => Proc.new do
