@@ -65,8 +65,20 @@ EOP
 (
 cat <<'EOFFIRSTRUN'
 {
-	"run_list": ["<%= broker.run_list %>"]
-}	
+	"run_list": ["<%= broker.run_list %>"],
+	"razor_metadata":  {
+<%
+unless node.metadata.empty?
+	metadata_pair_json=''
+	node.metadata.each do |metadata_pair|
+		metadata_pair_json << "\"#{metadata_pair[0]}\" : \"#{metadata_pair[1]}\",\n"
+	end
+	metadata_pair_json.gsub!(/,\n$/, '')
+%>
+		<%= metadata_pair_json %>
+<% end %>
+	}
+}
 EOFFIRSTRUN
 ) > /etc/chef/first-boot.json
 
