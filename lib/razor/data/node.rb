@@ -64,7 +64,7 @@ module Razor::Data
     #     nil   |  truthy   | installed, but we don't know how it was done
     #     nil   |   nil     | available for policy matching
     many_to_one :policy
-    one_to_many :node_log_entries
+    one_to_many :events
 
     # The tags that were applied to this node the last time it did a
     # checkin with the microkernel. These are not necessarily the same tags
@@ -131,12 +131,12 @@ module Razor::Data
       hostname.split(".").first
     end
 
-    # Retrive the entire log for this node as an array of hashes, ordered
+    # Retrieve the entire log for this node as an array of hashes, ordered
     # by increasing timestamp. In addition to the keys mentioned for
     # +log_append+ each entry will also contain the +timstamp+ in ISO8601
     # format
     def log
-      node_log_entries_dataset.order(:timestamp).map do |log|
+      events_dataset.order(:timestamp).map do |log|
         { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
       end
     end
@@ -168,7 +168,7 @@ module Razor::Data
       # reloading)
       entry = JSON::parse(entry.to_json)
 
-      add_node_log_entry(:entry => entry)
+      add_event(:entry => entry)
     end
 
     # Return +true+ if the node has fully registered, i.e. has sent us its
@@ -453,7 +453,7 @@ module Razor::Data
         keep_node.hw_info = hw_info
 
         kill_nodes.each do |kill_node|
-          kill_node.node_log_entries_dataset.update(:node_id => keep_node.id)
+          kill_node.events_dataset.update(:node_id => keep_node.id)
           kill_node.destroy
         end
         keep_node.save

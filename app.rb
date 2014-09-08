@@ -441,12 +441,14 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/svc/log/:node_id' do
-    node = Razor::Data::Node[params[:node_id]]
+    node = Razor::Data::Node[params[:node_id]] if params[:node_id]
     halt 404 unless node
-
-    node.log_append(:event => :node_log,
-                    :msg=> params[:msg], :severity => params[:severity])
-    node.save
+    entry = {:msg => params[:msg]}
+    entry = JSON::parse(entry.to_json)
+    event = Razor::Data::Event.new({:entry => entry})
+    event.severity = params[:severity] || 'info'
+    event.node = node
+    event.save
     [204, {}]
   end
 
@@ -509,7 +511,7 @@ and requires full control over the database (eg: add and remove tables):
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands, :events]
 
   #
   # The main entry point for the public/management API
@@ -652,6 +654,19 @@ and requires full control over the database (eg: add and remove tables):
     cmd = Razor::Data::Command[params[:id]] or
       error 404, :error => _("no such command")
     command_hash(cmd).to_json
+  end
+
+  get '/api/collections/events' do
+    check_permissions!("query:events")
+
+    collection_view Razor::Data::Event.order(:timestamp).reverse, 'events'
+  end
+
+  get '/api/collections/events/:id' do
+    check_permissions!("query:events:#{params[:id]}")
+    event = Razor::Data::Event[:id => params[:id]] or
+        error 404, :error => _("no event matched id=%{id}") % {id: params[:id]}
+    event_hash(event).to_json
   end
 
   get '/api/collections/nodes' do

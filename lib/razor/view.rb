@@ -179,6 +179,22 @@ module Razor
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
 
+    def event_hash(event)
+      {
+        :spec      => spec_url("collections", "events", "member"),
+        :id        => view_object_url(event),
+        :name      => event.id,
+        :command   => view_object_reference(event.command),
+        :node      => view_object_reference(event.node),
+        :policy    => view_object_reference(event.policy),
+        :repo      => view_object_reference(event.repo),
+        :broker    => view_object_reference(event.broker),
+        :task      => view_object_reference(event.task),
+        :timestamp => event.timestamp,
+        :entry     => JSON.parse(event[:entry])
+      }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
+    end
+
     def collection_view(cursor, name)
       perm = "query:#{name}"
       cursor = cursor.all if cursor.respond_to?(:all)

@@ -6,6 +6,7 @@ module Razor::Data
     many_to_one  :repo
     many_to_many :tags
     many_to_one  :broker
+    one_to_many :events
 
     plugin :list, :field => :rule_number
     plugin :serialization, :json, :node_metadata

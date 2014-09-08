@@ -11,6 +11,8 @@ module Razor::Data
     plugin :serialization, :json, :boot_seq
     plugin :serialization, :json, :templates
 
+    one_to_many :events, :key => :task_name, :primary_key => :name
+
     def label
       "#{name} #{os_version}"
     end

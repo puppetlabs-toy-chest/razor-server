@@ -2,6 +2,7 @@
 class Razor::Data::Broker < Sequel::Model
 
   one_to_many :policies
+  one_to_many :events
 
   plugin :serialization, :json, :configuration
 

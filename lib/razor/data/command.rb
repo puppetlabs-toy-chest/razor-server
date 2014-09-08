@@ -2,6 +2,13 @@ module Razor::Data
   class Command < Sequel::Model
     plugin :serialization, :json, :params
     plugin :serialization, :json, :error
+    one_to_many :events
+
+    def log
+      events_dataset.order(:timestamp).map do |log|
+        { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
+      end
+    end
 
     # The 'name' of the command. Since this needs to be unique, we simply
     # use the id of the object

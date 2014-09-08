@@ -288,25 +288,7 @@ describe "provisioning API" do
       last_response.status.should == 404
     end
   end
-
-  describe "logging" do
-    it "should return 404 logging against nonexisting node" do
-      get "/svc/log/432?msg=message&severity=warn"
-      last_response.status.should == 404
-    end
-
-    it "should store the log message for an existing node" do
-      node = Fabricate(:node)
-
-      get "/svc/log/#{node.id}?msg=message&severity=warn"
-      last_response.status.should == 204
-      log = Node[node.id].log
-      log.size.should == 1
-      log[0]["msg"].should == "message"
-      log[0]["severity"].should == "warn"
-    end
-  end
-
+  
   describe "storing node metadata" do
     before(:each) do
       @node = Fabricate(:node)

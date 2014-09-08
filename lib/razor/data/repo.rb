@@ -23,6 +23,7 @@ module Razor::Data
     # typically through the constructor.  Only enforced at the Ruby layer, but
     # since we direct everything through the model that is acceptable.
     set_allowed_columns :name, :iso_url, :url, :task_name
+    one_to_many :events
 
     # Create a new repo and kick off the background import of its ISO (if
     # there is one) The +command+ is used to track progress of the import
