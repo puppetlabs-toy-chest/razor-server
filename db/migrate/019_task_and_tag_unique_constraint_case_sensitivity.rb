@@ -1,36 +1,35 @@
 # -*- encoding: utf-8 -*-
 require_relative './util'
 
-def get_new_name(clazz, current_name, differentiator = 1)
+def get_new_name(table, column, current_name, differentiator = 1)
   to_test = current_name + differentiator.to_s
-  if clazz.find(name: /^#{Regexp.escape(to_test)}$/i).nil?
+  entity = self[table].where{|o| {o.lower(column)=>(o.lower(to_test))}}.all
+  if entity.empty?
     # Not there, ship it
     to_test
   else
     # This is not the name you're looking for
-    get_new_name(clazz, current_name, differentiator + 1)
+    get_new_name(table, column, current_name, differentiator + 1)
   end
 end
 
-def resolve_duplicates(clazz, attribute_name)
-  # Get all tags, grouped by lowercase name
-  all = clazz.all
-  uniq = Hash.new { Array.new }
-  all.each do |item|
-    key = item.send(attribute_name).downcase
-    uniq.store(key, uniq[key] << item)
+def resolve_duplicates(table, column)
+  group_by_unique = Hash.new { Array.new }
+  self[table].all.each do |item|
+    key = item[column].downcase
+    group_by_unique.store(key, group_by_unique[key] << item[column])
     # Sorting and reversing so "abc" will be before "Abc".
     # Kind of arbitrary, but it's more deterministic this way.
-    uniq[key] = uniq[key].sort_by(&attribute_name).reverse
+    group_by_unique[key] = group_by_unique[key].sort.reverse
   end
-  uniq.each do |_, items|
+  duplicates = group_by_unique.select { |_, values| values.size > 1 }
+  duplicates.each do |_, items|
     _, *rest = *items
     # The first can remain the same, but the rest need to change.
     rest.each do |item|
-      old_name = item.send(attribute_name)
-      item.send("#{attribute_name.to_s}=", get_new_name(clazz, item.send(attribute_name)))
-      puts "#{clazz}: Changing #{old_name} to #{item.send(attribute_name)} to resolve duplicate issue"
-      item.save
+      new_name = get_new_name(table, column, item)
+      puts "#{table}: Changing #{item} to #{new_name} to resolve duplicate issue"
+      self[table].where(column => item).update(column => new_name)
     end
   end
 end
@@ -42,12 +41,9 @@ Sequel.migration do
   up do
     extension(:constraint_validations)
 
-    require_relative '../../lib/razor'
-    require_relative '../../lib/razor/initialize'
+    resolve_duplicates(:tags, :name)
 
     alter_table :tags do
-      resolve_duplicates(Razor::Data::Tag, :name)
-
       drop_constraint :tags_name_key
       add_index  Sequel.function(:lower, :name), :unique => true, :name => 'tags_name_index'
       validate do
