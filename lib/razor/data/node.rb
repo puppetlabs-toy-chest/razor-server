@@ -210,7 +210,14 @@ module Razor::Data
         modify_metadata('no_replace' => true, 'update' => policy.node_metadata)
       end
 
+      Razor::Data::Hook.run('node-bound-to-policy', node: self, policy: policy)
+
       self
+    end
+
+    def unbind
+      self.policy = nil
+      Razor::Data::Hook.run('node-unbound-from-policy', node: self)
     end
 
     # This is a hack around the fact that the auto_validates plugin does
@@ -313,6 +320,7 @@ module Razor::Data
       end
       if facts != new_facts
         self.facts = new_facts
+        Razor::Data::Hook.run('node-facts-changed', node: self)
       end
       # @todo lutter 2013-09-09: we'd really like to use the DB's idea of
       # time, i.e. have the update statement do 'last_checkin = now()' but
@@ -410,6 +418,11 @@ module Razor::Data
       end
     end
 
+    def destroy
+      super
+      Razor::Data::Hook.run('node-deleted', node: self)
+    end
+
     # Use the facts +facts+ to fully register the node; this is a
     # counterpart to +lookup+; while +lookup+ uses the much more restricted
     # information provided by iPXE, this method relies on all the facts
@@ -457,6 +470,7 @@ module Razor::Data
           kill_node.destroy
         end
         keep_node.save
+        Hook.run('node-registered', node: keep_node)
         keep_node
       end
     end
@@ -468,6 +482,7 @@ module Razor::Data
       node.boot_count += 1
       if name == "finished" and node.policy
         node.installed = node.policy.name
+        Razor::Data::Hook.run('node-install-finished', node: self)
       end
       node.save
     end

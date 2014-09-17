@@ -34,7 +34,7 @@ Make 'node17' available for reinstallation:
 
     if node.policy
       log[:policy_name] = node.policy.name
-      node.policy = nil
+      node.unbind
       actions << _("node unbound from %{policy}") % {policy: log[:policy_name]}
     end
 

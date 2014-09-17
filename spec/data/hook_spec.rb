@@ -619,4 +619,78 @@ EOF
       Razor::Data::Event.count.should == 1
     end
   end
+  describe "events" do
+    it "should fire for node-registered" do
+      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-registered' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+  "output": "it worked"
+}
+EOF
+      CONTENTS
+      Node.register('macaddress' => node.hw_info[0][4..1000])
+      Razor::Data::Event.first.entry['msg'].should == 'it worked'
+    end
+    it "should fire for node-bound-to-policy" do
+      body = { "facts" => { "f1" => "1" } }
+
+      node do
+        n = Fabricate(:node)
+        n.checkin(body)
+        n
+      end
+      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-bound-to-policy' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+  "output": "it worked"
+}
+EOF
+      CONTENTS
+      Fabricate(:policy)
+
+      Policy.bind(node)
+      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+    end
+    it "should fire for node-unbound-from-policy" do
+      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-unbound-from-policy' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+  "output": "it worked"
+}
+EOF
+      CONTENTS
+      node = Fabricate(:bound_node)
+
+      node.unbind
+      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+    end
+    it "should fire for node-deleted" do
+      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-deleted' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+  "output": "it worked"
+}
+EOF
+      CONTENTS
+      node.destroy
+
+      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+    end
+  end
 end

@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 
 # Lifecycle and Events (starred events will be implemented later)
-#   * node-booted (*)
+#   * node-booted (C)
 #      - every time a node requests /svc/boot
-#   * node-registered (*)
+#   * node-registered (C)
 #      - first time we get facts for a node (i.e., node.facts were nil before)
-#   * node-facts-changed (*)
+#   * node-facts-changed (C)
 #      - from /svc/checkin every time facts change
-#   * node-bound-to-policy (*)
+#   * node-bound-to-policy (C)
 #      - when a node gets bound to a policy
-#   * node-unbound-from-policy (*)
+#   * node-unbound-from-policy (C)
 #      - when a node gets unbound from a policy, e.g. via 'reinstall-node' command
 #   * node-install-started (*)
 #      - when booting into the first step of a task/policy for the first time
@@ -17,7 +17,7 @@
 #      - when Node.stage_done is called with name == "finished"
 #   * node-broker-finished (*)
 #      - we do not know that currently
-#   * node-deleted (*)
+#   * node-deleted (C)
 #      - when 'delete-node' command is run
 
 # Things to worry about
