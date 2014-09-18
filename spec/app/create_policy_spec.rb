@@ -29,7 +29,7 @@ describe Razor::Command::CreatePolicy do
         'task'          => 'some_os',
         'broker'        => broker.name,
         'hostname'      => "host${id}.example.com",
-        'root-password' => "geheim",
+        'root_password' => "geheim",
         'tags'          => [ tag1.name ]
       }
     end
@@ -85,7 +85,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should fail if the root password is missing" do
-      command_hash.delete('root-password')
+      command_hash.delete('root_password')
       create_policy
       last_response.status.should == 422
     end
@@ -105,7 +105,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should conform root password's legacy syntax" do
-      command_hash['root_password'] = command_hash.delete('root-password')
+      command_hash['root_password'] = command_hash.delete('root_password')
       create_policy
       last_response.status.should == 202
     end

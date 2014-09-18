@@ -23,7 +23,7 @@ A sample policy installing CentOS 6.4:
       "broker":        "noop",
       "enabled":       true,
       "hostname":      "host${id}.example.com",
-      "root-password": "secret",
+      "root_password": "secret",
       "max_count":     20,
       "before":        "other policy",
       "tags":          ["small"],
@@ -56,7 +56,7 @@ A sample policy installing CentOS 6.4:
     - id -- the internal node ID number
   HELP
 
-  attr 'root-password', required: true, type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
+  attr 'root_password', required: true, type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
     The root password for newly installed systems.  This is passed directly
     to the individual task, rather than "understood" by the server, so the
     valid values are dependent on the individual task capabilities.
@@ -134,7 +134,7 @@ A sample policy installing CentOS 6.4:
     data["enabled"] = true if data["enabled"].nil?
 
     data["max_count"] = data.delete("max_count") if data.has_key?("max_count")
-    data["root_password"] = data.delete("root-password") if data.has_key?("root-password")
+    data["root_password"] = data.delete("root_password") if data.has_key?("root_password")
     data["node_metadata"] = data.delete("node-metadata") if data.has_key?("node-metadata")
 
     # Create the policy
@@ -169,7 +169,7 @@ A sample policy installing CentOS 6.4:
       data['repo'] = data['repo']['name'] if data['repo'].is_a?(Hash) and data['repo'].keys == ['name']
       data['broker'] = data['broker']['name'] if data['broker'].is_a?(Hash) and data['broker'].keys == ['name']
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
-      data['root-password'] = data.delete('root_password') if data['root_password']
+      data['root_password'] = data.delete('root_password') if data['root_password']
       data['max_count'] = data.delete('max_count') if data['max_count']
       data['node-metadata'] = data.delete('node_metadata') if data['node_metadata']
     end
