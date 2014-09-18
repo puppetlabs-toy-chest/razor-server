@@ -27,7 +27,7 @@ A sample policy installing CentOS 6.4:
       "max_count":     20,
       "before":        "other policy",
       "tags":          ["small"],
-      "node-metadata": {"key": "value"}
+      "node_metadata": {"key": "value"}
     }
   EOT
 
@@ -105,7 +105,7 @@ A sample policy installing CentOS 6.4:
     match the selected repo, as it references files contained within that repository.
   HELP
 
-  attr 'node-metadata', type: Hash, help: _(<<-HELP)
+  attr 'node_metadata', type: Hash, help: _(<<-HELP)
     Allows a policy to apply metadata to a node when it binds. This is NON
     AUTHORITATIVE in that it will not replace existing metadata on the node
     with the same keys it will only add keys that are missing.
@@ -135,7 +135,7 @@ A sample policy installing CentOS 6.4:
 
     data["max_count"] = data.delete("max_count") if data.has_key?("max_count")
     data["root_password"] = data.delete("root_password") if data.has_key?("root_password")
-    data["node_metadata"] = data.delete("node-metadata") if data.has_key?("node-metadata")
+    data["node_metadata"] = data.delete("node_metadata") if data.has_key?("node_metadata")
 
     # Create the policy
     policy, is_new = Razor::Data::Policy.import(data)
@@ -171,7 +171,7 @@ A sample policy installing CentOS 6.4:
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
       data['root_password'] = data.delete('root_password') if data['root_password']
       data['max_count'] = data.delete('max_count') if data['max_count']
-      data['node-metadata'] = data.delete('node_metadata') if data['node_metadata']
+      data['node_metadata'] = data.delete('node_metadata') if data['node_metadata']
     end
   end
 end

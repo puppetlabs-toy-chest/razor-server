@@ -140,7 +140,7 @@ describe Razor::Command::CreatePolicy do
 
     it "should allow creating a policy with node_metadata" do
       metadata = { "key1" => "value1", "key2" => "value2" }
-      command_hash['node-metadata'] = metadata
+      command_hash['node_metadata'] = metadata
       create_policy
       Razor::Data::Policy[:name => command_hash['name']].node_metadata.should == metadata
     end
