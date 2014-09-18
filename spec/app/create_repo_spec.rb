@@ -9,7 +9,7 @@ describe Razor::Command::CreateRepo do
   let(:command_hash) do
     {
         "name" => "magicos",
-        "iso-url" => "file:///dev/null",
+        "iso_url" => "file:///dev/null",
         "task"    => "some_os",
     }
   end
@@ -57,7 +57,7 @@ describe Razor::Command::CreateRepo do
     it "should fail if an extra key is given, if otherwise good" do
       post '/api/commands/create-repo', {
         "name"      => "magicos",
-        "iso-url"   => "file:///dev/null",
+        "iso_url"   => "file:///dev/null",
         "banana"    => "> orange",
         "task"      => "some_os",
       }.to_json
@@ -68,7 +68,7 @@ describe Razor::Command::CreateRepo do
     it "should return the 202, and the URL of the repo" do
       command 'create-repo', {
         "name" => "magicos",
-        "iso-url" => "file:///dev/null",
+        "iso_url" => "file:///dev/null",
         "task"    => "some_os",
       }, :status => :pending
 
@@ -85,7 +85,7 @@ describe Razor::Command::CreateRepo do
       it "should return 202 if the repo is identical" do
         data = {
           'name'    => repo.name,
-          'iso-url' => repo.iso_url,
+          'iso_url' => repo.iso_url,
           'task'    => repo.task.name
         }
 
@@ -113,7 +113,7 @@ describe Razor::Command::CreateRepo do
     it "should create an repo record in the database" do
       command 'create-repo', {
         "name" => "magicos",
-        "iso-url" => "file:///dev/null",
+        "iso_url" => "file:///dev/null",
         "task"    => "some_os",
       }, :status => :pending
 
@@ -123,7 +123,7 @@ describe Razor::Command::CreateRepo do
     it "should conform to allow task-name long form" do
       command 'create-repo', {
           "name" => "magicos",
-          "iso-url" => "file:///dev/null",
+          "iso_url" => "file:///dev/null",
           "task"    => {'name' => 'some_os'},
       }, :status => :pending
 

@@ -104,12 +104,12 @@ when the command has finished.
 There are two flavors of repositories: ones where Razor unpacks ISO's for
 you and serves their contents, and ones that are somewhere else, for
 example, on a mirror you maintain. The first form is created by creating a
-repo with the `iso-url` property; the server will download and unpack the
+repo with the `iso_url` property; the server will download and unpack the
 ISO image into its file system:
 
     {
       "name": "fedora19",
-      "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "iso_url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
       "task": "puppet"
     }
 

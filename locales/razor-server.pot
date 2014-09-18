@@ -271,7 +271,7 @@ msgstr ""
 msgid ""
 "    The name of the task associated with this repository.  This is used to\n"
 "    install nodes that match a policy using this repository; generally it\n"
-"    should match the OS that the URL or ISO-URL attributes point to.\n"
+"    should match the OS that the URL or iso_url attributes point to.\n"
 msgstr ""
 
 #: ../lib/razor/command/create_tag.rb:22
