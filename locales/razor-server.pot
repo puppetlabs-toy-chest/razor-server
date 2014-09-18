@@ -161,7 +161,7 @@ msgstr ""
 #: ../lib/razor/command/create_broker.rb:39
 msgid ""
 "    The configuration for the broker.  The acceptable values here are\n"
-"    determined by the `broker-type` selected.  In general this has\n"
+"    determined by the `broker_type` selected.  In general this has\n"
 "    settings like which server to contact, and other configuration\n"
 "    related to handing on the newly installed system to the final\n"
 "    configuration management system.\n"

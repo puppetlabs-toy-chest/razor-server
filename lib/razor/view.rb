@@ -97,7 +97,7 @@ module Razor
 
       view_object_hash(broker).merge(
         :configuration   => broker.configuration,
-        :"broker-type"   => broker.broker_type,
+        :"broker_type"   => broker.broker_type,
         :policies        => { :id => view_object_url(broker) + "/policies",
                               :count => broker.policies.count,
                               :name => "policies" })

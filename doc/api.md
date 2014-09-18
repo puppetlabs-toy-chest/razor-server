@@ -178,10 +178,10 @@ To create a broker, clients post the following to the `create-broker` URL:
          "server": "puppet.example.org",
          "environment": "production"
       },
-      "broker-type": "puppet"
+      "broker_type": "puppet"
     }
 
-The `broker-type` must correspond to a broker that is present on the
+The `broker_type` must correspond to a broker that is present on the
 `broker_path` set in `config.yaml`.
 
 The permissible settings for the `configuration` hash depend on the broker

@@ -23,7 +23,7 @@ describe Razor::Command::CreateBroker do
 
     let :command_hash do
       { 'name'        => Faker::Commerce.product_name,
-        'broker-type' => 'test'
+        'broker_type' => 'test'
       }
     end
 
@@ -48,11 +48,11 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should fail if the named broker does not actually exist" do
-      create_broker command_hash.merge 'broker-type' => 'no-such-broker-for-me'
+      create_broker command_hash.merge 'broker_type' => 'no-such-broker-for-me'
 
       last_response.status.should == 404
       last_response.json['error'].should ==
-        "broker-type must be the name of an existing broker type, but is 'no-such-broker-for-me'"
+        "broker_type must be the name of an existing broker type, but is 'no-such-broker-for-me'"
     end
 
     it "should fail cleanly if 'configuration' is a string" do
@@ -90,7 +90,7 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should validate valid configuration" do
-      command_hash['broker-type'] = 'with_configuration'
+      command_hash['broker_type'] = 'with_configuration'
       command_hash['configuration'] = {'some-key' => 'valid-value'}
       command = create_broker command_hash
 
@@ -99,7 +99,7 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should validate invalid configuration" do
-      command_hash['broker-type'] = 'with_configuration'
+      command_hash['broker_type'] = 'with_configuration'
       command_hash['configuration'] = {'not-valid-key' => 'not-valid-value'}
       command = create_broker command_hash
 
@@ -108,7 +108,7 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should validate valid configuration abbreviation" do
-      command_hash['broker-type'] = 'with_configuration'
+      command_hash['broker_type'] = 'with_configuration'
       command_hash['c'] = {'some-key' => 'valid-value'}
       command = create_broker command_hash
 
@@ -117,7 +117,7 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should validate invalid configuration abbreviation" do
-      command_hash['broker-type'] = 'with_configuration'
+      command_hash['broker_type'] = 'with_configuration'
       command_hash['c'] = {'not-valid-key' => 'not-valid-value'}
       command = create_broker command_hash
 
@@ -126,7 +126,7 @@ describe Razor::Command::CreateBroker do
     end
 
     it "should validate mixed shorthand and longhand configuration" do
-      command_hash['broker-type'] = 'with_configuration'
+      command_hash['broker_type'] = 'with_configuration'
       command_hash['c'] = {'some-key' => 'valid-value'}
       command_hash['configuration'] = {'some-other-key' => 'other-valid-value'}
       command = create_broker command_hash
