@@ -24,7 +24,7 @@ A sample policy installing CentOS 6.4:
       "enabled":       true,
       "hostname":      "host${id}.example.com",
       "root-password": "secret",
-      "max-count":     20,
+      "max_count":     20,
       "before":        "other policy",
       "tags":          ["small"],
       "node-metadata": {"key": "value"}
@@ -64,7 +64,7 @@ A sample policy installing CentOS 6.4:
 
   attr 'enabled', type: :bool, help: _('Is this policy enabled when first created?')
 
-  attr 'max-count', type: Integer, help: _(<<-HELP)
+  attr 'max_count', type: Integer, help: _(<<-HELP)
     The maximum number of nodes that can bind to this policy.
     If omitted, the policy is 'unlimited', and no maximum is applied.
   HELP
@@ -133,7 +133,7 @@ A sample policy installing CentOS 6.4:
 
     data["enabled"] = true if data["enabled"].nil?
 
-    data["max_count"] = data.delete("max-count") if data.has_key?("max-count")
+    data["max_count"] = data.delete("max_count") if data.has_key?("max_count")
     data["root_password"] = data.delete("root-password") if data.has_key?("root-password")
     data["node_metadata"] = data.delete("node-metadata") if data.has_key?("node-metadata")
 
@@ -157,12 +157,12 @@ A sample policy installing CentOS 6.4:
       data['tag'] = Array[data['tag']] unless [NilClass, Array, Hash].include?(data['tag'].class)
       data['tags'] = Array[data['tags']] unless [NilClass, Array, Hash].include?(data['tags'].class)
       add_array_alias(data, 'tags', 'tag')
-      
+
       # Removed feature: Cannot create tags in create-policy
       if data['tags'].is_a?(Array) && data['tags'].any? {|tag_pair| tag_pair.is_a?(Hash) and tag_pair.keys == ['name', 'rule'] }
         raise Razor::ValidationFailure, _('this command can no longer create tags; see `razor help create-tag`')
       end
-      
+
       # Conform {"name": "tagname"} into just "tagname"
       data['tags'] = data['tags'].map { |item| item.is_a?(Hash) && item.keys == ['name'] ? item['name'] : item } if data['tags'].is_a?(Array)
 
@@ -170,7 +170,7 @@ A sample policy installing CentOS 6.4:
       data['broker'] = data['broker']['name'] if data['broker'].is_a?(Hash) and data['broker'].keys == ['name']
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
       data['root-password'] = data.delete('root_password') if data['root_password']
-      data['max-count'] = data.delete('max_count') if data['max_count']
+      data['max_count'] = data.delete('max_count') if data['max_count']
       data['node-metadata'] = data.delete('node_metadata') if data['node_metadata']
     end
   end

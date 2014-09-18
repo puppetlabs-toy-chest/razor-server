@@ -131,7 +131,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should allow creating a policy with max count" do
-      command_hash['max-count'] = 10
+      command_hash['max_count'] = 10
 
       create_policy
 
@@ -151,10 +151,10 @@ describe Razor::Command::CreatePolicy do
       last_response.json['error'].should == 'repo should be a string, but was actually a object'
     end
 
-    it "should fail with the wrong datatype for max-count" do
-      command_hash['max-count'] = { }
+    it "should fail with the wrong datatype for max_count" do
+      command_hash['max_count'] = { }
       create_policy
-      last_response.json['error'].should =~ /max-count should be a number, but was actually a object/
+      last_response.json['error'].should =~ /max_count should be a number, but was actually a object/
     end
 
 

@@ -307,15 +307,15 @@ accept the same body, consisting of the name of the policy in question:
       "name": "a policy"
     }
 
-### Modify the max-count for a policy
+### Modify the max_count for a policy
 
-The command `modify-policy-max-count` makes it possible to manipulate how
+The command `modify-policy-max_count` makes it possible to manipulate how
 many nodes can be bound to a specific policy at the most. The body of the
 request should be of the form:
 
     {
       "name": "a policy"
-      "max-count": new-count
+      "max_count": new-count
     }
 
 The `new-count` can be an integer, which must be larger than the number of

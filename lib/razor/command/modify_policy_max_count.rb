@@ -11,11 +11,11 @@ greater than the number of nodes currently bound to the policy; it may also be
   example api: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    {"name": "example", "max-count": null}
+    {"name": "example", "max_count": null}
 
 Set a policy to a maximum of 15 nodes:
 
-    {"name": "example", "max-count": 15}
+    {"name": "example", "max_count": 15}
   EOT
 
   example cli: <<-EOT
@@ -33,7 +33,7 @@ Set a policy to a maximum of 15 nodes:
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
                help: _('The name of the policy to modify.')
 
-  attr 'max-count', required: true, help: _(<<-HELP)
+  attr 'max_count', required: true, help: _(<<-HELP)
     The new maximum number of nodes bound by this policy.  This can be
     "null", in which case the policy becomes unlimited, or an integer
     greater than or equal to one.
@@ -45,7 +45,7 @@ Set a policy to a maximum of 15 nodes:
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]
 
-    max_count_s = data['max-count']
+    max_count_s = data['max_count']
 
     if max_count_s.nil?
       max_count = nil
@@ -53,16 +53,16 @@ Set a policy to a maximum of 15 nodes:
     else
       max_count = max_count_s.to_i
       max_count.to_s == max_count_s.to_s or
-        request.error 422, :error => _("New max-count '%{raw}' is not a valid integer") % {raw: max_count_s}
+        request.error 422, :error => _("New max_count '%{raw}' is not a valid integer") % {raw: max_count_s}
       bound = max_count_s
       node_count = policy.nodes.count
       node_count <= max_count or
         request.error 400, :error => n_(
-        "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}",
-        "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}",
+        "There is currently %{node_count} node bound to this policy. Cannot lower max_count to %{max_count}",
+        "There are currently %{node_count} nodes bound to this policy. Cannot lower max_count to %{max_count}",
         node_count) % {node_count: node_count, max_count: max_count}
     end
     policy.set(max_count: max_count).save
-    { :result => _("Changed max-count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
+    { :result => _("Changed max_count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
   end
 end
