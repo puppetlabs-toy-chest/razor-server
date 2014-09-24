@@ -512,7 +512,7 @@ and requires full control over the database (eg: add and remove tables):
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands, :events]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands, :events, :hooks]
 
   #
   # The main entry point for the public/management API
@@ -668,6 +668,19 @@ and requires full control over the database (eg: add and remove tables):
     event = Razor::Data::Event[:id => params[:id]] or
         error 404, :error => _("no event matched id=%{id}") % {id: params[:id]}
     event_hash(event).to_json
+  end
+
+  get '/api/collections/hooks' do
+    check_permissions!("query:hooks")
+
+    collection_view Razor::Data::Hook, 'hooks'
+  end
+
+  get '/api/collections/hooks/:name' do
+    check_permissions!("query:hooks:#{params[:name]}")
+    hook = Razor::Data::Hook[:name => params[:name]] or
+        error 404, :error => _("no hook matched name=%{name}") % {name: params[:name]}
+    hook_hash(hook).to_json
   end
 
   get '/api/collections/nodes' do

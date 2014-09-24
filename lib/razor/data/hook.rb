@@ -311,7 +311,6 @@ class Razor::Data::Hook < Sequel::Model
   def view_hash(hook, cause, args = {})
     node = args[:node]
     policy = args[:policy] || (node && node.policy)
-    policy_hash = policy_hash(policy) if policy
     {
         hook: {
             name: hook.name,
@@ -320,9 +319,10 @@ class Razor::Data::Hook < Sequel::Model
             cause: cause
         },
         node: node_hash(node),
-        policy: policy_hash
+        policy: policy_hash(policy)
     }
   end
+
   def node_hash(node)
     return nil unless node
 
@@ -352,8 +352,9 @@ class Razor::Data::Hook < Sequel::Model
         :last_checkin  => ts(node.last_checkin)
     }.delete_if {|_,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
   end
+
   def policy_hash(policy)
-    policy && {:name => policy.name,
+    policy ? {:name => policy.name,
                :repo => view_object_reference(policy.repo),
                :task => view_object_reference(policy.task),
                :broker => view_object_reference(policy.broker),
@@ -362,7 +363,7 @@ class Razor::Data::Hook < Sequel::Model
                :root_password => policy.root_password,
                :tags => policy.tags,
                :nodes => {:count => policy.nodes.count},
-    }
+    } : nil
   end
 
   def ts(date)

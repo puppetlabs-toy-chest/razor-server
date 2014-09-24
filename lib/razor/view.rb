@@ -195,6 +195,14 @@ module Razor
       }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end
 
+    def hook_hash(hook)
+      view_object_hash(hook).merge(
+      {
+        :"hook-type"   => hook.hook_type,
+        :configuration => hook.configuration,
+      }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) })
+    end
+
     def collection_view(cursor, name)
       perm = "query:#{name}"
       cursor = cursor.all if cursor.respond_to?(:all)
