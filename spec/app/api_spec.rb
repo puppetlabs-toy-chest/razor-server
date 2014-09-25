@@ -52,6 +52,10 @@ describe "command and query API" do
             }
           }
         }
+      },
+      'total' => {
+          '$schema'  => 'http://json-schema.org/draft-04/schema#',
+          'type'     => 'number'
       }
     }
   }.freeze
@@ -1140,6 +1144,64 @@ describe "command and query API" do
       end
 
       it_should_behave_like "a event collection", 10
+    end
+
+    context "event limiting" do
+      it "should state that 'start' and 'limit' are valid parameters" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'events'}.first['params']
+        params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+      end
+      it "should view all results by default" do
+        21.times { Fabricate(:event) }
+        get "/api/collections/events"
+
+        last_response.status.should == 200
+        events = last_response.json['items']
+        events.should be_an_instance_of Array
+        events.count.should == 21
+        last_response.json['total'].should == 21
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
+      it "should allow limiting results" do
+        names = []
+        3.times { names << Fabricate(:event).name }
+        get "/api/collections/events?limit=1"
+
+        last_response.status.should == 200
+        events = last_response.json['items']
+        events.should be_an_instance_of Array
+        events.count.should == 1
+        events.first['name'].should == names.last
+        last_response.json['total'].should == 3
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
+      it "should allow windowing of results" do
+        names = []
+        6.times { names.unshift Fabricate(:event).name }
+        get "/api/collections/events?limit=2&start=2"
+
+        last_response.status.should == 200
+        events = last_response.json['items']
+        events.should be_an_instance_of Array
+        events.map {|n| n['name']}.should == names[2..3]
+        events.count.should == 2
+        last_response.json['total'].should == 6
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
+      it "should allow just an offset" do
+        names = []
+        6.times { names.unshift Fabricate(:event).name }
+        get "/api/collections/events?start=2"
+
+        last_response.status.should == 200
+        events = last_response.json['items']
+        events.should be_an_instance_of Array
+        events.map {|n| n['name']}.should == names[2..-1]
+        events.count.should == 4
+        last_response.json['total'].should == 6
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
     end
   end
 end

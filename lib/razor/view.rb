@@ -207,16 +207,18 @@ module Razor
       }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) })
     end
 
-    def collection_view(cursor, name)
+    def collection_view(cursor, name, total = nil)
       perm = "query:#{name}"
       cursor = cursor.all if cursor.respond_to?(:all)
       items = cursor.
         map {|t| view_object_reference(t)}.
         select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
-      {
-        "spec" => spec_url("collections", name),
-        "items" => items
-      }.to_json
+      hash = {
+          "spec" => spec_url("collections", name),
+          "items" => items
+      }
+      hash.store('total', total) if total
+      hash.to_json
     end
   end
 end

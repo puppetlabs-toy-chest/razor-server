@@ -512,7 +512,8 @@ and requires full control over the database (eg: add and remove tables):
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands, :events, :hooks]
+  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands,
+                 [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
 
   #
   # The main entry point for the public/management API
@@ -534,8 +535,10 @@ and requires full control over the database (eg: add and remove tables):
     {
       "commands" => Razor::Command.all.map(&:to_command_list_hash).map {|c| c.dup.update("id" => url(c["id"])) },
       "collections" => COLLECTIONS.map do |coll|
+        coll, params = coll if coll.is_a?(Array)
         { "name" => coll, "rel" => spec_url("/collections/#{coll}"),
-          "id" => url("/api/collections/#{coll}")}
+          "id" => url("/api/collections/#{coll}"),
+          "params" => params }.delete_if { |_, v| v.nil? }
       end,
       "version" => { "server" => Razor::VERSION }
     }.to_json
@@ -660,7 +663,12 @@ and requires full control over the database (eg: add and remove tables):
   get '/api/collections/events' do
     check_permissions!("query:events")
 
-    collection_view Razor::Data::Event.order(:timestamp).reverse, 'events'
+    # Need to also order by ID here in case the granularity of timestamp is
+    # not enough to maintain a consistent ordering.
+    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse
+    total = Razor::Data::Event.count
+    cursor = cursor.limit(params[:limit], params[:start])
+    collection_view cursor, 'events', total
   end
 
   get '/api/collections/events/:id' do
