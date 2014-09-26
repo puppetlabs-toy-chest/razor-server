@@ -1,0 +1,12 @@
+#!ipxe
+echo Razor <%= task.label %> task boot_call
+echo Installation node: <%= node_url  %>
+echo Installation repo: <%= repo_url %>
+
+sleep 3
+kernel <%= repo_url("/coreos_production_pxe.vmlinuz") %> <%= render_template("kernel_args_again").strip %> || goto error
+initrd <%= repo_url("/coreos_production_pxe_image.cpio.gz") %> || goto error
+boot
+
+:error
+prompt --key s --timeout 60 ERROR, hit 's' for the iPXE shell; reboot in 60 seconds && shell || reboot

@@ -1,0 +1,34 @@
+#cloud-config
+
+coreos:
+  units:
+    - name: format-persistent.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats the persistent drive
+        [Service]
+        Type=oneshot
+        RemainAfterExit=no
+        ExecStart=/usr/sbin/wipefs -f /dev/<%= node.metadata['persistent-drive'] %>
+        ExecStart=/usr/sbin/mkfs.btrfs -f -L ROOT /dev/<%= node.metadata['persistent-drive'] %>
+
+    - name: download-postinstall.service
+      command: start
+      content: |
+        [Unit]
+        After=format-persistent.service
+        Description=Download Razor post_install script
+        Documentation=https://github.com/puppetlabs/razor-server
+        Requires=format-persistent.service
+
+        [Service]
+        ExecStart=/usr/bin/wget -O /root/post_install.sh <%= file_url("post_install") %>
+        ExecStart=/usr/bin/chmod +x /root/post_install.sh
+        ExecStart=/root/post_install.sh
+        ExecStart=/usr/sbin/reboot
+        RemainAfterExit=no
+        Type=oneshot
+
+ssh_authorized_keys:
+   - ssh-rsa <%= node.metadata['ssh-rsa'] %>

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+exec >> /var/log/razor.log 2>&1
+
+echo "Starting post_install"
+
+# We are done
+curl -s <%= stage_done_url("finished") %>
