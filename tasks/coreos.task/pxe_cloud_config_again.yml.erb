@@ -1,0 +1,52 @@
+#cloud-config
+
+coreos:
+  etcd:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new
+    discovery: https://discovery.etcd.io/<%= node.metadata['discovery-token'] %>
+    data-dir: /var/lib/etcd
+  fleet:
+    metadata: <%= node.metadata['fleet-metadata'] %>
+  units:
+
+    - name: setup-network-environment.service
+      command: start
+      content: |
+        [Unit]
+        Description=Setup Network Environment
+        Documentation=https://github.com/kelseyhightower/setup-network-environment
+        Requires=network-online.target
+        After=network-online.target
+
+        [Service]
+        ExecStartPre=-/usr/bin/mkdir -p /opt/bin
+        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://storage.googleapis.com/snenv/setup-network-environment
+
+        ExecStartPre=/usr/bin/chmod +x /opt/bin/setup-network-environment
+        ExecStart=/opt/bin/setup-network-environment
+        RemainAfterExit=yes
+        Type=oneshot
+
+    - name: etcd.service
+      command: start
+      content: |
+        [Unit]
+        Description=etcd
+        Requires=setup-network-environment.service
+        After=setup-network-environment.service
+        ConditionFileNotEmpty=/etc/network-environment
+        ReloadPropagatedFrom=setup-network-environment.service
+
+        [Service]
+        User=etcd
+        PermissionsStartOnly=true
+        EnvironmentFile=/etc/network-environment
+        ExecStart=/usr/bin/etcd -addr ${DEFAULT_IPV4}:4001 -peer-addr ${DEFAULT_IPV4}:7001 -data-dir /var/lib/etcd -max-retry-attempts 20
+        Restart=always
+        RestartSec=10s
+
+    - name: fleet.service
+      command: start
+
+ssh_authorized_keys:
+   - ssh-rsa <%= node.metadata['ssh-rsa'] %>

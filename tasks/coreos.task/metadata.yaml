@@ -1,0 +1,9 @@
+---
+
+os_version: 1
+label: CoreOS
+description: CoreOS Generic installer
+boot_sequence:
+  1: boot_install
+  2: boot_again
+  default: boot_again
