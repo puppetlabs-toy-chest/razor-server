@@ -145,16 +145,16 @@ module Razor
           :installed    => node.installed || false,
           :installed_at => ts(node.installed_at),
           :stage        => boot_stage,
-        }.delete_if { |k,v| v.nil? },
+        }.delete_if { |_,v| v.nil? },
         :power => {
           :desired_power_state        => node.desired_power_state,
           :last_known_power_state     => node.last_known_power_state,
           :last_power_state_update_at => node.last_power_state_update_at
-        }.delete_if { |k,v| v.nil? },
+        }.delete_if { |_,v| v.nil? },
         :hostname      => node.hostname,
         :root_password => node.root_password,
         :ipmi          => { :hostname => node.ipmi_hostname,
-                            :username => node.ipmi_username },
+                            :username => node.ipmi_username }.delete_if { |_,v| v.nil? },
         :last_checkin  => ts(node.last_checkin)
       ).delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) }
     end

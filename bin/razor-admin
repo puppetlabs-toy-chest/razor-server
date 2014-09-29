@@ -45,6 +45,7 @@ COMMANDS = {
     # out the database
     Razor.database.run("DROP TYPE IF EXISTS power_state")
     Razor.database.run("DROP TYPE IF EXISTS command_status")
+    Razor.database.run("DROP TYPE IF EXISTS hook_events")
     Sequel::Migrator.apply(Razor.database, MIGRATION_DIR)
     true
   end

@@ -61,6 +61,10 @@ module Razor
       expand_paths('broker')
     end
 
+    def hook_paths
+      expand_paths('hook')
+    end
+
     def fact_blacklisted?(name)
       !! facts_blacklist_rx.match(name)
     end

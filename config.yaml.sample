@@ -77,6 +77,9 @@ all:
   # The *broker_path* is a colon separated list of directories containing
   # broker types
   broker_path: brokers
+  # The *hook_path* is a colon separated list of directories containing
+  # hook types
+  hook_path: hooks
   facts:
     # Facts that we should always ignore. These are stripped out before we
     # do anything else with facts coming in from a node. Each entry in this

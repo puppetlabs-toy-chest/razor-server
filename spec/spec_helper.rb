@@ -198,3 +198,4 @@ Repo   = Razor::Data::Repo
 Policy = Razor::Data::Policy
 Broker = Razor::Data::Broker
 Command= Razor::Data::Command
+Hook   = Razor::Data::Hook

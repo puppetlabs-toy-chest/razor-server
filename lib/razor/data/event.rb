@@ -22,5 +22,23 @@ module Razor::Data
     rescue Razor::TaskNotFoundError
       nil
     end
+
+    def self.log_append(entry)
+      entry[:severity] ||= 'info'
+      hook = entry.delete(:hook)
+      node = entry.delete(:node)
+      # Roundtrip the hash through JSON to make sure we always have the
+      # same entries in the log that we would get from loading from DB
+      # (otherwise we could have symbols, which will turn into strings on
+      # reloading)
+      entry = JSON::parse(entry.to_json)
+      hash = {
+          :entry => entry,
+          :hook_id => hook ? hook.id : nil,
+          :node_id => node ? node.id : nil
+      }.reject {|_, v| v.nil?}
+
+      new(hash).save
+    end
   end
 end

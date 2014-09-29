@@ -1,0 +1,6 @@
+---
+some-key:
+  description: "Some variable."
+  default: 1
+some-other-key:
+  description: "Some other variable."
