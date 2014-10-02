@@ -665,9 +665,9 @@ and requires full control over the database (eg: add and remove tables):
 
     # Need to also order by ID here in case the granularity of timestamp is
     # not enough to maintain a consistent ordering.
-    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse
+    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
+        limit(params[:limit], params[:start])
     total = Razor::Data::Event.count
-    cursor = cursor.limit(params[:limit], params[:start])
     collection_view cursor, 'events', total
   end
 
@@ -721,7 +721,7 @@ and requires full control over the database (eg: add and remove tables):
       error 404, :error => _("no node matched hw_id=%{hw_id}") % {hw_id: params[:hw_id]}
     {
       "spec" => spec_url("collections", "nodes", "log"),
-      "items" => node.log
+      "items" => node.log(limit: params[:limit], start: params[:start])
     }.to_json
   end
 

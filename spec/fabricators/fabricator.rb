@@ -165,7 +165,7 @@ end
 
 Fabricator(:event, :class_name => Razor::Data::Event) do
   entry do
-    {msg: 'foo'}
+    {msg: Faker::Commerce.product_name}
   end
   # hook_id { Fabricate(:hook).id }
   node_id { Fabricate(:bound_node).id }

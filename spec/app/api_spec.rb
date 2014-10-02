@@ -766,6 +766,40 @@ describe "command and query API" do
       last_response.json.should have_key 'state'
       last_response.json['state'].should include 'installed' => false
     end
+
+    it "should include node log params" do
+      get "/api/collections/nodes/#{node.name}"
+      last_response.status.should == 200
+
+      last_response.json.should have_key 'log'
+      last_response.json['log'].should include 'params' => {'limit' => {'type' => 'number'}, 'start' => {'type' => 'number'}}
+    end
+  end
+
+  context "/api/collections/nodes/:name/log" do
+    let :node do Fabricate(:node) end
+    let :msgs do [] end
+    before :each do
+      5.times { msgs.unshift(Fabricate(:event, node: node).entry[:msg]) }
+    end
+    it "should show log" do
+      get "/api/collections/nodes/#{node.name}/log"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs
+    end
+    it "should show limited log" do
+      get "/api/collections/nodes/#{node.name}/log?limit=2"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[0..1]
+    end
+    it "should show limited log with offset" do
+      get "/api/collections/nodes/#{node.name}/log?limit=2&start=2"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[2..3]
+    end
   end
 
   context "/api/collections/commands" do

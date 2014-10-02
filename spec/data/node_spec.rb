@@ -219,11 +219,11 @@ describe Razor::Data::Node do
 
     n = Node[node.id]
     n.log.size.should == 2
-    n.log[0]["msg"].should == "M1"
-    n.log[0]["severity"].should == "info"
+    n.log[0]["msg"].should == "M2"
+    n.log[0]["severity"].should == "error"
     n.log[0]["timestamp"].should_not be_nil
-    n.log[1]["msg"].should == "M2"
-    n.log[1]["severity"].should == "error"
+    n.log[1]["msg"].should == "M1"
+    n.log[1]["severity"].should == "info"
     n.log[1]["timestamp"].should_not be_nil
   end
 
@@ -295,8 +295,8 @@ describe Razor::Data::Node do
       node.modified?.should be_false
 
       node.policy.should == policy
-      node.log.last["action"].should == "reboot"
-      node.log.last["policy"].should == policy.name
+      node.log.first["action"].should == "reboot"
+      node.log.first["policy"].should == policy.name
     end
 
     it "should refuse to bind to a policy if any tag raises an error" do

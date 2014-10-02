@@ -135,8 +135,10 @@ module Razor::Data
     # by increasing timestamp. In addition to the keys mentioned for
     # +log_append+ each entry will also contain the +timstamp+ in ISO8601
     # format
-    def log
-      events_dataset.order(:timestamp).map do |log|
+    def log(params = {})
+      cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
+          where(node_id: id).limit(params[:limit], params[:start])
+      cursor.map do |log|
         { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
       end
     end
