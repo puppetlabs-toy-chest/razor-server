@@ -82,6 +82,6 @@ unless node.metadata.empty?
 EOFFIRSTRUN
 ) > /etc/chef/first-boot.json
 
-<%= broker.chef_client %> chef-client -j /etc/chef/first-boot.json -E <%= broker.environment %>
+<%= broker.chef_client %> -j /etc/chef/first-boot.json -E <%= broker.environment %>
 
 # <% end %>
