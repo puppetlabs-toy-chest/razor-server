@@ -50,6 +50,7 @@ Make 'node17' available for reinstallation:
     end
 
     node.log_append(log)
+    node.run_event_hooks('node_reinstall')
     node.save
 
     # @todo danielp 2014-02-27: I don't know the best way to handle this sort

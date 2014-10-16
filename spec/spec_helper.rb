@@ -79,9 +79,10 @@ class Razor::Config
 end
 
 FIXTURES_PATH = File::expand_path("fixtures", File::dirname(__FILE__))
-INST_PATH = File::join(FIXTURES_PATH, "tasks")
 
+INST_PATH = File::join(FIXTURES_PATH, "tasks")
 BROKER_FIXTURE_PATH = File.join(FIXTURES_PATH, 'brokers')
+HOOK_FIXTURE_PATH   = File.join(FIXTURES_PATH, 'hooks')
 
 def use_task_fixtures
   Razor.config["task_path"] = INST_PATH
@@ -89,6 +90,10 @@ end
 
 def use_broker_fixtures
   Razor.config["broker_path"] = BROKER_FIXTURE_PATH
+end
+
+def use_hook_fixtures
+  Razor.config["hook_path"] = HOOK_FIXTURE_PATH
 end
 
 # Make sure our migration is current, or fail hard.
