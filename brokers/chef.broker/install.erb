@@ -54,7 +54,7 @@ printf '%s\n' "$rsa_key" >> /etc/chef/validation.pem
 
 (
 cat <<'EOP'
-	node_name "<%= node.name %>"
+	node_name "<%= node.hostname %>"
 	log_level :info
 	log_location STDOUT
 	chef_server_url "<%= broker.chef_server_url %>"
