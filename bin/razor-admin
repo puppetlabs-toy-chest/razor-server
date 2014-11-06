@@ -1,5 +1,9 @@
 #! /usr/bin/env jruby
 
+# In case this file is executed from a directory that has its own
+# Gemfile, change directories to the razor-server directory first.
+Dir.chdir File.expand_path('../..', __FILE__)
+
 require 'optparse'
 require 'bundler/setup'
 
