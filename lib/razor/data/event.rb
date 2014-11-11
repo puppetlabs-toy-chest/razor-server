@@ -26,7 +26,11 @@ module Razor::Data
     def self.log_append(entry)
       entry[:severity] ||= 'info'
       hook = entry.delete(:hook)
+      hook = Hook[id: hook] unless hook.is_a?(Hook)
       node = entry.delete(:node)
+      node = Node[id: node] unless node.is_a?(Node)
+      policy = entry.delete(:policy)
+      policy = Policy[id: policy] unless policy.is_a?(Policy)
       # Roundtrip the hash through JSON to make sure we always have the
       # same entries in the log that we would get from loading from DB
       # (otherwise we could have symbols, which will turn into strings on
@@ -34,8 +38,9 @@ module Razor::Data
       entry = JSON::parse(entry.to_json)
       hash = {
           :entry => entry,
-          :hook_id => hook ? hook.id : nil,
-          :node_id => node ? node.id : nil
+          :hook_id => hook.is_a?(Hook) && hook.exists? ? hook.id : nil,
+          :node_id => node.is_a?(Node) && node.exists? ? node.id : nil,
+          :policy_id => policy.is_a?(Policy) && policy.exists? ? policy.id : policy
       }.reject {|_, v| v.nil?}
 
       new(hash).save

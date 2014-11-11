@@ -342,6 +342,7 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
           raise ArgumentError, _("wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}") % {class: self.class, message: message, count: count, arity: arity}
         end
 
+        queue_name = arguments.delete('queue') || '/queues/razor/sequel-instance-messages'
         # Looks good, publish it; EDN encoding has reasonably good fidelity
         # for transmitting Ruby values over the wire, and this allows us to
         # enforce that during sending.
@@ -355,7 +356,7 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
           command.store('pending') if command.id.nil?
           msg['command'] = command.pk_hash
         end
-        fetch('/queues/razor/sequel-instance-messages').
+        fetch(queue_name).
           publish(msg, :encoding => :edn)
 
         return self

@@ -56,13 +56,15 @@ class Razor::Data::Hook < Sequel::Model
     end
   end
 
+  def _handle(hash)
+    handle(hash['cause'], hash['args'])
+  end
+
   def handle(event, args = {})
     if script = find_script(event)
       # FIXME: args may contain Data objects; they need to be serialized
       # special
       # FIXME^2: we do this for Node, but it should be more general
-
-      args[:node] = args[:node].pk_hash if args[:node]
       loop do
         # FIXME: Below is for asynchronous execution.
         # publish('run', event, script.to_s, args)
@@ -78,7 +80,19 @@ class Razor::Data::Hook < Sequel::Model
 
   # Run all hooks that have a handler for event
   def self.run(cause, args = {})
-    self.all { |hook| hook.handle(cause, args.dup) }
+    # Do not disturb original arguments.
+    # Serialize the objects here to avoid another database call on objects
+    # that may be gone by the time the hook runs.
+    self.all do |hook|
+      formatted_args = args.dup.merge(hook.serialize_arguments(cause, node: args[:node], policy: args[:policy]))
+      hook.publish '_handle', 'cause' => cause, 'args' => formatted_args,
+                              'queue' => '/queues/razor/sequel-hook-messages'
+    end
+  end
+
+  # Delegator for private method
+  def serialize_arguments(cause, args)
+    view_hash(cause, args)
   end
 
   # We have validation that we match our external files on disk, too.
@@ -159,11 +173,21 @@ class Razor::Data::Hook < Sequel::Model
     Razor.database.transaction(savepoint: true) do
       return :retry unless lock!
       appender = Appender.new(hook: self)
-      node = Razor::Data::Node[args[:node]] if args[:node]
-      appender.update(node: node, cause: cause)
+      node_id = args[:node][:id] unless args[:node].nil?
+      policy_id = args[:policy][:id] unless args[:policy].nil?
+      appender.update(node: node_id, policy: policy_id, cause: cause)
+      # Refresh these objects if they've changed. The node may be deleted,
+      # in which case this should just use the cached data.
+      if node = Node[id: node_id]
+        args[:node] = node_hash(node)
+      end
+      if hook = Hook[id: self.id]
+        args[:hook][:configuration] = hook.configuration
+      end
+      if policy = Policy[id: policy_id]
+        args[:policy] = policy_hash(policy)
+      end
 
-      # This merge clobbers args[:node] and args[:hook]
-      args = args.merge(view_hash(self, cause, node: node))
       result, output = exec_script(script, args.to_json)
       appender.update(exit_status: result.exitstatus,
                       severity: result.success? ? 'info' : 'error')
@@ -188,8 +212,7 @@ class Razor::Data::Hook < Sequel::Model
           update_node(json['node'], node, appender)
         end
       rescue JSON::ParserError
-        severity = appender.get(:error) == 'error' ? 'error' : 'warn'
-        appender.add_error('invalid JSON returned from hook', severity)
+        appender.add_error('invalid JSON returned from hook')
         # Put entire hook output into the 'msg' key as-is.
         appender.update(msg: output)
       rescue TypeError # TypeError catches a nil output.
@@ -308,11 +331,13 @@ class Razor::Data::Hook < Sequel::Model
     t && t.respond_to?('name') ? t.name : nil
   end
 
-  def view_hash(hook, cause, args = {})
+  def view_hash(cause, args = {})
+    hook = self
     node = args[:node]
     policy = args[:policy] || (node && node.policy)
     {
         hook: {
+            id: hook.id,
             name: hook.name,
             type: hook.hook_type.name,
             configuration: hook.configuration,
@@ -329,6 +354,7 @@ class Razor::Data::Hook < Sequel::Model
     boot_stage = node.policy ? node.task.boot_template(node) : nil
 
     {
+        :id            => node.id,
         :name          => node.name,
         :hw_info       => node.hw_hash,
         :dhcp_mac      => node.dhcp_mac,
@@ -354,7 +380,8 @@ class Razor::Data::Hook < Sequel::Model
   end
 
   def policy_hash(policy)
-    policy ? {:name => policy.name,
+    policy ? { :id => policy.id,
+               :name => policy.name,
                :repo => view_object_reference(policy.repo),
                :task => view_object_reference(policy.task),
                :broker => view_object_reference(policy.broker),

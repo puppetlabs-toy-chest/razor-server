@@ -24,6 +24,19 @@ TorqueBox.configure do
     end
   end
 
+  # Deploy the queue for hooks messaging, which requires sequential
+  # processing.
+  queue '/queues/razor/sequel-hooks-messages' do
+    processor Razor::Messaging::Sequel do
+      # Concurrency of 1 + singleton are crucial for the correctness
+      # of hook processing order.
+      singleton    true
+      concurrency  1
+      # For the moment, no XA support in these handlers.
+      xa           false
+    end
+  end
+
   # The naming is because we want the filename to be `ipmi.rb`.
   job Razor::ScheduledJobs::Ipmi do
     description 'IPMI power state poller'

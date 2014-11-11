@@ -2,6 +2,20 @@
 require 'spec_helper'
 
 describe Razor::Data::Hook do
+  include TorqueBox::Injectors
+  let :queue do fetch('/queues/razor/sequel-instance-messages') end
+
+  def run_message(message)
+    clazz = message['class'].split('::').inject(Object) do |mod, class_name|
+      mod.const_get(class_name)
+    end
+    obj_ref = message['instance']
+    obj = clazz[obj_ref]
+    method = message['message']
+    arguments = message['arguments'].first
+    obj.send(method, arguments)
+  end
+
   around :each do |test|
     Dir.mktmpdir do |dir|
       Razor.config['hook_path'] = dir
@@ -180,6 +194,8 @@ EOF
 exit 0
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
+      queue.count_messages.should == 2
+      2.times { run_message(queue.receive) }
       events = Razor::Data::Event.all
       events.size.should == 2
       first_event = events.select {|e| e.hook_id == first.id }.first
@@ -199,6 +215,8 @@ exit 0
 
       set_hook_file('test', 'abc' => "exit 1") { |file| file.chmod(0644)}
       Razor::Data::Hook.run('abc', node: Fabricate(:node))
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       events = Razor::Data::Event.all
       events.size.should == 1
       events.first.entry['msg'].should =~ /abc is not executable/
@@ -227,10 +245,9 @@ EOF
 exit #{exitcode}
         CONTENTS
         Razor::Data::Hook.run('abc', node: node)
-        # TODO Async receive here instead.
-        # queue.count_messages.should == 1
-        # queue.receive
-        event = Razor::Data::Event.first
+        queue.count_messages.should == 1
+        run_message(queue.receive)
+        event = Razor::Data::Event.find(hook_id: hook.id)
         event.node_id.should == node.id
         event.hook_id.should == hook.id
         event.entry['error'].should == {'message' => 'some-bad-error', 'extra' => 'details here'}
@@ -255,10 +272,9 @@ EOF
 exit 0
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO Async receive here instead.
-      # queue.count_messages.should == 1
-      # queue.receive
-      event = Razor::Data::Event.first
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == node.id
       event.hook_id.should == hook.id
       event.entry['msg'].should == 'standard output'
@@ -289,10 +305,13 @@ EOF
       CONTENTS
       node = Fabricate(:bound_node)
       Razor::Data::Hook.run('abc', node: node)
-      # TODO Async receive here instead.
-      # queue.count_messages.should == 1
-      # queue.receive
-      event = Razor::Data::Event.first
+
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+      run_message(event)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == node.id
       event.hook_id.should == hook.id
       event.entry['severity'].should == 'info'
@@ -313,6 +332,103 @@ EOF
       input['node']['name'].should == node.name
       input['node']['facts'].count.should == node.facts.count
       input['node']['metadata'].count.should == node.metadata.count
+    end
+
+    it "should contain recent metadata if node or hook has changed" do
+      configuration = {
+          'a'  => {'required' => true},
+      }
+      set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'a' => 'b'}).save
+
+      set_hook_file('test', 'abc' => <<-CONTENTS)
+#! /bin/bash
+
+json=$(< /dev/stdin)
+
+cat <<EOF
+{
+  "output": $json
+}
+EOF
+      CONTENTS
+      node = Fabricate(:bound_node)
+      Razor::Data::Hook.run('abc', node: node)
+
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+      # Add a policy to the event after it's already on the queue.
+      node.modify_metadata({'update' => {'a' => 'b'}})
+      # Modify the hook's configuration.
+      hook.configuration['a'] = 'c'
+      hook.save
+      # Disable the policy.
+      node.policy.set(enabled: false).save
+
+      run_message(event)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
+      event.node_id.should == node.id
+      event.hook_id.should == hook.id
+      event.entry['severity'].should == 'info'
+      input = event.entry['msg']
+      input['hook']['name'].should == hook.name
+      input['hook']['type'].should == hook.hook_type.name
+      input['hook']['cause'].should == 'abc'
+      input['hook']['configuration'].should == hook.configuration
+      input['policy']['name'].should == node.policy.name
+      input['policy']['enabled'].should == node.policy.enabled
+      input['policy']['nodes']['count'].should == node.policy.nodes.count
+      input['node']['name'].should == node.name
+      input['node']['metadata'].should == node.metadata
+    end
+    it "should use old node data if node has been deleted" do
+      configuration = {
+          'a'  => {'required' => true},
+      }
+      set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'a' => 'b'}).save
+
+      set_hook_file('test', 'abc' => <<-CONTENTS)
+#! /bin/bash
+
+json=$(< /dev/stdin)
+
+cat <<EOF
+{
+  "output": $json
+}
+EOF
+      CONTENTS
+      node = Fabricate(:bound_node)
+      Razor::Data::Hook.run('abc', node: node, policy: node.policy)
+
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+      # Delete the node.
+      node.destroy
+      node.policy.reload # To update the node count.
+
+      run_message(event)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
+      event.node_id.should == nil # Since the node was deleted.
+      event.hook_id.should == hook.id
+      event.entry['severity'].should == 'info'
+      input = event.entry['msg']
+      input['hook']['name'].should == hook.name
+      input['hook']['type'].should == hook.hook_type.name
+      input['hook']['cause'].should == 'abc'
+      input['hook']['configuration'].should == hook.configuration
+      input['policy']['name'].should == node.policy.name
+      input['policy']['enabled'].should == node.policy.enabled
+      input['policy']['nodes']['count'].should == node.policy.nodes.count
+      input['node']['name'].should == node.name
+      input['node']['metadata'].should == node.metadata
     end
   end
 
@@ -345,7 +461,8 @@ exit #{exit}
         CONTENTS
         hook.configuration['counter'].should == 0
         Razor::Data::Hook.run('abc')
-        # TODO async wait.
+        queue.count_messages.should == 1
+        run_message(queue.receive)
         hook.reload
         hook.configuration['counter'].should == 1
         hook.configuration.keys.should_not include 'version'
@@ -379,7 +496,10 @@ exit #{exit}
         node.metadata = {'existing' => 'value', 'to-remove' => 'other-value'}
         node.save
         Razor::Data::Hook.run('abc', node: node)
-        # TODO async wait.
+        # There will also be a 'Node' message on the queue.
+        messages = queue.count_messages.times.map {queue.receive}
+        event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+        run_message(event)
         node.reload
         node.metadata['new-key'].should == 'new-value'
         node.metadata['existing'].should == 'a-value'
@@ -406,7 +526,10 @@ EOF
       node.metadata = {'existing' => 'value'}
       node.save
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+      run_message(event)
       node.reload
       node.metadata.should == {}
     end
@@ -423,21 +546,19 @@ EOF
 exit 0
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO Async receive here instead.
-      # queue.count_messages.should == 1
-      # queue.receive
-      event = Razor::Data::Event.first
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == node.id
       event.hook_id.should == hook.id
       event.entry['error'].should == 'invalid JSON returned from hook'
       event.entry['msg'].should == "standard output\n"
-      event.entry['severity'].should == 'warn'
-
-      Razor::Data::Event.count.should == 1
+      event.entry['severity'].should == 'error'
     end
 
     it "should fail if there is no node to modify" do
-      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
       set_hook_file('test', 'abc' => <<-CONTENTS)
 #! /bin/bash
@@ -459,10 +580,12 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc')
-      # TODO async wait.
-      Razor::Data::Event.first.entry['error'].should == 'hook tried to update node metadata on a hook without a node'
-      Razor::Data::Event.first.entry['severity'].should == 'error'
-      Razor::Data::Event.count.should == 1
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
+      event.entry['error'].should == 'hook tried to update node metadata on a hook without a node'
+      event.entry['severity'].should == 'error'
     end
 
     it "should fail if hook attempts unexpected metadata operation" do
@@ -486,7 +609,10 @@ EOF
       node.metadata = {'existing' => 'value'}
       node.save
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+      run_message(event)
       node.reload
       node.metadata.should == {'existing' => 'value'}
       Razor::Data::Event.first.entry['error'].should == 'unexpected node metadata operation(s) do-other-thing included'
@@ -507,7 +633,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output: other-key'
       Razor::Data::Event.first.entry['severity'].should == 'warn'
       Razor::Data::Event.count.should == 1
@@ -528,7 +655,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for node update: other-key'
       Razor::Data::Event.first.entry['severity'].should == 'warn'
       Razor::Data::Event.count.should == 1
@@ -549,7 +677,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for hook update: other-key'
       Razor::Data::Event.first.entry['severity'].should == 'warn'
       Razor::Data::Event.count.should == 1
@@ -569,7 +698,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
       Razor::Data::Event.first.entry['severity'].should == 'warn'
       Razor::Data::Event.count.should == 1
@@ -589,7 +719,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
       Razor::Data::Event.first.entry['severity'].should == 'warn'
       Razor::Data::Event.count.should == 1
@@ -613,7 +744,8 @@ cat <<EOF
 EOF
       CONTENTS
       Razor::Data::Hook.run('abc', node: node)
-      # TODO async wait.
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == "undefined operation on hook: do-thing; should be 'update' or 'remove'"
       Razor::Data::Event.first.entry['severity'].should == 'error'
       Razor::Data::Event.count.should == 1
@@ -633,6 +765,8 @@ cat <<EOF
 EOF
       CONTENTS
       Node.register('macaddress' => node.hw_info[0][4..1000])
+      queue.count_messages.should == 1
+      run_message(queue.receive)
       Razor::Data::Event.first.entry['msg'].should == 'it worked'
     end
     it "should fire for node-bound-to-policy" do
@@ -643,7 +777,7 @@ EOF
         n.checkin(body)
         n
       end
-      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
       set_hook_file('test', 'node-bound-to-policy' => <<-CONTENTS)
 #! /bin/bash
@@ -657,10 +791,12 @@ EOF
       Fabricate(:policy)
 
       Policy.bind(node)
-      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      Razor::Data::Event.find(hook_id: hook.id).entry['msg'].should == 'it worked'
     end
     it "should fire for node-unbound-from-policy" do
-      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
       set_hook_file('test', 'node-unbound-from-policy' => <<-CONTENTS)
 #! /bin/bash
@@ -674,10 +810,14 @@ EOF
       node = Fabricate(:bound_node)
 
       node.unbind
-      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+      run_message(event)
+      Razor::Data::Event.find(hook_id: hook.id).entry['msg'].should == 'it worked'
     end
     it "should fire for node-deleted" do
-      Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
       set_hook_file('test', 'node-deleted' => <<-CONTENTS)
 #! /bin/bash
@@ -690,7 +830,9 @@ EOF
       CONTENTS
       node.destroy
 
-      Razor::Data::Event.find{!hook_id.nil?}.entry['msg'].should == 'it worked'
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      Razor::Data::Event.find(hook_id: hook.id).entry['msg'].should == 'it worked'
     end
   end
 end
