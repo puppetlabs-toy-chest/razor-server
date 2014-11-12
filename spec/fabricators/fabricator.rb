@@ -162,3 +162,12 @@ Fabricator(:hook, :class_name => Razor::Data::Hook) do
     Razor::HookType.new(path)
   end
 end
+
+Fabricator(:event, :class_name => Razor::Data::Event) do
+  entry do
+    {msg: 'foo'}
+  end
+  # hook_id { Fabricate(:hook).id }
+  node_id { Fabricate(:bound_node).id }
+  policy_id { Fabricate(:policy).id }
+end

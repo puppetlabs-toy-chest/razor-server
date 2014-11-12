@@ -186,6 +186,7 @@ module Razor
         :name      => event.id,
         :command   => view_object_reference(event.command),
         :node      => view_object_reference(event.node),
+        :severity  => event.severity,
         :policy    => view_object_reference(event.policy),
         :repo      => view_object_reference(event.repo),
         :broker    => view_object_reference(event.broker),

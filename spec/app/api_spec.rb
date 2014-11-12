@@ -1034,4 +1034,106 @@ describe "command and query API" do
       end
     end
   end
+
+  context "/api/collections/events" do
+    EventItemSchema = {
+        '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        'title'    => "Event Collection JSON Schema",
+        'type'     => 'object',
+        'required' => %w[spec id name severity entry],
+        'properties' => {
+            'spec' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string',
+                'pattern'  => '^https?://'
+            },
+            'id'       => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string',
+                'pattern'  => '^https?://'
+            },
+            'name'     => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'number',
+                'pattern'  => '^[^\n]+$'
+            },
+            'node' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'object'
+            },
+            'policy' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'object'
+            },
+            'timestamp' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string'
+                # 'pattern' => '' ...date field.
+            },
+            'entry' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'object'
+            },
+            'severity' => {
+                '$schema'  => 'http://json-schema.org/draft-04/schema#',
+                'type'     => 'string',
+                'pattern'   => 'error|warning|info',
+            }
+        },
+        'additionalProperties' => false,
+    }.freeze
+
+    def validate!(schema, json)
+      # Why does the validate method insist it should be able to modify
+      # my schema?  That would be, y'know, bad.
+      JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+    end
+
+    it "should 404 a event requested that does not exist" do
+      get "/api/collections/events/238902423"
+      last_response.status.should == 404
+    end
+
+    shared_examples "a event collection" do |expected|
+      it "should return a valid collection" do
+        get "/api/collections/events"
+
+        last_response.status.should == 200
+        nodes = last_response.json['items']
+        nodes.should be_an_instance_of Array
+        nodes.count.should == expected
+        validate! ObjectRefCollectionSchema, last_response.body
+      end
+
+      if expected > 0
+        it "should be able to access all event instances" do
+          Razor::Data::Event.all.each do |event|
+            get "/api/collections/events/#{URI::escape(event.name)}"
+            last_response.status.should == 200
+            validate! EventItemSchema, last_response.body
+          end
+        end
+      end
+    end
+
+    context "with none" do
+      it_should_behave_like "a event collection", 0
+    end
+
+    context "with one" do
+      before :each do
+        Fabricate(:event)
+      end
+
+      it_should_behave_like "a event collection", 1
+    end
+
+    context "with ten" do
+      before :each do
+        10.times { Fabricate(:event) }
+      end
+
+      it_should_behave_like "a event collection", 10
+    end
+  end
 end
