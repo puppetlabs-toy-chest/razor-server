@@ -664,6 +664,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/events/:id' do
+    params[:id] =~ /[0-9]+/ or error 400, :error => _("id must be a number but was %{id}") % {id: params[:id]}
     check_permissions!("query:events:#{params[:id]}")
     event = Razor::Data::Event[:id => params[:id]] or
         error 404, :error => _("no event matched id=%{id}") % {id: params[:id]}

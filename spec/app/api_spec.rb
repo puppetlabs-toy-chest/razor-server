@@ -1094,6 +1094,12 @@ describe "command and query API" do
       last_response.status.should == 404
     end
 
+    it "should error on bad-format for event" do
+      get "/api/collections/events/foo"
+      last_response.status.should == 400
+      last_response.json['error'].should =~ /id must be a number but was foo/
+    end
+
     shared_examples "a event collection" do |expected|
       it "should return a valid collection" do
         get "/api/collections/events"
