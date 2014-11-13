@@ -7,6 +7,7 @@ module Razor::Data
     many_to_one :repo
     many_to_one :broker
     many_to_one :command
+    many_to_one :hook
     # def_column_accessor 'task_name'
 
 

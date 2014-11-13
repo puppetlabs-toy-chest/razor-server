@@ -204,7 +204,8 @@ module Razor
         :"hook-type"   => hook.hook_type,
         :configuration => hook.configuration,
         :log           => { :id => view_object_url(hook) + "/log",
-                            :name => "log" },
+                            :name => "log",
+                            :params => {'limit' => {'type' => 'number'}, 'start' => {'type' => 'number'} }},
       }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) })
     end
 

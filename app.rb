@@ -696,7 +696,7 @@ and requires full control over the database (eg: add and remove tables):
         error 404, :error => _("no hook matched name=%{name}") % {name: params[:name]}
     {
         "spec" => spec_url("collections", "hooks", "log"),
-        "items" => hook.log
+        "items" => hook.log(limit: params[:limit], start: params[:start])
     }.to_json
   end
 

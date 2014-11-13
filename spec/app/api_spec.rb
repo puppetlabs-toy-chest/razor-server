@@ -1055,6 +1055,44 @@ describe "command and query API" do
     end
   end
 
+  context "/api/collections/hooks/:name" do
+    let :hook do Fabricate(:hook) end
+
+    it "should include hook log params" do
+      get "/api/collections/hooks/#{URI.escape(hook.name)}"
+      last_response.status.should == 200
+
+      last_response.json.should have_key 'log'
+      last_response.json['log'].should include 'params' => {'limit' => {'type' => 'number'}, 'start' => {'type' => 'number'}}
+    end
+  end
+
+  context "/api/collections/hooks/:name/log" do
+    let :hook do Fabricate(:hook) end
+    let :msgs do [] end
+    before :each do
+      5.times { msgs.unshift(Fabricate(:event, hook: hook).entry[:msg]) }
+    end
+    it "should show log" do
+      get "/api/collections/hooks/#{URI.escape(hook.name)}/log"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs
+    end
+    it "should show limited log" do
+      get "/api/collections/hooks/#{URI.escape(hook.name)}/log?limit=2"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[0..1]
+    end
+    it "should show limited log with offset" do
+      get "/api/collections/hooks/#{URI.escape(hook.name)}/log?limit=2&start=2"
+      last_response.status.should == 200
+
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[2..3]
+    end
+  end
+
   context "/api/microkernel/bootstrap" do
     it "generates a script for 4 NIC's if nic_max is not given" do
       get "/api/microkernel/bootstrap"
