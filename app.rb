@@ -665,10 +665,8 @@ and requires full control over the database (eg: add and remove tables):
 
     # Need to also order by ID here in case the granularity of timestamp is
     # not enough to maintain a consistent ordering.
-    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
-        limit(params[:limit], params[:start])
-    total = Razor::Data::Event.count
-    collection_view cursor, 'events', total
+    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse
+    collection_view cursor, 'events', limit: params[:limit], start: params[:start]
   end
 
   get '/api/collections/events/:id' do
@@ -719,6 +717,9 @@ and requires full control over the database (eg: add and remove tables):
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
     node = Razor::Data::Node[:name => params[:name]] or
       error 404, :error => _("no node matched hw_id=%{hw_id}") % {hw_id: params[:hw_id]}
+    # This is not a standard collection in that each item is not just a
+    # reference, instead containing relevant details to make the `/log`
+    # view worthwhile without extra querying.
     {
       "spec" => spec_url("collections", "nodes", "log"),
       "items" => node.log(limit: params[:limit], start: params[:start])

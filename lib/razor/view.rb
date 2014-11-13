@@ -208,9 +208,16 @@ module Razor
       }.delete_if {|k,v| v.nil? or ( v.is_a? Hash and v.empty? ) })
     end
 
-    def collection_view(cursor, name, total = nil)
+    # Produces a standard hash view for a collection given either
+    # a Class or a Dataset as `cursor`. `name` is a reference used
+    # in the spec string. Optional arguments are `limit` and
+    # `start`.
+    def collection_view(cursor, name, args = {})
       perm = "query:#{name}"
-      cursor = cursor.all if cursor.respond_to?(:all)
+      total = cursor.count if cursor.respond_to?(:count)
+      # This catches the case where a non-Sequel class is passed in.
+      cursor = cursor.all if cursor.is_a?(Class) and !cursor.respond_to?(:cursor)
+      cursor = cursor.limit(args[:limit], args[:start]) if cursor.respond_to?(:limit)
       items = cursor.
         map {|t| view_object_reference(t)}.
         select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
