@@ -512,7 +512,8 @@ and requires full control over the database (eg: add and remove tables):
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies, :nodes, :tasks, :commands,
+  COLLECTIONS = [:brokers, :repos, :tags, :policies,
+                 [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :tasks, :commands,
                  [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
 
   #
@@ -701,7 +702,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node.search(params).order(:name), 'nodes'
+    collection_view Razor::Data::Node.search(params).order(:name), 'nodes', limit: params[:limit], start: params[:start]
   end
 
   get '/api/collections/nodes/:name' do

@@ -736,6 +736,31 @@ describe "command and query API" do
 
       it_should_behave_like "a node collection", 10
     end
+
+    it "should state that 'start' and 'limit' are valid parameters" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'nodes'}.first['params']
+      params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+    end
+
+    context "limiting" do
+      let :names do [] end
+      before :each do
+        5.times { names.push(Fabricate(:node).name) }
+      end
+      it "should show limited nodes" do
+        get "/api/collections/nodes?limit=2"
+        last_response.status.should == 200
+
+        last_response.json['items'].map {|e| e['name']}.should == names[0..1]
+      end
+      it "should show limited nodes with offset" do
+        get "/api/collections/nodes?limit=2&start=2"
+        last_response.status.should == 200
+
+        last_response.json['items'].map {|e| e['name']}.should == names[2..3]
+      end
+    end
   end
 
   context "/api/collections/nodes/:name" do
