@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 0.16.0 - 2014-11-24
+## 0.16.0 - 2015-01-05
 
 ### Incompatible changes
 
@@ -38,25 +38,37 @@
 
 ### Task changes
 
-+ Added Ubuntu Lucid and Ubuntu Trusty tasks.
-+ Added CoreOS task.
-+ Added Windows 2012r2 task.
-+ Fixed broken Debian i386 task.
++ NEW: Added Windows tasks for 2012R2 and 2008R2.
++ NEW: Added Ubuntu tasks for Lucid (10.04) and Trusty (14.04).
++ NEW: Windows tasks can execute brokers.
++ BUGFIX: Fixed existing Debian i386 task.
++ IMPROVEMENT: Windows default task (8 pro) now utilizes node's
+  root_password value rather than the default `razor`.
++ IMPROVEMENT: Windows tasks now use newer wimboot (2.4.0)
++ IMPROVEMENT: Debian and Ubuntu (Trusty only) can allow hostname
+  without '.' for fetching preseed file.
 
 ### Other
 
-+ New feature: Hooks. See `hooks.md` for details on how to write and
-  use hooks.
-+ Torquebox updated to 3.1.1 and JRuby updated to 1.7.13.
-+ Increased default heap space for Razor to 1024MB, prompted by
-  intermittent issues from the lower 512MB value on some systems.
-+ Fixed initrd.gz file download hanging due to earlier versions of
-  Sinatra.
-+ Brokers can now use arbitrary executable files for installation,
-  which was most helpful for Powershell in Windows.
-+ `create-policy` now gives a helpful warning when called with the
-  defunct tag-creation syntax.
-+ IPMI hostname and IPMI username are now returned from node queries.
++ NEW: Hooks. See `hooks.md` for details on how to write and use hooks.
++ NEW: Separate API and CLI help examples: There are now two formats for help
+  examples. The new CLI format shows help text as a standard razor-client
+  command.
++ IMPROVEMENT: Updating Torquebox to 3.1.1 and JRuby to 1.7.13.
++ BUGFIX: Fixing heap space issues with default settings in Torquebox.
++ IMPROVEMENT: Standardizing behavior for creating two entities whose names only
+  differ in case.
++ IMPROVEMENT: Adding idempotency in `create-tag`.
++ NEW: Exposing IPMI details (username and hostname) in `razor --full nodes`.
++ NEW: Provide warning in `create-policy` if the user attempts to create a
+  tag, a feature which was removed in 0.15.0.
++ IMPROVEMENT: `create-broker` now accepts argument `c` as an alias for
+  `configuration`.
++ NEW: Brokers can now use arbitrary executable files for installation,
+  which is most helpful for Powershell in Windows.
++ BUGFIX: Some attempts to contact Razor server are retried upon failure.
++ BUGFIX: Disallowing old versions of Sinatra where download of initrd.gz
+  would hang.
 
 ## 0.15.0 - 2014-05-22
 
