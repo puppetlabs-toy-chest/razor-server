@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## Next
+## 0.16.0 - 2014-11-24
 
 ### Incompatible changes
 
@@ -13,7 +13,46 @@
   command, and had no effect. Instead, `modify-node-metadata` can be 
   called with either the `clear` argument to remove all keys, or the 
   `update` argument to set all keys to certain values, which achieves 
-  the same function. 
+  the same function.
+
+### API changes
+
++ `create-hook` and `delete-hook` are two new commands for managing
+  hooks.
++ `events` collection now displays events from the Razor server.
+  This can be scoped by querying `nodes/$name/log` or
+  `hooks/$name/$log`.
++ Various collections can now be limited and offset by supplying
+  `limit` and `start` parameters. These parameters can be discovered
+  via the logically prior endpoint. For `/api/collections/events`,
+  this is in `/api`. For `/api/collections/nodes/$name/log`, this is
+  in `/api/collections/nodes/$name`.
++ Help text now exists for razor-client in addition to just the API.
+  This is accessible via a GET on the command's endpoint, where the
+  new 'examples' key in the help text has 'api' and 'cli' as sub-keys.
++ `create-tag` is now idempotent.
+
+### Task changes
+
++ Added Ubuntu Lucid and Ubuntu Trusty tasks.
++ Added CoreOS task.
++ Added Windows 2012r2 task.
++ Fixed broken Debian i386 task.
+
+### Other
+
++ New feature: Hooks. See `hooks.md` for details on how to write and
+  use hooks.
++ Torquebox updated to 3.1.1 and JRuby updated to 1.7.13.
++ Increased default heap space for Razor to 1024MB, prompted by
+  intermittent issues from the lower 512MB value on some systems.
++ Fixed initrd.gz file download hanging due to earlier versions of
+  Sinatra.
++ Brokers can now use arbitrary executable files for installation,
+  which was most helpful for Powershell in Windows.
++ `create-policy` now gives a helpful warning when called with the
+  defunct tag-creation syntax.
++ IPMI hostname and IPMI username are now returned from node queries.
 
 ## 0.15.0 - 2014-05-22
 

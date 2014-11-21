@@ -349,6 +349,35 @@ Note that this does not affect the `installed` status of a node, and
 therefore won't, by itself, cause a node to be bound to another policy upon
 reboot.
 
+### Create hook
+
+A hook can be created with the `create-hook` command.  It accepts the name
+of a single hook, plus the `hook-type` which references existing code
+on the Razor server's `hooks` directory, and an optional starting
+configuration corresponding to that hook-type:
+
+    {
+      "name": "myhook",
+      "hook-type": "some_hook",
+      "configuration": {"foo": 7, "bar": "rhubarb"}
+    }
+
+The code on the server would be contained in the `hooks/some_hook.hook`
+directory. More information on hooks can be found in the Hooks README 
+(`hooks.md`).
+
+### Delete hook
+
+A single hook can be removed from the database with the `delete-hook`
+command. It accepts the name of a single hook:
+
+    {
+        "name": "myhook"
+    }
+
+The hook will then no longer be triggered for node events and any
+existing properties in the hook's `configuration` will be deleted.
+
 ### Delete node
 
 A single node can be removed from the database with the `delete-node`
