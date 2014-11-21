@@ -63,10 +63,10 @@ downloaded onto the Razor server:
   attr  'name', type: String, required: true, size: 1..250,
                 help: _('The name of the repository.')
 
-  attr 'url', type: URI, exclude: 'iso-url', size: 1..1000,
+  attr 'url', type: URI, exclude: ['iso-url', 'no-content'], size: 1..1000,
               help: _('The URL of the remote repository to use.')
 
-  attr 'iso-url', type: URI, exclude: 'url', size: 1..1000, help: _(<<-HELP)
+  attr 'iso-url', type: URI, exclude: ['url', 'no-content'], size: 1..1000, help: _(<<-HELP)
     The URL of the ISO image to download and unpack to create the
     repository.  This can be an HTTP or HTTPS URL, or it can be a
     file URL.
@@ -77,13 +77,19 @@ downloaded onto the Razor server:
     command.
   HELP
 
+  attr 'no-content', type: TrueClass, exclude: ['iso-url', 'url'], help: _(<<-HELP)
+    For cases where extraction will be done manually, this argument
+    creates a stub directory in the repo store where the extracted
+    contents can be placed.
+  HELP
+
   attr 'task', type: String, required: true, help: _(<<-HELP)
     The name of the task associated with this repository.  This is used to
     install nodes that match a policy using this repository; generally it
     should match the OS that the URL or ISO-URL attributes point to.
   HELP
 
-  require_one_of 'url', 'iso-url'
+  require_one_of 'url', 'iso-url', 'no-content'
 
   def run(request, data)
     # Create our shiny new repo.  This will implicitly, thanks to saving
@@ -92,6 +98,9 @@ downloaded onto the Razor server:
     # background workers without also committing this data to our database.)
     data["iso_url"] = data.delete("iso-url")
     data["task_name"] = data.delete("task")
+
+    # Remove this; it just helped bypass `url` and `iso-url`.
+    data.delete('no-content')
 
     Razor::Data::Repo.import(data, @command).first
   end

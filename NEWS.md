@@ -30,6 +30,10 @@
 + Help text now exists for razor-client in addition to just the API.
   This is accessible via a GET on the command's endpoint, where the
   new 'examples' key in the help text has 'api' and 'cli' as sub-keys.
++ The `create-repo` command now accepts a `--no-content` argument,
+  which signifies that neither the `--iso-url` nor the `--url`
+  arguments will be supplied, and instead an empty directory will be
+  created.
 + `create-tag` is now idempotent.
 
 ### Task changes

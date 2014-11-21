@@ -238,10 +238,6 @@ describe Razor::Data::Repo do
         Fabricate(:repo, :url => 'http://example.org/', :iso_url => 'http://example.com')
       end.to raise_error(Sequel::ValidationFailed)
     end
-
-    it "should require setting one of them" do
-      repo = Fabricate.build(:repo).set(:url => nil, :iso_url => nil).should_not be_valid
-    end
   end
 
   context "task" do
@@ -298,6 +294,20 @@ describe Razor::Data::Repo do
            'command'   => { :id => command.id },
            'message'   => 'unpack_repo',
            'arguments' => [path]
+        ).on(queue)
+      end
+
+      it "should publish 'unpack_repo' with nil path if no url or iso-url" do
+        repo.iso_url = nil
+        repo.url = nil
+        expect {
+          repo.make_the_repo_accessible(command)
+        }.to have_published(
+           'class'     => repo.class.name,
+           'instance'  => repo.pk_hash,
+           'command'   => { :id => command.id },
+           'message'   => 'unpack_repo',
+           'arguments' => [nil]
         ).on(queue)
       end
 
@@ -572,6 +582,20 @@ describe Razor::Data::Repo do
         'command'   => { :id => command.id },
         'message'  => 'release_temporary_repo'
       ).on(queue)
+    end
+
+    it "should create folder with nil path for no-content" do
+      Dir.mktmpdir do |tmpdir|
+        root = Pathname(tmpdir) + 'repo-store'
+        Razor.config['repo_store_root'] = root.to_s
+
+        root.should_not exist
+
+        repo.unpack_repo(command, nil)
+
+        root.should exist
+        (root + repo.name).should exist
+      end
     end
   end
 
