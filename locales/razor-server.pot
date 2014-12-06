@@ -161,7 +161,7 @@ msgstr ""
 #: ../lib/razor/command/create_broker.rb:39
 msgid ""
 "    The configuration for the broker.  The acceptable values here are\n"
-"    determined by the `broker-type` selected.  In general this has\n"
+"    determined by the `broker_type` selected.  In general this has\n"
 "    settings like which server to contact, and other configuration\n"
 "    related to handing on the newly installed system to the final\n"
 "    configuration management system.\n"
@@ -271,7 +271,7 @@ msgstr ""
 msgid ""
 "    The name of the task associated with this repository.  This is used to\n"
 "    install nodes that match a policy using this repository; generally it\n"
-"    should match the OS that the URL or ISO-URL attributes point to.\n"
+"    should match the OS that the URL or iso_url attributes point to.\n"
 msgstr ""
 
 #: ../lib/razor/command/create_tag.rb:22
@@ -464,17 +464,17 @@ msgid ""
 msgstr ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:46
-msgid "New max-count '%{raw}' is not a valid integer"
+msgid "New max_count '%{raw}' is not a valid integer"
 msgstr ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:50
-msgid "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}"
-msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}"
+msgid "There is currently %{node_count} node bound to this policy. Cannot lower max_count to %{max_count}"
+msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max_count to %{max_count}"
 msgstr[0] ""
 msgstr[1] ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:56
-msgid "Changed max-count for policy %{name} to %{count}"
+msgid "Changed max_count for policy %{name} to %{count}"
 msgstr ""
 
 #: ../lib/razor/command/move_policy.rb:22

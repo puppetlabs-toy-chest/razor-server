@@ -104,12 +104,12 @@ when the command has finished.
 There are two flavors of repositories: ones where Razor unpacks ISO's for
 you and serves their contents, and ones that are somewhere else, for
 example, on a mirror you maintain. The first form is created by creating a
-repo with the `iso-url` property; the server will download and unpack the
+repo with the `iso_url` property; the server will download and unpack the
 ISO image into its file system:
 
     {
       "name": "fedora19",
-      "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "iso_url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
       "task": "puppet"
     }
 
@@ -178,10 +178,10 @@ To create a broker, clients post the following to the `create-broker` URL:
          "server": "puppet.example.org",
          "environment": "production"
       },
-      "broker-type": "puppet"
+      "broker_type": "puppet"
     }
 
-The `broker-type` must correspond to a broker that is present on the
+The `broker_type` must correspond to a broker that is present on the
 `broker_path` set in `config.yaml`.
 
 The permissible settings for the `configuration` hash depend on the broker
@@ -307,15 +307,15 @@ accept the same body, consisting of the name of the policy in question:
       "name": "a policy"
     }
 
-### Modify the max-count for a policy
+### Modify the max_count for a policy
 
-The command `modify-policy-max-count` makes it possible to manipulate how
+The command `modify-policy-max_count` makes it possible to manipulate how
 many nodes can be bound to a specific policy at the most. The body of the
 request should be of the form:
 
     {
       "name": "a policy"
-      "max-count": new-count
+      "max_count": new-count
     }
 
 The `new-count` can be an integer, which must be larger than the number of
