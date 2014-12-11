@@ -1,0 +1,8 @@
+---
+
+os_version: 62
+label: XenServer 6.2
+description: XenServer installer
+boot_sequence:
+  1: boot_install
+  default: boot_local
