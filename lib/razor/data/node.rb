@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+require 'netaddr'
+
 module Razor::Data
   class DuplicateNodeError < RuntimeError
     attr_reader :hw_info, :nodes
@@ -83,7 +85,7 @@ module Razor::Data
     def before_create
       # Support users configuring that we mark all newly discovered nodes as
       # "installed" already, despite having no policy.
-      if Razor.config['protect_new_nodes']
+      if self.protect?
         self.installed    = '+protected'
         self.installed_at = Time.now
       end
@@ -179,6 +181,26 @@ module Razor::Data
     # hw_info based on facts, set through +Node.register+
     def registered?
       ! facts.nil?
+    end
+
+    #Determine if this machine should be protected as a new machine based
+    #on the value of the config param 'protect_new_nodes' and 'invert_protect_new_nodes_for_subnets'
+    def protect?
+      protected = Razor.config['protect_new_nodes'] || false
+      override_subnets = Razor.config['invert_protect_new_nodes_for_subnets'] || []
+
+      if self.metadata['ip']
+        ipobj = NetAddr::CIDR.create(self.metadata['ip'])
+
+        override_subnets.each do |net|
+          override = NetAddr::CIDR.create(net)
+          if override.contains?(ipobj) or override == ipobj
+            protected = !protected
+            break
+          end
+        end
+      end
+      protected
     end
 
     def installed=(value)
@@ -397,11 +419,17 @@ module Razor::Data
     # a new node
     def self.lookup(params)
       dhcp_mac = params.delete("dhcp_mac")
+      ip_addr  = params.delete("ip_addr")
+
       dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
+      ip_addr  = nil if !ip_addr.nil?  and ip_addr.empty?
+
+      network_metadata = {}
+      network_metadata['ip'] = ip_addr if ip_addr
 
       nodes, hw_info = self.find_by_hw_info(params)
       if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac, :metadata => network_metadata)
       elsif nodes.size == 1
         node = nodes.first
         # We do not want to update the hw_info at this point; all we know

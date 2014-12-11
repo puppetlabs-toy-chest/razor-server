@@ -199,7 +199,7 @@ and requires full control over the database (eg: add and remove tables):
         net_id = "net#{index - 1}"
         vars[net_id] = "${#{net_id}/mac:hexhyp}"
       end
-      ["dhcp_mac", "serial", "asset", "uuid"].each { |k| vars[k] = "${#{k}}" }
+      ["dhcp_mac", "serial", "asset", "uuid", "ip_addr"].each { |k| vars[k] = "${#{k}}" }
       q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
       url "/svc/boot?#{q}"
     end

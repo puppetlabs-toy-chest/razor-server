@@ -25,6 +25,7 @@ gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 gem 'fast_gettext', '~> 0.8.1'
+gem 'netaddr', '>= 1.5.0'
 
 ## support for various tasks and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,

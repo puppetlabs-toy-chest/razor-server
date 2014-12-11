@@ -14,6 +14,7 @@ set maxtries:uint32 60
 <%# (see https://bugzilla.redhat.com/show_bug.cgi?id=1002734)              %>
 isset ${ip} || goto dhcp_net0
 set dhcp_mac ${mac:hexhyp}
+set ip_addr ${ip}
 goto chain_boot
 
 <% @nic_max ||= 4 %>
@@ -27,6 +28,7 @@ isset ${<%= net_id %>/mac} && dhcp <%= net_id %> || goto dhcp_net<%= index %>
 <% end %>
 echo <%= net_id %> has DHCP
 set dhcp_mac <%= net_id %>$${<%= net_id %>/mac:hexhyp}
+set ip_addr <%= net_id %>$${<%= net_id %>/ip}
 
 <% end %>
 
