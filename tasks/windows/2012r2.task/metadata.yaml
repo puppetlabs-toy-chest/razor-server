@@ -2,6 +2,7 @@
 os_version: 2012
 label: Microsoft Windows Generic
 description: Microsoft Windows
+base: windows
 boot_sequence:
   1: boot_wim
   default: boot_local
