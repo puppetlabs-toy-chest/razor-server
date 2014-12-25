@@ -26,8 +26,8 @@ module Razor
     # The definition of an object reference: it has a `id` field which is
     # a globally unique URL, and a `name` field that is unique among objects
     # of the same type
-    def view_object_reference(obj)
-      view_object_hash(obj)
+    def view_object_reference(obj, expand=false)
+      view_object_hash(obj, expand)
     end
 
     # The definition of a basic object type: it has a `spec` field, which
@@ -36,14 +36,23 @@ module Razor
     # a human-readable name for the object. This is the *baseline* definition
     # of an object; it is expected to be `#merge`d with a hash that overrides
     # :spec, and that contains type-specific fields.
-    def view_object_hash(obj)
+    def view_object_hash(obj, expand=false)
       return nil unless obj
 
-      {
+      h = {
         :spec => spec_url("collections", collection_name(obj), "member"),
         :id => view_object_url(obj),
         :name => obj.name
       }
+
+      if expand
+        method  = "#{obj.class.name.split("::").last.downcase.underscore}_hash"
+        if self.respond_to?(method.to_sym)
+          h.merge!( self.method(method.to_sym).call(obj) )
+        end
+      end
+
+      h
     end
 
     def policy_hash(policy)
@@ -214,13 +223,14 @@ module Razor
     # in the spec string. Optional arguments are `limit` and
     # `start`.
     def collection_view(cursor, name, args = {})
-      perm = "query:#{name}"
-      total = cursor.count if cursor.respond_to?(:count)
+      perm   = "query:#{name}"
+      expand = (args[:expand] == true or args[:expand] == 'true') ? true : false
+      total  = cursor.count if cursor.respond_to?(:count)
       # This catches the case where a non-Sequel class is passed in.
       cursor = cursor.all if cursor.is_a?(Class) and !cursor.respond_to?(:cursor)
       cursor = cursor.limit(args[:limit], args[:start]) if cursor.respond_to?(:limit)
       items = cursor.
-        map {|t| view_object_reference(t)}.
+        map {|t| view_object_reference(t, expand)}.
         select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
       hash = {
           "spec" => spec_url("collections", name),

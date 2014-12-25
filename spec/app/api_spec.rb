@@ -150,6 +150,24 @@ describe "command and query API" do
         policy.keys.should =~ %w[id name spec]
       end
     end
+
+    context "policy collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'policies'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:policy, :repo => @repo) }
+        get "/api/collections/policies?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name broker configuration enabled nodes repo tags task}
+        end
+      end
+    end
   end
 
   context "/api/collections/policies/ID - get policy" do
@@ -201,6 +219,24 @@ describe "command and query API" do
         tag.keys.should =~ %w[id name spec]
       end
     end
+
+    context "tag collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'tags'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:tag) }
+        get "/api/collections/tags?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name nodes policies rule}
+        end
+      end
+    end
   end
 
   context "/api/collections/tags/ID - get tag" do
@@ -231,6 +267,24 @@ describe "command and query API" do
       repos.size.should == 2
       repos.map { |repo| repo["name"] }.should =~ %w[ repo1 repo2 ]
       repos.all? { |repo| repo.keys.should =~ %w[id name spec] }
+    end
+
+    context "repo collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'repos'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:repo) }
+        get "/api/collections/repos?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name iso_url task url}
+        end
+      end
     end
   end
 
@@ -506,6 +560,25 @@ describe "command and query API" do
 
       it_should_behave_like "a broker collection", 10
     end
+
+    context "broker collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'brokers'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:broker) }
+        get "/api/collections/brokers?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name broker-type configuration policies}
+        end
+      end
+    end
+
   end
 
   context "/api/collections/nodes" do
@@ -737,10 +810,10 @@ describe "command and query API" do
       it_should_behave_like "a node collection", 10
     end
 
-    it "should state that 'start' and 'limit' are valid parameters" do
+    it "should state that 'start', 'limit' and 'expand' are valid parameters" do
       get '/api'
       params = last_response.json['collections'].select {|c| c['name'] == 'nodes'}.first['params']
-      params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+      params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}, 'expand' => {"type" => "boolean"}}
     end
 
     context "limiting" do
@@ -759,6 +832,20 @@ describe "command and query API" do
         last_response.status.should == 200
 
         last_response.json['items'].map {|e| e['name']}.should == names[2..3]
+      end
+    end
+    
+    context "expanding" do
+      before :each do
+        2.times { Fabricate(:node) }
+      end
+      it "should show the full details for each item" do
+        get "/api/collections/nodes?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name hw_info state log tags}
+        end
       end
     end
   end
@@ -953,6 +1040,24 @@ describe "command and query API" do
       last_response.json['errors'][0]['message'].should == "Exception 1"
       last_response.json['errors'][1]['message'].should == "Exception 2"
     end
+
+    context "command collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'commands'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:command) }
+        get "/api/collections/commands?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name command errors status submitted_at}
+        end
+      end
+    end
   end
 
   context "/api/collections/hooks" do
@@ -1077,6 +1182,24 @@ describe "command and query API" do
       end
 
       it_should_behave_like "a hook collection", 10
+    end
+
+    context "hook collection expanding" do
+      it "should state that 'expand' is a valid parameter" do
+        get '/api'
+        params = last_response.json['collections'].select {|c| c['name'] == 'hooks'}.first['params']
+        params.should == {'expand' => {"type" => "boolean"}}
+      end
+
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:hook) }
+        get "/api/collections/hooks?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name hook-type log}
+        end
+      end
     end
   end
 
@@ -1244,10 +1367,10 @@ describe "command and query API" do
     end
 
     context "event limiting" do
-      it "should state that 'start' and 'limit' are valid parameters" do
+      it "should state that 'start', 'limit' and 'expand' are valid parameters" do
         get '/api'
         params = last_response.json['collections'].select {|c| c['name'] == 'events'}.first['params']
-        params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+        params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}, 'expand' => {"type" => "boolean"}}
       end
       it "should view all results by default" do
         21.times { Fabricate(:event) }
@@ -1298,6 +1421,18 @@ describe "command and query API" do
         events.count.should == 4
         last_response.json['total'].should == 6
         validate! ObjectRefCollectionSchema, last_response.body
+      end
+    end
+
+    context "event collection expanding" do
+      it "should show the full details for each item when expand is true" do
+        2.times { Fabricate(:event) }
+        get "/api/collections/events?expand=true"
+        last_response.status.should == 200
+
+        last_response.json['items'].each do |e|
+          e.keys.should =~ %w{spec id name timestamp entry severity node policy}
+        end
       end
     end
   end
