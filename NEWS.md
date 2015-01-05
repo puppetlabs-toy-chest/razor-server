@@ -38,7 +38,7 @@
 
 ### Task changes
 
-+ NEW: Added Windows tasks for 2012R2 and 2008R2.
++ NEW: Added Windows tasks for 2012R2.
 + NEW: Added Ubuntu tasks for Lucid (10.04) and Trusty (14.04).
 + NEW: Windows tasks can execute brokers.
 + BUGFIX: Fixed existing Debian i386 task.
