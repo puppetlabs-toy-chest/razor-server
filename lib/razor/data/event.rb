@@ -46,5 +46,21 @@ module Razor::Data
 
       new(hash).save
     end
+
+    # This is a hack around the fact that the auto_validates plugin does
+    # not play nice with the JSON serialization plugin (the serializaton
+    # happens in the before_save hook, which runs after validation)
+    #
+    # To avoid spurious error messages, we tell the validation machinery to
+    # expect a Hash
+    #
+    # FIXME: Figure out a way to address this issue upstream
+    def schema_type_class(k)
+      if k == :entry
+        Hash
+      else
+        super
+      end
+    end
   end
 end
