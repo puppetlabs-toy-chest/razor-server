@@ -1,5 +1,12 @@
 # Razor Server Release Notes
 
+## 0.16.1 - 2015-01-12
+
+### Other
+
++ BUGFIX: Fixing a bug that would not allow new events to be created
+  in the database due to a plugin conflict.
+
 ## 0.16.0 - 2015-01-05
 
 ### Incompatible changes
