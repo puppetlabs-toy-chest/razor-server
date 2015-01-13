@@ -108,7 +108,7 @@ DEPENDENCIES
   rspec-core (~> 2.13.1)
   rspec-expectations (~> 2.13.0)
   rspec-mocks (~> 2.13.1)
-  sequel
+  sequel (= 4.3)
   simplecov
   sinatra (>= 1.4.4)
   timecop
