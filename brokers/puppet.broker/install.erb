@@ -153,3 +153,12 @@ case "${flavour}" in
         fail "I don't know what flavour distribution '${flavour}' is, sorry."
         ;;
 esac
+
+# Log that the broker is finished.
+if cmd curl; then
+    curl -sL "<%= stage_done_url %>" || fail "curl failed to log broker completion"
+elif cmd wget; then
+    wget -qO- "<%= stage_done_url %>" || fail "wget failed to log broker completion" &> /dev/null
+else
+    warn "neither curl nor wget installed; cannot log completion of broker"
+fi

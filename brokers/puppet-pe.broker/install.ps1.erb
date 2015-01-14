@@ -13,4 +13,4 @@ write-host "starting PE installer ${installer_dest}"
 Start-Process -file $installer_dest -arg '/qn PUPPET_MASTER_AGENT=$master' -passthru | wait-process
 
 write-host "notify Razor that the broker completed"
-(new-object System.Net.WebClient).DownloadString('<%= stage_done_url("broker") %>')
+(new-object System.Net.WebClient).DownloadString('<%= stage_done_url %>')

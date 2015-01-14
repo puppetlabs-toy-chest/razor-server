@@ -43,7 +43,29 @@ describe "provisioning API" do
 
       last_response.status.should == 200
       last_response.content_type.should =~ /text\/plain/
-      last_response.body.should == "# there is no meaningful content here\n"
+      # Make sure stage_done_url is populating too.
+      last_response.body.should == "# there is no meaningful content here"
+    end
+
+    it "should return the specified install script for the node" do
+      get "/svc/broker/#{node.id}/install?script=install.ps1"
+
+      last_response.status.should == 200
+      last_response.content_type.should =~ /text\/plain/
+      # Make sure stage_done_url is populating too.
+      last_response.body.should == "# sample ps1 file"
+    end
+    it "should return the specified install script for the node" do
+      get "/svc/broker/#{node.id}/install?script=install-template-vars"
+
+      last_response.status.should == 200
+      last_response.content_type.should =~ /text\/plain/
+      # Make sure stage_done_url is populating too.
+      last_response.body.should == <<-TXT.strip
+stage_done_url: http://example.org/svc/stage-done/#{node.id}?name=broker
+node: #{node.id}
+broker: {}
+      TXT
     end
 
     it "should fail if script does not exist" do

@@ -60,9 +60,12 @@ class Razor::Data::Broker < Sequel::Model
   # script for.
   # @param script [String] the name of the resulting install script, excluding
   # its `.erb` extension. If this is omitted, it will look for `install.erb`
+  # @param options [Hash] any extra arguments which will be needed in the
+  # script. For example, the `stage_done_url` for the endpoint the script
+  # should call when the broker finishes.
   #
   # @return [String] the compiled installation script, ready to run.
-  def install_script_for(node, script = 'install')
-    broker_type.install_script(node, self, script)
+  def install_script_for(node, script = 'install', options = {})
+    broker_type.install_script(node, self, script, options)
   end
 end

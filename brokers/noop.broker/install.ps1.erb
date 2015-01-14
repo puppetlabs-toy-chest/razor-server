@@ -1,0 +1,2 @@
+write-host "notify Razor that the broker completed"
+(new-object System.Net.WebClient).DownloadString('<%= stage_done_url %>')
