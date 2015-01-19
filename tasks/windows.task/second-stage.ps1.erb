@@ -42,7 +42,7 @@ $powershell_path = $(get-process powershell | select -first 1).path
 # is ignored on boot, and the process still completes successfully.
 $run_broker = "cmd /c $powershell_path -noninteractive -executionpolicy bypass -file $broker_path"
 $del_service = "cmd /c sc delete RazorBroker"
-$del_broker = "cmd /c del $broker_path
+$del_broker = "cmd /c del $broker_path"
 New-Service -Name RazorBroker -BinaryPathName "$run_broker && $del_service && $del_broker"
 
 write-host "restarting the system to complete installation"
