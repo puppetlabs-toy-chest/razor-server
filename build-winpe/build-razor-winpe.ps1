@@ -83,6 +83,8 @@ the default location.
     exit 1
 }
 
+$env:PSModulePath = ($env:PSModulePath + ";$adk\..\..\Deployment Tools\amd64")
+
 # Path to the clean WinPE WIM file.
 $wim = join-path $adk "en-us\winpe.wim"
 
