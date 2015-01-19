@@ -32,7 +32,7 @@ write-host "notify Razor that the installer completed"
 write-host "download broker script"
 $broker_url = "<%= broker_install_url('install.ps1') %>"
 # This file needs to have a .ps1 extension for when it's passed to Powershell.
-$broker_path = [IO.Path]::GetTempFileName() | Rename-Item -NewName { $_ -replace 'tmp$', 'ps1' } –PassThru
+$broker_path = [IO.Path]::GetTempFileName() | Rename-Item -NewName { $_ -replace 'tmp$', 'ps1' } -PassThru
 (new-object System.Net.WebClient).DownloadFile($broker_url, $broker_path)
 
 write-host "set broker to run after reboot"
