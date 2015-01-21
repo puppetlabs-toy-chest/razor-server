@@ -1,9 +1,7 @@
 # -*- powershell -*-
 write-host "Razor Windows broker script starting"
 
-$server = '<%= URI.parse(repo_url).host %>'
-$repo   = '<%= repo_url.split('/').last %>'
-$version = "<%= (broker[:server] || 'latest') %>"
+$version = "<%= (broker[:version] || 'latest') %>"
 $master = "<%= (broker[:server] || 'puppet') %>"
 $installer = "https://pm.puppetlabs.com/puppet-enterprise/$version/puppet-enterprise-$version.msi"
 
