@@ -29,21 +29,10 @@ start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -
 write-host "notify Razor that the installer completed"
 (new-object System.Net.WebClient).DownloadString('<%= stage_done_url("finished") %>')
 
-write-host "download broker script"
-$broker_url = "<%= broker_install_url('install.ps1') %>"
-# This file needs to have a .ps1 extension for when it's passed to Powershell.
-$broker_path = [IO.Path]::GetTempFileName() | Rename-Item -NewName { $_ -replace 'tmp$', 'ps1' } -PassThru
-(new-object System.Net.WebClient).DownloadFile($broker_url, $broker_path)
-
-write-host "set broker to run after reboot"
-$powershell_path = $(get-process powershell | select -first 1).path
-# When this service runs, it results in a "The service did not respond to
-# the start or control request in a timely fashion" error message. This message
-# is ignored on boot, and the process still completes successfully.
-$run_broker = "cmd /c $powershell_path -noninteractive -executionpolicy bypass -file $broker_path"
-$del_service = "cmd /c sc delete RazorBroker"
-$del_broker = "cmd /c del $broker_path"
-New-Service -Name RazorBroker -BinaryPathName "$run_broker && $del_service && $del_broker"
+write-host "registering broker to run after reboot before login screen"
+New-Item -ItemType Directory -Force -Path D:\Windows\Setup\Scripts
+# The D: drive is the freshly installed but not-yet-booted operating system.
+(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>','D:\Windows\Setup\Scripts\SetupComplete.cmd')
 
 write-host "restarting the system to complete installation"
 restart-computer
