@@ -1,7 +1,7 @@
 # -*- powershell -*-
 
 # If we have a configuration file, source it in. The file must set
-# $baseurl to something like http://razor:8080/svc
+# $baseurl to something like http://razor:8150/svc
 $configfile = join-path $env:SYSTEMDRIVE "razor-client-config.ps1"
 if (test-path $configfile) {
     write-host "sourcing configuration from $configfile"
@@ -22,7 +22,7 @@ if (test-path $configfile) {
                   select -uniq -first 1 -expandproperty dhcpserver
 
     write-host "using server $server"
-    $baseurl = "http://${server}:8080/svc"
+    $baseurl = "http://${server}:8150/svc"
 }
 
 # Figure out our node hardware ID details, since we can't get at anything more

@@ -9,7 +9,7 @@ As developers, we promise good compatibility and support for your client if
 you follow the simple rule: use navigation, rather than client-side knowledge
 of the URL structure.
 
-To do that, implement any action by starting at `http://razor:8080/api`,
+To do that, implement any action by starting at `https://razor:8150/api`,
 rather than anywhere else in the API namespace.  This document then allows you
 to navigate -- much like a web browser can navigate a website -- through the
 various query options available to you.
@@ -53,7 +53,7 @@ type on the same server.
 
 ### `/api` document reference
 
-When you fetch `http://razor:8080/api`, you fetch the top level entry point
+When you fetch `https://razor:8150/api`, you fetch the top level entry point
 for navigating through our command and query facilities.  The structure of
 this document is a JSON object with the following keys:
 
@@ -612,14 +612,14 @@ key-value pairs. For example, here is a sample tag listing:
 
     [
       {
-        "spec": "http://localhost:8080/spec/object/tag",
-        "id": "http://localhost:8080/api/collections/objects/14",
+        "spec": "https://localhost:8150/spec/object/tag",
+        "id": "https://localhost:8150/api/collections/objects/14",
         "name": "virtual",
         "rule": [ "=", [ "fact", "is_virtual" ], true ]
       },
       {
-        "spec": "http://localhost:8080/spec/object/tag",
-        "id": "http://localhost:8080/api/collections/objects/27",
+        "spec": "https://localhost:8150/spec/object/tag",
+        "id": "https://localhost:8150/api/collections/objects/27",
         "name": "group 4",
         "rule": [
           "in", [ "fact", "dhcp_mac" ],
@@ -658,7 +658,7 @@ For example the UUID could be queried to return the associated node
     {
       "items": [
         {
-            "id": "http://razor.example.com:8080/api/collections/nodes/node14",
+            "id": "https://razor.example.com:8150/api/collections/nodes/node14",
             "name": "node14",
             "spec": "http://api.puppetlabs.com/razor/v1/collections/nodes/member"
         }],

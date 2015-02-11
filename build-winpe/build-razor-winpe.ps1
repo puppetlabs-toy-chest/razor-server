@@ -1,13 +1,13 @@
 # -*- powershell -*-
 # Run this script as:
 #   powershell -executionpolicy bypass -file build-razor-winpe.ps1 \
-#     -razorurl http://razor:8080/svc -workdir C:\build-winpe
+#     -razorurl http://razor:8150/svc -workdir C:\build-winpe
 #
 # Produce a WinPE image suitable for use with Razor
 
 # Parameters
 #   - razorurl: the URL of the Razor server, something like
-#     http://razor-server:8080/svc (note the /svc at the end, not /api)
+#     http://razor-server:8150/svc (note the /svc at the end, not /api)
 #   - workdir: where to create the WinPE image and intermediate files
 #              Defaults to the directory containing this script
 param([String] $workdir, [Parameter(Mandatory=$true)][String] $razorurl)
