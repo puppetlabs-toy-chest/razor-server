@@ -79,8 +79,15 @@ describe Razor::Command::CreateHook do
 
       Razor::Data::Hook[:name => command['name']].should be_an_instance_of Razor::Data::Hook
     end
-    # Successful creation
+
     it "should return 202 when repeated with the same parameters" do
+      create_hook command_hash
+      create_hook command_hash
+
+      last_response.status.should == 202
+    end
+
+    it "should return 409 when repeated with slightly different parameters" do
       command = create_hook command_hash
       command_hash['name'] = command_hash['name'].upcase
       command = create_hook command_hash
