@@ -64,6 +64,10 @@ and requires full control over the database (eg: add and remove tables):
     # --daniel 2013-06-26
     request.preferred_type('application/json') or
       halt [406, {"error" => _("only application/json content is available")}.to_json]
+
+    if Razor.config['secure_api']
+      request.secure? or halt [404, {"error" => _("API requests must be over SSL (secure_api config property is enabled)")}.to_json]
+    end
   end
 
   #

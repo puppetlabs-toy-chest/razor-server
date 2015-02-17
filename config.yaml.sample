@@ -48,6 +48,10 @@ all:
     #
     # extension-zip: /etc/razor/mk-extension.zip
 
+  # Should communications with /api be secured? This property determines
+  # whether to require HTTPS/SSL when making calls in the /api namespace.
+  secure_api: false
+
   # Should newly discovered nodes be marked installed?
   protect_new_nodes: false
 

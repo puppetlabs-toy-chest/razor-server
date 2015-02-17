@@ -1,5 +1,13 @@
 # Razor Server Release Notes
 
+## Next - TBD
+
++ NEW: The `secure_api` config property can be used to ensure that
+  communications with /api are secure. When this is true, all calls to the
+  namespace need to be over HTTPS with SSL, and otherwise will return a 404.
+  The actual configuration of this happens in Torquebox's configuration. By
+  default, this property is false (no change from current behavior).
+
 ## 0.16.1 - 2015-01-12
 
 ### Other

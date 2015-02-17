@@ -119,6 +119,30 @@ describe "command and query API" do
         last_response.status.should == 200
       end
     end
+
+    describe "securing /api" do
+      it "should allow secure when secure_api is true" do
+        Razor.config['secure_api'] = true
+        get "/api", {}, 'HTTPS' => 'on'
+        last_response.status.should == 200
+      end
+      it "should allow secure when secure_api is false" do
+        Razor.config['secure_api'] = false
+        get "/api", {}, 'HTTPS' => 'on'
+        last_response.status.should == 200
+      end
+      it "should disallow insecure when secure_api is true" do
+        Razor.config['secure_api'] = true
+        get "/api", {}, 'HTTPS' => 'off'
+        last_response.status.should == 404
+        last_response.json['error'].should == 'API requests must be over SSL (secure_api config property is enabled)'
+      end
+      it "should allow insecure when secure_api is false" do
+        Razor.config['secure_api'] = false
+        get "/api", {}, 'HTTPS' => 'off'
+        last_response.status.should == 200
+      end
+    end
   end
 
   context "/api/collections/policies - policy list" do
