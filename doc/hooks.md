@@ -1,13 +1,19 @@
 # Hooks
 
-Hooks provide a way to be notified of certain events during the operation
-of the Razor server; the behavior of a hook is defined by a *hook
-type*.
+Hooks provide a way to run arbitrary scripts when certain events occur during
+the operation of the Razor server. The behavior and structure of a hook are
+defined by a *hook type*.
+
+The two primary components for hooks are:
+- *Configuration*: This is a keystore for storing data on a hook. These have an
+  initial value and can be updated by hook scripts.
+- *Event Scripts*: These are scripts that run when a specified event occurs.
+  Event scripts must be named according to the handled event.
 
 ## File layout for a hook type
 
 Similar to brokers and tasks, hook types are defined through a `.hook`
-directory and files within that directory:
+directory and optional event scripts within that directory:
 
     hooks/
       some.hook/
@@ -15,6 +21,25 @@ directory and files within that directory:
         node-bind-policy
         node-unbind-policy
         ...
+
+## Creating hook objects
+
+The `create-hook` command is used to create a hook object from a hook type:
+
+    > razor create-hook --name myhook --hook-type some_hook \
+        --configuration foo=7 --configuration bar=rhubarb
+
+The hook object created by this command will track changes to the hook's
+configuration over time.
+
+The `delete-hook` command is used to remove a hook.
+
+If a hook's configuration needs to change, it must be deleted then recreated
+with the updated configuration.
+
+## Hook Configuration
+
+Hook scripts can use the hook object's `configuration`
 
 The hook type specifies the configuration data that it accepts in
 `configuration.yaml`; that file must define a hash:
@@ -32,15 +57,6 @@ the event's name; that script must be executable by the Razor server. All
 hook scripts for a certain event are run (in an indeterminate order) when
 that event occurs.
 
-## Creating hooks
-
-The `create-hook` command is used to create a hook from a hook type:
-
-    > razor create-hook --name myhook --hook-type some_hook \
-        --configuration foo=7 --configuration bar=rhubarb
-
-Similarly, the `delete-hook` command is used to remove a hook.
-
 ## Event scripts
 
 The general protocol is that hook event scripts receive a JSON object on
@@ -56,9 +72,9 @@ contain a 'hook' property:
     }
 
 The `configuration` object is initialized from the Hash described in
-the hook's `configuration.yaml` and the properties set by the 
-`create-hook` command. With the `create-hook` command above, this 
-would result in:
+the hook's `configuration.yaml` and the properties set by the current
+values of the hook object's `configuration`. With the `create-hook` command
+above, the input JSON would be:
 
     {
       "hook": {
@@ -71,7 +87,7 @@ would result in:
     }
 
 The script may return data by producing a JSON object on its stdout to
-indicate changes that should be made to the hook's `configuration`; the
+indicate changes that should be made to the hook's `configuration`. The
 updated `configuration` will be used on subsequent invocations of any 
 event for that hook. The output must indicate which properties to 
 update, and which ones to remove:
@@ -86,7 +102,6 @@ update, and which ones to remove:
         }
       }
     }
-
 
 The Razor server makes sure that invocations of hook scripts are
 serialized; for any hook, events are processed one-by-one to make it
@@ -112,6 +127,21 @@ The JSON output of the event script can modify the node metadata:
       }
     }
 
+### Available events
+
+* `node-registered`: triggered after a node has been registered, i.e. after
+  its facts have been set for the first time by the Microkernel.
+* `node-bound-to-policy`: triggered after a node has been bound to a policy. The
+  script input contains a `policy` property with the details of the
+  policy that has been bound to the node.
+* `node-unbound-from-policy`: triggered after a node has been marked as uninstalled
+  by the `reinstall-node` command and thus been returned to the set of
+  nodes available for installation.
+* `node-deleted`: triggered after a node has been deleted.
+* `node-booted`: triggered every time a node boots via iPXE.
+* `node-facts-changed`: triggered whenever a node changes its facts.
+* `node-install-finished`: triggered when a policy finishes its last step.
+
 ### Error handling
 
 The hook script must exit with exit code 0 if it succeeds; any other exit
@@ -134,22 +164,6 @@ human-readable message; additional properties can be set. Example:
         ...
       }
     }
-
-
-## Available events
-
-* `node-registered`: triggered after a node has been registered, i.e. after
-  its facts have been set for the first time by the Microkernel.
-* `node-bound-to-policy`: triggered after a node has been bound to a policy. The
-  script input contains a `policy` property with the details of the
-  policy that has been bound to the node.
-* `node-unbound-from-policy`: triggered after a node has been marked as uninstalled
-  by the `reinstall-node` command and thus been returned to the set of
-  nodes available for installation.
-* `node-deleted`: triggered after a node has been deleted.
-* `node-booted`: triggered every time a node boots via iPXE.
-* `node-facts-changed`: triggered whenever a node changes its facts.
-* `node-install-finished`: triggered when a policy finishes its last step.
 
 
 ## Sample input
@@ -230,3 +244,56 @@ The input to the hook script will be in JSON, containing a structure like below:
   }
 }
 
+## Sample hook
+
+Here is an example of a basic hook that will count the number of times Razor
+registers a node. Let's name the hook `counter` and create a corresponding
+directory for the hook type, `counter.hook`, inside the `hooks` directory. We
+can store the current count as a configuration entry with the key `count`. Thus
+the `configuration.yaml` file might look like this:
+
+    ---
+    count:
+      description: "The current value of the counter"
+      default: 0
+
+We want to write a script that runs whenever a node gets bound to
+a policy, so we make a file called `node-bound-to-policy` and place it in the
+`counter.hook` folder. We can then write this script, which reads in the
+current configuration value, increments it, then returns some JSON to update
+the configuration on the hook object:
+
+    #! /bin/bash
+
+    json=$(< /dev/stdin)
+
+    name=$(jq '.hook.name' <<< $json)
+    value=$(( $(jq '.hook.config.count' <<< $json) + 1 ))
+
+    cat <<EOF
+    {
+      "hook": {
+        "configuration": {
+          "count": $value
+        }
+      },
+      "metadata": {
+        $name: $value
+      }
+    }
+    EOF
+
+That completes the hook type. Next, we'll create the hook object which will
+store the configuration via:
+
+    razor create-hook --name counter --hook-type counter
+
+Since the configuration is absent from this creation call, the default value
+of 0 in `configuration.yaml` is used. Alternatively, this could be set using
+`--configuration count=0` or `--c count=0`.
+
+The hook is now ready to go. You can query the existing hooks in a system via
+`razor hooks`. To query the current value of the hook's configuration,
+`razor hooks counter` will show `count` initially set to 0. When a node gets
+bound to a policy, the `node-bound-to-policy` script will be triggered,
+yielding a new configuration value of 1.
