@@ -537,6 +537,16 @@ however, clear can only be done on its own (it doesnt make sense to
 update some details and then clear everything).  An error will also be
 returned if an attempt is made to update and remove the same key.
 
+Note that metadata values can also be structured data specified as native
+JSON or as a valid JSON string.  E.g:
+
+    {
+        "node": "node1",
+        "update": {
+            "key1": [ "list", "of", "values" ],
+        }
+    }
+
 ### Update node metadata
 
 The `update-node-metadata` command is a shortcut to `modify-node-metadata`
@@ -548,6 +558,15 @@ request with a simple data structure that looks like.
         "key"       : "my_key",
         "value"     : "my_val",
         "no_replace": true       #Optional. Will not replace existing keys
+    }
+
+Note that metadata values can also be structured data specified as native
+JSON or as a valid JSON string.  E.g:
+
+    {
+        "node"      : "mode1",
+        "key"       : "my_key",
+        "value"     : "[ "list", "of", "values" ]",
     }
 
 ### Remove Node Metadata

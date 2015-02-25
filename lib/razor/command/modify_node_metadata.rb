@@ -7,6 +7,8 @@ Node metadata can be added, changed, or removed with this command; it contains
 a limited editing language to make changes to the existing metadata in an
 atomic fashion.
 
+Values to keys in update operations can be structured data such as arrays and hashes.
+
 It can also clear all metadata from a node, although that operation is
 exclusive to all other editing operations, and cannot be performed atomically
 with them.
@@ -20,7 +22,7 @@ modify an existing value already present on a node:
         "node": "node1",
         "update": {
             "key1": "value1",
-            "key2": "value2"
+            "key2": [ "val1", "val2", "val3" ]
         }
         "remove": ["key3", "key4"],
         "no_replace": true
@@ -36,7 +38,7 @@ Editing node metadata, by adding and removing some keys, but refusing to
 modify an existing value already present on a node:
 
     razor modify-node-metadata --node node1 --update key1=value1 \\
-        --update key2=value2 --remove key3 --remove key4 --no-replace
+        --update key2='[ "val1", "val2", "val3" ]' --remove key3 --remove key4 --noreplace
 
 Removing all node metadata:
 

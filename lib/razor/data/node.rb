@@ -291,8 +291,17 @@ module Razor::Data
       if data['update']
         data['update'].is_a? Hash or raise ArgumentError, _('update must be a hash')
         replace = (not [true, 'true'].include?(data['no_replace']))
+
         data['update'].each do |k,v|
-          new_metadata[k] = v if replace or not new_metadata[k]
+          if replace or not new_metadata[k]
+            begin
+              # If the value is valid json, parse it and store as structured
+              new_metadata[k] = JSON::parse(v)
+            rescue
+              # Otherwise just store the data as is.
+              new_metadata[k] = v
+            end
+          end
         end
       end
       if data['remove']
