@@ -142,6 +142,24 @@ describe Razor::Command::ModifyNodeMetadata do
       node_metadata['k2'].should == 'v2'
       node_metadata['k3'].should == 'v3'
     end
+
+    it "should store valid json values as structured data" do
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => '{"innerkey1": "innerval1"}'} }
+      modify_metadata(data)
+      last_response.status.should == 202
+      node_metadata = Node[:id => id].metadata
+      node_metadata['k1'].should == { "innerkey1" => "innerval1" }
+    end
+
+    it "should store structured values as structured data" do
+      id = node.id
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => {"innerkey1" => "innerval1"} } }
+      modify_metadata(data)
+      last_response.status.should == 202
+      node_metadata = Node[:id => id].metadata
+      node_metadata['k1'].should == { "innerkey1" => "innerval1" }
+    end
   end
 
   describe "when removing metadata from a node" do
