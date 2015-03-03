@@ -11,7 +11,7 @@ Create a simple hook:
 
     {
       "name": "myhook",
-      "hook-type": "some_hook",
+      "hook_type": "some_hook",
       "configuration": {"foo": 7, "bar": "rhubarb"}
     }
   EOT
@@ -27,7 +27,7 @@ Create a simple hook:
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
                 help: _('The name of the tag.')
 
-  attr 'hook-type', required: true, type: String, references: [Razor::HookType, :name],
+  attr 'hook_type', required: true, type: String, references: [Razor::HookType, :name],
        help: _(<<-HELP)
     The hook type from which this hook is created.  The available
     hook types on your server are:
@@ -36,7 +36,7 @@ Create a simple hook:
 
   object 'configuration', help: _(<<-HELP) do
     The configuration for the hook.  The acceptable values here are
-    determined by the `hook-type` selected.  In general this has
+    determined by the `hook_type` selected.  In general this has
     settings like a node counter or other settings which may change
     over time as the hook gets executed.
 
@@ -46,8 +46,7 @@ Create a simple hook:
   end
 
   def run(request, data)
-    type = data.delete("hook-type")
-    data["hook_type"] = Razor::HookType.find(name: type)
+    data["hook_type"] = Razor::HookType.find(name: data.delete("hook_type"))
 
     Razor::Data::Hook.import(data).first
   end
@@ -55,7 +54,8 @@ Create a simple hook:
   def self.conform!(data)
     data.tap do |_|
       # Allow "c" as a shorthand.
-      add_hash_alias(data, 'configuration', 'c')
+      add_hash_alias(data, 'c', 'configuration')
+      add_alias(data, 'hook-type', 'hook_type')
     end
   end
 end

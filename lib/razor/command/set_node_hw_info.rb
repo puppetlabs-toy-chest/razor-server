@@ -21,7 +21,7 @@ Update `node172` with new hardware information:
 
     {
       "node": "node172",
-      "hw-info": {
+      "hw_info": {
         "net0":   "78:31:c1:be:c8:00",
         "net1":   "72:00:01:f2:13:f0",
         "net2":   "72:00:01:f2:13:f1",
@@ -49,7 +49,7 @@ Update `node172` with new hardware information:
     The node for which to modify hardware information.
   HELP
 
-  object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
+  object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
     The new hardware information for the node.
   HELP
     extra_attrs /^net[0-9]+$/, type: String, help: _(<<-HELP)

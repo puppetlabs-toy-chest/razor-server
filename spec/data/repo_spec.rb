@@ -297,7 +297,7 @@ describe Razor::Data::Repo do
         ).on(queue)
       end
 
-      it "should publish 'unpack_repo' with nil path if no url or iso-url" do
+      it "should publish 'unpack_repo' with nil path if no url or iso_url" do
         repo.iso_url = nil
         repo.url = nil
         expect {

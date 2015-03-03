@@ -67,9 +67,11 @@ Body is: '%{body}'
   # will remove any references to the alias in `data`, merging it with the
   # object in `real_attribute`. Data for both `real_attribute` and
   # `alias_name` will be ignored if not `nil` or a Hash.
-  def self.add_hash_alias(data, real_attribute, alias_name)
-    self.add_alias(data, real_attribute, alias_name, Hash, {}) do |first, second|
-      first.merge(second)
+  def self.add_hash_alias(data, alias_name, real_attribute)
+    self.add_alias(data, alias_name, real_attribute) do |first, second|
+      if first.is_a?(Hash) and second.is_a?(Hash)
+        first.merge(second)
+      end
     end
   end
 
@@ -77,18 +79,34 @@ Body is: '%{body}'
   # will remove any references to the alias in `data`, merging it with the
   # object in `real_attribute`. Data for both `real_attribute` and
   # `alias_name` will be ignored if not `nil` or an Array.
-  def self.add_array_alias(data, real_attribute, alias_name)
-    self.add_alias(data, real_attribute, alias_name, Array, []) do |first, second|
-      first + second
+  def self.add_array_alias(data, alias_name, real_attribute)
+    self.add_alias(data, alias_name, real_attribute) do |first, second|
+      if first.is_a?(Array) and second.is_a?(Array)
+        first + second
+      end
     end
   end
 
-  def self.add_alias(data, real_attribute, alias_name, clazz, default)
-    data[alias_name] = default if data[alias_name].nil?
-    data[real_attribute] = default if data[real_attribute].nil?
-
-    if data[alias_name].is_a?(clazz) and data[real_attribute].is_a?(clazz)
-      data[real_attribute] = yield data[real_attribute], data.delete(alias_name)
+  # This adds an alias between two attributes. If a block is provided, it will
+  # be used to combine the attributes in the case that both exist. If no block
+  # is provided, only one of the attributes can be supplied, else an error is
+  # thrown. When the alias operation completes, the alias will be removed from
+  # the `data` hash.
+  def self.add_alias(data, alias_name, real_attribute)
+    # Only matters if the alias is provided.
+    if data[alias_name]
+      if data[real_attribute]
+        # Merge the data.
+        if block_given?
+          data[real_attribute] = yield(data[real_attribute], data[alias_name])
+        else
+          raise Razor::ValidationFailure.new("cannot supply both #{real_attribute} and #{alias_name}")
+        end
+      else
+        data[real_attribute] = data[alias_name]
+      end
+      data.delete(alias_name)
+      data[real_attribute]
     end
   end
 

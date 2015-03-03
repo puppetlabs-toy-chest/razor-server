@@ -12,7 +12,7 @@ describe Razor::Command::ModifyNodeMetadata do
     {
         "node" => node.name,
         'update' => { 'k1' => 'v2', 'k2' => 'v2'},
-        'no-replace' => true
+        'no_replace' => true
     }
   end
 
@@ -70,11 +70,11 @@ describe Razor::Command::ModifyNodeMetadata do
     last_response.json["error"].should =~ /clear should be a boolean, but was actually a string/
   end
 
-  it "should complain if no-replace is not boolean true or string 'true'" do
-    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'no-replace' => 'something' }
+  it "should complain if no_replace is not boolean true or string 'true'" do
+    data = { 'node' => "node#{node.id}", 'update' => { 'k1' => 'v1'}, 'no_replace' => 'something' }
     modify_metadata(data)
     last_response.status.should == 422
-    last_response.json["error"].should =~ /no-replace should be a boolean, but was actually a string/
+    last_response.json["error"].should =~ /no_replace should be a boolean, but was actually a string/
   end
 
   it "should reject blank attributes" do
@@ -106,11 +106,11 @@ describe Razor::Command::ModifyNodeMetadata do
       node_metadata['k1'].should == 'v2'
     end
 
-    it "should NOT update the value of an existing tag if no-replace is set" do
+    it "should NOT update the value of an existing tag if no_replace is set" do
       id = node.id
       data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no-replace' => true }
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata

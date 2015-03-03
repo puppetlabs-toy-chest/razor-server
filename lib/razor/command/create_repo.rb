@@ -12,7 +12,7 @@ by the razor-server in the background:
 
     {
       "name":    "fedora19",
-      "iso-url": "http://example.com/Fedora-19-x86_64-DVD.iso"
+      "iso_url": "http://example.com/Fedora-19-x86_64-DVD.iso"
       "task":    "fedora"
     }
 
@@ -20,7 +20,7 @@ You can also unpack an ISO image from a file *on the server*; this does not
 upload the file from the client:
     {
       "name":    "fedora19",
-      "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "iso_url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
       "task":    "fedora"
     }
 
@@ -63,10 +63,10 @@ downloaded onto the Razor server:
   attr  'name', type: String, required: true, size: 1..250,
                 help: _('The name of the repository.')
 
-  attr 'url', type: URI, exclude: ['iso-url', 'no-content'], size: 1..1000,
+  attr 'url', type: URI, exclude: ['iso_url', 'no_content'], size: 1..1000,
               help: _('The URL of the remote repository to use.')
 
-  attr 'iso-url', type: URI, exclude: ['url', 'no-content'], size: 1..1000, help: _(<<-HELP)
+  attr 'iso_url', type: URI, exclude: ['url', 'no_content'], size: 1..1000, help: _(<<-HELP)
     The URL of the ISO image to download and unpack to create the
     repository.  This can be an HTTP or HTTPS URL, or it can be a
     file URL.
@@ -77,7 +77,7 @@ downloaded onto the Razor server:
     command.
   HELP
 
-  attr 'no-content', type: TrueClass, exclude: ['iso-url', 'url'], help: _(<<-HELP)
+  attr 'no_content', type: TrueClass, exclude: ['iso_url', 'url'], help: _(<<-HELP)
     For cases where extraction will be done manually, this argument
     creates a stub directory in the repo store where the extracted
     contents can be placed.
@@ -86,27 +86,27 @@ downloaded onto the Razor server:
   attr 'task', type: String, required: true, help: _(<<-HELP)
     The name of the task associated with this repository.  This is used to
     install nodes that match a policy using this repository; generally it
-    should match the OS that the URL or ISO-URL attributes point to.
+    should match the OS that the URL or ISO_URL attributes point to.
   HELP
 
-  require_one_of 'url', 'iso-url', 'no-content'
+  require_one_of 'url', 'iso_url', 'no_content'
 
   def run(request, data)
     # Create our shiny new repo.  This will implicitly, thanks to saving
     # changes, trigger our loading saga to begin.  (Which takes place in the
     # same transactional context, ensuring we don't send a message to our
     # background workers without also committing this data to our database.)
-    data["iso_url"] = data.delete("iso-url")
     data["task_name"] = data.delete("task")
 
-    # Remove this; it just helped bypass `url` and `iso-url`.
-    data.delete('no-content')
+    # Remove this; it just helped bypass `url` and `iso_url`.
+    data.delete('no_content')
 
     Razor::Data::Repo.import(data, @command).first
   end
 
   def self.conform!(data)
     data.tap do |_|
+      add_alias(data, 'iso-url', 'iso_url')
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
     end
   end

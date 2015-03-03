@@ -32,25 +32,25 @@ Set a single key from a node:
   attr 'value', required: true,
                 help: _('The value for the metadata.')
 
-  attr 'no-replace', type: :bool,
+  attr 'no_replace', type: :bool,
                      help: _('If true, it is an error to try to change an existing key')
 
   # Update/add specific metadata key (works with GET)
   def run(request, data)
     node = Razor::Data::Node[:name => data['node']]
     operation = { 'update' => { data['key'] => data['value'] } }
-    operation['no_replace'] = data['no-replace']
+    operation['no_replace'] = data['no_replace']
 
     node.modify_metadata(operation)
   end
   
   def self.conform!(data)
     data.tap do |_|
-      data['no-replace'] = data.delete('no_replace') if data.has_key?('no_replace')
+      add_alias(data, 'no-replace', 'no_replace')
       data['all'] = true if data['all'] == 'true'
       data['all'] = false if data['all'] == 'false'
-      data['no-replace'] = true if data['no-replace'] == 'true'
-      data['no-replace'] = false if data['no-replace'] == 'false'
+      data['no_replace'] = true if data['no_replace'] == 'true'
+      data['no_replace'] = false if data['no_replace'] == 'false'
     end
   end
 end

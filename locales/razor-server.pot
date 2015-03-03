@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Razor Server 0.16.0-3-g05fd9bd\n"
+"Project-Id-Version: Razor Server 0.16.1-10-gcc48604\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-12 13:00-0600\n"
-"PO-Revision-Date: 2015-01-12 13:00-0600\n"
+"POT-Creation-Date: 2015-03-03 13:17-0600\n"
+"PO-Revision-Date: 2015-03-03 13:17-0600\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -34,79 +34,83 @@ msgstr ""
 msgid "only application/json content is available"
 msgstr ""
 
-#: ../app.rb:99
+#: ../app.rb:69
+msgid "API requests must be over SSL (secure_api config property is enabled)"
+msgstr ""
+
+#: ../app.rb:103
 msgid "only application/json is accepted here"
 msgstr ""
 
-#: ../app.rb:102
+#: ../app.rb:106
 msgid "unable to parse JSON"
 msgstr ""
 
-#: ../app.rb:139
+#: ../app.rb:143
 msgid "store_metadata_url must include update and/or remove keys"
 msgstr ""
 
-#: ../app.rb:432
+#: ../app.rb:436
 msgid "node %{node} not bound to a policy yet"
 msgstr ""
 
-#: ../app.rb:439
+#: ../app.rb:446
 msgid "install template %{name}.erb does not exist"
 msgstr ""
 
-#: ../app.rb:492
+#: ../app.rb:499
 msgid "File %{path} not found"
 msgstr ""
 
-#: ../app.rb:507
+#: ../app.rb:514
 msgid "No extension file configured"
 msgstr ""
 
-#: ../app.rb:576 ../app.rb:582 ../app.rb:588
+#: ../app.rb:583 ../app.rb:589 ../app.rb:595
 msgid "no tag matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:598 ../app.rb:604
+#: ../app.rb:605 ../app.rb:611
 msgid "no broker matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:614 ../app.rb:620
+#: ../app.rb:621 ../app.rb:627
 msgid "no policy matched id=%{name}"
 msgstr ""
 
-#: ../app.rb:632
+#: ../app.rb:639
 msgid "Task %{name} does not exist"
 msgstr ""
 
-#: ../app.rb:644
+#: ../app.rb:651
 msgid "no repo matched name=%{name}"
 msgstr ""
 
-#: ../app.rb:658 ../app.rb:660
+#: ../app.rb:665 ../app.rb:667
 msgid "no such command"
 msgstr ""
 
-#: ../app.rb:674
+#: ../app.rb:681
 msgid "id must be a number but was %{id}"
 msgstr ""
 
-#: ../app.rb:677
+#: ../app.rb:684
 msgid "no event matched id=%{id}"
 msgstr ""
 
-#: ../app.rb:690 ../app.rb:697
+#: ../app.rb:697 ../app.rb:704
 msgid "no hook matched name=%{name}"
 msgstr ""
 
-#: ../app.rb:710
+#: ../app.rb:717
 msgid "no node matched name=%{name}"
 msgstr ""
 
-#: ../app.rb:720
+#: ../app.rb:727
 msgid "no node matched hw_id=%{hw_id}"
 msgstr ""
 
-#: ../app.rb:735
+#: ../app.rb:742
 msgid "The nic_max parameter must be an integer not starting with 0"
 msgstr ""
 
@@ -122,11 +126,11 @@ msgstr ""
 msgid "could not find install template '%{name}' for broker '%{broker_name}'"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:154
+#: ../lib/razor/broker_type.rb:155
 msgid "%{name} has install template %{file}, but it is unreadable"
 msgstr ""
 
-#: ../lib/razor/broker_type.rb:156
+#: ../lib/razor/broker_type.rb:157
 msgid "%{name} has no install script template"
 msgstr ""
 
@@ -141,7 +145,7 @@ msgid ""
 "Body is: '%{body}'\n"
 msgstr ""
 
-#: ../lib/razor/command.rb:102
+#: ../lib/razor/command.rb:120
 msgid "internal error: command %{name} has no execution code!"
 msgstr ""
 
@@ -185,7 +189,7 @@ msgstr ""
 #: ../lib/razor/command/create_broker.rb:45
 msgid ""
 "    The configuration for the broker.  The acceptable values here are\n"
-"    determined by the `broker-type` selected.  In general this has\n"
+"    determined by the `broker_type` selected.  In general this has\n"
 "    settings like which server to contact, and other configuration\n"
 "    related to handing on the newly installed system to the final\n"
 "    configuration management system.\n"
@@ -207,7 +211,7 @@ msgstr ""
 #: ../lib/razor/command/create_hook.rb:37
 msgid ""
 "    The configuration for the hook.  The acceptable values here are\n"
-"    determined by the `hook-type` selected.  In general this has\n"
+"    determined by the `hook_type` selected.  In general this has\n"
 "    settings like a node counter or other settings which may change\n"
 "    over time as the hook gets executed.\n"
 "\n"
@@ -329,7 +333,7 @@ msgstr ""
 msgid ""
 "    The name of the task associated with this repository.  This is used to\n"
 "    install nodes that match a policy using this repository; generally it\n"
-"    should match the OS that the URL or ISO-URL attributes point to.\n"
+"    should match the OS that the URL or ISO_URL attributes point to.\n"
 msgstr ""
 
 #: ../lib/razor/command/create_tag.rb:29
@@ -530,17 +534,17 @@ msgid ""
 msgstr ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:56
-msgid "New max-count '%{raw}' is not a valid integer"
+msgid "New max_count '%{raw}' is not a valid integer"
 msgstr ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:60
-msgid "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}"
-msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}"
+msgid "There is currently %{node_count} node bound to this policy. Cannot lower max_count to %{max_count}"
+msgid_plural "There are currently %{node_count} nodes bound to this policy. Cannot lower max_count to %{max_count}"
 msgstr[0] ""
 msgstr[1] ""
 
 #: ../lib/razor/command/modify_policy_max_count.rb:66
-msgid "Changed max-count for policy %{name} to %{count}"
+msgid "Changed max_count for policy %{name} to %{count}"
 msgstr ""
 
 #: ../lib/razor/command/move_policy.rb:32

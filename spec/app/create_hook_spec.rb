@@ -23,7 +23,7 @@ describe Razor::Command::CreateHook do
 
     let :command_hash do
       { 'name'        => Faker::Commerce.product_name,
-        'hook-type' => 'test'
+        'hook_type' => 'test'
       }
     end
 
@@ -48,11 +48,11 @@ describe Razor::Command::CreateHook do
     end
 
     it "should fail if the named hook does not actually exist" do
-      create_hook command_hash.merge 'hook-type' => 'no-such-hook-for-me'
+      create_hook command_hash.merge 'hook_type' => 'no-such-hook-for-me'
 
       last_response.status.should == 404
       last_response.json['error'].should ==
-          "hook-type must be the name of an existing hook type, but is 'no-such-hook-for-me'"
+          "hook_type must be the name of an existing hook type, but is 'no-such-hook-for-me'"
     end
 
     it "should fail cleanly if 'configuration' is a string" do
@@ -97,7 +97,7 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate valid configuration" do
-      command_hash['hook-type'] = 'with_configuration'
+      command_hash['hook_type'] = 'with_configuration'
       command_hash['configuration'] = {'some-key' => 'valid-value'}
       command = create_hook command_hash
 
@@ -106,7 +106,7 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate invalid configuration" do
-      command_hash['hook-type'] = 'with_configuration'
+      command_hash['hook_type'] = 'with_configuration'
       command_hash['configuration'] = {'not-valid-key' => 'not-valid-value'}
       command = create_hook command_hash
 
@@ -115,7 +115,7 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate valid configuration abbreviation" do
-      command_hash['hook-type'] = 'with_configuration'
+      command_hash['hook_type'] = 'with_configuration'
       command_hash['c'] = {'some-key' => 'valid-value'}
       command = create_hook command_hash
 
@@ -124,7 +124,7 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate invalid configuration abbreviation" do
-      command_hash['hook-type'] = 'with_configuration'
+      command_hash['hook_type'] = 'with_configuration'
       command_hash['c'] = {'not-valid-key' => 'not-valid-value'}
       command = create_hook command_hash
 
@@ -133,7 +133,7 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate mixed shorthand and longhand configuration" do
-      command_hash['hook-type'] = 'with_configuration'
+      command_hash['hook_type'] = 'with_configuration'
       command_hash['c'] = {'some-key' => 'valid-value'}
       command_hash['configuration'] = {'some-other-key' => 'other-valid-value'}
       command = create_hook command_hash

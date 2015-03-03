@@ -109,4 +109,73 @@ describe Razor::Data::Command do
       cmd.status.should == 'pending'
     end
   end
+
+  describe 'add_alias' do
+    it 'assumes a string alias by default' do
+      data = {'abc' => '123'}
+      Razor::Command.add_alias(data, 'abc', 'def')
+      data['def'].should == '123'
+      data.keys.should_not include 'abc'
+    end
+    it 'keeps the original data intact' do
+      data = {'def' => '123'}
+      Razor::Command.add_alias(data, 'abc', 'def')
+      data['def'].should == '123'
+      data.keys.should_not include 'abc'
+    end
+    it 'does nothing if neither the alias nor the attribute is supplied' do
+      data = {}
+      Razor::Command.add_alias(data, 'abc', 'def')
+      data.keys.should == []
+    end
+    # This may not be ideal behavior, but this test is needed in case desired
+    # behavior changes in the future.
+    it 'fails if both are supplied' do
+      data = {'def' => '123', 'abc' => '456'}
+      expect {Razor::Command.add_alias(data, 'abc', 'def')}.
+         to raise_error(Razor::ValidationFailure, "cannot supply both def and abc")
+    end
+  end
+
+  describe 'add_hash_alias' do
+    it 'merges two hashes' do
+      data = {'abc' => {'123' => '456'}, 'def' => {'789' => '012'}}
+      Razor::Command.add_hash_alias(data, 'abc', 'def')
+      data['def'].should == {'123' => '456', '789' => '012'}
+      data.keys.should_not include 'abc'
+    end
+    it 'performs aliasing' do
+      data = {'abc' => {'123' => '456'}}
+      Razor::Command.add_hash_alias(data, 'abc', 'def')
+      data['def'].should == {'123' => '456'}
+      data.keys.should_not include 'abc'
+    end
+    it 'keeps the original data intact' do
+      data = {'def' => {'123' => '456'}}
+      Razor::Command.add_hash_alias(data, 'abc', 'def')
+      data['def'].should == {'123' => '456'}
+      data.keys.should_not include 'abc'
+    end
+  end
+
+  describe 'add_array_alias' do
+    it 'merges two hashes' do
+      data = {'abc' => ['123'], 'def' => ['456']}
+      Razor::Command.add_array_alias(data, 'abc', 'def')
+      data['def'].should == ['456', '123']
+      data.keys.should_not include 'abc'
+    end
+    it 'performs aliasing' do
+      data = {'abc' => ['123']}
+      Razor::Command.add_array_alias(data, 'abc', 'def')
+      data['def'].should == ['123']
+      data.keys.should_not include 'abc'
+    end
+    it 'keeps the original data intact' do
+      data = {'def' => ['123']}
+      Razor::Command.add_array_alias(data, 'abc', 'def')
+      data['def'].should == ['123']
+      data.keys.should_not include 'abc'
+    end
+  end
 end
