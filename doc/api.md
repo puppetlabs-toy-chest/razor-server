@@ -676,3 +676,12 @@ culminates in chain loading from the Razor server)
 The URL accepts the parameter `nic_max` which should be set to the maximum
 number of network interfaces that respond to DHCP on any given machine. It
 defaults to 4.
+
+If this request to generate the bootstrap file occurs over HTTPS, the
+`http_port` parameter must be supplied. This is the HTTP (non-SSL/TLS) port
+number that booted nodes will use to communicate with the Razor server.
+
+A full request to render a bootstrap file might look like this, where 8150 is
+the port used for HTTP communication:
+`curl https://user:password@razor-server:8151/api/microkernel/bootstrap?nic_max=4&http_port=8150`
+

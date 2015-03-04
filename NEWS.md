@@ -7,6 +7,8 @@
   namespace need to be over HTTPS with SSL, and otherwise will return a 404.
   The actual configuration of this happens in Torquebox's configuration. By
   default, this property is false (no change from current behavior).
++ NEW: If the razor-server is configured to use SSL, any HTTPS calls to
+  /api/microkernel/bootstrap must include the `http_port` argument.
 
 ## 0.16.1 - 2015-01-12
 

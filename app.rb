@@ -205,7 +205,13 @@ and requires full control over the database (eg: add and remove tables):
       end
       ["dhcp_mac", "serial", "asset", "uuid"].each { |k| vars[k] = "${#{k}}" }
       q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
-      url "/svc/boot?#{q}"
+      # Sinatra's URL generation is not robust, meaning changes need to happen
+      # as string substitutions.
+      (url "/svc/boot?#{q}").
+           sub(/\Ahttps:/, 'http:').
+           # The port may be either absent or present; make the paths converge
+           sub(/\/\/#{request.host_with_port}/, "//#{request.host}").
+           sub(/http:\/\/#{request.host}/, "http://#{request.host}:#{@bootstrap_port}")
     end
 
     # Information to include on the microkernel kernel command line that
@@ -740,6 +746,12 @@ and requires full control over the database (eg: add and remove tables):
     params["nic_max"].nil? or params["nic_max"] =~ /\A[1-9][0-9]*\Z/ or
       error 400,
         :error => _("The nic_max parameter must be an integer not starting with 0")
+
+    params['http_port'].nil? and request.secure? and
+      error 400,
+        :error => _("The `http_port` argument must be supplied for bootstrap generation on a secure port")
+
+    @bootstrap_port = params['http_port'].nil? ? request.port.to_s : params['http_port']
 
     # How many NICs ipxe should probe for DHCP
     @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i
