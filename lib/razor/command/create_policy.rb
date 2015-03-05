@@ -77,7 +77,7 @@ A sample policy installing CentOS 6.4:
     The name of the policy to create this policy after in the policy list.
   HELP
 
-  array 'tags', help: _(<<-HELP) do
+  array 'tags', alias: 'tag', help: _(<<-HELP) do
     The names of tags that are used for matching nodes to this policy.
 
     When a node has all these tags matched on it, it will be a candidate
@@ -133,10 +133,6 @@ A sample policy installing CentOS 6.4:
 
     data["enabled"] = true if data["enabled"].nil?
 
-    data["max_count"] = data.delete("max_count") if data.has_key?("max_count")
-    data["root_password"] = data.delete("root_password") if data.has_key?("root_password")
-    data["node_metadata"] = data.delete("node_metadata") if data.has_key?("node_metadata")
-
     # Create the policy
     policy, is_new = Razor::Data::Policy.import(data)
 
@@ -154,10 +150,8 @@ A sample policy installing CentOS 6.4:
       data['before'] = data['before']['name'] if data['before'].is_a?(Hash) and data['before'].keys == ['name']
       data['after'] = data['after']['name'] if data['after'].is_a?(Hash) and data['after'].keys == ['name']
 
-      data['tag'] = Array[data['tag']] unless [NilClass, Array, Hash].include?(data['tag'].class)
       data['tags'] = Array[data['tags']] unless [NilClass, Array, Hash].include?(data['tags'].class)
-      add_array_alias(data, 'tag', 'tags')
-      
+
       # Removed feature: Cannot create tags in create-policy
       if data['tags'].is_a?(Array) && data['tags'].any? {|tag_pair| tag_pair.is_a?(Hash) and tag_pair.keys == ['name', 'rule'] }
         raise Razor::ValidationFailure, _('this command can no longer create tags; see `razor help create-tag`')
@@ -169,10 +163,6 @@ A sample policy installing CentOS 6.4:
       data['repo'] = data['repo']['name'] if data['repo'].is_a?(Hash) and data['repo'].keys == ['name']
       data['broker'] = data['broker']['name'] if data['broker'].is_a?(Hash) and data['broker'].keys == ['name']
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
-
-      add_alias(data, 'root-password', 'root_password')
-      add_alias(data, 'node-metadata', 'node_metadata')
-      add_alias(data, 'max-count', 'max_count')
     end
   end
 end

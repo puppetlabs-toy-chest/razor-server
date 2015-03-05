@@ -173,7 +173,9 @@ module Razor::Test
         last_response.command.command.should == name.to_s
         cmd = Razor::Command.find(name: name)
         params = Hash[params.map{|(k,v)| [k.to_s,v]}]
-        last_response.command.params.should == stringify_keys(cmd.conform!(params))
+        # Do the aliasing and conforming before checking the returned params.
+        modified_params = cmd.conform!(cmd.apply_aliases!(params))
+        last_response.command.params.should == stringify_keys(modified_params)
         last_response.command.status.should == status
       end
     end

@@ -172,18 +172,19 @@ describe Razor::Command::CreatePolicy do
       ([tag1, tag2] & Razor::Data::Policy[:name => command_hash['name']].tags).should == [tag1, tag2]
     end
 
-    it "should conform tag string into tags" do
+    it "should not conform tag string into tags" do
       tag2 = Fabricate('tag')
       command_hash['tag'] = tag2.name
       create_policy
-      last_response.status.should == 202
-      ([tag1, tag2] & Razor::Data::Policy[:name => command_hash['name']].tags).should == [tag1, tag2]
+      last_response.json['error'].should == 'cannot supply both tags and tag'
+      last_response.status.should == 422
     end
 
     it "should fail with the wrong datatype for tag" do
       command_hash['tag'] = 123
+      command_hash.delete('tags')
       create_policy
-      last_response.json['error'].should == "tags[1] should be a string, but was actually a number"
+      last_response.json['error'].should == "tags[0] should be a string, but was actually a number"
       last_response.status.should == 422
     end
 

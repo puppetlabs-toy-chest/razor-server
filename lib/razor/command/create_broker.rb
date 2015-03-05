@@ -42,7 +42,7 @@ Creating a simple Puppet broker:
 #{Razor::BrokerType.all.map{|n| "    - #{n}" }.join("\n")}
   HELP
 
-  object 'configuration', help: _(<<-HELP) do
+  object 'configuration', alias: 'c', help: _(<<-HELP) do
     The configuration for the broker.  The acceptable values here are
     determined by the `broker_type` selected.  In general this has
     settings like which server to contact, and other configuration
@@ -58,14 +58,6 @@ Creating a simple Puppet broker:
     data["broker_type"] = Razor::BrokerType.find(name: data.delete("broker_type"))
 
     Razor::Data::Broker.import(data).first
-  end
-
-  def self.conform!(data)
-    data.tap do |_|
-      # Allow "c" as a shorthand.
-      add_hash_alias(data, 'c', 'configuration')
-      add_alias(data, 'broker-type', 'broker_type')
-    end
   end
 end
 

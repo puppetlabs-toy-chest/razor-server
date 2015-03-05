@@ -46,7 +46,6 @@ Set a single key from a node:
   
   def self.conform!(data)
     data.tap do |_|
-      add_alias(data, 'no-replace', 'no_replace')
       data['all'] = true if data['all'] == 'true'
       data['all'] = false if data['all'] == 'false'
       data['no_replace'] = true if data['no_replace'] == 'true'

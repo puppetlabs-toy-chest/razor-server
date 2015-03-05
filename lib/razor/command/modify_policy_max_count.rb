@@ -65,10 +65,4 @@ Set a policy to a maximum of 15 nodes:
     policy.set(max_count: max_count).save
     { :result => _("Changed max_count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
   end
-
-  def self.conform!(data)
-    data.tap do |_|
-      add_alias(data, 'max-count', 'max_count')
-    end
-  end
 end

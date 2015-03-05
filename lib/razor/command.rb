@@ -29,17 +29,10 @@ class Razor::Command
     data.is_a?(Hash) or
         raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
             {expected: ruby_type_to_json(Hash), actual: ruby_type_to_json(data)}
-    old_data = data.to_json
-    data = self.class.conform!(data)
-    unless data.class <= Hash
-      raise _(<<-ERR) % {class: self.class, type: data.class, body: old_data.inspect}
-Internal error: Please report this to JIRA at http://jira.puppetlabs.com/
-`%{class}.conform!` returned unexpected class %{type} instead of Hash
-Body is: '%{body}'
-      ERR
-    end
 
-    self.class.validate!(data, nil)
+    self.class.validate!(data, nil) do |data|
+      self.class.conform!(data)
+    end
 
     @command = Razor::Data::Command.start(name, data.dup, app.user.principal)
 
@@ -57,57 +50,18 @@ Body is: '%{body}'
     [202, result.to_json]
   end
 
+  def self.run_alias(data, alias_name, real_attribute)
+    schema.run_alias(data, alias_name, real_attribute)
+  end
+
+  def self.apply_aliases!(data)
+    schema.apply_aliases!(data)
+  end
+
   # This method is overridden in subclasses to change data such that it meets
   # current standards.
   def self.conform!(data)
     data
-  end
-
-  # This is a convenience method for adding aliases between two hashes. It
-  # will remove any references to the alias in `data`, merging it with the
-  # object in `real_attribute`. Data for both `real_attribute` and
-  # `alias_name` will be ignored if not `nil` or a Hash.
-  def self.add_hash_alias(data, alias_name, real_attribute)
-    self.add_alias(data, alias_name, real_attribute) do |first, second|
-      if first.is_a?(Hash) and second.is_a?(Hash)
-        first.merge(second)
-      end
-    end
-  end
-
-  # This is a convenience method for adding aliases between two arrays. It
-  # will remove any references to the alias in `data`, merging it with the
-  # object in `real_attribute`. Data for both `real_attribute` and
-  # `alias_name` will be ignored if not `nil` or an Array.
-  def self.add_array_alias(data, alias_name, real_attribute)
-    self.add_alias(data, alias_name, real_attribute) do |first, second|
-      if first.is_a?(Array) and second.is_a?(Array)
-        first + second
-      end
-    end
-  end
-
-  # This adds an alias between two attributes. If a block is provided, it will
-  # be used to combine the attributes in the case that both exist. If no block
-  # is provided, only one of the attributes can be supplied, else an error is
-  # thrown. When the alias operation completes, the alias will be removed from
-  # the `data` hash.
-  def self.add_alias(data, alias_name, real_attribute)
-    # Only matters if the alias is provided.
-    if data[alias_name]
-      if data[real_attribute]
-        # Merge the data.
-        if block_given?
-          data[real_attribute] = yield(data[real_attribute], data[alias_name])
-        else
-          raise Razor::ValidationFailure.new("cannot supply both #{real_attribute} and #{alias_name}")
-        end
-      else
-        data[real_attribute] = data[alias_name]
-      end
-      data.delete(alias_name)
-      data[real_attribute]
-    end
   end
 
   # Handle execution of the command.  We have already decoded and validated

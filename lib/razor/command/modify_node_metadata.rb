@@ -77,7 +77,6 @@ Removing all node metadata:
 
   def self.conform!(data)
     data.tap do |_|
-      add_alias(data, 'no-replace', 'no_replace')
       data['clear'] = true if data['clear'] == 'true'
       data['clear'] = false if data['clear'] == 'false'
       data['no_replace'] = true if data['no_replace'] == 'true'

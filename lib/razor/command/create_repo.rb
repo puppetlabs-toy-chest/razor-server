@@ -106,7 +106,6 @@ downloaded onto the Razor server:
 
   def self.conform!(data)
     data.tap do |_|
-      add_alias(data, 'iso-url', 'iso_url')
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
     end
   end

@@ -64,12 +64,4 @@ Set IPMI credentials for node 'node17':
 
     { :result => _('updated IPMI details') }
   end
-
-  def self.conform!(data)
-    data.tap do |_|
-      add_alias(data, 'ipmi-hostname', 'ipmi_hostname')
-      add_alias(data, 'ipmi-username', 'ipmi_username')
-      add_alias(data, 'ipmi-password', 'ipmi_password')
-    end
-  end
 end

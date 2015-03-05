@@ -4,6 +4,7 @@ class Razor::Validation::HashAttribute
     case name
     when String
       name =~ /\A[-_a-z0-9]+\z/ or raise ArgumentError, "attribute name is not valid"
+      @aliases = (name =~ /_/) ? [name.gsub('_', '-')] : []
     when Regexp
       # no additional validation at this stage, but we should add some!
     else
@@ -18,6 +19,8 @@ class Razor::Validation::HashAttribute
       send(check, argument)
     end
   end
+
+  attr_accessor :aliases
 
   def finalize(schema)
     Array(@exclude).each do |attr|
@@ -65,11 +68,10 @@ class Razor::Validation::HashAttribute
   ERB
 
   def to_json(arg)
-    if @type.nil?
-      {}.to_json
-    else
-      {'type' => ruby_type_to_json(@type[:type])}.to_json
-    end
+      {'type' => ruby_type_to_json(@type.nil? ? nil : @type[:type]),
+       # This alerts clients so they can apply their validation/mutation.
+       'aliases' => @aliases}.
+          delete_if { |_, v| v.nil? || v == [] }.to_json
   end
 
   def expand(path, name)
@@ -190,6 +192,21 @@ class Razor::Validation::HashAttribute
       else
         raise ArgumentError, "type checks must be passed a class, module, or nil (got #{which.inspect})"
       end
+  end
+
+  def alias(what)
+    @aliases =
+        case what
+        when String, Array then
+          array = Array(what)
+          array.each do |match|
+            match.is_a?(String) or
+                raise ArgumentError, "alias must be a string or array of strings (got #{match.inspect} in array)"
+          end
+          array
+        else
+          raise ArgumentError, "alias must be a string or array of strings (got #{what.inspect})"
+        end
   end
 
   def exclude(what)

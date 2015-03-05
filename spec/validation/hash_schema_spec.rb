@@ -235,5 +235,33 @@ describe Razor::Validation::HashSchema do
           to raise_error(/extra attributes a, b, c were present in the command, but are not allowed/)
       end
     end
+
+    context "aliases" do
+      before :each do
+        Razor.config['auth.enabled'] = false
+        schema.authz 'none'
+      end
+      it "should apply an alias" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'b' => 2}, nil)
+      end
+      it "should ignore alias if not matched" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'a' => 2}, nil)
+      end
+      it "should throw an error if both are supplied" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        expect { schema.validate!({'a' => 1, 'b' => 2}, nil) }.
+          to raise_error(/cannot supply both a and b/)
+      end
+      it "should automatically apply aliases for underscores" do
+        schema.attr('a_b_c', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'a-b-c' => 2}, nil)
+      end
+    end
   end
 end

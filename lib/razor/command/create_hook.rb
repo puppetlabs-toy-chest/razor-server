@@ -34,7 +34,7 @@ Create a simple hook:
 #{Razor::HookType.all.map{|n| "    - #{n}" }.join("\n")}
   HELP
 
-  object 'configuration', help: _(<<-HELP) do
+  object 'configuration', alias: 'c', help: _(<<-HELP) do
     The configuration for the hook.  The acceptable values here are
     determined by the `hook_type` selected.  In general this has
     settings like a node counter or other settings which may change
@@ -49,14 +49,6 @@ Create a simple hook:
     data["hook_type"] = Razor::HookType.find(name: data.delete("hook_type"))
 
     Razor::Data::Hook.import(data).first
-  end
-
-  def self.conform!(data)
-    data.tap do |_|
-      # Allow "c" as a shorthand.
-      add_hash_alias(data, 'c', 'configuration')
-      add_alias(data, 'hook-type', 'hook_type')
-    end
   end
 end
 

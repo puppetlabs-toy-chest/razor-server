@@ -62,21 +62,15 @@ Update `node172` with new hardware information:
   end
 
   def run(request, data)
-    if (data['hw-info'].keys & Razor.config['match_nodes_on']).empty?
-      msg = _('hw-info must contain at least one of the match keys: %{keys}') %
+    if (data['hw_info'].keys & Razor.config['match_nodes_on']).empty?
+      msg = _('hw_info must contain at least one of the match keys: %{keys}') %
         {keys: Razor.config['match_nodes_on'].join(', ')}
       raise Razor::ValidationFailure.new(msg)
     else
       Razor::Data::Node[name: data['node']].tap do |node|
-        node.hw_hash = data['hw-info']
+        node.hw_hash = data['hw_info']
         node.save
       end
     end
-  end
-
-  def self.conform!(data)
-    data.tap { |_|
-      data['hw-info'] = data.delete('hw_info') if data.has_key?('hw_info')
-    }
   end
 end
