@@ -371,7 +371,7 @@ module Razor::Data
         # independent of the order in which the BIOS enumerates NICs. We
         # also don't care about case
         k = "mac" if k =~ /net[0-9]+/
-        [k.downcase, v.strip.downcase]
+        [k.downcase, v.strip.downcase.gsub(":", "-")]
       end.select do |k, _|
         Razor::Config::HW_INFO_KEYS.include?(k) || k.start_with?('fact_')
       end.sort do |a, b|
