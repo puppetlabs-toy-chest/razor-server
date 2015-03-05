@@ -1,6 +1,6 @@
-# How to use TLS/SSL in Razor
+# How to Use TLS/SSL in Razor
 
-## Security overview
+## Security Overview
 
 Since Razor deals with installing machines from scratch (no existing knowledge
 of what should be considered secure), the messages to the /svc namespace will
@@ -8,10 +8,10 @@ not be secured. /api calls, however, are allowed to change the state of the
 Razor server and are eligible for some basic security measures.
 
 The recommended configuration then is to leave /svc on port 8150 over HTTP and
-do all /api calls on port 8151 over HTTPS with TLS/SSL. This guide will offer
+do all /api calls on port 8151 over HTTPS with TLS/SSL. This guide offers
 a walk-through for how to do this.
 
-## Steps to perform on razor-server
+## Configure razor-server
 
 1. Disallow insecure access to /api. `secure_api` is a config property that
    determines whether calls to /api must be secure in order to be processed.
@@ -26,9 +26,9 @@ a walk-through for how to do this.
    working directory. The default password in that command is simply
    `password`.
 3. Configure Torquebox via `standalone.xml`. The exact location of this file
-   may vary; The command `find / -name standalone.xml` should locate the file.
+   may vary; the command `find / -name standalone.xml` should locate the file.
    In that file, two things need to change:
-   * Add a web connector for HTTPS. Modify this in the web connector:
+   * Add a web connector for HTTPS. Make these changes in the web connector:
 
      ```
        <connector name='http' protocol='HTTP/1.1' scheme='http' socket-binding='http'/>
@@ -52,7 +52,7 @@ a walk-through for how to do this.
 The Razor server is now configured to accept HTTP communication on 8150 and
 HTTPS communication on 8151.
 
-## Steps to perform on razor-client
+## Connect razor-client with new razor-server Configuration
 
 Now, the client needs to hook into this new configuration. This requires a
 few changes:
