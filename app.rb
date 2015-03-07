@@ -411,10 +411,20 @@ and requires full control over the database (eg: add and remove tables):
     @task = @node.task
     @repo = @node.policy.repo
 
+    begin
+      fpath = @task.find_file(params[:filename])
+    rescue Razor::TemplateNotFoundError => e
+      @node.log_append(:event => :get_raw_file,
+                       :msg => _("raw task file %{script} not found") % {script: params[:filename]},
+                       :severity => 'error', :url => request.url)
+      raise e
+    end
+
+    unless fpath
+    end
     @node.log_append(:event => :get_raw_file, :template => params[:filename],
                      :url => request.url)
 
-    fpath = @task.find_file(params[:filename]) or halt 404
     content_type nil
     send_file fpath, :disposition => nil
   end
@@ -429,10 +439,17 @@ and requires full control over the database (eg: add and remove tables):
     @task = @node.task
     @repo = @node.policy.repo
 
-    @node.log_append(:event => :get_file, :template => params[:template],
-                     :url => request.url)
-
-    render_template(params[:template])
+    begin
+      render_template(params[:template]).tap do |_|
+          @node.log_append(:event => :get_task_file, :template => params[:template],
+                           :url => request.url)
+      end
+    rescue Razor::TemplateNotFoundError => e
+      @node.log_append(:event => :get_task_file, :script => params[:template],
+                       :msg => _("task file %{script} not found") % {script: params[:template]},
+                       :severity => 'error', :url => request.url)
+      raise e
+    end
   end
 
   # This accepts a `script` parameter, which defaults to `install` for the file `install.erb`.
@@ -447,8 +464,14 @@ and requires full control over the database (eg: add and remove tables):
       # The stage_done_url needs to be generated in Sinatra, so we calculate it here and pass it on.
       stage_done_url = stage_done_url('broker')
       @node.policy.broker.install_script_for(@node, script_name,
-                                            'stage_done_url' => stage_done_url)
+                                            'stage_done_url' => stage_done_url).tap do |_|
+        @node.log_append(:event => :get_broker_file,
+                         :script => script_name, :url => request.url)
+      end
     rescue Razor::InstallTemplateNotFoundError => e
+      @node.log_append(:event => :get_broker_file,
+                       :msg => _("broker install file %{script} not found") % {script: script_name},
+                       :severity => 'error', :url => request.url)
       error 404, :error => _("install template %{name}.erb does not exist") % {name: script_name},
             :details => e.to_s
     end
@@ -456,7 +479,12 @@ and requires full control over the database (eg: add and remove tables):
 
   get '/svc/log/:node_id' do
     node = Razor::Data::Node[params[:node_id]] if params[:node_id]
-    halt 404 unless node
+    unless node
+      Razor::Data::Event.log_append(:event => :get_broker_file,
+                     :msg => _("node %{node} not found to log") % {node: params[:node_id]},
+                     :severity => 'error', :original_msg => params[:msg])
+      error 404, :error => _("node %{node}.erb does not exist") % {node: params[:node_id]}
+    end
     entry = {:msg => params[:msg]}
     entry = JSON::parse(entry.to_json)
     event = Razor::Data::Event.new({:entry => entry})
@@ -502,6 +530,10 @@ and requires full control over the database (eg: add and remove tables):
       content_type nil
       send_file fpath, :disposition => nil
     else
+      # This method is called so many times that we only want to report errors.
+      Razor::Data::Event.log_append(:event => :get_file,
+          :msg => _("repo file %{path} not found") % {path: path}, :severity => 'error',
+          :url => request.url)
       [404, { :error => _("File %{path} not found") % {path: path} }.to_json ]
     end
   end
