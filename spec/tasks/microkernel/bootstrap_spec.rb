@@ -44,4 +44,14 @@ describe "tasks/common/boot_local" do
     last_response.status.should == 200
     last_response.body.should =~ /:8150/
   end
+
+  it "should allow both the http_port argument and the nic_max argument" do
+    Razor.config['secure_api'] = false
+    get "/api/microkernel/bootstrap?http_port=8150&nic_max=4", {}, 'HTTPS' => 'off'
+    last_response.status.should == 200
+    last_response.body.should =~ /:8150/
+    4.times.each do |i|
+      last_response.body.should =~ /^[^#]*dhcp\s+net#{i}/m
+    end
+  end
 end

@@ -1158,6 +1158,12 @@ describe "command and query API" do
         last_response.body.should =~ /^[^#]*dhcp\s+net#{i}/m
       end
     end
+
+    it "accepts a http_port parameter" do
+      get "/api/microkernel/bootstrap?http_port=8150"
+      last_response.status.should == 200
+      last_response.body.should =~ /:8150/
+    end
   end
 
   context "/api/collections/events" do
