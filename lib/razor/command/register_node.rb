@@ -24,7 +24,7 @@ Register a machine before you boot it, and note that it already has an OS
 installed, so should not be subject to policy-based reinstallation:
 
     {
-      "hw-info": {
+      "hw_info": {
         "net0":   "78:31:c1:be:c8:00",
         "net1":   "72:00:01:f2:13:f0",
         "net2":   "72:00:01:f2:13:f1",
@@ -57,7 +57,7 @@ installed, so should not be subject to policy-based reinstallation:
     not eligible for policy matching, and will simply boot locally.
   HELP
 
-  object 'hw-info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
+  object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
     The hardware information for the node.  This is used to match the node on first
     boot with the record in the database.  The order of MAC address assignment in
     this data is not significant, as a node with reordered MAC addresses will be
@@ -72,16 +72,10 @@ installed, so should not be subject to policy-based reinstallation:
 
 
   def run(request, data)
-    Razor::Data::Node.lookup(data['hw-info']).set(installed: data['installed']).save.
+    Razor::Data::Node.lookup(data['hw_info']).set(installed: data['installed']).save.
         tap do |node|
       Razor::Data::Hook.run('node-registered', node: node)
     end
-  end
-
-  def self.conform!(data)
-    data.tap { |_|
-      data['hw-info'] = data.delete('hw_info') if data.has_key?('hw_info')
-    }
   end
 end
 

@@ -46,9 +46,9 @@ describe Razor::Command::SetNodeHWInfo do
      last_response.status.should == 404
   end
 
-  it "should fail if the hw-info does not contain any match keys" do
+  it "should fail if the hw_info does not contain any match keys" do
     Razor.config['match_nodes_on'] = ['mac'] # default, but be safe!
-    command_hash['hw-info'] = {serial: '1234'}
+    command_hash['hw_info'] = {serial: '1234'}
     set_node_hw_info
     last_response.json['error'].
       should == "hw_info must contain at least one of the match keys: mac"
