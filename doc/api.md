@@ -683,5 +683,5 @@ number that booted nodes will use to communicate with the Razor server.
 
 A full request to render a bootstrap file might look like this, where 8150 is
 the port used for HTTP communication:
-`curl https://user:password@razor-server:8151/api/microkernel/bootstrap?nic_max=4&http_port=8150`
+`curl -k "https://user:password@razor-server:8151/api/microkernel/bootstrap?nic_max=4&http_port=8150"`
 
