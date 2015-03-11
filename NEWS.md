@@ -9,6 +9,8 @@
   default, this property is false (no change from current behavior).
 + NEW: If the razor-server is configured to use SSL, any HTTPS calls to
   /api/microkernel/bootstrap must include the `http_port` argument.
++ BUGFIX: Any metadata that returned an array or hash caused unreliable
+  behavior when referenced in tags. This will now return a helpful error.
 
 ## 0.16.1 - 2015-01-12
 

@@ -3,6 +3,7 @@ require_relative 'spec_helper'
 
 describe Razor::Matcher do
   Matcher = Razor::Matcher
+  RuleEvaluationError = Razor::Matcher::RuleEvaluationError
 
   describe "#new" do
     it { expect {Matcher.new({}).to raise_error TypeError} }
@@ -44,6 +45,13 @@ describe Razor::Matcher do
     m.match?("facts" => facts)
   end
 
+  def match_metadata(*rule)
+    metadata = {}
+    metadata = rule.pop if rule.last.is_a?(Hash)
+    m = Matcher.new(rule)
+    m.match?("metadata" => metadata)
+  end
+
   describe "functions" do
     it "and should behave" do
       match("and", true, true).should == true
@@ -62,6 +70,16 @@ describe Razor::Matcher do
       match("not", true).should == false
     end
 
+    it "metadata should behave" do
+      match_metadata("=", ["metadata", "f1"], true, { "f1" => true }).should == true
+      match_metadata("=", ["metadata", "f1"], false, { "f1" => false }).should == true
+      match_metadata("=", ["metadata", "f1"], 'abc', { "f1" => 'abc' }).should == true
+      expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => []}) }.
+          to raise_error RuleEvaluationError, /cannot evaluate Array returned from metadata f1/
+      expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => {}}) }.
+          to raise_error RuleEvaluationError, /cannot evaluate Hash returned from metadata f1/
+    end
+
     it "fact should behave" do
       match("fact", "f1", { "f1" => "true" }).should == true
       match("fact", "f1", { "f1" => false  }).should == false
@@ -70,7 +88,7 @@ describe Razor::Matcher do
     it "fact should raise if fact not found and one argument given" do
       expect do
         match("fact", "f2", { "f1" => "true" })
-      end.to raise_error Razor::Matcher::RuleEvaluationError
+      end.to raise_error RuleEvaluationError
     end
 
     it "fact should return the default if fact not found" do
@@ -84,7 +102,7 @@ describe Razor::Matcher do
         expect do
           # This used to fail trying to call nil.[]
           m.match?({})
-        end.to  raise_error Razor::Matcher::RuleEvaluationError
+        end.to  raise_error RuleEvaluationError
       end
     end
 
@@ -92,7 +110,7 @@ describe Razor::Matcher do
       it "should complain when tag does not exist" do
         expect do
           match("tag", "t1")
-        end.to raise_error Razor::Matcher::RuleEvaluationError
+        end.to raise_error RuleEvaluationError
       end
 
       it "should return true when tag matches" do
@@ -111,6 +129,7 @@ describe Razor::Matcher do
       match("=", 1, 2).should == false
       match("=", "abc", "abc").should == true
       match("=", "abc", "abcd").should == false
+      match("=", "[]", "[]").should == true
     end
 
     it "neq should behave" do
@@ -142,11 +161,10 @@ describe Razor::Matcher do
       end
 
       it "should raise exceptions for invalid numbers" do
-        ThatError = Razor::Matcher::RuleEvaluationError
-        expect {match("=", ["num", true], 1)}.to raise_error ThatError
-        expect {match("=", ["num", "2t"], 2)}.to raise_error ThatError
-        expect {match("=", ["num", "a2"], 2)}.to raise_error ThatError
-        expect {match("=", ["num", nil ], 0)}.to raise_error ThatError
+        expect {match("=", ["num", true], 1)}.to raise_error RuleEvaluationError
+        expect {match("=", ["num", "2t"], 2)}.to raise_error RuleEvaluationError
+        expect {match("=", ["num", "a2"], 2)}.to raise_error RuleEvaluationError
+        expect {match("=", ["num", nil ], 0)}.to raise_error RuleEvaluationError
       end
     end
 
@@ -262,14 +280,14 @@ describe Razor::Matcher do
       Matcher.new(["=", ["lower", "ABC"], "abc"]).should be_valid
       Matcher.new(["=", ["lower", 1], "abc"]).should_not be_valid
       expect { match("=", ["lower", ["fact", "f1"]], "123", { "f1" => 123 }) }.
-          to raise_error(Razor::Matcher::RuleEvaluationError, /argument to 'lower' should be a string but was Fixnum/)
+          to raise_error(RuleEvaluationError, /argument to 'lower' should be a string but was Fixnum/)
     end
 
     it "should require string for upper" do
       Matcher.new(["=", ["upper", "abc"], "abc"]).should be_valid
       Matcher.new(["=", ["upper", 1], "abc"]).should_not be_valid
       expect { match("=", ["upper", ["fact", "f1"]], "123", { "f1" => 123 }) }.
-          to raise_error(Razor::Matcher::RuleEvaluationError, /argument to 'upper' should be a string but was Fixnum/)
+          to raise_error(RuleEvaluationError, /argument to 'upper' should be a string but was Fixnum/)
     end
 
     it "should require that top-level functions return booleans" do

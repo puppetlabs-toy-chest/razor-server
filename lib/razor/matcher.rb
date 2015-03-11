@@ -100,7 +100,11 @@ class Razor::Matcher
     end
 
     def metadata(*args)
-      value_lookup("metadata", args)
+      value_lookup("metadata", args).tap do |val|
+        if val.is_a?(Hash) or val.is_a?(Array)
+          raise RuleEvaluationError.new(_("cannot evaluate #{val.class} returned from metadata #{args[0]}"))
+        end
+      end
     end
 
     def tag(*args)
