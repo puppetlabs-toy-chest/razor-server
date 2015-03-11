@@ -16,11 +16,13 @@ require 'json'
 # The builtin operators are (see +Functions+)
 #   and, or - true if anding/oring arguments is true
 #   =, !=   - true if arg1 =/!= arg2
+#   like    - true if arg1 =~ arg2 (interpreting arg2 as Regex)
 #   in      - true if arg1 is one of arg2 .. argn
 #   fact    - retrieves the fact named arg1 from the node if it exists
 #             If not, an error is raised unless a second argument is given, in
 #             which case it is returned as the default.
 #   num     - converts arg1 to a numeric value if possible; raises if not
+#   str     - converts arg1 to a string value if possible; raises if not
 #   <, <=   - true if arg1 </<= arg2
 #   >, >=   - true if arg1 >/>= arg2
 #   lower   - string result from converting arg1 to lower case
@@ -62,9 +64,11 @@ class Razor::Matcher
         "tag"      => {:expects => [[String]],        :returns => Mixed   },
         "state"    => {:expects => [[String], [String]], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
+        "like"     => {:expects => [[String], [String]], :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
         "num"      => {:expects => [Mixed],           :returns => Number  },
+        "str"      => {:expects => [Mixed],           :returns => [String] },
         "gte"      => {:expects => [[Numeric]],       :returns => Boolean },
         "gt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lte"      => {:expects => [[Numeric]],       :returns => Boolean },
@@ -121,6 +125,11 @@ class Razor::Matcher
       args[0] == args[1]
     end
 
+    def like(*args)
+      pos = args[0] =~ Regexp.new(args[1])
+      not pos.nil?
+    end
+
     def neq(*args)
       args[0] != args[1]
     end
@@ -145,6 +154,18 @@ class Razor::Matcher
       end
 
       raise RuleEvaluationError.new _("can't convert %{raw} to number") % {raw: value.inspect}
+    end
+
+    def str(*args)
+      value = args[0]
+      begin
+        return value if value.is_a?(String)
+        return String(value)
+      rescue ArgumentError => e
+        # Ignore this here, since a RuleEvaluationError will be raised later
+      end
+
+      raise RuleEvaluationError.new "can't convert #{value.inspect} to string"
     end
 
     def gte(*args)

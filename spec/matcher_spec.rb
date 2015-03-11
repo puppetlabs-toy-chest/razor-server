@@ -113,6 +113,13 @@ describe Razor::Matcher do
       match("=", "abc", "abcd").should == false
     end
 
+    it "like should behave" do
+      match("like", "abc", "abc").should == true
+      match("like", "abc", "def").should == false
+      match("like", "abc", "ab").should == true
+      match("like", "abc", "z").should == false
+    end
+
     it "neq should behave" do
       match("!=", 1, 1).should == false
       match("!=", 1, 2).should == true
@@ -147,6 +154,22 @@ describe Razor::Matcher do
         expect {match("=", ["num", "2t"], 2)}.to raise_error ThatError
         expect {match("=", ["num", "a2"], 2)}.to raise_error ThatError
         expect {match("=", ["num", nil ], 0)}.to raise_error ThatError
+      end
+    end
+
+    describe "str" do
+      it "should behave for valid integers" do
+        match("=", ["str", 9      ], "9" ).should == true
+        match("=", ["str", "10"   ], "0" ).should == false
+        match("=", ["str", "0xf"  ], "0xf").should == true
+        match("=", ["str", "0b110"], "0b110" ).should == true
+        match("=", ["str", "027"  ], "027").should == true
+      end
+
+      it "should behave for valid floats" do
+        match("=", ["str", 5.4  ], "5.4").should == true
+        match("=", ["str", "2.7"], "2.7").should == true
+        match("=", ["str", "1e5"], "1e5").should == true
       end
     end
 
@@ -208,6 +231,22 @@ describe Razor::Matcher do
       Matcher.new(["=", true, false]).should be_valid
       Matcher.new(["eq", 1, ["=", 5, "ten"]]).should be_valid
       Matcher.new(["eq", 6.3, 3]).should be_valid
+    end
+
+    it "should allow strings for 'like' function" do
+      Matcher.new(["like", true, false]).should_not be_valid
+      Matcher.new(["like", 1, 2]).should_not be_valid
+      Matcher.new(["like", "abc", false]).should_not be_valid
+      Matcher.new(["like", 1, "abc"]).should_not be_valid
+      Matcher.new(["like", "abc", "def"]).should be_valid
+    end
+
+    it "should allow strings for 'like' function" do
+      Matcher.new(["like", true, false]).should_not be_valid
+      Matcher.new(["like", 1, 2]).should_not be_valid
+      Matcher.new(["like", "abc", false]).should_not be_valid
+      Matcher.new(["like", 1, "abc"]).should_not be_valid
+      Matcher.new(["like", "abc", "def"]).should be_valid
     end
 
     it "should allow all types for '!=' function" do
@@ -282,7 +321,11 @@ describe Razor::Matcher do
     end
 
     it "should type the return of num as Numeric" do
-      Matcher.new([">", ["num", "7"], 3]). should be_valid
+      Matcher.new([">", ["num", "7"], 3]).should be_valid
+    end
+
+    it "should type the return of num as String" do
+      Matcher.new(["=", ["str", 7], "7"]).should be_valid
     end
 
     it "should validate nested functions" do
