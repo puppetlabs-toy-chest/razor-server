@@ -2,6 +2,16 @@
 
 ## Next - TBD
 
+### Incompatible changes
+
++ Some of the stock tasks have been renamed. If you used the previous ubuntu
+  tasks, these have been changed to a more standard naming scheme. The `ubuntu`
+  task points to Trusty, and the others are `ubuntu/precise` and `ubuntu/lucid`
+  instead of the previous longer names e.g. `ubuntu_precise_amd64`. Use the new
+  command `update-policy-task` to change existing tasks to use these names.
+
+### Other
+
 + NEW: The `secure_api` config property can be used to ensure that
   communications with /api are secure. When this is true, all calls to the
   namespace need to be over HTTPS with SSL, and otherwise will return a 404.

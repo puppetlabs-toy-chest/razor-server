@@ -1,9 +1,0 @@
-#!ipxe
-echo Razor <%= task.label %> task boot_call
-echo Installation node: <%= node_url  %>
-echo Installation repo: <%= repo_url %>
-sleep 3
-
-kernel <%= repo_url("/install/netboot/ubuntu-installer/#{task.architecture}/linux") %> <%= render_template("kernel_args").strip %> || goto error
-initrd <%= repo_url("/install/netboot/ubuntu-installer/#{task.architecture}/initrd.gz") %> || goto error
-boot

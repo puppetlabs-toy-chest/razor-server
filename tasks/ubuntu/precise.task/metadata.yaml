@@ -1,0 +1,5 @@
+---
+
+os_version: precise
+label: Ubuntu Precise 12.04
+base: ubuntu

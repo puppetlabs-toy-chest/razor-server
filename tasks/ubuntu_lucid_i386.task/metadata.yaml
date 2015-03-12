@@ -1,6 +1,0 @@
----
-
-os_version: lucid
-architecture: i386
-label: Ubuntu Lucid 10.04 i386
-base: ubuntu

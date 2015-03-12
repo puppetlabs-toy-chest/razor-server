@@ -1,0 +1,5 @@
+---
+
+os_version: lucid
+label: Ubuntu Lucid 10.04
+base: ubuntu
