@@ -12,21 +12,8 @@ network --hostname <%= node.hostname %>
 firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
 timezone --utc <%= node.metadata['timezone'] || 'America/Los_Angeles' %>
-%post
-rhel_username="<%= node.metadata['rhn_username'] %>"
-rhel_password="<%= node.metadata['rhn_password'] %>"
-rhel_activationkey="<%= node.metadata['rhn_activationkey'] %>"
-# If either username or password exist, run the command
-if [ "$rhel_username" != "" -o "$rhel_password" != "" ]; then
-    if [ -z "$rhel_activationkey" ] ; then
-        subscription-manager register \
-            --username $rhel_username --password $rhel_password --auto-attach
-    else
-        subscription-manager register \
-            --username $rhel_username --password $rhel_password --activationkey $rhel_activationkey
-    fi
-fi
-%end
+# This skips over the subscription for redhat.
+
 # Avoid having 'rhgb quiet' on the boot line
 bootloader --location=mbr --append="crashkernel=auto"
 # The following is the partition information you requested
