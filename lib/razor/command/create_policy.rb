@@ -100,7 +100,7 @@ A sample policy installing CentOS 6.4:
     which is distinct from the broker types found on disk.
   HELP
 
-  attr 'task', type: String, required: true, help: _(<<-HELP)
+  attr 'task', type: String, help: _(<<-HELP)
     The name of the task used to install nodes that match this policy.  This must
     match the selected repo, as it references files contained within that repository.
   HELP

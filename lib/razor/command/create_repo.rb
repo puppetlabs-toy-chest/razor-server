@@ -84,9 +84,10 @@ downloaded onto the Razor server:
   HELP
 
   attr 'task', type: String, required: true, help: _(<<-HELP)
-    The name of the task associated with this repository.  This is used to
-    install nodes that match a policy using this repository; generally it
-    should match the OS that the URL or ISO_URL attributes point to.
+    The name of the default task associated with this repository.  This is
+    used to install nodes that match a policy using this repository;
+    generally it should match the OS that the URL or ISO_URL attributes point
+    to. Note that this attribute can be overridden by the task on the policy.
   HELP
 
   require_one_of 'url', 'iso_url', 'no_content'

@@ -11,6 +11,8 @@
   /api/microkernel/bootstrap must include the `http_port` argument.
 + BUGFIX: Any metadata that returned an array or hash caused unreliable
   behavior when referenced in tags. This will now return a helpful error.
++ IMPROVEMENT: The task link in `create-policy` is now optional, deferring to
+  the task in the repo if not provided.
 
 ## 0.16.1 - 2015-01-12
 
