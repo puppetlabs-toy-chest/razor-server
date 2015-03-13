@@ -20,7 +20,8 @@ ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.13'
 
 gem 'torquebox', '~> 3.1.1'
 gem 'sinatra', '>= 1.4.4'
-gem 'sequel', '= 4.3'
+# sequel 4.10 has issues with the serialization plugin; rspec tests fail.
+gem 'sequel', '= 4.9'
 gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
