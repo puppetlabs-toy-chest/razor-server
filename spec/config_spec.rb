@@ -3,9 +3,10 @@ require 'spec_helper'
 require 'pathname'
 
 describe Razor::Config do
-  def make_config(content)
+  def make_config(content, content_default = nil)
     Dir.mktmpdir do |dir|
       fname = Pathname(dir) + "config.yaml"
+      defaults_name = Pathname(dir) + "config-defaults.yaml"
       if content
         hash = { 'all' => {} }
         # Break the paths in content into nested hashes
@@ -17,7 +18,22 @@ describe Razor::Config do
         # Write the resulting YAML file
         fname.open('w') { |fh| fh.write hash.to_yaml }
       end
-      Razor::Config.new(Razor.env, fname.to_s)
+      if content_default
+        hash = { 'all' => {} }
+        # Break the paths in content into nested hashes
+        content_default.each do |key, value|
+          path = key.to_s.split(".")
+          last = path.pop
+          path.inject(hash['all']) { |v, k| v[k] ||= {}; v[k] if v }[last] = value
+        end
+        # Write the resulting YAML file
+        defaults_name.open('w') { |fh| fh.write hash.to_yaml }
+      end
+      if content_default
+        Razor::Config.new(Razor.env, fname.to_s, defaults_name.to_s)
+      else
+        Razor::Config.new(Razor.env, fname.to_s)
+      end
     end
   end
 
@@ -124,6 +140,22 @@ describe Razor::Config do
         end
         validate('match_nodes_on' => ['net0', 'net1']).should be_false
       end
+    end
+  end
+
+  describe "defaults" do
+    it "pulls defaults from defaults file" do
+      config = make_config({'e' => 'g'}, {'abc' => 'def'})
+      config['abc'].should == 'def'
+      config['e'].should == 'g'
+    end
+    it "prefers override over defaults file" do
+      config = make_config({'abc' => 'g'}, {'abc' => 'def'})
+      config['abc'].should == 'g'
+    end
+    it "allows no defaults file" do
+      config = make_config({'e' => 'g'}, nil)
+      config['e'].should == 'g'
     end
   end
 

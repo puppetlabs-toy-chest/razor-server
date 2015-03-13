@@ -19,7 +19,24 @@ module Razor
     # The possible keys we allow in hw_info,
     HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
 
-    def initialize(env, fname = nil)
+    def initialize(env, fname = nil, defaults_file = nil)
+      @values = {}
+      # Load defaults first.
+      defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
+          (File.file?('/etc/razor/config-defaults.yaml') and '/etc/razor/config-defaults.yaml') ||
+          File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
+      begin
+        yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
+
+        @values.merge!(yaml["all"] || {})
+        @values.merge!(yaml[Razor.env] || {})
+      rescue Errno::ENOENT
+        # The defaults file does not exist. This is okay.
+      rescue Errno::EACCES
+        raise InvalidConfigurationError,
+              _("The configuration defaults file %{filename} is not readable") % {filename: fname}
+      end
+
       # Use the filename given, or from the environment, or from /etc if it
       # exists, otherwise the one in our root directory...
       fname ||= ENV["RAZOR_CONFIG"] ||
@@ -38,7 +55,7 @@ module Razor
         raise InvalidConfigurationError,
           _("The configuration file %{filename} is not readable") % {filename: fname}
       end
-      @values = yaml["all"] || {}
+      @values.merge!(yaml["all"] || {})
       @values.merge!(yaml[Razor.env] || {})
     end
 
