@@ -23,7 +23,7 @@ module Razor
       @values = {}
       # Load defaults first.
       defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
-          (File.file?('/etc/razor/config-defaults.yaml') and '/etc/razor/config-defaults.yaml') ||
+          (File.file?('/opt/razor/config-defaults.yaml') and '/opt/razor/config-defaults.yaml') ||
           File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
       begin
         yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
