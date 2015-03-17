@@ -26,6 +26,7 @@ if [ "$rhel_username" != "" -o "$rhel_password" != "" ]; then
             --username $rhel_username --password $rhel_password --activationkey $rhel_activationkey
     fi
 fi
+%end
 # Avoid having 'rhgb quiet' on the boot line
 bootloader --location=mbr --append="crashkernel=auto"
 # The following is the partition information you requested
