@@ -5,7 +5,7 @@ class Razor::Command::UpdatePolicyTask < Razor::Command
   description <<-EOT
 This ensures that the specified policy uses the specified task, setting it
 if necessary. Note that if a node is currently provisioning against this
-policy, errors may arise.
+policy, provisioning errors may arise.
   EOT
 
   example api: <<-EOT

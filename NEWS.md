@@ -12,6 +12,8 @@
 
 ### Other
 
++ NEW: The `update-policy-task` command can be used to migrate policies if the
+  associated task's name changes.
 + NEW: The `secure_api` config property can be used to ensure that
   communications with /api are secure. When this is true, all calls to the
   namespace need to be over HTTPS with SSL, and otherwise will return a 404.
@@ -23,6 +25,29 @@
   behavior when referenced in tags. This will now return a helpful error.
 + IMPROVEMENT: The task link in `create-policy` is now optional, deferring to
   the task in the repo if not provided.
++ NEW: Configuration now allows a defaults file. The RAZOR_CONFIG_DEFAULTS
+  environment variable can tell Razor where this file exists, or it will
+  look for /opt/razor/config-defaults.yaml by default. Any config absent from
+  the normal config.yaml file will be pulled from here next.
++ IMPROVEMENT: The redhat task now allows node metadata to run the RHN
+  subscription command. `rhn_username`, `rhn_password`, and `rhn_activationkey`
+  can be used for this. See the README.md inside the task for more information.
++ IMPROVEMENT: MAC addresses supplied with 'net' prefixes will now be
+  standardized to match those in the 'mac' fact.
++ NEW: Metadata can now be structured. If the metadata is either an array or an
+  object, this can be used in tasks, hooks, and brokers, but not tags currently.
++ IMPROVEMENT: Each stock task that references node metadata now has a README.md
+  file that describes the values it uses.
++ IMPROVEMENT: The redhat task now uses the node's "timezone" metadata value to
+  set the time
++ IMPROVEMENT: Now using a later version of the Sequel gem.
++ IMPROVEMENT: Better logging when files are being retrieved from Razor in
+  brokers and tasks.
++ IMPROVEMENT: API standardized to use underscores for property names.
++ NEW: `aliases` added to API for better datatype recognition in argument
+  metadata.
++ IMPROVEMENT: The hooks.md file has been revamped, now including a full
+  example.
 
 ## 0.16.1 - 2015-01-12
 

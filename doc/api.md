@@ -349,6 +349,20 @@ new tag:
       "rule": "new-match-expression" #Only for `add-policy-tag`
     }
 
+### Update policy task
+
+This ensures that a specified policy uses the task it specifies, setting the
+task if necessary. If a node is currently provisioning against the policy when
+you run this command, it can cause provisioning errors.
+
+    The following shows how to update a policy’s task to a task called “other_task”.
+
+    {
+    "node": "node1",
+    "policy": "my_policy",
+    "task": "other_task"
+    }
+
 ### Delete policy
 
 Policies can be deleted with the `delete-policy` command.  It accepts the
