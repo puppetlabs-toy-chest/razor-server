@@ -13,7 +13,9 @@ cat <<EOF
     }
   },
   "metadata": {
-    $name: $value
+    "update": {
+      $name: $value
+    }
   }
 }
 EOF
