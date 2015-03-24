@@ -123,6 +123,7 @@ module Razor::IPMI
 
     # Now we have our command, execute it and capture the output
     stdout, stderr = Open3.popen3(*command) do |i, o, e, wait|
+      logger.info("running #{args.join(' ')} command on node #{node.id}")
       [i, o, e].map(&:binmode)
       # Push these into the background so we can avoid blocking if too much
       # output is generated, and one blocks before the other completes.
@@ -201,5 +202,9 @@ module Razor::IPMI
 
     # ...and back to the caller we go.
     command
+  end
+
+  def self.logger
+    @logger ||= TorqueBox::Logger.new(self.class)
   end
 end
