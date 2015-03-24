@@ -1,6 +1,6 @@
 # Task notes for Windows 8 Professional
 
-## Metadata
+## Node Metadata
 
 - 'productkey' (optional) - This will be substituted into the unattended.xml
   for the product key used during installation.

@@ -1,6 +1,6 @@
 # Task notes for Redhat 7
 
-## Metadata
+## Node Metadata
 
 - 'rhn_username' (optional) - This will be substituted into the kickstart
   file for the subscription username used during installation.

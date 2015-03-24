@@ -1,6 +1,6 @@
 # Task notes for CentOS 7
 
-## Metadata
+## Node Metadata
 
 - 'timezone' (optional) - This is the string corresponding to the timezone for
   the node.
