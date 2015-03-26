@@ -68,7 +68,7 @@ class Razor::Validation::HashAttribute
   ERB
 
   def to_json(arg)
-      {'type' => ruby_type_to_json(@type.nil? ? nil : @type[:type]),
+      {'type' => @type.nil? ? nil : ruby_type_to_json(@type[:type]),
        # This alerts clients so they can apply their validation/mutation.
        'aliases' => @aliases}.
           delete_if { |_, v| v.nil? || v == [] }.to_json
@@ -176,8 +176,6 @@ class Razor::Validation::HashAttribute
   end
 
   def type(which)
-    which.nil? and raise ArgumentError, "type checks must be passed some type to check"
-
     @type = case which
       when nil    then {type: NilClass}
       when :bool  then {type: [TrueClass, FalseClass]}

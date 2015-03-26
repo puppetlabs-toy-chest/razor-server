@@ -258,6 +258,10 @@ describe Razor::Validation::HashAttribute do
       end
     end
 
+    it "should allow nil" do
+      attr.type(nil)[:type].should == NilClass
+    end
+
     context "help" do
       subject :text do attr.help end
 
