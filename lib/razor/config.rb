@@ -34,7 +34,7 @@ module Razor
         # The defaults file does not exist. This is okay.
       rescue Errno::EACCES
         raise InvalidConfigurationError,
-              _("The configuration defaults file %{filename} is not readable") % {filename: fname}
+              _("The configuration defaults file %{filename} is not readable") % {filename: defaults_file}
       end
 
       # Use the filename given, or from the environment, or from /etc if it
