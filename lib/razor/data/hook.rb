@@ -118,9 +118,9 @@ class Razor::Data::Hook < Sequel::Model
 
       # Required keys that are missing from the supplied configuration.
       schema.each do |key, details|
-        next unless details['required']
         next if configuration.has_key? key
         (configuration[key] = details['default']) and next if details['default']
+        next unless details['required']
         errors.add(:configuration, _("key '%{key}' is required by this hook type, but was not supplied") % {key: key})
       end
     else

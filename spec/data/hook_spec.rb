@@ -138,11 +138,14 @@ describe Razor::Data::Hook do
       it "should respect defaults for configuration" do
         configuration = {
             'server'  => {'required' => true, 'description' => 'foo', 'default' => 'abc'},
+            'other'   => {'description' => 'required-absent', 'default' => 'def'},
             'version' => {'required' => false, 'description' => 'bar'}
         }
         set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
 
-        new_hook.configuration['server'].should == 'abc'
+        hook = new_hook
+        hook.configuration['server'].should == 'abc'
+        hook.configuration['other'].should == 'def'
       end
     end
 
