@@ -390,7 +390,7 @@ class Razor::Data::Hook < Sequel::Model
                :enabled => policy.enabled,
                :hostname_pattern => policy.hostname_pattern,
                :root_password => policy.root_password,
-               :tags => policy.tags,
+               :tags => policy.tags.map { |t| view_object_reference(t) },
                :nodes => {:count => policy.nodes.count},
     } : nil
   end

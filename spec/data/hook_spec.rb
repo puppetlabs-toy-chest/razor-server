@@ -303,7 +303,8 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      node = Fabricate(:bound_node)
+      policy = Fabricate(:policy_with_tag)
+      node = Fabricate(:bound_node, policy: policy, tags: policy.tags)
       Razor::Data::Hook.run('abc', node: node)
 
       # There will also be a 'Node' message on the queue.
@@ -327,11 +328,12 @@ EOF
       input['policy']['broker'].should == node.policy.broker.name
       input['policy']['enabled'].should == node.policy.enabled
       input['policy']['hostname_pattern'].should == node.policy.hostname_pattern
-      input['policy']['tags'].should == node.policy.tags
+      input['policy']['tags'].count.should == node.policy.tags.count
       input['policy']['nodes']['count'].should == node.policy.nodes.count
       input['node']['name'].should == node.name
       input['node']['facts'].count.should == node.facts.count
       input['node']['metadata'].count.should == node.metadata.count
+      input['node']['tags'].count.should == node.tags.count
     end
 
     it "should contain recent metadata if node or hook has changed" do

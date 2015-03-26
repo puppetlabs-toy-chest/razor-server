@@ -48,6 +48,8 @@
   metadata.
 + IMPROVEMENT: The hooks.md file has been revamped, now including a full
   example.
++ BUGFIX: Tags on policies are now being serialized properly when passed to the
+  hook as input.
 
 ## 0.16.1 - 2015-01-12
 
