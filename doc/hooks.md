@@ -26,7 +26,7 @@ directory and optional event scripts within that directory:
 
 The `create-hook` command is used to create a hook object from a hook type:
 
-    > razor create-hook --name myhook --hook_type some_hook \
+    > razor create-hook --name myhook --hook-type some_hook \
         --configuration foo=7 --configuration bar=rhubarb
 
 The hook object created by this command will track changes to the hook's
@@ -286,7 +286,7 @@ the configuration on the hook object:
 That completes the hook type. Next, we'll create the hook object which will
 store the configuration via:
 
-    razor create-hook --name counter --hook_type counter
+    razor create-hook --name counter --hook-type counter
 
 Since the configuration is absent from this creation call, the default value
 of 0 in `configuration.yaml` is used. Alternatively, this could be set using
