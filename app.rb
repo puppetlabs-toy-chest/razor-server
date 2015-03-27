@@ -795,7 +795,6 @@ and requires full control over the database (eg: add and remove tables):
 
   get '/api/collections/message-queue' do
     Hash[TorqueBox::Messaging::Queue.list.map do |queue|
-       puts "including queue #{queue} with count #{queue.count_messages}"
       [queue.name, {'count' => queue.count_messages}]
     end].to_json
   end
