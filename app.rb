@@ -792,4 +792,20 @@ and requires full control over the database (eg: add and remove tables):
 
     render_template("bootstrap")
   end
+
+  get '/api/collections/message-queue' do
+    Hash[TorqueBox::Messaging::Queue.list.map do |queue|
+       puts "including queue #{queue} with count #{queue.count_messages}"
+      [queue.name, {'count' => queue.count_messages}]
+    end].to_json
+  end
+
+  post '/api/commands/dequeue-message-queues' do
+    # Remove these by name so we only get our queues.
+    Hash[['/queues/razor/sequel-instance-messages', '/queues/razor/sequel-hooks-messages'].map do |queue_name|
+      queue = TorqueBox.fetch(queue_name)
+      count = queue.remove_messages
+      [queue.name, count > 0 ? "removed #{count} messages" : "no changes"]
+    end].to_json
+  end
 end
