@@ -4,16 +4,6 @@ echo Installation node: <%= node_url  %>
 echo Installation repo: <%= repo_url %>
 sleep 3
 
-# Loading the preseed file is done this way because of a "feature" where
-# the preseed/url kernel argument is augmented if the url's domain does not
-# contain a period. So if the policy's hostname pattern was
-# "node${id}.example.com", the preseed URL would be mutated from
-# "http://razor-server:8080/svc/file/preseed" to
-# "http://razor-server.example.com:8080/svc/file/preseed" This method grabs
-# the preseed file first, then passes it using preseed/file instead of
-# preseed/url. This method appears to only work with Trusty so far, but will
-# stay as the default unless the next version does not support it.
-initrd <%= file_url("preseed") %> preseed.cfg || goto error
 kernel <%= repo_url("/install/netboot/ubuntu-installer/#{task.architecture}/linux") %> <%= render_template("kernel_args").strip %> || goto error
 initrd <%= repo_url("/install/netboot/ubuntu-installer/#{task.architecture}/initrd.gz") %> || goto error
 boot
