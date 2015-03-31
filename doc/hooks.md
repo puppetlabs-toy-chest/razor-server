@@ -67,7 +67,7 @@ contain a 'hook' property:
     {
       "hook": {
         "name": hook name,
-        "configuration": ... user-defined object ...
+        "configuration": ... operations to perform ...
       }
     }
 
@@ -80,8 +80,10 @@ above, the input JSON would be:
       "hook": {
         "name": "myhook",
         "configuration": {
-          "foo": 7,
-          "bar": "rhubarb"
+          "update": {
+            "foo": 7,
+            "bar": "rhubarb"
+          }
         }
       }
     }
@@ -274,14 +276,21 @@ the configuration on the hook object:
     {
       "hook": {
         "configuration": {
-          "count": $value
+          "update": {
+            "count": $value
+          }
         }
       },
-      "metadata": {
-        $name: $value
+      "node": {
+        "metadata": {
+          $name: $value
+        }
       }
     }
     EOF
+
+Note that this script uses [`jq`](http://stedolan.github.io/jq/), a bash JSON manipulation framework.
+This must be on the $PATH in order for execution to succeed.
 
 That completes the hook type. Next, we'll create the hook object which will
 store the configuration via:

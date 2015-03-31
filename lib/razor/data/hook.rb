@@ -180,13 +180,13 @@ class Razor::Data::Hook < Sequel::Model
       appender.update(node: node_id, policy: policy_id, cause: cause)
       # Refresh these objects if they've changed. The node may be deleted,
       # in which case this should just use the cached data.
-      if node = Node[id: node_id]
+      if node = Razor::Data::Node[id: node_id]
         args[:node] = node_hash(node)
       end
-      if hook = Hook[id: self.id]
+      if hook = Razor::Data::Hook[id: self.id]
         args[:hook][:configuration] = hook.configuration
       end
-      if policy = Policy[id: policy_id]
+      if policy = Razor::Data::Policy[id: policy_id]
         args[:policy] = policy_hash(policy)
       end
 

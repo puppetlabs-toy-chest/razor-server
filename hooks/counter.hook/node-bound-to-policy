@@ -2,6 +2,7 @@
 
 json=$(< /dev/stdin)
 
+# This script requires `jq` in $PATH: http://stedolan.github.io/jq/
 name=$(jq '.hook.name' <<< $json)
 value=$(( $(jq '.hook.config.value' <<< $json) + 1 ))
 
@@ -9,12 +10,16 @@ cat <<EOF
 {
   "hook": {
     "configuration": {
-      "value": $value
+      "update": {
+        "value": $value
+      }
     }
   },
-  "metadata": {
-    "update": {
-      $name: $value
+  "node": {
+    "metadata": {
+      "update": {
+        $name: $value
+      }
     }
   }
 }
