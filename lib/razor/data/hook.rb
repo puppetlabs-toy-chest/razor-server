@@ -78,12 +78,17 @@ class Razor::Data::Hook < Sequel::Model
     end
   end
 
+  def handles_event?(event_name)
+    !!(find_script(event_name))
+  end
+
   # Run all hooks that have a handler for event
   def self.run(cause, args = {})
     # Do not disturb original arguments.
     # Serialize the objects here to avoid another database call on objects
     # that may be gone by the time the hook runs.
     self.all do |hook|
+      next unless hook.handles_event?(cause)
       formatted_args = args.dup.merge(hook.serialize_arguments(cause, node: args[:node], policy: args[:policy]))
       hook.publish '_handle', 'cause' => cause, 'args' => formatted_args,
                               'queue' => '/queues/razor/sequel-hook-messages'
@@ -132,7 +137,8 @@ class Razor::Data::Hook < Sequel::Model
     cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
         where(hook_id: id).limit(params[:limit], params[:start])
     cursor.map do |log|
-      { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
+      { 'timestamp' => log.timestamp.xmlschema, 'node' => log.node.name,
+        'policy' => log.policy.name}.update(log.entry).delete_if { |_,v| v.nil? }
     end
   end
 
@@ -161,6 +167,9 @@ class Razor::Data::Hook < Sequel::Model
     def add_error(msg, severity = 'error')
       update(error: [get(:error), msg].compact.join(_(' and ')),
               severity: severity)
+    end
+    def add_action(action)
+      update(actions: [get(:actions), action].compact.join(_(' and ')))
     end
     def get(key)
       @log[key]
@@ -207,11 +216,13 @@ class Razor::Data::Hook < Sequel::Model
         # Update the configuration of this hook.
         if json.has_key?('hook')
           update_hook(json['hook'], appender)
+          appender.add_action(_("updating hook configuration: #{json['hook']['configuration']}"))
         end
 
         # Update node metadata.
         if json.has_key?('node')
           update_node(json['node'], node, appender)
+          appender.add_action(_("updating node metadata: #{json['node']['metadata']}"))
         end
       rescue JSON::ParserError
         appender.add_error('invalid JSON returned from hook')
@@ -258,7 +269,7 @@ class Razor::Data::Hook < Sequel::Model
      # Skip; not included in output.
     else
       severity = appender.get(:error) == 'error' ? 'error' : 'warn'
-      appender.add_error('hook output for hook configuration should be an %{object} but was a %{given}' %
+      appender.add_error(_('hook output for hook configuration should be an %{object} but was a %{given}') %
                          {object: ruby_type_to_json(Hash), given: ruby_type_to_json(config.class)}, severity)
     end
   end

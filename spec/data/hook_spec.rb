@@ -218,8 +218,6 @@ exit 0
 
       set_hook_file('test', 'abc' => "exit 1") { |file| file.chmod(0644)}
       Razor::Data::Hook.run('abc', node: Fabricate(:node))
-      queue.count_messages.should == 1
-      run_message(queue.receive)
       events = Razor::Data::Event.all
       events.size.should == 1
       events.first.entry['msg'].should =~ /abc is not executable/
@@ -384,7 +382,7 @@ EOF
       input['hook']['cause'].should == 'abc'
       input['hook']['configuration'].should == hook.configuration
       input['policy']['name'].should == node.policy.name
-      input['policy']['enabled'].should == node.policy.enabled
+      input['policy']['enabled'].should == false
       input['policy']['nodes']['count'].should == node.policy.nodes.count
       input['node']['name'].should == node.name
       input['node']['metadata'].should == node.metadata
@@ -471,6 +469,8 @@ exit #{exit}
         hook.reload
         hook.configuration['counter'].should == 1
         hook.configuration.keys.should_not include 'version'
+        JSON.parse(Razor::Data::Event.first[:entry])['actions'].should ==
+            'updating hook configuration: {"update"=>{"counter"=>1}, "remove"=>["version"]}'
       end
     end
 
@@ -509,6 +509,8 @@ exit #{exit}
         node.metadata['new-key'].should == 'new-value'
         node.metadata['existing'].should == 'a-value'
         node.metadata.keys.should_not include 'to-remove'
+        JSON.parse(Razor::Data::Event.first[:entry])['actions'].should ==
+            'updating node metadata: {"update"=>{"new-key"=>"new-value", "existing"=>"a-value"}, "remove"=>["to-remove"]}'
       end
     end
 
