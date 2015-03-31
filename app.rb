@@ -480,7 +480,7 @@ and requires full control over the database (eg: add and remove tables):
   get '/svc/log/:node_id' do
     node = Razor::Data::Node[params[:node_id]] if params[:node_id]
     unless node
-      Razor::Data::Event.log_append(:event => :get_broker_file,
+      Razor::Data::Event.log_append(:event => :log_to_node,
                      :msg => _("node %{node} not found to log") % {node: params[:node_id]},
                      :severity => 'error', :original_msg => params[:msg])
       error 404, :error => _("node %{node}.erb does not exist") % {node: params[:node_id]}
