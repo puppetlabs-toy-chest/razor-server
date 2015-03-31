@@ -332,8 +332,13 @@ request should be of the form:
     }
 
 The `new-count` can be an integer, which must be larger than the number of
-nodes that are currently bound to the policy, or `null` to make the policy
-unbounded
+nodes that are currently bound to the policy. Alternatively, the `no_max_count`
+argument will make the policy unbounded:
+
+    {
+      "name": "a policy"
+      "no_max_count": true
+    }
 
 ### Add/remove tags to/from Policy
 

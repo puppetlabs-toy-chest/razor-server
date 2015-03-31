@@ -11,7 +11,7 @@ greater than the number of nodes currently bound to the policy; it may also be
   example api: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    {"name": "example", "max_count": null}
+    {"name": "example", "no_max_count": true}
 
 Set a policy to a maximum of 15 nodes:
 
@@ -21,7 +21,7 @@ Set a policy to a maximum of 15 nodes:
   example cli: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    razor --name example --max-count null
+    razor --name example --no-max-count
 
 Set a policy to a maximum of 15 nodes:
 
@@ -33,28 +33,28 @@ Set a policy to a maximum of 15 nodes:
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
                help: _('The name of the policy to modify.')
 
-  attr 'max_count', required: true, help: _(<<-HELP)
-    The new maximum number of nodes bound by this policy.  This can be
-    "null", in which case the policy becomes unlimited, or an integer
-    greater than or equal to one.
+  attr 'max_count', type: Integer, help: _(<<-HELP)
+    The new maximum number of nodes bound by this policy. You cannot reduce the
+    maximum number of nodes bound to a policy below the number of nodes
+    currently bound to the policy with this command.
 
-    You cannot reduce the maximum number of nodes bound to a policy below
-    the number of nodes currently bound to the policy with this command.
+    To make the policy unbounded, use the `no_max_count` argument instead.
   HELP
+
+  attr 'no_max_count', type: TrueClass, help: _(<<-HELP)
+    Make the maximum number of nodes that can bind to this policy unlimited.
+  HELP
+
+  require_one_of 'max_count', 'no_max_count'
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]
 
-    max_count_s = data['max_count']
-
-    if max_count_s.nil?
+    if data['no_max_count']
       max_count = nil
       bound = "unbounded"
     else
-      max_count = max_count_s.to_i
-      max_count.to_s == max_count_s.to_s or
-        request.error 422, :error => _("New max_count '%{raw}' is not a valid integer") % {raw: max_count_s}
-      bound = max_count_s
+      bound = max_count = data['max_count']
       node_count = policy.nodes.count
       node_count <= max_count or
         request.error 400, :error => n_(

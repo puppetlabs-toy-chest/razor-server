@@ -1,2 +1,2 @@
 <% @bootif = node.dhcp_mac ? "BOOTIF=01-#{node.dhcp_mac} " : "interface=auto " %>
-DEBCONF_DEBUG=5 install auto=true file=preseed.cfg debian-installer=en_US locale=en_US kbd-chooser/method=us netcfg/get_hostname=<%= node.shortname %> netcfg/get_domain=<%= node.domainname %> fb=false debconf/frontend=noninteractive console-setup/ask_detect=false <%= @bootif %>
+DEBCONF_DEBUG=5 install auto=true url=<%= file_url("preseed") %> debian-installer=en_US locale=en_US kbd-chooser/method=us netcfg/get_hostname=<%= node.shortname %> netcfg/get_domain=<%= node.domainname %> fb=false debconf/frontend=noninteractive console-setup/ask_detect=false <%= @bootif %>

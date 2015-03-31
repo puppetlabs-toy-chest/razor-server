@@ -10,6 +10,8 @@
   instead of the previous longer names e.g. `ubuntu_precise_amd64`. Use the new
   commands `update-policy-task` and `update-repo-task` to change existing
   policies and repos to use these new task names.
++ `modify_policy_max_count` now uses `no_max_count` to indicate that the
+  policy should be unbounded.
 
 ### Other
 
