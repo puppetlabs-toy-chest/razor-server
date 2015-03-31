@@ -493,7 +493,7 @@ module Razor::Data
       node.boot_count += 1
       if name == "finished" and node.policy
         node.installed = node.policy.name
-        Razor::Data::Hook.run('node-install-finished', node: self)
+        Razor::Data::Hook.run('node-install-finished', node: node)
       end
       node.save
     end
