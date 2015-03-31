@@ -8,11 +8,14 @@
   tasks, these have been changed to a more standard naming scheme. The `ubuntu`
   task points to Trusty, and the others are `ubuntu/precise` and `ubuntu/lucid`
   instead of the previous longer names e.g. `ubuntu_precise_amd64`. Use the new
-  command `update-policy-task` to change existing tasks to use these names.
+  commands `update-policy-task` and `update-repo-task` to change existing
+  policies and repos to use these new task names.
 
 ### Other
 
 + NEW: The `update-policy-task` command can be used to migrate policies if the
+  associated task's name changes.
++ NEW: The `update-repo-task` command can be used to migrate repos if the
   associated task's name changes.
 + NEW: The `secure_api` config property can be used to ensure that
   communications with /api are secure. When this is true, all calls to the

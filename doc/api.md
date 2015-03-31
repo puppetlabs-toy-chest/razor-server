@@ -351,9 +351,9 @@ new tag:
 
 ### Update policy task
 
-This ensures that a specified policy uses the task it specifies, setting the
-task if necessary. If a node is currently provisioning against the policy when
-you run this command, it can cause provisioning errors.
+This ensures that a specified policy uses the task this command specifies,
+setting the task if necessary. If a node is currently provisioning against the
+policy when you run this command, provisioning errors may occur.
 
     The following shows how to update a policy’s task to a task called “other_task”.
 
@@ -375,6 +375,20 @@ name of a single policy:
 Note that this does not affect the `installed` status of a node, and
 therefore won't, by itself, cause a node to be bound to another policy upon
 reboot.
+
+### Update repo task
+
+This ensures that a specified repo uses the task this command specifies,
+setting the task if necessary. If a node is currently provisioning against the
+repo when you run this command, provisioning errors may occur.
+
+    The following shows how to update a repo’s task to a task called “other_task”.
+
+    {
+    "node": "node1",
+    "repo": "my_repo",
+    "task": "other_task"
+    }
 
 ### Create hook
 
