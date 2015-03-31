@@ -65,4 +65,23 @@ describe Razor::Command::UpdatePolicyTask do
     update_policy_task(command_hash)
     last_response.status.should == 422
   end
+
+  it "should allow no_task" do
+    policy = Razor::Data::Policy[name: command_hash['policy']]
+    policy.task_name = Fabricate(:task).name
+    policy.task.should_not == policy.repo.task
+    command_hash.delete('task')
+    command_hash['no_task'] = true
+    update_policy_task(command_hash)
+    last_response.status.should == 202
+    policy.reload
+    policy.task.should == policy.repo.task
+    policy.task_name.should be_nil
+  end
+
+  it "should disallow both a task and no_task" do
+    command_hash['no_task'] = true
+    update_policy_task(command_hash)
+    last_response.status.should == 422
+  end
 end

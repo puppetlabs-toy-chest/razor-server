@@ -390,6 +390,14 @@ repo when you run this command, provisioning errors may occur.
     "task": "other_task"
     }
 
+    The following shows how to update a repo’s task to its repo's task.
+
+    {
+    "node": "node1",
+    "repo": "my_repo",
+    "no_task": true
+    }
+
 ### Create hook
 
 A hook can be created with the `create-hook` command.  It accepts the name

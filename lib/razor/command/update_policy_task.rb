@@ -12,12 +12,20 @@ policy, provisioning errors may arise.
 Update policy's task to a task named 'other_task':
 
     {"node": "node1", "policy": "my_policy", "task": "other_task"}
+
+Use the task on the policy's repo:
+
+    {"node": "node1", "policy": "my_policy", "no_task": true}
   EOT
 
   example cli: <<-EOT
 Update policy's task to a task named 'other_task':
 
     razor update-policy-task --policy my_policy --task other_task
+
+Use the task on the policy's repo:
+
+    razor update-policy-task --policy my_policy --no-task
   EOT
 
   authz '%{policy}'
@@ -25,8 +33,12 @@ Update policy's task to a task named 'other_task':
   attr 'policy', type: String, required: true, references: [Razor::Data::Policy, :name],
                help: _('The policy that will have its task updated.')
 
-  attr 'task', type: String, required: true,
+  attr 'task', type: String,
               help: _('The task to be used by the policy.')
+
+  attr 'no_task', type: TrueClass, help: _('This policy should use the task on the repo')
+
+  require_one_of 'task', 'no_task'
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['policy']]
