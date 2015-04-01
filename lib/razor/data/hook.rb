@@ -137,8 +137,8 @@ class Razor::Data::Hook < Sequel::Model
     cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
         where(hook_id: id).limit(params[:limit], params[:start])
     cursor.map do |log|
-      { 'timestamp' => log.timestamp.xmlschema, 'node' => log.node.name,
-        'policy' => log.policy.name}.update(log.entry).delete_if { |_,v| v.nil? }
+      { 'timestamp' => log.timestamp.xmlschema, 'node' => (log.node ? log.node.name : nil),
+        'policy' => (log.policy ? log.policy.name : nil)}.update(log.entry).delete_if { |_,v| v.nil? }
     end
   end
 
