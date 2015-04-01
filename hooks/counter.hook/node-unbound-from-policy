@@ -6,21 +6,21 @@ json=$(< /dev/stdin)
 
 # This script requires `jq` in $PATH: http://stedolan.github.io/jq/
 name=$(jq '.hook.name' <<< "${json}")
-value=$(( $(jq '.hook.configuration.node-bound-to-policy' <<< "${json}") + 1 ))
+value=$(( $(jq '.hook.configuration.node-unbound-from-policy' <<< "${json}") + 1 ))
 
 cat <<EOF
 {
   "hook": {
     "configuration": {
       "update": {
-        "node-bound-to-policy": $value
+        "node-unbound-from-policy": $value
       }
     }
   },
   "node": {
     "metadata": {
       "update": {
-        "last_hook_execution": "node-bound-to-policy"
+        "last_hook_execution": "node-unbound-from-policy"
       }
     }
   }

@@ -1,73 +1,95 @@
 {
-    "hook": {
-        "name": "counter",
-        "config": {
-            "value": 0
-        }
+  "node": {
+    "id": 1,
+    "name": "node1",
+    "hw_info": {
+      "mac": [
+        "01-23-45-67-89-00"
+      ]
     },
-    "node": {
-        "name": "node10",
-        "hw_info": {
-            "mac": [ "52-54-00-30-8e-45" ],
-            "serial": "watz0815",
-            "uuid": "ea7c46f8-615f-234f-c1a4-20f0d3edac3d"
-        },
-        "dhcp_mac": "52-54-00-30-8e-45",
-        "tags": ["compute", "anything", "any", "new"],
-        "facts": {
-            "memorysize_mb": "995.05",
-            "myfact": "0815",
-            "facterversion": "2.0.1",
-            "architecture": "x86_64",
-            "hardwaremodel": "x86_64",
-            "processor0": "QEMU Virtual CPU version 1.6.2",
-            "processorcount": "1",
-            "ipaddress": "192.168.100.196",
-            "hardwareisa": "x86_64",
-            "netmask": "255.255.255.0",
-            "uniqueid": "007f0100",
-            "physicalprocessorcount": "1",
-            "virtual": "kvm",
-            "is_virtual": "true",
-            "interfaces": "eth0,lo",
-            "ipaddress_eth0": "192.168.100.196",
-            "macaddress_eth0": "52:54:00:30:8e:45",
-            "netmask_eth0": "255.255.255.0",
-            "ipaddress_lo": "127.0.0.1",
-            "netmask_lo": "255.0.0.0",
-            "network_eth0": "192.168.100.0",
-            "network_lo": "127.0.0.0",
-            "macaddress": "52:54:00:30:8e:45",
-            "blockdevice_vda_size": 4294967296,
-            "blockdevice_vda_vendor": "0x1af4",
-            "blockdevices": "vda",
-            "bios_vendor": "Watzmann Ops",
-            "bios_version": "08.15",
-            "bios_release_date": "01/01/2011",
-            "manufacturer": "Watzmann BIOS",
-            "productname": "Bochs",
-            "serialnumber": "WATZ0815",
-            "uuid": "EA7C46F8-615F-234F-C1A4-20F0D3EDAC3D",
-            "type": "Other"
-        },
-        "state": {
-            "installed": false
-        },
-        "hostname": "client-l.watzmann.net",
-        "root_password": "secret",
-        "last_checkin": "2014-05-21T03:45:47+02:00"
+    "dhcp_mac": "01-23-45-67-89-00",
+    "tags": [
+      "some-tag"
+    ],
+    "facts": {
+      "hardwareisa": "x86_64",
+      "macaddress": "01:23:45:67:89:00",
+      "architecture": "x86_64",
+      "hardwaremodel": "x86_64",
+      "processor0": "Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz",
+      "processor1": "Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz",
+      "processorcount": "2",
+      "interfaces": "ens192,lo",
+      "ipaddress_ens192": "10.10.10.10",
+      "macaddress_ens192": "01:23:45:67:89:00",
+      "netmask_ens192": "255.255.255.0",
+      "ipaddress_lo": "127.0.0.1",
+      "netmask_lo": "255.0.0.0",
+      "memorysize_mb": "3954.39",
+      "memoryfree_mb": "3840.88",
+      "facterversion": "2.0.1",
+      "ipaddress": "10.10.10.10",
+      "virtual": "vmware",
+      "is_virtual": "true",
+      "uniqueid": "200abd8c",
+      "blockdevice_sda_size": 8589934592,
+      "blockdevice_sda_vendor": "VMware",
+      "blockdevice_sda_model": "Virtual disk",
+      "blockdevice_sr0_size": 1073741312,
+      "blockdevice_sr0_vendor": "NECVMWar",
+      "blockdevice_sr0_model": "VMware IDE CDR10",
+      "blockdevices": "sda,sr0",
+      "physicalprocessorcount": "1",
+      "network_ens192": "10.10.10.10",
+      "network_lo": "127.0.0.0",
+      "boardmanufacturer": "Intel Corporation",
+      "boardproductname": "440BX Desktop Reference Platform",
+      "boardserialnumber": "None",
+      "bios_vendor": "Phoenix Technologies LTD",
+      "bios_version": "6.00",
+      "bios_release_date": "07\/30\/2013",
+      "manufacturer": "VMware, Inc.",
+      "productname": "VMware Virtual Platform",
+      "serialnumber": "VMware-42 00 00 00 00 00 00 00-00 00 00 00 00 00 00 11",
+      "uuid": "420F54DE-5B7B-531B-51EF-358D41D28C8E",
+      "type": "Other",
+      "netmask": "255.255.255.0"
     },
-    "policy": {
-        "name": "client-l",
-        "repo": "centos-6.4",
-        "task": "ubuntu",
-        "broker": "noop",
-        "enabled": true,
-        "hostname_pattern": "client-l.watzmann.net",
-        "root_password": "secret",
-        "tags": ["client-l"],
-        "nodes": {
-            "count": 0
-        }
+    "metadata": {
+      "ip": "",
+      "counter": 1
+    },
+    "state": {
+      "installed": false,
+      "stage": "boot_install"
+    },
+    "hostname": "some-hostname",
+    "root_password": "some-password",
+    "last_checkin": "2015-04-01T13:21:06-07:00"
+  },
+  "policy": {
+    "id": 1,
+    "name": "policy_name",
+    "repo": "repo_name",
+    "task": "task_name",
+    "broker": "broker_name",
+    "enabled": true,
+    "hostname_pattern": "some-hostname",
+    "root_password": "some-password",
+    "tags": [
+      "some-tag"
+    ],
+    "nodes": {
+      "count": 1
     }
+  },
+  "hook": {
+    "id": 1,
+    "name": "hook_name",
+    "type": "counter",
+    "configuration": {
+      "node-booted": 1
+    },
+    "cause": "node-bound-to-policy"
+  }
 }
