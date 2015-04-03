@@ -6,7 +6,7 @@ json=$(< /dev/stdin)
 
 # This script requires `jq` in $PATH: http://stedolan.github.io/jq/
 name=$(jq '.hook.name' <<< "${json}")
-value=$(( $(jq '.hook.configuration.node-booted' <<< "${json}") + 1 ))
+value=$(( $(jq '.hook.configuration."node-booted"' <<< "${json}") + 1 ))
 
 cat <<EOF
 {
