@@ -557,9 +557,17 @@ and requires full control over the database (eg: add and remove tables):
   #
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
-  COLLECTIONS = [:brokers, :repos, :tags, :policies,
-                 [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :tasks, :commands,
-                 [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
+  COLLECTIONS = [
+    [:nodes,    {'expand' => {"type" => "boolean"}, 'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}],
+    [:events,   {'expand' => {"type" => "boolean"}, 'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], 
+    [:brokers,  {'expand' => {"type" => "boolean"}}],
+    [:repos,    {'expand' => {"type" => "boolean"}}],
+    [:tags,     {'expand' => {"type" => "boolean"}}],
+    [:policies, {'expand' => {"type" => "boolean"}}],
+    [:tasks,    {'expand' => {"type" => "boolean"}}],
+    [:commands, {'expand' => {"type" => "boolean"}}],
+    [:hooks,    {'expand' => {"type" => "boolean"}}],
+  ]
 
   #
   # The main entry point for the public/management API
@@ -613,7 +621,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/tags' do
-    collection_view Razor::Data::Tag, "tags"
+    collection_view Razor::Data::Tag, "tags", expand: params[:expand]
   end
 
   get '/api/collections/tags/:name' do
@@ -635,7 +643,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/brokers' do
-    collection_view Razor::Data::Broker, 'brokers'
+    collection_view Razor::Data::Broker, 'brokers', expand: params[:expand]
   end
 
   get '/api/collections/brokers/:name' do
@@ -651,7 +659,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/policies' do
-    collection_view Razor::Data::Policy.order(:rule_number), 'policies'
+    collection_view Razor::Data::Policy.order(:rule_number), 'policies', expand: params[:expand]
   end
 
   get '/api/collections/policies/:name' do
@@ -667,7 +675,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/tasks' do
-    collection_view Razor::Task, 'tasks'
+    collection_view Razor::Task, 'tasks', expand: params[:expand]
   end
 
   get '/api/collections/tasks/*' do |name|
@@ -681,7 +689,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/repos' do
-    collection_view Razor::Data::Repo, 'repos'
+    collection_view Razor::Data::Repo, 'repos', expand: params[:expand]
   end
 
   get '/api/collections/repos/:name' do
@@ -692,7 +700,7 @@ and requires full control over the database (eg: add and remove tables):
 
   get '/api/collections/commands' do
     collection_view Razor::Data::Command.order(:submitted_at).reverse,
-      'commands'
+      'commands', expand: params[:expand]
   end
 
   get '/api/collections/commands/:id' do
@@ -712,7 +720,7 @@ and requires full control over the database (eg: add and remove tables):
     # Need to also order by ID here in case the granularity of timestamp is
     # not enough to maintain a consistent ordering.
     cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse
-    collection_view cursor, 'events', limit: params[:limit], start: params[:start]
+    collection_view cursor, 'events', limit: params[:limit], start: params[:start], expand: params[:expand]
   end
 
   get '/api/collections/events/:id' do
@@ -726,7 +734,7 @@ and requires full control over the database (eg: add and remove tables):
   get '/api/collections/hooks' do
     check_permissions!("query:hooks")
 
-    collection_view Razor::Data::Hook, 'hooks'
+    collection_view Razor::Data::Hook, 'hooks', expand: params[:expand]
   end
 
   get '/api/collections/hooks/:name' do
@@ -747,7 +755,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node.search(params).order(:name), 'nodes', limit: params[:limit], start: params[:start]
+    collection_view Razor::Data::Node.search(params).order(:name), 'nodes', limit: params[:limit], start: params[:start], expand: params[:expand]
   end
 
   get '/api/collections/nodes/:name' do
