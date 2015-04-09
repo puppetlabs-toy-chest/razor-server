@@ -20,13 +20,13 @@ This hook performs two potentially useful things:
                name: hook_name
           hook_type: counter
       configuration:
-                                    nodeboot: 11
-                           nodeboundtopolicy: 4
-                                 nodedeleted: 1
-                            nodefactschanged: 4
-                         nodeinstallfinished: 2
-                              noderegistered: 3
-                       nodeunboundfrompolicy: 1
+                                 node-booted: 11
+                        node-bound-to-policy: 4
+                                node-deleted: 1
+                          node-facts-changed: 4
+                       node-install-finished: 2
+                             node-registered: 3
+                    node-unbound-from-policy: 1
 
     Query additional details via: `razor hooks hook_name [configuration, log]`
     ```
