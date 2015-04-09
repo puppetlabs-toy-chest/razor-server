@@ -771,6 +771,11 @@ describe "command and query API" do
       let :names do [] end
       before :each do
         5.times { names.push(Fabricate(:node).name) }
+        # Verify that the array of names matches what's on the server.
+        get "/api/collections/nodes"
+        last_response.json['error'].should be_nil
+        last_response.status.should == 200
+        last_response.json['items'].map {|e| e['name']}.should == names
       end
       it "should show limited nodes" do
         get "/api/collections/nodes?limit=2"
