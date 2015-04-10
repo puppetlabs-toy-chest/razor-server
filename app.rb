@@ -747,7 +747,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node.search(params).order(:name), 'nodes', limit: params[:limit], start: params[:start]
+    collection_view Razor::Data::Node.search(params).order(:id), 'nodes', limit: params[:limit], start: params[:start]
   end
 
   get '/api/collections/nodes/:name' do
