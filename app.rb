@@ -780,11 +780,17 @@ and requires full control over the database (eg: add and remove tables):
       error 400,
         :error => _("The nic_max parameter must be an integer not starting with 0")
 
-    params['http_port'].nil? and request.secure? and
-      error 400,
-        :error => _("The `http_port` argument must be supplied for bootstrap generation on a secure port")
+    is_nil = params["http_port"].nil?
+    is_in_range = (params["http_port"] =~ /\A[1-9][0-9]{0,4}\Z/ and
+        params['http_port'].to_i < 65536)
+    is_nil or is_in_range or error 400,
+        :error => _('The http_port parameter must be an integer between 1 and 65535')
 
-    @bootstrap_port = params['http_port'].nil? ? request.port.to_s : params['http_port']
+    @bootstrap_port = params['http_port']
+    @bootstrap_port ||= ENV['HTTP_PORT']
+    # Can't use current port if this request is secure; use this default.
+    @bootstrap_port ||= 8150 if request.secure?
+    @bootstrap_port ||= request.port.to_s
 
     # How many NICs ipxe should probe for DHCP
     @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i

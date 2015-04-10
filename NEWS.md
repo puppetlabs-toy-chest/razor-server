@@ -16,6 +16,9 @@
   addresses. 
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
++ IMPROVEMENT: The `bootstrap` URL will now guess what the correct http_port
+  value should be, typically falling back to the URL used for the `/bootstrap`
+  request. 
 
 ## 1.0.1 - 2015-06-11
 
