@@ -68,8 +68,9 @@ module Razor::Data
     # @warning this should not be called inside a transaction.
     def make_the_repo_accessible(command)
       command.store('running')
-      if url.nil? and iso_url.nil?
+      if iso_url.nil?
         # This is done to create a stub directory to manually install the repo.
+        # This also happens for remote repositories.
         publish 'unpack_repo', command, nil
       else
         url = URI.parse(iso_url)
