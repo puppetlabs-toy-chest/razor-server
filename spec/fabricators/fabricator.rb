@@ -163,6 +163,18 @@ Fabricator(:hook, :class_name => Razor::Data::Hook) do
   end
 end
 
+Fabricator(:hook_with_configuration, :from => :hook) do
+  hook_type do
+    path = Pathname(__FILE__).dirname + '..' + 'fixtures' + 'hooks' + 'with_configuration.hook'
+    Razor::HookType.new(path)
+  end
+  configuration do
+    {'key-with-default' => 'original',
+     'required-key' => 'other-original',
+     'optional-key' => 'a value'}
+  end
+end
+
 Fabricator(:event, :class_name => Razor::Data::Event) do
   entry do
     {msg: Faker::Commerce.product_name}
