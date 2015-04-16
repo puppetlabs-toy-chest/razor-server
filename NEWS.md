@@ -1,5 +1,12 @@
 # Razor Server Release Notes
 
+## Next.Next - TBD
+
+### Other
+
++ NEW: The `update-hook-configuration` command allows changing an existing
+  hook's configuration, which should help with hook script creation.
+
 ## Next - TBD
 
 ### Incompatible changes

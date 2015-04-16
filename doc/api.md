@@ -420,6 +420,26 @@ The code on the server would be contained in the `hooks/some_hook.hook`
 directory. More information on hooks can be found in the Hooks README 
 (`hooks.md`).
 
+### Update hook configuration
+
+A hook's configuration can be updated using the `update-hook-configuration`
+command. This command can set or clear a single key's value. The following
+arguments would set the configuration value for key `some_key` to `new_value`:
+
+    {
+      "hook": "myhook",
+      "key": "some_key",
+      "value": "new_value"
+    }
+
+The following arguments would clear the configuration value for key `some_key`:
+
+    {
+      "hook": "myhook",
+      "key": "some_key",
+      "clear": true
+    }
+
 ### Delete hook
 
 A single hook can be removed from the database with the `delete-hook`

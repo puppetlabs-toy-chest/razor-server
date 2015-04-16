@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 class Razor::Command::UpdateNodeMetadata < Razor::Command
-  summary "Update one key in a nodes metadata"
+  summary "Update one key in a node's metadata"
   description <<-EOT
 This is a shortcut to `modify-node-metadata` that allows for updating or
 adding a single key, in a simpler form than the full
