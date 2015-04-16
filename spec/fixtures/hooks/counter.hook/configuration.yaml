@@ -1,0 +1,28 @@
+---
+node-booted:
+  description: "The number of times a node has booted"
+  default: 0
+
+node-bound-to-policy:
+  description: "The number of times a node has bound to a policy"
+  default: 0
+
+node-deleted:
+  description: "The number of times a node has been deleted"
+  default: 0
+
+node-facts-changed:
+  description: "The number of times a node's facts have changed"
+  default: 0
+
+node-install-finished:
+  description: "The number of times a node's install has finished"
+  default: 0
+
+node-registered:
+  description: "The number of times a node has been registered"
+  default: 0
+
+node-unbound-from-policy:
+  description: "The number of times a node has unbound from a policy"
+  default: 0

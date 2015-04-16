@@ -175,6 +175,13 @@ Fabricator(:hook_with_configuration, :from => :hook) do
   end
 end
 
+Fabricator(:counter_hook, :from => :hook) do
+  hook_type do
+    path = Pathname(__FILE__).dirname + '..' + 'fixtures' + 'hooks' + 'counter.hook'
+    Razor::HookType.new(path)
+  end
+end
+
 Fabricator(:event, :class_name => Razor::Data::Event) do
   entry do
     {msg: Faker::Commerce.product_name}

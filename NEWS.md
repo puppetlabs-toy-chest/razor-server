@@ -6,6 +6,7 @@
 
 + NEW: The `update-hook-configuration` command allows changing an existing
   hook's configuration, which should help with hook script creation.
++ NEW: The `run-hook` command allows arbitrary execution of a hook.
 
 ## Next - TBD
 

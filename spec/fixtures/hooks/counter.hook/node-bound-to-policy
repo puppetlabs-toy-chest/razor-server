@@ -1,0 +1,26 @@
+#! /bin/bash
+
+set -e
+
+json=$(< /dev/stdin)
+
+value=1
+
+cat <<EOF
+{
+  "hook": {
+    "configuration": {
+      "update": {
+        "node-bound-to-policy": $value
+      }
+    }
+  },
+  "node": {
+    "metadata": {
+      "update": {
+        "last_hook_execution": "node-bound-to-policy"
+      }
+    }
+  }
+}
+EOF

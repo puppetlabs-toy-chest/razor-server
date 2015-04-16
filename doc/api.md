@@ -440,6 +440,21 @@ The following arguments would clear the configuration value for key `some_key`:
       "clear": true
     }
 
+### Run hook
+
+The `run-hook` command triggers a hook to execute. This is helpful when writing
+your own hook scripts in testing their validity. To run the hook which would
+occur when the given node boots, use the following arguments:
+
+    {
+      "name": "myhook",
+      "node": "node1",
+      "event": "node-booted"
+    }
+
+Note that any of the usual event names can be used for the `event` argument.
+See `hooks.md` for a list of these possibilities.
+
 ### Delete hook
 
 A single hook can be removed from the database with the `delete-hook`
