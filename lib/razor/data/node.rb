@@ -218,8 +218,8 @@ module Razor::Data
     end
 
     def unbind
+      Razor::Data::Hook.trigger('node-unbound-from-policy', node: self, policy: self.policy)
       self.policy = nil
-      Razor::Data::Hook.trigger('node-unbound-from-policy', node: self)
     end
 
     # This is a hack around the fact that the auto_validates plugin does

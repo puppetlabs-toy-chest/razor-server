@@ -358,6 +358,8 @@ class Razor::Data::Hook < Sequel::Model
     hook = self
     node = args[:node]
     policy = args[:policy] || (node && node.policy)
+    # NOTE: Any updates to this view should be reflected in the `hooks.md`
+    # file as well.
     {
         hook: {
             id: hook.id,

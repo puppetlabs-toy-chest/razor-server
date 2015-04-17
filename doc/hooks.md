@@ -246,6 +246,52 @@ The input to the hook script will be in JSON, containing a structure like below:
   }
 }
 
+## Input format
+
+The input will contain these keys, where many will disappear if their value is
+null:
+
+- hook
+    - id
+    - name
+    - type (this is the hook type)
+    - configuration
+    - cause (this is the event string, e.g. `node-booted`)
+- node
+    - id
+    - name
+    - hw_info
+    - dhcp_mac
+    - tags (array of hash; use `name` for each)
+    - facts
+    - metadata
+    - state
+        - installed
+        - installed_at
+        - stage
+    - power
+        - desired_power_state
+        - last_known_power_state
+        - last_power_state_update_at
+    - hostname
+    - root_password
+    - ipmi
+        - hostname
+        - username
+    - last_checkin
+- policy (for `node-bound-to-policy` and `node-unbound-from-policy` events only)
+    - id
+    - name
+    - repo (object; use `name`)
+    - task (object; use `name`)
+    - broker (object; use `name`)
+    - enabled
+    - hostname_pattern
+    - root_password
+    - tags => (array of objects; use `name` in each)
+    - nodes
+        - count
+
 ## Sample hook
 
 Here is an example of a basic hook that will count the number of times Razor
