@@ -166,7 +166,7 @@ describe Razor::Data::Hook do
 
   describe "handle" do
     it "should correctly handle an event with no applicable hooks" do
-      Razor::Data::Hook.run('abc', node: Fabricate(:node))
+      Razor::Data::Hook.trigger('abc', node: Fabricate(:node))
     end
     it "should correctly handle an event with two applicable hooks" do
       first = Razor::Data::Hook.new(:name => 'first', :hook_type => hook_type).save
@@ -196,7 +196,7 @@ cat <<EOF
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 2
       2.times { run_message(queue.receive) }
       events = Razor::Data::Event.all
@@ -217,7 +217,7 @@ exit 0
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
       set_hook_file('test', 'abc' => "exit 1") { |file| file.chmod(0644)}
-      Razor::Data::Hook.run('abc', node: Fabricate(:node))
+      Razor::Data::Hook.trigger('abc', node: Fabricate(:node))
       events = Razor::Data::Event.all
       events.size.should == 1
       events.first.entry['msg'].should =~ /abc is not executable/
@@ -245,7 +245,7 @@ cat <<EOF
 EOF
 exit #{exitcode}
         CONTENTS
-        Razor::Data::Hook.run('abc', node: node)
+        Razor::Data::Hook.trigger('abc', node: node)
         queue.count_messages.should == 1
         run_message(queue.receive)
         event = Razor::Data::Event.find(hook_id: hook.id)
@@ -272,7 +272,7 @@ cat <<EOF
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       event = Razor::Data::Event.find(hook_id: hook.id)
@@ -306,7 +306,7 @@ EOF
       CONTENTS
       policy = Fabricate(:policy_with_tag)
       node = Fabricate(:bound_node, policy: policy, tags: policy.tags)
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -356,7 +356,7 @@ cat <<EOF
 EOF
       CONTENTS
       node = Fabricate(:bound_node)
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -406,7 +406,7 @@ cat <<EOF
 EOF
       CONTENTS
       node = Fabricate(:bound_node)
-      Razor::Data::Hook.run('abc', node: node, policy: node.policy)
+      Razor::Data::Hook.trigger('abc', node: node, policy: node.policy)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -463,7 +463,7 @@ EOF
 exit #{exit}
         CONTENTS
         hook.configuration['counter'].should == 0
-        Razor::Data::Hook.run('abc')
+        Razor::Data::Hook.trigger('abc')
         queue.count_messages.should == 1
         run_message(queue.receive)
         hook.reload
@@ -500,7 +500,7 @@ exit #{exit}
         CONTENTS
         node.metadata = {'existing' => 'value', 'to-remove' => 'other-value'}
         node.save
-        Razor::Data::Hook.run('abc', node: node)
+        Razor::Data::Hook.trigger('abc', node: node)
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}
         event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -532,7 +532,7 @@ EOF
       CONTENTS
       node.metadata = {'existing' => 'value'}
       node.save
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
       event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -552,7 +552,7 @@ standard output
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
 
@@ -586,7 +586,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc')
+      Razor::Data::Hook.trigger('abc')
       queue.count_messages.should == 1
       run_message(queue.receive)
 
@@ -615,7 +615,7 @@ EOF
       CONTENTS
       node.metadata = {'existing' => 'value'}
       node.save
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
       event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -639,7 +639,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output: other-key'
@@ -661,7 +661,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for node update: other-key'
@@ -683,7 +683,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for hook update: other-key'
@@ -704,7 +704,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
@@ -725,7 +725,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
@@ -750,7 +750,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.run('abc', node: node)
+      Razor::Data::Hook.trigger('abc', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == "undefined operation on hook: do-thing; should be 'update' or 'remove'"

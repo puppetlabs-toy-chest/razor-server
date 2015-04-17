@@ -394,7 +394,7 @@ and requires full control over the database (eg: add and remove tables):
                        :template => template)
     end
     @node.save
-    Razor::Data::Hook.run('node-booted', node: @node)
+    Razor::Data::Hook.trigger('node-booted', node: @node)
     render_template(template)
   end
 

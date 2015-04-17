@@ -74,7 +74,7 @@ installed, so should not be subject to policy-based reinstallation:
   def run(request, data)
     Razor::Data::Node.lookup(data['hw_info']).set(installed: data['installed']).save.
         tap do |node|
-      Razor::Data::Hook.run('node-registered', node: node)
+      Razor::Data::Hook.trigger('node-registered', node: node)
     end
   end
 end

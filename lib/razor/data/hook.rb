@@ -56,20 +56,20 @@ class Razor::Data::Hook < Sequel::Model
     end
   end
 
-  def _handle(hash)
-    handle(hash['cause'], hash['args'])
+  def _run(hash)
+    run(hash['cause'], hash['args'])
   end
 
-  def handle(event, args = {})
+  # This runs the hook in-process. If it should be executed asynchronously, use
+  # `trigger`. Returns nil if the hook has no handler for the event.
+  def run(event, args = {})
     if script = find_script(event)
       # FIXME: args may contain Data objects; they need to be serialized
       # special
       # FIXME^2: we do this for Node, but it should be more general
       loop do
-        # FIXME: Below is for asynchronous execution.
-        # publish('run', event, script.to_s, args)
-        result = run(event, script, args)
-        break if result != :retry
+        result = execute(event, script, args)
+        break result if result != :retry
         # Small sleep to avoid busy-waiting.
         sleep(0.1)
       end
@@ -82,17 +82,26 @@ class Razor::Data::Hook < Sequel::Model
     !!(find_script(event_name))
   end
 
-  # Run all hooks that have a handler for event
-  def self.run(cause, args = {})
+  # Trigger all hooks that have a handler for event. The implementation is
+  # asynchronous. `run` is synchronous.
+  def self.trigger(cause, args = {})
     # Do not disturb original arguments.
     # Serialize the objects here to avoid another database call on objects
     # that may be gone by the time the hook runs.
     self.all do |hook|
-      next unless hook.handles_event?(cause)
-      formatted_args = args.dup.merge(hook.serialize_arguments(cause, node: args[:node], policy: args[:policy]))
-      hook.publish '_handle', 'cause' => cause, 'args' => formatted_args,
-                              'queue' => '/queues/razor/sequel-hook-messages'
+      hook.trigger(cause, args)
     end
+  end
+
+  # Trigger one hook. This will skip if there is no handler for the event.
+  # The implementation is asynchronous; `run` is synchronous.
+  def trigger(cause, args = {})
+    return unless handles_event?(cause)
+    formatted_args = args.dup.merge(serialize_arguments(cause, node: args[:node], policy: args[:policy]))
+    # Call the `_run` method so the queue arguments can be converted into a
+    # standardized format for the actual `run` method.
+    publish '_run', 'cause' => cause, 'args' => formatted_args,
+                 'queue' => '/queues/razor/sequel-hook-messages'
   end
 
   # Delegator for private method
@@ -180,10 +189,11 @@ class Razor::Data::Hook < Sequel::Model
     end
   end
 
-  def run(cause, script, args = {})
+  def execute(cause, script, args = {})
     Razor.database.transaction(savepoint: true) do
       return :retry unless lock!
       appender = Appender.new(hook: self)
+      args[:hook] ||= {}
       node_id = args[:node][:id] unless args[:node].nil?
       policy_id = args[:policy][:id] unless args[:policy].nil?
       appender.update(node: node_id, policy: policy_id, cause: cause)
