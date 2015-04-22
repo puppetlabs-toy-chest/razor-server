@@ -29,9 +29,7 @@ Run the hook 'counter' for the event 'node-booted' with the provided node.
   attr  'name', type: String, required: true, size: 1..250, references: [Razor::Data::Hook, :name],
                 help: _('The name of the hook to run.')
   attr  'event', type: String, required: true,
-                one_of: ['node-booted', 'node-registered', 'node-bound-to-policy',
-                'node-unbound-from-policy', 'node-deleted', 'node-facts-changed',
-                'node-install-finished'],
+                one_of: Razor::Data::Hook::AVAILABLE_EVENTS,
                 help: _('The name of the hook to run.')
 
   attr  'node', type: String, required: true, references: [Razor::Data::Node, :name],

@@ -137,14 +137,14 @@ describe Razor::Data::Hook do
 
       it "should respect defaults for configuration" do
         configuration = {
-            'server'  => {'required' => true, 'description' => 'foo', 'default' => 'abc'},
+            'server'  => {'required' => true, 'description' => 'foo', 'default' => 'node-booted'},
             'other'   => {'description' => 'required-absent', 'default' => 'def'},
             'version' => {'required' => false, 'description' => 'bar'}
         }
         set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
 
         hook = new_hook
-        hook.configuration['server'].should == 'abc'
+        hook.configuration['server'].should == 'node-booted'
         hook.configuration['other'].should == 'def'
       end
     end
@@ -166,7 +166,7 @@ describe Razor::Data::Hook do
 
   describe "handle" do
     it "should correctly handle an event with no applicable hooks" do
-      Razor::Data::Hook.trigger('abc', node: Fabricate(:node))
+      Razor::Data::Hook.trigger('node-booted', node: Fabricate(:node))
     end
     it "should correctly handle an event with two applicable hooks" do
       first = Razor::Data::Hook.new(:name => 'first', :hook_type => hook_type).save
@@ -176,7 +176,7 @@ describe Razor::Data::Hook do
       set_hook_file('second', 'configuration.yaml' => "# no actual content\n")
       second = Razor::Data::Hook.new(:name => 'second', :hook_type => hook_type('second')).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -186,7 +186,7 @@ cat <<EOF
 EOF
 exit 0
       CONTENTS
-      set_hook_file('second', 'abc' => <<-CONTENTS)
+      set_hook_file('second', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -196,7 +196,7 @@ cat <<EOF
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 2
       2.times { run_message(queue.receive) }
       events = Razor::Data::Event.all
@@ -216,12 +216,12 @@ exit 0
     it "should create a warning event if hook script is not executable" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => "exit 1") { |file| file.chmod(0644)}
-      Razor::Data::Hook.trigger('abc', node: Fabricate(:node))
+      set_hook_file('test', 'node-booted' => "exit 1") { |file| file.chmod(0644)}
+      Razor::Data::Hook.trigger('node-booted', node: Fabricate(:node))
       events = Razor::Data::Event.all
       events.size.should == 1
-      events.first.entry['msg'].should =~ /abc is not executable/
-      events.first.entry['cause'].should == 'abc'
+      events.first.entry['msg'].should =~ /node-booted is not executable/
+      events.first.entry['cause'].should == 'node-booted'
       events.first.entry['severity'].should == 'warn'
     end
 
@@ -231,7 +231,7 @@ exit 0
       it "should create an #{severity} event if hook script exits with #{exitcode}" do
         hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-        set_hook_file('test', 'abc' => <<-CONTENTS)
+        set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -245,7 +245,7 @@ cat <<EOF
 EOF
 exit #{exitcode}
         CONTENTS
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
         queue.count_messages.should == 1
         run_message(queue.receive)
         event = Razor::Data::Event.find(hook_id: hook.id)
@@ -253,7 +253,7 @@ exit #{exitcode}
         event.hook_id.should == hook.id
         event.entry['error'].should == {'message' => 'some-bad-error', 'extra' => 'details here'}
         event.entry['msg'].should == 'standard output'
-        event.entry['cause'].should == 'abc'
+        event.entry['cause'].should == 'node-booted'
         event.entry['severity'].should == severity
 
         Razor::Data::Event.count.should == 1
@@ -262,7 +262,7 @@ exit #{exitcode}
     it "should create an info event if hook script exits with 0" do
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -272,7 +272,7 @@ cat <<EOF
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       event = Razor::Data::Event.find(hook_id: hook.id)
@@ -293,7 +293,7 @@ exit 0
       set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'a' => 'b'}).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 json=$(< /dev/stdin)
@@ -306,7 +306,7 @@ EOF
       CONTENTS
       policy = Fabricate(:policy_with_tag)
       node = Fabricate(:bound_node, policy: policy, tags: policy.tags)
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -320,7 +320,7 @@ EOF
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
-      input['hook']['cause'].should == 'abc'
+      input['hook']['cause'].should == 'node-booted'
       input['hook']['configuration'].should == hook.configuration
       input['hook']['configuration']['a'].should == 'b'
       input['policy']['name'].should == node.policy.name
@@ -344,7 +344,7 @@ EOF
       set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'a' => 'b'}).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 json=$(< /dev/stdin)
@@ -356,7 +356,7 @@ cat <<EOF
 EOF
       CONTENTS
       node = Fabricate(:bound_node)
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -379,7 +379,7 @@ EOF
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
-      input['hook']['cause'].should == 'abc'
+      input['hook']['cause'].should == 'node-booted'
       input['hook']['configuration'].should == hook.configuration
       input['policy']['name'].should == node.policy.name
       input['policy']['enabled'].should == false
@@ -394,7 +394,7 @@ EOF
       set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'a' => 'b'}).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 json=$(< /dev/stdin)
@@ -406,7 +406,7 @@ cat <<EOF
 EOF
       CONTENTS
       node = Fabricate(:bound_node)
-      Razor::Data::Hook.trigger('abc', node: node, policy: node.policy)
+      Razor::Data::Hook.trigger('node-booted', node: node, policy: node.policy)
 
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
@@ -425,7 +425,7 @@ EOF
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
-      input['hook']['cause'].should == 'abc'
+      input['hook']['cause'].should == 'node-booted'
       input['hook']['configuration'].should == hook.configuration
       input['policy']['name'].should == node.policy.name
       input['policy']['enabled'].should == node.policy.enabled
@@ -445,7 +445,7 @@ EOF
         set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
         hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-        set_hook_file('test', 'abc' => <<-CONTENTS)
+        set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -454,7 +454,7 @@ cat <<EOF
 EOF
         CONTENTS
         node = Fabricate(:bound_node)
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
 
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}
@@ -473,7 +473,7 @@ EOF
         set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
         hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-        set_hook_file('test', 'abc' => <<-CONTENTS)
+        set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -482,7 +482,7 @@ cat <<EOF
 EOF
         CONTENTS
         node = Fabricate(:bound_node)
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
 
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}
@@ -506,7 +506,7 @@ EOF
         set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
         hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type, :configuration => {'counter' => 0, 'version' => '1.0'}).save
 
-        set_hook_file('test', 'abc' => <<-CONTENTS)
+        set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -524,7 +524,7 @@ EOF
 exit #{exit}
         CONTENTS
         hook.configuration['counter'].should == 0
-        Razor::Data::Hook.trigger('abc')
+        Razor::Data::Hook.trigger('node-booted')
         queue.count_messages.should == 1
         run_message(queue.receive)
         hook.reload
@@ -539,7 +539,7 @@ exit #{exit}
       it "should allow modifying the node's metadata on #{success}" do
         Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-        set_hook_file('test', 'abc' => <<-CONTENTS)
+        set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -561,7 +561,7 @@ exit #{exit}
         CONTENTS
         node.metadata = {'existing' => 'value', 'to-remove' => 'other-value'}
         node.save
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}
         event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -578,7 +578,7 @@ exit #{exit}
     it "should allow clearing the node's metadata" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -593,7 +593,7 @@ EOF
       CONTENTS
       node.metadata = {'existing' => 'value'}
       node.save
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
       event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -605,7 +605,7 @@ EOF
     it "should report an error if output is not JSON" do
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -613,7 +613,7 @@ standard output
 EOF
 exit 0
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
 
@@ -628,7 +628,7 @@ exit 0
     it "should fail if there is no node to modify" do
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -647,7 +647,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc')
+      Razor::Data::Hook.trigger('node-booted')
       queue.count_messages.should == 1
       run_message(queue.receive)
 
@@ -659,7 +659,7 @@ EOF
     it "should fail if hook attempts unexpected metadata operation" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -676,7 +676,7 @@ EOF
       CONTENTS
       node.metadata = {'existing' => 'value'}
       node.save
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       # There will also be a 'Node' message on the queue.
       messages = queue.count_messages.times.map {queue.receive}
       event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
@@ -690,7 +690,7 @@ EOF
 
     it "should fail if hook returns invalid key" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -700,7 +700,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output: other-key'
@@ -710,7 +710,7 @@ EOF
 
     it "should fail if hook returns invalid node key" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -722,7 +722,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for node update: other-key'
@@ -732,7 +732,7 @@ EOF
 
     it "should fail if hook returns invalid hook key" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -744,7 +744,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for hook update: other-key'
@@ -754,18 +754,18 @@ EOF
 
     it "should fail if hook returns invalid hook configuration key" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
 {
   "hook": {
-    "configuration": "abc"
+    "configuration": "node-booted"
   }
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
@@ -775,18 +775,18 @@ EOF
 
     it "should fail if hook returns invalid hook configuration key" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
 {
   "hook": {
-    "configuration": "abc"
+    "configuration": "node-booted"
   }
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
@@ -796,7 +796,7 @@ EOF
 
     it "should fail if hook returns invalid hook configuration operation" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
-      set_hook_file('test', 'abc' => <<-CONTENTS)
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
 #! /bin/bash
 
 cat <<EOF
@@ -811,7 +811,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
-      Razor::Data::Hook.trigger('abc', node: node)
+      Razor::Data::Hook.trigger('node-booted', node: node)
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == "undefined operation on hook: do-thing; should be 'update' or 'remove'"
@@ -839,9 +839,9 @@ cat <<EOF
 }
 EOF
         CONTENTS
-        set_hook_file('test', 'abc' => contents)
+        set_hook_file('test', 'node-booted' => contents)
         node = Fabricate(:bound_node)
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
 
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}
@@ -872,9 +872,9 @@ cat <<EOF
 }
 EOF
         CONTENTS
-        set_hook_file('test', 'abc' => contents)
+        set_hook_file('test', 'node-booted' => contents)
         node = Fabricate(:bound_node)
-        Razor::Data::Hook.trigger('abc', node: node)
+        Razor::Data::Hook.trigger('node-booted', node: node)
 
         # There will also be a 'Node' message on the queue.
         messages = queue.count_messages.times.map {queue.receive}

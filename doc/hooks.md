@@ -131,6 +131,9 @@ The JSON output of the event script can modify the node metadata:
 
 ### Available events
 
+The exact list of events can be seen from the help for the `run-hook` command,
+but here are the primary events:
+
 * `node-registered`: triggered after a node has been registered, i.e. after
   its facts have been set for the first time by the Microkernel.
 * `node-bound-to-policy`: triggered after a node has been bound to a policy. The

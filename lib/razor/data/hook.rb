@@ -30,6 +30,11 @@
 class Razor::Data::Hook < Sequel::Model
   one_to_many :events
 
+  # If this changes, also update the hooks.md file.
+  AVAILABLE_EVENTS = %w(node-booted node-registered node-bound-to-policy
+                        node-unbound-from-policy node-deleted node-facts-changed
+                        node-install-finished)
+
   plugin :serialization, :json, :configuration
 
   serialize_attributes [
@@ -63,6 +68,7 @@ class Razor::Data::Hook < Sequel::Model
   # This runs the hook in-process. If it should be executed asynchronously, use
   # `trigger`. Returns nil if the hook has no handler for the event.
   def run(event, args = {})
+    raise ArgumentError.new("cannot run hook with event #{event}") unless AVAILABLE_EVENTS.include?(event)
     if script = find_script(event)
       # FIXME: args may contain Data objects; they need to be serialized
       # special
