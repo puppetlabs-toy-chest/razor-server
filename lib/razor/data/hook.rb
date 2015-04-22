@@ -209,11 +209,13 @@ class Razor::Data::Hook < Sequel::Model
         args[:policy] = policy_hash(policy)
       end
 
+      appender.update(input: args.to_json) if Razor.config['store_hook_input']
       result, output = exec_script(script, args.to_json)
       appender.update(exit_status: result.exitstatus,
                       severity: result.success? ? 'info' : 'error')
       # If the output is not valid JSON, put the whole message into the 'msg' in the Event
       begin
+        appender.update(output: output) if Razor.config['store_hook_output']
         json = JSON.parse(output)
         appender.update(msg: json['output'], error: json['error'])
         residual = json.keys - ['hook', 'node', 'output', 'error']

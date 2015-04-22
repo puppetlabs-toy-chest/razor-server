@@ -7,6 +7,9 @@
 + NEW: The `update-hook-configuration` command allows changing an existing
   hook's configuration, which should help with hook script creation.
 + NEW: The `run-hook` command allows arbitrary execution of a hook.
++ NEW: The `store_hook_input` and `store_hook_output` config settings can
+  toggle storing the input and output for a hook script in the event log. These
+  are disabled by default.
 
 ## Next - TBD
 

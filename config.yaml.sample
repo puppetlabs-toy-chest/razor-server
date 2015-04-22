@@ -55,6 +55,11 @@ all:
   # Should newly discovered nodes be marked installed?
   protect_new_nodes: false
 
+  # Should hook input be recorded in the event log for debugging?
+  store_hook_input: false
+  # Should hook output be recorded in the event log for debugging?
+  store_hook_output: false
+
   # How to match nodes to possibly existing nodes in the database. The node
   # sends us the MAC addresses of its network interfaces, serial number,
   # asset tag, and UUID. We consider two nodes to be the same if they agree

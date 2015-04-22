@@ -433,6 +433,67 @@ EOF
       input['node']['name'].should == node.name
       input['node']['metadata'].should == node.metadata
     end
+
+    context "with store_hook_input config" do
+      after :each do
+        Razor.config['store_hook_input'] = false
+      end
+      it "should record the hook's input if true" do
+        Razor.config['store_hook_input'] = true
+        configuration = {
+        }
+        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+        hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+        set_hook_file('test', 'abc' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+}
+EOF
+        CONTENTS
+        node = Fabricate(:bound_node)
+        Razor::Data::Hook.trigger('abc', node: node)
+
+        # There will also be a 'Node' message on the queue.
+        messages = queue.count_messages.times.map {queue.receive}
+        event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+        run_message(event)
+
+        event = Razor::Data::Event.find(hook_id: hook.id)
+        input = JSON.parse(event.entry['input'])
+        input['node']['name'].should == node.name
+      end
+      it "should not record the hook's input if false" do
+        Razor.config['store_hook_input'] = false
+        configuration = {
+        }
+        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+        hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+        set_hook_file('test', 'abc' => <<-CONTENTS)
+#! /bin/bash
+
+cat <<EOF
+{
+}
+EOF
+        CONTENTS
+        node = Fabricate(:bound_node)
+        Razor::Data::Hook.trigger('abc', node: node)
+
+        # There will also be a 'Node' message on the queue.
+        messages = queue.count_messages.times.map {queue.receive}
+        event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+        run_message(event)
+
+        event = Razor::Data::Event.find(hook_id: hook.id)
+        event.entry.should_not include 'input'
+      end
+    end
   end
 
   describe "output" do
@@ -756,6 +817,74 @@ EOF
       Razor::Data::Event.first.entry['error'].should == "undefined operation on hook: do-thing; should be 'update' or 'remove'"
       Razor::Data::Event.first.entry['severity'].should == 'error'
       Razor::Data::Event.count.should == 1
+    end
+
+    context "with store_hook_output config" do
+      after :each do
+        Razor.config['store_hook_output'] = false
+      end
+      it "should record the hook's output if true" do
+        Razor.config['store_hook_output'] = true
+        configuration = {
+        }
+        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+        hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+        contents = <<-CONTENTS
+#! /bin/bash
+
+cat <<EOF
+{
+  "result": "some_result"
+}
+EOF
+        CONTENTS
+        set_hook_file('test', 'abc' => contents)
+        node = Fabricate(:bound_node)
+        Razor::Data::Hook.trigger('abc', node: node)
+
+        # There will also be a 'Node' message on the queue.
+        messages = queue.count_messages.times.map {queue.receive}
+        event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+        run_message(event)
+
+        event = Razor::Data::Event.find(hook_id: hook.id)
+        event.entry['output'].should == <<-EOT
+{
+  "result": "some_result"
+}
+  EOT
+      end
+      it "should not record the hook's output if false" do
+        Razor.config['store_hook_output'] = false
+        configuration = {
+        }
+        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+        hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+        contents = <<-CONTENTS
+#! /bin/bash
+
+cat <<EOF
+{
+  "result": "some_result"
+}
+EOF
+        CONTENTS
+        set_hook_file('test', 'abc' => contents)
+        node = Fabricate(:bound_node)
+        Razor::Data::Hook.trigger('abc', node: node)
+
+        # There will also be a 'Node' message on the queue.
+        messages = queue.count_messages.times.map {queue.receive}
+        event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+        run_message(event)
+
+        event = Razor::Data::Event.find(hook_id: hook.id)
+        event.entry.should_not include 'output'
+      end
     end
   end
   describe "events" do
