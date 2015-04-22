@@ -195,7 +195,11 @@ class Razor::Data::Hook < Sequel::Model
     end
   end
 
+  # This performs the actual work for running the hook script. The `debug`
+  # argument in the `args` hash is stripped away before generating
+  # arguments for the hook script.
   def execute(cause, script, args = {})
+    debug = args.delete(:debug)
     Razor.database.transaction(savepoint: true) do
       return :retry unless lock!
       appender = Appender.new(hook: self)
@@ -215,13 +219,13 @@ class Razor::Data::Hook < Sequel::Model
         args[:policy] = policy_hash(policy)
       end
 
-      appender.update(input: args.to_json) if Razor.config['store_hook_input']
+      appender.update(input: args.to_json) if Razor.config['store_hook_input'] or debug
       result, output = exec_script(script, args.to_json)
       appender.update(exit_status: result.exitstatus,
                       severity: result.success? ? 'info' : 'error')
       # If the output is not valid JSON, put the whole message into the 'msg' in the Event
       begin
-        appender.update(output: output) if Razor.config['store_hook_output']
+        appender.update(output: output) if Razor.config['store_hook_output'] or debug
         json = JSON.parse(output)
         appender.update(msg: json['output'], error: json['error'])
         residual = json.keys - ['hook', 'node', 'output', 'error']

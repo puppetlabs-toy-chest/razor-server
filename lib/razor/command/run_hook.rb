@@ -38,12 +38,14 @@ Run the hook 'counter' for the event 'node-booted' with the provided node.
   attr  'policy', type: String, references: [Razor::Data::Policy, :name],
                 help: _('The name of the policy involved in the hook execution (if any).')
 
+  attr 'debug', type: TrueClass, help: _('Whether to include debug information in the resulting event')
+
   def run(request, data)
     hook = Razor::Data::Hook[:name => data['name']]
     node = Razor::Data::Node[:name => data['node']] if data['node']
     policy = Razor::Data::Policy[:name => data['policy']] if data['policy']
 
-    result = hook.run(data['event'], node: node, policy: policy)
+    result = hook.run(data['event'], node: node, policy: policy, debug: data['debug'])
     result = {result: _("no event handler exists for hook %{name}") % {name: data['name']}} if result.nil?
     result
   end

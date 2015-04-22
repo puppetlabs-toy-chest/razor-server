@@ -73,4 +73,23 @@ updating hook configuration: {\"update\"=>{\"#{command_hash['event']}\"=>1}} and
     last_response.status.should == 422
     last_response.json['error'].should == 'event must refer to one of node-booted, node-registered, node-bound-to-policy, node-unbound-from-policy, node-deleted, node-facts-changed, node-install-finished'
   end
+
+  it "should respect debug mode" do
+    command_hash['debug'] = true
+    run_hook
+    last_response.status.should == 202
+    event_name = last_response.json['name']
+    event = Razor::Data::Event[id: event_name]
+    event.entry['input'].should_not be_nil
+    event.entry['output'].should_not be_nil
+  end
+
+  it "should default debug mode to off" do
+    run_hook
+    last_response.status.should == 202
+    event_name = last_response.json['name']
+    event = Razor::Data::Event[id: event_name]
+    event.entry['input'].should be_nil
+    event.entry['output'].should be_nil
+  end
 end
