@@ -29,10 +29,15 @@ start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -
 write-host "notify Razor that the installer completed"
 (new-object System.Net.WebClient).DownloadString('<%= stage_done_url("finished") %>')
 
-write-host "registering broker to run after reboot before login screen"
-New-Item -ItemType Directory -Force -Path D:\Windows\Setup\Scripts
-# The D: drive is the freshly installed but not-yet-booted operating system.
-(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>','D:\Windows\Setup\Scripts\SetupComplete.cmd')
+# Determine Windows installation drive
+Write-Host "Determining drive letter for Windows installation"
+$osDrive = (bcdedit /enum OSLOADER | Select-String osdevice)[0].ToString().Split('=')[-1]
+Write-Host "Drive letter for installation is $($osDrive)"
+
+Write-Host "registering broker to run after reboot before login screen"
+New-Item -ItemType Directory -Force -Path "$($osDrive)\Windows\Setup\Scripts"
+# The $osDrive drive is the freshly installed but not-yet-booted operating system.
+(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>',"$($osDrive)\Windows\Setup\Scripts\SetupComplete.cmd")
 
 write-host "restarting the system to complete installation"
 restart-computer
