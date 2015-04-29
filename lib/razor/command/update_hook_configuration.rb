@@ -16,7 +16,7 @@ Set a single key from a node:
   example cli: <<-EOT
 Set a single key from a node:
 
-    razor update-node-metadata --node node1 \\
+    razor update-hook-configuration --node node1 \\
         --key my_key --value twelve
   EOT
 
