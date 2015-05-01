@@ -7,6 +7,25 @@ fail() { echo >&2 "$@"; exit 1; }
 warn() { echo >&2 "$@"; }
 cmd()  { hash "$1" >&/dev/null; } # portable 'which'
 
+function checkError () {
+    if [ $? -ne 0 ]; then
+        if cmd curl; then
+            curl -sL "<%= log_url("broker script execution failed", :error) %>" || (
+                warn "curl failed to log broker completion to <%= log_url("broker script execution failed", :error) %>"
+            )
+        elif cmd wget; then
+            wget -qO- "<%= log_url("broker script execution failed", :error) %>" || (
+                warn "wget failed to log broker completion to <%= log_url("broker script execution failed", :error) %>"
+            )
+        else
+            warn "neither curl nor wget installed; cannot log completion of broker"
+        fi
+        fail
+    fi
+}
+
+trap "checkError" exit
+
 # If this fails I don't even know what to do, but theoretically the #! above
 # could have been ignored or something.
 cmd bash || fail "we need bash available to be able to run the installer"
@@ -16,20 +35,39 @@ url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:vers
 
 # Now, figure out how to download and run the script we need...
 if cmd curl; then
-    curl -fSkLo /root/install.bash "${url}" || fail "curl failed to get ${url}"
+    curl -fSkLo /root/install.bash "${url}" || (
+        curl -sL "<%= log_url("curl could not download puppet agent installer", :error) %>"
+        fail "curl failed to get ${url}"
+    )
 elif cmd wget; then
-    wget --no-check-certificate -O /root/install.bash "${url}" || fail "wget failed to get ${url}"
+    wget --no-check-certificate -O /root/install.bash "${url}" || (
+        wget -qO- "<%= log_url("wget could not download puppet agent installer", :error) %>"
+        fail "wget failed to get ${url}"
+    )
 else
     fail "unable to figure out how to download stuff, curl and wget are missing"
 fi
 
-bash /root/install.bash || fail "Error running /root/install.bash"
+bash /root/install.bash || (
+    # error logging URL needs to be 'burned into' the script.
+    if cmd curl; then
+        curl -sL "<%= log_url("failed to run puppet agent installer", :error) %>" && fail "error running /root/install.bash"
+    elif cmd wget; then
+        wget -qO- "<%= log_url("failed to run puppet agent installer", :error) %>" && fail "error running /root/install.bash"
+    else
+        fail "unable to figure out how to download stuff, curl and wget are missing"
+    fi
+)
 
 # Log that the broker is finished.
 if cmd curl; then
-    curl -sL "<%= stage_done_url %>" || fail "curl failed to log broker completion"
+    curl -sL "<%= stage_done_url %>" || (
+        warn "curl failed to log broker completion to <%= stage_done_url %>"
+    )
 elif cmd wget; then
-    wget -qO- "<%= stage_done_url %>" || fail "wget failed to log broker completion" &> /dev/null
+    wget -qO- "<%= stage_done_url %>" || (
+        warn "wget failed to log broker completion to <%= stage_done_url %>"
+    )
 else
     warn "neither curl nor wget installed; cannot log completion of broker"
 fi

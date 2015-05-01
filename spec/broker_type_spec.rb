@@ -397,6 +397,28 @@ describe Razor::BrokerType do
       end
     end
 
+    it "should pass the log_url to the install script template" do
+      broker = {'test' => {'install.erb' => "<%= log_url('test script ', :error) %>"}}
+      with_brokers_in(paths.first => broker) do
+        node   = Fabricate(:node)
+        broker = Razor::BrokerType.find(name: 'test')
+        script = broker.install_script(node, broker_instance_for(broker),
+            'install', 'log_url' => 'http://localhost:8150/svc/log')
+        script.should == 'http://localhost:8150/svc/log?msg=test+script+&severity=error'
+      end
+    end
+
+    it "should pass the stage_done_url to the install script template" do
+      broker = {'test' => {'install.erb' => "<%= stage_done_url %>"}}
+      with_brokers_in(paths.first => broker) do
+        node   = Fabricate(:node)
+        broker = Razor::BrokerType.find(name: 'test')
+        script = broker.install_script(node, broker_instance_for(broker),
+            'install', 'stage_done_url' => 'stage is done')
+        script.should == 'stage is done'
+      end
+    end
+
     it "should pass an immutable node to the template" do
       broker = {'test' => {'install.erb' => "<%= node.hw_info = ['serial=exploited!'] %>"}}
       with_brokers_in(paths.first => broker) do
