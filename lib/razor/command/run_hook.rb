@@ -22,7 +22,7 @@ Run the hook 'counter' for the event 'node-booted' with the provided node.
   example cli: <<-EOT
 Run the hook 'counter' for the event 'node-booted' with the provided node.
 
-    razor run-node --hook counter --event node-booted --node node1
+    razor run-hook --name counter --event node-booted --node node1
   EOT
 
   authz '%{name}'
