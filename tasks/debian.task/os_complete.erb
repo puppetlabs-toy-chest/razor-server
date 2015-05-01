@@ -7,3 +7,6 @@ echo Node: <%= node_url %> >> /tmp/razor_complete.log
 sed -i '/razor_postinstall/d' /etc/rc.local
 
 curl <%= broker_install_url %> | bash
+if [ $? -ne 0 ]; then
+    echo "Broker run failed; see /var/log/razor.log for more details" >> /tmp/razor_complete.log
+fi
