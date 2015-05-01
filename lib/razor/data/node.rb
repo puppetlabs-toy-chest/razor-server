@@ -133,13 +133,14 @@ module Razor::Data
 
     # Retrieve the entire log for this node as an array of hashes, ordered
     # by increasing timestamp. In addition to the keys mentioned for
-    # +log_append+ each entry will also contain the +timstamp+ in ISO8601
+    # +log_append+ each entry will also contain the +timestamp+ in ISO8601
     # format
     def log(params = {})
       cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
           where(node_id: id).limit(params[:limit], params[:start])
       cursor.map do |log|
-        { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
+        { 'timestamp' => log.timestamp.xmlschema,
+          'severity' => log.severity, }.update(log.entry)
       end
     end
 
