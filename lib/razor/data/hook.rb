@@ -165,7 +165,7 @@ class Razor::Data::Hook < Sequel::Model
     Razor.config.hook_paths.collect do |path|
       Pathname.new(path) + "#{hook_type.name}.hook" + cause
     end.find do |script|
-      script.file? and (script.executable? or (!log_append(msg: _("file %{script} is not executable") % {script: script}, severity: 'warn', cause: cause) ))
+      script.file? and (script.executable? or (!log_append(msg: _("file %{script} is not executable") % {script: script}, severity: 'warn', event: cause) ))
     end
   end
 
@@ -206,7 +206,7 @@ class Razor::Data::Hook < Sequel::Model
       args[:hook] ||= {}
       node_id = args[:node][:id] unless args[:node].nil?
       policy_id = args[:policy][:id] unless args[:policy].nil?
-      appender.update(node: node_id, policy: policy_id, cause: cause)
+      appender.update(node: node_id, policy: policy_id, event: cause)
       # Refresh these objects if they've changed. The node may be deleted,
       # in which case this should just use the cached data.
       if node = Razor::Data::Node[id: node_id]

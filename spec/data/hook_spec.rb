@@ -221,7 +221,7 @@ exit 0
       events = Razor::Data::Event.all
       events.size.should == 1
       events.first.entry['msg'].should =~ /node-booted is not executable/
-      events.first.entry['cause'].should == 'node-booted'
+      events.first.entry['event'].should == 'node-booted'
       events.first.entry['severity'].should == 'warn'
     end
 
@@ -253,7 +253,7 @@ exit #{exitcode}
         event.hook_id.should == hook.id
         event.entry['error'].should == {'message' => 'some-bad-error', 'extra' => 'details here'}
         event.entry['msg'].should == 'standard output'
-        event.entry['cause'].should == 'node-booted'
+        event.entry['event'].should == 'node-booted'
         event.entry['severity'].should == severity
 
         Razor::Data::Event.count.should == 1

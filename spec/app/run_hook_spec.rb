@@ -40,7 +40,7 @@ describe Razor::Command::RunHook do
     event = Razor::Data::Event[id: event_name]
     event.node_id.should == node.id
     event.hook_id.should == hook.id
-    event.entry['cause'].should == command_hash['event']
+    event.entry['event'].should == command_hash['event']
     event.entry['exit_status'].should == 0
     event.entry['actions'].should == <<-EOT.strip
 updating hook configuration: {\"update\"=>{\"#{command_hash['event']}\"=>1}} and updating node metadata: {\"update\"=>{\"last_hook_execution\"=>\"#{command_hash['event']}\"}}
