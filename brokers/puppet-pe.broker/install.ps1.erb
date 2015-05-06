@@ -1,16 +1,42 @@
 # -*- powershell -*-
 write-host "Razor Windows broker script starting"
+$ErrorActionPreference = "Continue"
+$error.clear()
 
+if ((Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty OSArchitecture) -eq '64-bit') {
+    $arch = 'x64'
+} else {
+    $arch = 'x86'
+}
 $version = "<%= (broker[:version] || 'latest') %>"
 $master = "<%= (broker[:server] || 'puppet') %>"
-$installer = "https://pm.puppetlabs.com/puppet-enterprise/$version/puppet-enterprise-$version.msi"
+$installer = "https://pm.puppetlabs.com/cgi-bin/download.cgi?ver=$version&dist=win&arch=$arch"
 
-write-host "downloading MSI file to install PE agent"
-$installer_dest = "${env:SYSTEMDRIVE}\puppet.msi"
-(new-object System.Net.WebClient).DownloadFile($installer, $installer_dest)
+write-host "downloading MSI file to install PE agent from $installer"
+$installer_dest = "${ENV:TEMP}\puppet.msi"
+(New-Object System.Net.WebClient).DownloadFile($installer, $installer_dest)
+if($error.Count) {
+    write-host "failed to download puppet agent installer: $error"
+    $error_url = "<%= log_url('failed to download puppet agent installer', :error) %>"
+    (new-object System.Net.WebClient).DownloadString($error_url)
+    Exit 1
+}
 
-write-host "starting PE installer ${installer_dest}"
-Start-Process -file $installer_dest -arg '/qn PUPPET_MASTER_AGENT=$master' -passthru | wait-process
+write-host "starting PE installer"
+$log_dest = "${ENV:TEMP}\puppet.log"
+$installer_args = @('/qn', "PUPPET_MASTER_SERVER=$master", "/l*v `"$log_dest`"")
+
+write-host "running $installer_dest $installer_args"
+Start-Process -File $installer_dest -Arg $installer_args -Passthru | Wait-Process
+if($error.Count) {
+    write-host "failed to run puppet agent installer: $error"
+    $error_url = "<%= log_url('failed to run puppet agent installer', :error) %>"
+    (New-Object System.Net.WebClient).DownloadString($error_url)
+    Exit 1
+}
 
 write-host "notify Razor that the broker completed"
-(new-object System.Net.WebClient).DownloadString('<%= stage_done_url %>')
+(New-Object System.Net.WebClient).DownloadString('<%= stage_done_url %>')
+if($error.Count) {
+    write-host 'failed to tell Razor that the broker completed'
+}
