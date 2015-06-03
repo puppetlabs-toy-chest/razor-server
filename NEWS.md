@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## Next.Next - TBD
+## 1.1.0 - 2015-06-11
 
 ### Other
 
@@ -10,8 +10,12 @@
 + NEW: The `store_hook_input` and `store_hook_output` config settings can
   toggle storing the input and output for a hook script in the event log. These
   are disabled by default.
++ IMPROVEMENT: Determine the WinPE drive letter programmatically for Windows
+  tasks.
++ IMPROVEMENT: Show severity for an event in node log view.
++ IMPROVEMENT: Log when the `puppet-pe` broker fails execution.
 
-## Next - TBD
+## 1.0.0 - 2015-06-08
 
 ### Incompatible changes
 
