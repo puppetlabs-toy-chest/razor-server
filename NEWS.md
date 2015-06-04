@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.1.0 - 2015-06-11
+## 1.0.1 - 2015-06-11
 
 ### Other
 
