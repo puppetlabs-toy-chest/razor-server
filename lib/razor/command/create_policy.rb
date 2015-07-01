@@ -36,7 +36,7 @@ A sample policy installing CentOS 6.4:
 
     razor create-policy --name centos-for-small \\
       --repo centos-6.4 --task centos --broker noop \\
-      --enabled --hostname "host${id}.example.com" \\
+      --enabled --hostname 'host${id}.example.com' \\
       --root-password secret --max-count 20 \\
       --before "other policy" --tag small --node-metadata key=value
   EOT
