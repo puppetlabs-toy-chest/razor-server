@@ -1,7 +1,6 @@
 # -*- powershell -*-
 # Run this script as:
-#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 \
-#     -razorurl http://razor:8150/svc -workdir C:\build-winpe
+#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 -razorurl http://razor:8150/svc
 #
 # Produce a WinPE image suitable for use with Razor
 
@@ -113,7 +112,7 @@ copy-item $wim $output
 $wim = join-path $output "winpe.wim"
 
 
-
+$env:Path = ($env:Path + ";$adk\..\..\Deployment Tools\amd64\DISM")
 import-module dism
 
 write-host "* Mounting the wim image"

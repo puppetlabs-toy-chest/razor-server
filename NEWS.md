@@ -1,5 +1,11 @@
 # Razor Server Release Notes
 
+## Next - Next
+
+### Other
+
++ NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
+
 ## 1.0.1 - 2015-06-11
 
 ### Other

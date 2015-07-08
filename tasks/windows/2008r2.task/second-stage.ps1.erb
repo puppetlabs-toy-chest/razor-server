@@ -16,6 +16,13 @@ $unattended_src = '<%= file_url('unattended.xml') %>'
 $unattended = "${env:SYSTEMDRIVE}\unattended.xml"
 (new-object System.Net.WebClient).DownloadFile($unattended_src, $unattended)
 
+write-host "fetching fastprox.dll from repo to overwrite the local copy (workaround)"
+# This is a workaround for an installer issue with WinPE 4.0 + 2008R2.
+$fastprox_loc = '<%= repo_url('sources/fastprox.dll') %>'
+$fastprox = "${env:SYSTEMDRIVE}\Windows\System32\wbem\fastprox.dll"
+$fastprox_backup = $fastprox + ".bak"
+move $fastprox $fastprox_backup
+(new-object System.Net.WebClient).DownloadFile($fastprox_loc, $fastprox)
 
 write-host "mapping SMB share ${drive_path} for installer access"
 # As far as I can tell, if we don't persist, we don't connect the SMB share,
