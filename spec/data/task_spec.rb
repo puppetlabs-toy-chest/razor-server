@@ -10,10 +10,6 @@ describe Razor::Data::Task do
     end
   end
 
-  before(:each) do
-    use_task_fixtures
-  end
-
   subject(:task) do
     Razor::Data::Task.create(
       :name => 'test',
@@ -124,6 +120,9 @@ describe Razor::Data::Task do
   end
 
   describe "find_template" do
+    before(:each) do
+      use_task_fixtures
+    end
     it "raises TemplateNotFoundError for nonexistent template" do
       expect {
         task.find_template('no such template').should_not be_nil
@@ -150,6 +149,7 @@ describe Razor::Data::Task do
 
   describe "boot_template" do
     it "uses the boot template with the right seq" do
+      task.reload
       node = Razor::Data::Node.new(:hw_info => ["mac=deadbeef"],
                                    :boot_count => 0)
       ["boot_install", "boot_again", "boot_local", "boot_local"].each do |t|

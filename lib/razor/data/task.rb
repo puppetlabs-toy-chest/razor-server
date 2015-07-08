@@ -8,8 +8,20 @@ module Razor::Data
   # Note that we duck type this with Razor::Task so that they can be used
   # interchangeably for template lookup etc.
   class Task < Sequel::Model
-    plugin :serialization, :json, :boot_seq
     plugin :serialization, :json, :templates
+    # Standard json serialization doesn't work here.
+    # JSON serializes integers as strings, undo that
+    serialize_attributes [
+                         ->(b){ b.to_json },               # serialize
+                         ->(b){
+                           if b.is_a?(String)
+                             b = JSON.parse(b)
+                             b.keys.select { |k| k.is_a?(String) and k =~ /^[0-9]+$/ }.
+                                 each { |k| b[k.to_i] = b.delete(k) }
+                           end
+                           b
+                         } # deserialize
+                         ], :boot_seq
 
     one_to_many :events, :key => :task_name, :primary_key => :name
 
