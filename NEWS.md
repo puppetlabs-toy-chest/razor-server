@@ -5,6 +5,9 @@
 ### Other
 
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
++ NEW: `reinstall-node` now accepts a `same_policy` argument, which indicates
+  that the node should skip over the microkernel and policy-binding stage,
+  and just proceed with a reinstall of the current policy.
 
 ## 1.0.1 - 2015-06-11
 

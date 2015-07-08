@@ -46,7 +46,7 @@ Fabricator(:task, :class_name => Razor::Data::Task) do
   os            { Faker::Commerce.product_name }
   os_version    { random_version }
   description   { Faker::Lorem.sentence }
-  boot_seq      {{'default' => 'boot_local'}}
+  boot_seq      {{1 => 'boot_first', 'default' => 'boot_local'}}
 end
 
 Fabricator(:tag, :class_name => Razor::Data::Tag) do
