@@ -4,6 +4,7 @@
 
 ### Other
 
++ BUGFIX: The EL7 packages will now start the razor-server service properly.
 + BUGFIX: Tasks created through the `create-task` command will now find
   the correct boot stage, rather than feeding the `default` stage at each boot.
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
