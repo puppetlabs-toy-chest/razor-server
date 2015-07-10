@@ -170,6 +170,19 @@ human-readable message; additional properties can be set. Example:
       }
     }
 
+## Development Tools
+
+There are three commands which may help with writing custom hooks:
+
+- The `run-hook` command can be used to arbitrarily execute a hook with a given
+  node input (and policy if applicable). Note that only "node-bound-to-policy" and
+  "node-unbound-from-policy" will include the policy when executing the hook.
+- The `update-hook-configuration` command can be used to reset a hook's
+  configuration. This is helpful when you are testing that the hook's output
+  correctly updates a hook's configuration.
+- The `update-node-metadata` command can be used to reset a node's metadata. This
+  is helpful when you are testing that a hook's output correctly updates a node's
+  metadata.
 
 ## Sample input
 
