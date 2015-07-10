@@ -8,6 +8,11 @@
 + NEW: `reinstall-node` now accepts a `same_policy` argument, which indicates
   that the node should skip over the microkernel and policy-binding stage,
   and just proceed with a reinstall of the current policy.
++ NEW: The `like` tag matcher can be used to match expressions to a regular
+  expression. This can be used, for example, to match on a range of MAC
+  addresses. 
++ NEW: The `str` tag matcher can be used to convert input (likely numeric)
+  into a string.
 
 ## 1.0.1 - 2015-06-11
 
