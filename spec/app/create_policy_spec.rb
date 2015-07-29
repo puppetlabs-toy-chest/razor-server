@@ -28,7 +28,7 @@ describe Razor::Command::CreatePolicy do
         'repo'          => repo.name,
         'task'          => 'some_os',
         'broker'        => broker.name,
-        'hostname'      => "host${id}.example.com",
+        'hostname'      => "host<%= id %>.example.com",
         'root_password' => "geheim",
         'tags'          => [ tag1.name ]
       }

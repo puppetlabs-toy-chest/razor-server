@@ -233,9 +233,10 @@ describe Razor::Data::Node do
     end
 
     it "is set from the policy's hostname_pattern when bound" do
-      policy.hostname_pattern = "host${id}.example.org"
+      policy.hostname_pattern = "host<%= id %>.example.org"
       policy.save
       node.bind(policy)
+      puts node.id
       node.hostname.should == "host#{node.id}.example.org"
     end
   end
