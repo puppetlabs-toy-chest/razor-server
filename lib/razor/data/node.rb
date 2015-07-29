@@ -209,6 +209,7 @@ module Razor::Data
       #    policy or not
       self.installed = nil
       self.root_password = policy.root_password
+      self.current_policy_count = Node.dataset.filter(:policy_id => self.policy.id).count() + 1
       self.hostname = ERB.new(policy.hostname_pattern).result(binding)
 
       if policy.node_metadata
