@@ -49,7 +49,7 @@ EOT
              elsif data['clear'] and config.has_key?(data['key'])
                config.delete(data['key'])
                attr_schema = hook.hook_type.configuration_schema[data['key']]
-               if attr_schema['default']
+               if attr_schema and attr_schema['default']
                  # The actual setting happens as part of the validation.
                  _("value for key %{name} reset to default") %
                      {name: data['key']}
