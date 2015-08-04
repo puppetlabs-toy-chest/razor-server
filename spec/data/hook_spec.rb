@@ -205,10 +205,64 @@ exit 0
       second_event = events.select {|e| e.hook_id == second.id }.first
       first_event.node_id.should == node.id
       first_event.entry['msg'].should == 'standard output'
-      first_event.entry['severity'].should == 'info'
+      first_event.severity.should == 'info'
       second_event.node_id.should == node.id
       second_event.entry['msg'].should == 'standard output'
-      second_event.entry['severity'].should == 'info'
+      second_event.severity.should == 'info'
+    end
+    it "should properly log malformed scripts" do
+      Razor::Data::Hook.new(:name => 'hook', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
+#! /no/such/executable
+
+cat <<EOF
+{
+  "output": "standard output"
+}
+EOF
+exit 0
+      CONTENTS
+      Razor::Data::Hook.trigger('node-booted', node: node)
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      events = Razor::Data::Event.all
+      events.size.should == 1
+      event = events.first
+      event.node_id.should == node.id
+      event.severity.should == 'error'
+      event.entry['exit_status'].should == 1
+      event.entry['event'].should == 'node-booted'
+      event.entry['error'].should =~ /Cannot run program.+test.hook\/node-booted/
+    end
+    it "should properly log failing executables" do
+      Razor::Data::Hook.new(:name => 'hook', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
+#! /bin/bash
+
+set -e
+
+somecommandthatdoesnotexist
+
+cat <<EOF
+{
+  "output": "standard output"
+}
+EOF
+exit 0
+      CONTENTS
+      Razor::Data::Hook.trigger('node-booted', node: node)
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      events = Razor::Data::Event.all
+      events.size.should == 1
+      event = events.first
+      event.node_id.should == node.id
+      event.severity.should == 'error'
+      event.entry['exit_status'].should == 127
+      event.entry['event'].should == 'node-booted'
+      event.entry['error'].should =~ /somecommandthatdoesnotexist: command not found/
     end
   end
 
@@ -222,7 +276,7 @@ exit 0
       events.size.should == 1
       events.first.entry['msg'].should =~ /node-booted is not executable/
       events.first.entry['event'].should == 'node-booted'
-      events.first.entry['severity'].should == 'warn'
+      events.first.severity.should == 'warn'
     end
 
     # include TorqueBox::Injectors
@@ -254,7 +308,7 @@ exit #{exitcode}
         event.entry['error'].should == {'message' => 'some-bad-error', 'extra' => 'details here'}
         event.entry['msg'].should == 'standard output'
         event.entry['event'].should == 'node-booted'
-        event.entry['severity'].should == severity
+        event.severity.should == severity
 
         Razor::Data::Event.count.should == 1
       end
@@ -279,7 +333,7 @@ exit 0
       event.node_id.should == node.id
       event.hook_id.should == hook.id
       event.entry['msg'].should == 'standard output'
-      event.entry['severity'].should == 'info'
+      event.severity.should == 'info'
 
       Razor::Data::Event.count.should == 1
     end
@@ -316,7 +370,7 @@ EOF
       event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == node.id
       event.hook_id.should == hook.id
-      event.entry['severity'].should == 'info'
+      event.severity.should == 'info'
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
@@ -375,7 +429,7 @@ EOF
       event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == node.id
       event.hook_id.should == hook.id
-      event.entry['severity'].should == 'info'
+      event.severity.should == 'info'
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
@@ -421,7 +475,7 @@ EOF
       event = Razor::Data::Event.find(hook_id: hook.id)
       event.node_id.should == nil # Since the node was deleted.
       event.hook_id.should == hook.id
-      event.entry['severity'].should == 'info'
+      event.severity.should == 'info'
       input = event.entry['msg']
       input['hook']['name'].should == hook.name
       input['hook']['type'].should == hook.hook_type.name
@@ -622,7 +676,7 @@ exit 0
       event.hook_id.should == hook.id
       event.entry['error'].should == 'invalid JSON returned from hook'
       event.entry['msg'].should == "standard output\n"
-      event.entry['severity'].should == 'error'
+      event.severity.should == 'error'
     end
 
     it "should fail if there is no node to modify" do
@@ -653,7 +707,7 @@ EOF
 
       event = Razor::Data::Event.find(hook_id: hook.id)
       event.entry['error'].should == 'hook tried to update node metadata on a hook without a node'
-      event.entry['severity'].should == 'error'
+      event.severity.should == 'error'
     end
 
     it "should fail if hook attempts unexpected metadata operation" do
@@ -684,7 +738,7 @@ EOF
       node.reload
       node.metadata.should == {'existing' => 'value'}
       Razor::Data::Event.first.entry['error'].should == 'unexpected node metadata operation(s) do-other-thing included'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -704,7 +758,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output: other-key'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -726,7 +780,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for node update: other-key'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -748,7 +802,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'unexpected key in hook\'s output for hook update: other-key'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -769,7 +823,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -790,7 +844,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == 'hook output for hook configuration should be an object but was a string'
-      Razor::Data::Event.first.entry['severity'].should == 'warn'
+      Razor::Data::Event.first.severity.should == 'warn'
       Razor::Data::Event.count.should == 1
     end
 
@@ -815,7 +869,7 @@ EOF
       queue.count_messages.should == 1
       run_message(queue.receive)
       Razor::Data::Event.first.entry['error'].should == "undefined operation on hook: do-thing; should be 'update' or 'remove'"
-      Razor::Data::Event.first.entry['severity'].should == 'error'
+      Razor::Data::Event.first.severity.should == 'error'
       Razor::Data::Event.count.should == 1
     end
 

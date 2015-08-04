@@ -25,7 +25,7 @@ module Razor::Data
     end
 
     def self.log_append(entry)
-      entry[:severity] ||= 'info'
+      severity = entry.delete(:severity) || 'info'
       hook = entry.delete(:hook)
       hook = Razor::Data::Hook[id: hook] unless hook.is_a?(Razor::Data::Hook)
       node = entry.delete(:node)
@@ -41,7 +41,8 @@ module Razor::Data
           :entry => entry,
           :hook_id => hook.is_a?(Razor::Data::Hook) && hook.exists? ? hook.id : nil,
           :node_id => node.is_a?(Razor::Data::Node) && node.exists? ? node.id : nil,
-          :policy_id => policy.is_a?(Razor::Data::Policy) && policy.exists? ? policy.id : policy
+          :policy_id => policy.is_a?(Razor::Data::Policy) && policy.exists? ? policy.id : policy,
+          :severity => severity
       }.reject {|_, v| v.nil?}
 
       new(hash).save

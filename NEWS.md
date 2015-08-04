@@ -23,6 +23,8 @@
   addresses. 
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
++ IMPROVEMENT: More verbose and clear log messages will be included for hook
+  execution. As part of this, STDERR will be reported as part of the log.
 + IMPROVEMENT: The RAZOR_HTTP_PORT environment variable will now be used to
   tell the razor service which port to use for HTTP traffic.
 + IMPROVEMENT: The `bootstrap` URL will now guess what the correct http_port
