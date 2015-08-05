@@ -25,6 +25,9 @@
   addresses. 
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
++ IMPROVEMENT: Stock tasks have been updated to prefer node metadata for both
+  `root_password` and `hostname`. These will fall back to the default on the
+  policy if the node metadata does not exist.
 + IMPROVEMENT: More verbose and clear log messages will be included for hook
   execution. As part of this, STDERR will be reported as part of the log.
 + IMPROVEMENT: The RAZOR_HTTP_PORT environment variable will now be used to

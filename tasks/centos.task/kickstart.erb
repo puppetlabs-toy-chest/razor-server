@@ -7,8 +7,8 @@ url --url=<%= repo_url %>
 cmdline
 lang en_US.UTF-8
 keyboard us
-rootpw <%= node.root_password %>
-network --hostname <%= node.hostname %>
+rootpw <%= node.metadata['root_password'] || node.root_password %>
+network --hostname <%= node.metadata['hostname'] || node.hostname %>
 firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
 timezone --utc <%= node.metadata['timezone'] || 'America/Los_Angeles' %>

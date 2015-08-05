@@ -1,7 +1,7 @@
 <%# -*- shell-script -*- %>
 # Configure hostname.
-hostname <%= node.hostname %>
-echo <%= node.hostname %> > /etc/hostname
+hostname <%= node.metadata['hostname'] || node.hostname %>
+echo <%= node.metadata['hostname'] || node.hostname %> > /etc/hostname
 
 # This set of commands should convert the first local (but non-loopback) IP
 # address in the /etc/hosts file to an entry that has the fully-qualified
@@ -10,7 +10,7 @@ echo <%= node.hostname %> > /etc/hostname
 # in the /etc/hosts- file
 cp -p /etc/hosts /etc/hosts-
 grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= node.hostname %>'\2'<%= node.shortname %>'/' >> /etc/hosts
+grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= node.metadata['hostname'] || node.hostname %>'\2'<%= (node.metadata['hostname'] || node.hostname).split('.').first %>'/' >> /etc/hosts
 grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | tail -n +2 >> /etc/hosts
 grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
 
