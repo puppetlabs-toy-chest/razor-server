@@ -29,9 +29,12 @@ The order of events is as follows:
 2. When a node boots, the `node-bound-to-policy` event is triggered.
 3. The policy's name from the event is then passed to the hook as input.
 4. The hook matches the node's policy name to the hook's policy name.
-5. The hook calculates a rendered hostname pattern:
+5. If the policy matches, the hook calculates a rendered hostname pattern:
    - It replaces `${count}` with the current value of the `counter` hook 
      configuration.
+   - It left-pads the `${count}` with `padding` zeroes. E.g. If the hook
+     configuration's `padding` equals 3, a `count` of 7 will be rendered as
+     `007`.
    - It replaces `${policy}` with the name of its policy.
 6. The hook then returns the rendered hostname-pattern as the node metadata
    of `hostname`.
