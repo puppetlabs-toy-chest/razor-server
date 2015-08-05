@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby -w
+
+require 'json'
+
+input = STDIN.read
+STDIN.close_read
+
+input = JSON.parse(input)
+config = input['hook']['configuration']
+policy = input['policy']['name']
+
+if policy != config['policy']
+  output = {'output' => "No match for policy '#{policy}' found in hook; skipping"}
+else
+  policy_counter = config['counter']
+  next_policy_counter = policy_counter + 1
+  output = {
+      'node' => {
+          'metadata' => {
+              'update' => {
+                  'hostname' => config['hostname_pattern'].
+                      gsub('${count}', policy_counter.to_s).
+                      gsub('${policy}', input['policy']['name'])
+              }
+          }
+      },
+      'hook' => {
+          'configuration' => {
+              'update' => {
+                  'counter' => next_policy_counter
+              }
+          }
+      }
+  }
+end
+
+puts output.to_json

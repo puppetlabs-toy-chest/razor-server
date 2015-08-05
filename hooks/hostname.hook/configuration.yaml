@@ -1,0 +1,15 @@
+---
+policy:
+  description: "The name of the policy"
+  required: true
+
+hostname_pattern:
+  description: >
+    The pattern for the hostname. Possible interpolated values include
+    `${count}` for the number of nodes bound to the policy, and `${policy}`
+    for the policy's name.
+  required: true
+
+counter:
+  description: "The number of nodes on the policy"
+  default: 1
