@@ -5,7 +5,9 @@ require_relative '../../app'
 describe Razor::Command::RunHook do
   include Razor::Test::Commands
 
-  use_hook_fixtures
+  before :each do
+    use_hook_fixtures
+  end
 
   let(:app) { Razor::App }
   let(:hook) { Fabricate(:counter_hook)}

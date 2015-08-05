@@ -107,7 +107,7 @@ class Razor::Data::Hook < Sequel::Model
     # Call the `_run` method so the queue arguments can be converted into a
     # standardized format for the actual `run` method.
     publish '_run', 'cause' => cause, 'args' => formatted_args,
-                 'queue' => '/queues/razor/sequel-hook-messages'
+                    'queue' => '/queues/razor/sequel-hooks-messages'
   end
 
   # Delegator for private method

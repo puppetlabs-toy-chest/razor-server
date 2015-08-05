@@ -96,6 +96,17 @@ def use_hook_fixtures
   Razor.config["hook_path"] = HOOK_FIXTURE_PATH
 end
 
+def run_message(message)
+  clazz = message['class'].split('::').inject(Object) do |mod, class_name|
+    mod.const_get(class_name)
+  end
+  obj_ref = message['instance']
+  obj = clazz[obj_ref]
+  method = message['message']
+  arguments = message['arguments'].first
+  obj.send(method, arguments)
+end
+
 # Make sure our migration is current, or fail hard.
 Sequel.extension :migration
 unless Sequel::Migrator.is_current?(Razor.database, File.join(File::dirname(__FILE__), '..', 'db', 'migrate'))
@@ -137,7 +148,8 @@ require_relative 'lib/razor/fake_queue'
 RSpec.configure do |c|
   c.before(:each) do
     TorqueBox::Registry.merge!(
-      '/queues/razor/sequel-instance-messages' => Razor::FakeQueue.new
+      '/queues/razor/sequel-instance-messages' => Razor::FakeQueue.new,
+      '/queues/razor/sequel-hooks-messages' => Razor::FakeQueue.new
     )
   end
 

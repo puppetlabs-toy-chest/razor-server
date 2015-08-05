@@ -14,6 +14,8 @@
   the correct boot stage, rather than feeding the `default` stage at each boot.
 + BUGFIX: Old hook configuration can now be removed if the hook's
   configuration.yaml is modified to remove an attribute.
++ BUGFIX: Actually use separate message queue for hook execution. This
+  previously used the same queue as the database messages.
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
 + NEW: `reinstall-node` now accepts a `same_policy` argument, which indicates
   that the node should skip over the microkernel and policy-binding stage,

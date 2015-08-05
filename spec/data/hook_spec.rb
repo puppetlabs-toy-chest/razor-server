@@ -3,18 +3,7 @@ require 'spec_helper'
 
 describe Razor::Data::Hook do
   include TorqueBox::Injectors
-  let :queue do fetch('/queues/razor/sequel-instance-messages') end
-
-  def run_message(message)
-    clazz = message['class'].split('::').inject(Object) do |mod, class_name|
-      mod.const_get(class_name)
-    end
-    obj_ref = message['instance']
-    obj = clazz[obj_ref]
-    method = message['message']
-    arguments = message['arguments'].first
-    obj.send(method, arguments)
-  end
+  let :queue do fetch('/queues/razor/sequel-hooks-messages') end
 
   around :each do |test|
     Dir.mktmpdir do |dir|
@@ -279,8 +268,6 @@ exit 0
       events.first.severity.should == 'warn'
     end
 
-    # include TorqueBox::Injectors
-    # let :queue do fetch('/queues/razor/sequel-instance-messages') end
     [[0, 'info'], [1, 'error']].each do |exitcode, severity|
       it "should create an #{severity} event if hook script exits with #{exitcode}" do
         hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save

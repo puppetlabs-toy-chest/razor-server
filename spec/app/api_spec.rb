@@ -986,8 +986,7 @@ describe "command and query API" do
 
   context "/api/collections/hooks" do
     before :each do
-      Razor.config['hook_path'] =
-          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'hooks').realpath.to_s
+      use_hook_fixtures
     end
 
     HookItemSchema = {

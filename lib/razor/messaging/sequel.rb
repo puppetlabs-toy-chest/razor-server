@@ -342,7 +342,10 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
           raise ArgumentError, _("wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}") % {class: self.class, message: message, count: count, arity: arity}
         end
 
-        queue_name = arguments.delete('queue') || '/queues/razor/sequel-instance-messages'
+        queue_name = '/queues/razor/sequel-instance-messages'
+        if !arguments.empty? and arguments.first.is_a?(Hash) and arguments.first.has_key?('queue')
+          queue_name = arguments.first.delete('queue')
+        end
         # Looks good, publish it; EDN encoding has reasonably good fidelity
         # for transmitting Ruby values over the wire, and this allows us to
         # enforce that during sending.

@@ -17,8 +17,7 @@ describe Razor::Command::CreateHook do
     before :each do
       header 'content-type', 'application/json'
 
-      Razor.config['hook_path'] =
-          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'hooks').realpath.to_s
+      use_hook_fixtures
     end
 
     let :command_hash do
