@@ -331,9 +331,10 @@ class Razor::Data::Hook < Sequel::Model
       stdin, stdout, stderr, wait_thr = Open3.popen3(script.to_s)
       stdin.write(args) if args
       begin
-        stdin.close
-      rescue Errno::EPIPE
-        # Do nothing; this means the hook did not read stdin.
+        stdin.close unless stdin.closed?
+      rescue Errno::EPIPE, IOError
+        # Do nothing; this means the hook did not read stdin or that stdin
+        # closed already.
       end
       wait_thr.join
       # Prefer nil over an empty string.
