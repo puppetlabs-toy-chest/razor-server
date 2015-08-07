@@ -787,10 +787,10 @@ and requires full control over the database (eg: add and remove tables):
         :error => _('The http_port parameter must be an integer between 1 and 65535')
 
     @bootstrap_port = params['http_port']
-    @bootstrap_port ||= ENV['HTTP_PORT']
-    # Can't use current port if this request is secure; use this default.
-    @bootstrap_port ||= 8150 if request.secure?
-    @bootstrap_port ||= request.port.to_s
+    @bootstrap_port ||= ENV['RAZOR_HTTP_PORT']
+    # Can't use current port if this request is secure.
+    @bootstrap_port ||= request.port.to_s unless request.secure?
+    @bootstrap_port ||= 8150
 
     # How many NICs ipxe should probe for DHCP
     @nic_max = params["nic_max"].nil? ? 4 : params["nic_max"].to_i

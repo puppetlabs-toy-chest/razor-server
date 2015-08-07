@@ -2,6 +2,11 @@
 
 ## Next - Next
 
+### Incompatible changes
+
++ The service will now run on port 8150 for HTTP. This will be updated
+  through packaging.
+
 ### Other
 
 + BUGFIX: The EL7 packages will now start the razor-server service properly.
@@ -16,6 +21,8 @@
   addresses. 
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
++ IMPROVEMENT: The RAZOR_HTTP_PORT environment variable will now be used to
+  tell the razor service which port to use for HTTP traffic.
 + IMPROVEMENT: The `bootstrap` URL will now guess what the correct http_port
   value should be, typically falling back to the URL used for the `/bootstrap`
   request. 

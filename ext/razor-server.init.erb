@@ -26,6 +26,9 @@ LANG=en_US.UTF-8
 export LANG
 
 # Other configuration
+export RAZOR_HTTP_PORT="8150"
+export RAZOR_HTTPS_PORT="8151"
+
 export JBOSS_PIDFILE="/var/run/${NAME}/torquebox.pid"
 
 export JBOSS_LOG_DIR="/var/log/${NAME}"
@@ -108,7 +111,8 @@ start() {
 run() {
     exec >&"${JBOSS_CONSOLE_LOG}" "${JBOSS_SCRIPT}" \
         "-Djboss.server.log.dir=${JBOSS_LOG_DIR}" \
-        "-b" "0.0.0.0"
+        "-b" "0.0.0.0" "-Dhttp.port=${RAZOR_HTTP_PORT}" \
+        "-Dhttps.port=#{RAZOR_HTTPS_PORT}"
 }
 
 

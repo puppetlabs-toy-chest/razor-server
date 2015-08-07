@@ -25,7 +25,7 @@ describe "tasks/common/boot_local" do
 
   context 'http_port' do
     after :each do
-      ENV::store('HTTP_PORT', nil)
+      ENV::store('RAZOR_HTTP_PORT', nil)
       Razor.config['secure_api'] = false
     end
     it "should allow secure bootstrap requests with http_port argument" do
@@ -36,7 +36,7 @@ describe "tasks/common/boot_local" do
     end
     it "should allow insecure bootstrap requests with http_port argument" do
       Razor.config['secure_api'] = false
-      ENV::store('HTTP_PORT', '8110')
+      ENV::store('RAZOR_HTTP_PORT', '8110')
       get "/api/microkernel/bootstrap?http_port=8002", {}, 'HTTPS' => 'off'
       last_response.status.should == 200
       last_response.body.should =~ /:8002\//
@@ -44,15 +44,15 @@ describe "tasks/common/boot_local" do
 
     it "should use the http_port argument for insecure requests" do
       Razor.config['secure_api'] = false
-      ENV::store('HTTP_PORT', '8110')
+      ENV::store('RAZOR_HTTP_PORT', '8110')
       get "/api/microkernel/bootstrap?http_port=8010", {}, 'HTTPS' => 'off'
       last_response.status.should == 200
       last_response.body.should =~ /:8010\//
     end
 
-    it "should use the environment variable for HTTP_PORT" do
+    it "should use the environment variable for RAZOR_HTTP_PORT" do
       Razor.config['secure_api'] = true
-      ENV::store('HTTP_PORT', '8110')
+      ENV::store('RAZOR_HTTP_PORT', '8110')
       get "/api/microkernel/bootstrap", {}, 'HTTPS' => 'on'
       last_response.status.should == 200
       last_response.body.should =~ /:8110\//
