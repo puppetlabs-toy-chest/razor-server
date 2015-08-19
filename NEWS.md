@@ -34,6 +34,9 @@
   policy if the node metadata does not exist.
 + IMPROVEMENT: More verbose and clear log messages will be included for hook
   execution. As part of this, STDERR will be reported as part of the log.
++ IMPROVEMENT: Broker configuration now, like hook configuration, allows the
+  usage of the `default` keyword, indicating the starting value for a
+  configuration property if not overridden upon creation.
 + IMPROVEMENT: The RAZOR_HTTP_PORT environment variable will now be used to
   tell the razor service which port to use for HTTP traffic.
 + IMPROVEMENT: The `bootstrap` URL will now guess what the correct http_port

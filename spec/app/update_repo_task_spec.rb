@@ -4,7 +4,8 @@ require_relative '../../app'
 
 describe Razor::Command::UpdateRepoTask do
   include Razor::Test::Commands
-  before 'each' do
+
+  before :each do
     use_task_fixtures
   end
 
