@@ -25,6 +25,18 @@ Fabricator(:broker, :class_name => Razor::Data::Broker) do
   end
 end
 
+Fabricator(:broker_with_configuration, :from => :broker) do
+  broker_type do
+    path = Pathname(__FILE__).dirname + '..' + 'fixtures' + 'brokers' + 'with_configuration.broker'
+    Razor::BrokerType.new(path)
+  end
+  configuration do
+    {'key-with-default' => 'original',
+     'required-key' => 'other-original',
+     'optional-key' => 'a value'}
+  end
+end
+
 Fabricator(:broker_with_policy, from: :broker) do
   after_build do |broker, _|
     policy = Fabricate(:policy)

@@ -29,6 +29,8 @@
   addresses. 
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
++ NEW: The `update-broker-configuration` command can be used to update the
+  configuration of a broker.
 + IMPROVEMENT: Stock tasks have been updated to prefer node metadata for both
   `root_password` and `hostname`. These will fall back to the default on the
   policy if the node metadata does not exist.
