@@ -47,6 +47,9 @@
 + IMPROVEMENT: The Windows build-winpe step now allows the addition of extra
   drivers to the generated .wim file. The drivers (.inf extension) need to be
   added to the `extra-drivers` folder inside the build-winpe directory.
++ IMPROVEMENT: For clarity, the build-winpe step will generate `razor-winpe.wim`
+  rather than `winpe.wim`. This way, the file can be copied to the razor-server
+  without requiring renaming.
 + IMPROVEMENT: Line endings for SetupComplete.cmd.erb are now in Windows format,
   causing the rendered SetupComplete.cmd file to be legible on Windows systems.
 + IMPROVEMENT: The RAZOR_HTTP_PORT environment variable will now be used to

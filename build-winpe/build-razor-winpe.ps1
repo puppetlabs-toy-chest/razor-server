@@ -92,7 +92,7 @@ the default location.
 $env:PSModulePath = ($env:PSModulePath + ";$adk\..\..\Deployment Tools\amd64")
 
 # Path to the clean WinPE WIM file.
-$wim = join-path $adk "en-us\winpe.wim"
+$wim = join-path $adk "en-us\razor-winpe.wim"
 
 # Root for the CAB files for optional features.
 $packages = join-path $adk "WinPE_OCs"
