@@ -10,7 +10,7 @@ if ((Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty 
 }
 $version = "<%= (broker[:version] || 'latest') %>"
 $master = "<%= (broker[:server] || 'puppet') %>"
-$installer = "https://pm.puppetlabs.com/cgi-bin/download.cgi?ver=$version&dist=win&arch=$arch"
+$installer = "<%= (broker[:windows_agent_download_url] || 'https://pm.puppetlabs.com/cgi-bin/download.cgi?ver=${version}&dist=win&arch=${arch}') %>"
 
 write-host "downloading MSI file to install PE agent from $installer"
 $installer_dest = "${ENV:TEMP}\puppet.msi"

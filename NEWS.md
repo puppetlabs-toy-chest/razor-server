@@ -16,6 +16,9 @@
   configuration.yaml is modified to remove an attribute.
 + BUGFIX: Actually use separate message queue for hook execution. This
   previously used the same queue as the database messages.
++ BUGFIX: The unused `windows_download_url` property of the `puppet-pe` broker
+  has been removed in favor of `windows_agent_download_url`, an optional URL
+  indicating where to download the Windows PE agent. 
 + NEW: Added stock hook for dynamic assignment of hostnames. More details on
   this new hook can be found in the hostname.hook directory's README.md.
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).

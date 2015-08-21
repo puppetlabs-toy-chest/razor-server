@@ -3,5 +3,5 @@ server:
   description: "The puppet master to load configurations and installation packages from."
 version:
   description: "Override the PE version to install; defaults to `current`."
-windows_download_url:
+windows_agent_download_url:
   description: "The download URL for a Windows PE agent installer; defaults to a URL derived from the `version` config."
