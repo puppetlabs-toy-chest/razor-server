@@ -37,6 +37,8 @@
 + IMPROVEMENT: Stock tasks have been updated to prefer node metadata for both
   `root_password` and `hostname`. These will fall back to the default on the
   policy if the node metadata does not exist.
++ IMPROVEMENT: The Windows stock tasks will prefer node metadata for timezone,
+  falling back to Pacific Standard Time.
 + IMPROVEMENT: More verbose and clear log messages will be included for hook
   execution. As part of this, STDERR will be reported as part of the log.
 + IMPROVEMENT: Broker configuration now, like hook configuration, allows the
