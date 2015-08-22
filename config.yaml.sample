@@ -89,6 +89,11 @@ all:
   # The *hook_path* is a colon separated list of directories containing
   # hook types
   hook_path: hooks
+  # The *hook_execution_path* is a colon separated list of paths that
+  # Razor will search, in order, when running hooks, prior to using the
+  # default execution path.
+  hook_execution_path:
+
   facts:
     # Facts that we should always ignore. These are stripped out before we
     # do anything else with facts coming in from a node. Each entry in this

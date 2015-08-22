@@ -1,5 +1,4 @@
-#!/usr/bin/env ruby -w
-
+#!/usr/bin/env ruby
 require 'json'
 
 input = STDIN.read
@@ -20,13 +19,16 @@ elsif policy != config['policy']
 else
   policy_counter = config['counter'].to_i
   next_policy_counter = policy_counter + 1
+  # This could just as easily call an external system to retrieve the node's
+  # hostname.
+  new_hostname = config['hostname_pattern'].
+                 gsub('${count}', policy_counter.to_s.rjust(config['padding'], '0')).
+                 gsub('${policy}', input['policy']['name'])
   output = {
       'node' => {
           'metadata' => {
               'update' => {
-                  'hostname' => config['hostname_pattern'].
-                      gsub('${count}', policy_counter.to_s.rjust(config['padding'], '0')).
-                      gsub('${policy}', input['policy']['name'])
+                  'hostname' => new_hostname
               }
           }
       },

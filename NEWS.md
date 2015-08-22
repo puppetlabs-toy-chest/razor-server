@@ -19,6 +19,8 @@
 + NEW: Added stock hook for dynamic assignment of hostnames. More details on
   this new hook can be found in the hostname.hook directory's README.md.
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
++ NEW: `hook_execution_path` config.yaml property is a path which will be
+  prepended to the default execution path when running hooks.
 + NEW: `reinstall-node` now accepts a `same_policy` argument, which indicates
   that the node should skip over the microkernel and policy-binding stage,
   and just proceed with a reinstall of the current policy.

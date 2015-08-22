@@ -331,7 +331,13 @@ class Razor::Data::Hook < Sequel::Model
 
   def exec_script(script, args)
     begin
-      stdin, stdout, stderr, wait_thr = Open3.popen3(script.to_s)
+      # Run the file from the hook's directory so that relative paths work.
+      hook_dir = File.expand_path('..', script)
+      stdin, stdout, stderr, wait_thr = Bundler.with_clean_env do
+        extra_path = Razor.config['hook_execution_path']
+        ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
+        Open3.popen3(script.to_s, :chdir => hook_dir)
+      end
       stdin.write(args) if args
       begin
         stdin.close unless stdin.closed?
