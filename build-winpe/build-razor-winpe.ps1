@@ -92,7 +92,7 @@ the default location.
 $env:PSModulePath = ($env:PSModulePath + ";$adk\..\..\Deployment Tools\amd64")
 
 # Path to the clean WinPE WIM file.
-$wim = join-path $adk "en-us\razor-winpe.wim"
+$wim = join-path $adk "en-us\winpe.wim"
 
 # Root for the CAB files for optional features.
 $packages = join-path $adk "WinPE_OCs"
@@ -116,7 +116,7 @@ if (-not(test-path -path $mount)) {
 write-host "* Copy the clean ADK WinPE image into our output area."
 copy-item $wim $output
 # update our wim location...
-$wim = join-path $output "winpe.wim"
+$wim = join-path $output "razor-winpe.wim"
 
 
 $env:Path = ($env:Path + ";$adk\..\..\Deployment Tools\amd64\DISM")
