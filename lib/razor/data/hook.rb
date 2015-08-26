@@ -341,7 +341,7 @@ class Razor::Data::Hook < Sequel::Model
       stdin.write(args) if args
       begin
         stdin.close unless stdin.closed?
-      rescue Errno::EPIPE, IOError
+      rescue Errno::EPIPE, Errno::EBADF, IOError
         # Do nothing; this means the hook did not read stdin or that stdin
         # closed already.
       end
