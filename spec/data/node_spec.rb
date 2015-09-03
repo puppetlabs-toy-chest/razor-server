@@ -262,15 +262,52 @@ describe Razor::Data::Node do
     end
   end
 
-
   context "protect_new_nodes" do
     it "should treat a new node as installed if set to true" do
       Razor.config['protect_new_nodes'] = true
+      node = Fabricate(:node_with_ip)
       node.save.reload.installed.should be_true
     end
 
     it "should treat a new node as 'not installed' if set to false" do
+      node = Fabricate(:node_with_ip)
       Razor.config['protect_new_nodes'] = false
+      node.save.reload.installed.should be_false
+    end
+
+    it "should treat a new node as installed if set to false and invert_protect_new_nodes_for_subnets contains 192.168.0.0/24" do
+      Razor.config['protect_new_nodes'] = false
+
+      #Test the NetAddr::CIDR.contains? condition
+      Razor.config['invert_protect_new_nodes_for_subnets'] = [
+        '192.168.0.0/24',
+      ]
+      node = Fabricate(:node_with_ip)
+      node.save.reload.installed.should be_true
+
+      #Test the NetAddr::CIDR.== condition for /32
+      Razor.config['invert_protect_new_nodes_for_subnets'] = [
+        '192.168.0.10/32',
+      ]
+      node = Fabricate(:node_with_ip)
+      node.save.reload.installed.should be_true
+    end
+
+    it "should treat a new node as 'not installed' if set to true and invert_protect_new_nodes_for_subnets contains 192.168.0.0/24" do
+      Razor.config['protect_new_nodes'] = true
+
+      #Test the NetAddr::CIDR.contains? condition
+      Razor.config['invert_protect_new_nodes_for_subnets'] = [
+        '192.168.0.0/24',
+      ]
+      node = Fabricate(:node_with_ip)
+      node.save.reload.installed.should be_false
+
+      #Test the NetAddr::CIDR.== condition for /32
+      Razor.config['invert_protect_new_nodes_for_subnets'] = [
+        '192.168.0.10/32',
+      ]
+      node = Fabricate(:node_with_ip)
       node.save.reload.installed.should be_false
     end
   end

@@ -103,6 +103,11 @@ Fabricator(:node_with_metadata, from: :node) do
   metadata { { "m1" => "a" } }
 end
 
+Fabricator(:node_with_ip, from: :node) do
+  hw_info  { [ "mac=#{random_mac}", "asset=#{random_asset}" ] }
+  metadata { { "ip" => '192.168.0.10' } }
+end
+
 Fabricator(:installed_node, from: :node) do
   installed "+test"
   installed_at { Time.now }

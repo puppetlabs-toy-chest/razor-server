@@ -55,7 +55,7 @@ describe Razor::Config do
 
     def validate(content)
       key = content.keys.first
-      # For the mandatroy keys, fill htem in with default values, unless
+      # For the mandatroy keys, fill them in with default values, unless
       # they are set to :none which indicates that the test wants to test a
       # config where that entry is entirely missing
       CONFIG_DEFAULTS.keys.each do |k|
@@ -120,6 +120,42 @@ describe Razor::Config do
             validate('repo_store_root' => "sub").should be_false
           end
         end
+      end
+    end
+
+    describe "invert_protect_new_nodes_for_subnets" do
+      it "should reject non arrays" do
+        validate("invert_protect_new_nodes_for_subnets" => "192.168.1.0/24").should be_false
+      end
+
+      it "should reject arrays that have values that are not a CIDR address" do
+        data = [
+          '192.168.2.0/255.255.255.0', #not a CIDR
+        ]
+        validate("invert_protect_new_nodes_for_subnets" => data).should be_false
+      end
+
+      it "should reject arrays that have values that are not valid IP addresses" do
+        data = [
+          '192.168.256.0/24', # 256 not valid in an IP address
+        ]
+        validate("invert_protect_new_nodes_for_subnets" => data).should be_false
+      end
+
+      it "should reject arrays that have values with invalid subnet masks" do
+        data = [
+          '192.168.2.0/33', # 33 not valid mask (max 32)
+        ]
+        validate("invert_protect_new_nodes_for_subnets" => data).should be_false
+      end
+
+      it "should accept arrays with all valid CIDRs" do
+        data = [
+          '192.168.1.0/24',
+          '172.16.0.0/16',
+          '10.0.0.0/8',
+        ]
+        validate("invert_protect_new_nodes_for_subnets" => data).should be_true
       end
     end
 

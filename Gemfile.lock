@@ -22,6 +22,7 @@ GEM
     kramdown (1.2.0)
     locale (2.1.0)
     multi_json (1.8.2)
+    netaddr (1.5.0)
     parslet (1.4.0)
       blankslate (~> 2.0)
     rack (1.5.2)
@@ -103,6 +104,7 @@ DEPENDENCIES
   jdbc-postgres
   json-schema (~> 2.0)
   kramdown
+  netaddr (>= 1.5.0)
   rack-test
   rspec (~> 2.13.0)
   rspec-core (~> 2.13.1)

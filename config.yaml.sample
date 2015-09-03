@@ -54,6 +54,12 @@ all:
 
   # Should newly discovered nodes be marked installed?
   protect_new_nodes: false
+  
+  # Invert the 'protect_new_nodes' value for the following subnets
+  # List subnets in the CIDR format (a.a.a.a/bb)
+  #
+  # invert_protect_new_nodes_for_subnets:
+  #   - 192.168.1.0/24
 
   # Should hook input be recorded in the event log for debugging?
   store_hook_input: false

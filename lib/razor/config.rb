@@ -95,6 +95,7 @@ module Razor
       validate_rx_array("facts.match_on")
       validate_repo_store_root
       validate_match_nodes_on
+      validate_invert_protect_new_nodes_for_subnets
     end
 
     private
@@ -166,6 +167,32 @@ module Razor
       (match_on - HW_INFO_KEYS).empty? or
         raise_ice(key,
         _("must only contain '%{keys}'") % {keys: HW_INFO_KEYS.join("', '")})
+    end
+    
+    def validate_invert_protect_new_nodes_for_subnets
+      key   = 'invert_protect_new_nodes_for_subnets'
+      if value = self[key]
+        value.is_a?(Array) or
+          raise_ice(key, _("If present, must be an array"))
+
+        value.each do |net|
+          ip, mask = net.split('/')
+          ip and mask or
+            raise_ice(key, _("Values must be in the form a.a.a.a/b[b]"))
+          
+          octs = ip.split('.')
+          octs.length == 4 or
+            raise_ice(key, _("Values must be in the form a.a.a.a/b[b]"))
+
+          octs.each do |oct|
+            oct =~ /^\d+$/ and oct.to_i >= 0 and oct.to_i <= 255 or
+              raise_ice(key, _("#{net} is not a valid subnet"))
+          end
+          
+          mask =~ /^\d+$/ and mask.to_i >= 0 and mask.to_i <= 32 or
+            raise_ice(key, _("#{net} is not a valid subnet"))
+        end
+      end
     end
   end
 end
