@@ -37,6 +37,7 @@ details; in particular look at
 * [Installation](https://github.com/puppetlabs/razor-server/wiki/Installation): how to get a Razor environment up and running
 * [Getting started](https://github.com/puppetlabs/razor-server/wiki/Getting-started): using the CLI to do useful things
 * [Developer setup](https://github.com/puppetlabs/razor-server/wiki/Developer-setup): for when you feel like hacking
+* [Documentation](./doc/index.md): for when you want to learn how to use Razor
 
 ## What does Razor do anyway?
 
