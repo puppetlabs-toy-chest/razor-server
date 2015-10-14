@@ -30,6 +30,10 @@ class Razor::Middleware::Auth
     subject.authenticated? or subject.remembered?
   end
 
+  def local?(req)
+    req.ip == '127.0.0.1' and Razor.config['auth.allow_localhost']
+  end
+
   def call(env)
     # Try authentication, regardless of security being enabled or disabled.
     req = Rack::Request.new(env)
@@ -37,7 +41,7 @@ class Razor::Middleware::Auth
 
     # @todo danielp 2013-12-17: at the moment we trust either authenticated
     # or remembered credentials, even though we don't support the later.
-    if enabled? and protected_path?(req) and not authenticated?(subject)
+    if enabled? and protected_path?(req) and not authenticated?(subject) and not local?(req)
       # Auth was required, but we were neither authenticated or remembered.
       [401, {'WWW-Authenticate' => 'Basic realm="Razor"'}, ["Access Denied\n"]]
     else

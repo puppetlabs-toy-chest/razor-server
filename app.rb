@@ -82,13 +82,18 @@ and requires full control over the database (eg: add and remove tables):
       org.apache.shiro.SecurityUtils.subject
     end
 
+    # Check if request is from localhost and if bypass for localhost is enabled
+    def local_request?
+      request.ip == '127.0.0.1' and Razor.config['auth.allow_localhost']
+    end
+
     # Assert that the current user has (all of) the specified permissions, and
     # raise an exception if they do not.  We handle that exception generically
     # at the top level.
     #
     # If security is disabled then this simply succeeds.
     def check_permissions!(*which)
-      Razor.config['auth.enabled'] and user.check_permissions(*which)
+      Razor.config['auth.enabled'] and not local_request? and user.check_permissions(*which)
       true
     end
 
