@@ -15,14 +15,6 @@ steps. Tasks can include steps for handoff to a DevOps system such as
 of controlling the node (such as a vCenter server taking possession of ESX
 systems).
 
-***
-
-This is a [0.x release](http://semver.org); that means that we might make
-backwards incompatible changes, especially to the database schema which
-would force you to rebuild all the machines that Razor is managing. The
-current code base is perfectly suitable for evaluation and smaller lab
-setups but not for production use.
-
 ## Getting in touch
 
 * bug/issue tracker: [RAZOR project in JIRA](https://tickets.puppetlabs.com/browse/RAZOR)
