@@ -11,7 +11,7 @@ repo, provisioning errors may arise.
   example api: <<-EOT
 Update repo's task to a task named 'other_task':
 
-    {"node": "node1", "repo": "my_repo", "task": "other_task"}
+    {"repo": "my_repo", "task": "other_task"}
   EOT
 
   example cli: <<-EOT

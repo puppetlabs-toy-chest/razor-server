@@ -8,15 +8,15 @@ configuration.
   EOT
 
   example api: <<-EOT
-Set a single key from a node:
+Set a single key in a broker's configuration:
 
-    {"node": "node1", "key": "my_key", "value": "twelve"}
+    {"broker": "broker1", "key": "my_key", "value": "twelve"}
   EOT
 
   example cli: <<-EOT
-Set a single key from a node:
+Set a single key in a broker's configuration:
 
-    razor update-broker-configuration --node node1 \\
+    razor update-broker-configuration --broker broker1 \\
         --key my_key --value twelve
   EOT
 
