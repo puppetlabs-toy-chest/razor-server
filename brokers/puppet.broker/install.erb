@@ -50,8 +50,8 @@ case "${flavour}" in
         # portable names once https://jira.puppetlabs.com/browse/RE-359 is
         # addressed and we have those available.
         case "${release}" in
-            5) url="http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-7.noarch.rpm" ;;
-            6) url="http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-7.noarch.rpm" ;;
+            5) url="https://yum.puppetlabs.com/puppetlabs-release-el-5.noarch.rpm" ;;
+            6) url="https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm" ;;
             7) url="https://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
@@ -68,14 +68,9 @@ case "${flavour}" in
 
     fedora)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
-        # @todo danielp 2013-09-30: this should be updated to reflect the
-        # portable names once https://jira.puppetlabs.com/browse/RE-359 is
-        # addressed and we have those available.
         case "$release" in
-            17) url="http://yum.puppetlabs.com/fedora/f17/products/i386/puppetlabs-release-17-7.noarch.rpm" ;;
-            18) url="http://yum.puppetlabs.com/fedora/f18/products/i386/puppetlabs-release-18-7.noarch.rpm" ;;
-            # NOTE: the package version is lower on this one!
-            19) url="http://yum.puppetlabs.com/fedora/f19/products/i386/puppetlabs-release-19-2.noarch.rpm" ;;
+            20) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-20.noarch.rpm" ;;
+            21) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-21.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
 
