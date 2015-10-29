@@ -1,6 +1,9 @@
 <%# -*- shell-script -*- %>
+# Select interface (centos 7 / redhat 7 uses strange names)
+eth=ip addr | grep ^2: | awk '{print $2}' | tr -d :`
+
 # Get current IP
-node_ip=$(ip addr show eth0 | awk '/inet / { sub("/[0-9]+$", "", $2); print $2 }')
+node_ip=$(ip addr show $eth | awk '/inet / { sub("/[0-9]+$", "", $2); print $2 }')
 echo IP is $node_ip
 
 # Send IP up
