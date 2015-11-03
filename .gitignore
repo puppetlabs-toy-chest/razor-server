@@ -7,4 +7,3 @@ log/*
 /.project
 /.ruby-version
 /ext/packaging/
-Gemfile.lock
