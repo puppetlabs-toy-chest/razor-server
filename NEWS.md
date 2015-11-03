@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## Next - Next
+## 1.1.0 - 2015-11-04
 
 ### Incompatible changes
 
