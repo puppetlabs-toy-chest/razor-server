@@ -6,7 +6,7 @@ This hook is intended to be extended for cases where an external system needs to
 
 ### Prerequisites
 
-Ruby must be installed in `$PATH` for the hook script to succeed. If it is not included, add it via the hook_execution_path property in the config.yaml file.
+Ruby must be installed in `$PATH` for the hook script to succeed. If it is not included, add it via the `hook_execution_path` property in the config.yaml file.
 
 ### Install the Hook
 
@@ -37,7 +37,7 @@ Running the above `create-hook` command kicks off the following sequence of even
 6. The hook then returns the rendered `hostname-pattern` as the node metadata
    of `hostname`.
 7. The hook also returns the incremented value for the counter that was used so
-   that the next execution of the hook will use the next value.
+   that the next execution of the hook uses the next value.
 
 If multiple policies require their own counter, create multiple instances of
 this hook with different `policy` and/or `hostname-pattern` hook configurations.
