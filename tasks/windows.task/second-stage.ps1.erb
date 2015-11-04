@@ -21,6 +21,12 @@ write-host "mapping SMB share ${drive_path} for installer access"
 # As far as I can tell, if we don't persist, we don't connect the SMB share,
 # and that means we can't actually run stuff off it.
 new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
+If (!(Test-Path i:))
+{
+        Invoke-WebRequest -Uri "<%= log_url("samba share not accessible ${drive_path}", :error) %>" -UseBasicParsing
+        write-error "samba share not accessible ${drive_path}"
+        exit 1
+}
 start-sleep 10                  # time to settle -- needed on my VM :/
 
 write-host "starting installer ${installer}"
