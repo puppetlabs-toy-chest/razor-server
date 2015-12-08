@@ -21,14 +21,18 @@ Create a simple hook:
 
     razor create-hook --name myhook --hook-type some_hook \
         --configuration foo=7 --configuration bar=rhubarb
+
+With positional arguments, this can be shortened::
+
+    razor create-hook myhook some_hook -c foo=7 -c bar=rhubarb
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the tag.')
+                position: 0, help: _('The name of the tag.')
 
-  attr 'hook_type', required: true, type: String, references: [Razor::HookType, :name],
-       help: _(<<-HELP)
+  attr 'hook_type', required: true, type: String, position: 1,
+       references: [Razor::HookType, :name], help: _(<<-HELP)
     The hook type from which this hook is created.  The available
     hook types on your server are:
 #{Razor::HookType.all.map{|n| "    - #{n}" }.join("\n")}

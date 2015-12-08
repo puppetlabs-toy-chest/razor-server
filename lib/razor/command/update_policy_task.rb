@@ -26,15 +26,19 @@ Update policy's task to a task named 'other_task':
 Use the task on the policy's repo:
 
     razor update-policy-task --policy my_policy --no-task
+
+With positional arguments, this can be shortened:
+
+    razor update-policy-task my_policy other_task
   EOT
 
   authz '%{policy}'
 
   attr 'policy', type: String, required: true, references: [Razor::Data::Policy, :name],
-               help: _('The policy that will have its task updated.')
+                 position: 0, help: _('The policy that will have its task updated.')
 
-  attr 'task', type: String,
-              help: _('The task to be used by the policy.')
+  attr 'task', type: String, position: 1,
+               help: _('The task to be used by the policy.')
 
   attr 'no_task', type: TrueClass, help: _('This policy should use the task on the repo')
 

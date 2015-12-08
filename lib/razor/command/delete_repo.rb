@@ -16,10 +16,14 @@ Delete the "fedora16" repo:
 Delete the "fedora16" repo:
 
     razor delete-repo --name fedora16
+
+With positional arguments, this can be shortened::
+
+    razor delete-repo fedora16
   EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250,
+  attr  'name', type: String, required: true, size: 1..250, position: 0,
         help: _('The name of the repo to delete.')
 
   def run(request, data)

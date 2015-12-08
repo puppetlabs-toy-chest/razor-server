@@ -18,15 +18,19 @@ Update repo's task to a task named 'other_task':
 Update repo's task to a task named 'other_task':
 
     razor update-repo-task --repo my_repo --task other_task
+
+With positional arguments, this can be shortened:
+
+    razor update-repo-task my_repo other_task
   EOT
 
   authz '%{repo}'
 
   attr 'repo', type: String, required: true, references: [Razor::Data::Repo, :name],
-               help: _('The repo that will have its task updated.')
+               position: 0, help: _('The repo that will have its task updated.')
 
   attr 'task', type: String, required: true,
-              help: _('The task to be used by the repo.')
+               position: 1, help: _('The task to be used by the repo.')
 
   def run(request, data)
     repo = Razor::Data::Repo[:name => data['repo']]

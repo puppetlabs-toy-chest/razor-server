@@ -24,12 +24,15 @@ Move a policy before another policy:
 Move a policy after another policy:
 
     razor move-policy --name policy --after other
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor move-policy policy --after other
+  EOT
 
   authz '%{name}'
   attr   'name', type: String, required: true, references: Razor::Data::Policy,
-                 help: _('The name of the policy to move.')
+                 position: 0, help: _('The name of the policy to move.')
 
   require_one_of 'before', 'after'
 

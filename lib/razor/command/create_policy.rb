@@ -39,11 +39,16 @@ A sample policy installing CentOS 6.4:
       --enabled --hostname 'host${id}.example.com' \\
       --root-password secret --max-count 20 \\
       --before "other policy" --tag small --node-metadata key=value
+
+With positional arguments, this can be shortened::
+
+    razor create-policy centos-for-small --repo centos-6.4 --broker noop \\
+      --hostname 'host${id}.example.com' --root-password secret
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the policy to create.')
+                position: 0, help: _('The name of the policy to create.')
 
   attr 'hostname', type: String, required: true, size: 1..Float::INFINITY, help: _(<<-HELP)
     The hostname pattern to use for newly installed nodes.  This is filled

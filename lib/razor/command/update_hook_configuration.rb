@@ -18,17 +18,21 @@ Set a single key from a node:
 
     razor update-hook-configuration --node node1 \\
         --key my_key --value twelve
+
+With positional arguments, this can be shortened:
+
+    razor update-hook-configuration node1 my_key twelve
   EOT
 
   authz '%{hook}'
 
   attr 'hook', type: String, required: true, references: [Razor::Data::Hook, :name],
-               help: _('The hook for which to update configuration.')
+               position: 0, help: _('The hook for which to update configuration.')
 
   attr 'key', required: true, type: String, size: 1..Float::INFINITY,
-              help: _('The key to change in the configuration.')
+              position: 1, help: _('The key to change in the configuration.')
 
-  attr 'value', help: _('The value for the configuration.')
+  attr 'value', position: 2, help: _('The value for the configuration.')
 
   attr 'clear', type: TrueClass,
                      help: _(<<-EOT)

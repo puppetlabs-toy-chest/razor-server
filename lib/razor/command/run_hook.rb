@@ -23,11 +23,15 @@ Run the hook 'counter' for the event 'node-booted' with the provided node.
 Run the hook 'counter' for the event 'node-booted' with the provided node.
 
     razor run-hook --name counter --event node-booted --node node1
+
+With positional arguments, this can be shortened::
+
+    razor run-hook counter --event node-booted --node node1
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..250, references: [Razor::Data::Hook, :name],
-                help: _('The name of the hook to run.')
+                position: 0, help: _('The name of the hook to run.')
   attr  'event', type: String, required: true,
                 one_of: Razor::Data::Hook::AVAILABLE_EVENTS,
                 help: _('The name of the hook to run.')

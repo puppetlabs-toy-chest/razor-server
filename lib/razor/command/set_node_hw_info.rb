@@ -42,10 +42,16 @@ Update `node172` with new hardware information:
         --hw-info serial=xxxxxxxxxxx \\
         --hw-info asset=Asset-1234567890 \\
         --hw-info uuid="Not Settable"
+
+With positional arguments, this can be shortened::
+
+    razor set-node-hw-info node172 \\
+        --hw-info mac=78:31:c1:be:c8:00
   EOT
 
   authz  '%{node}'
   attr   'node', type: String, required: true, references: Razor::Data::Node,
+                 position: 0,
                  help: _('The node for which to modify hardware information.')
 
   object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do

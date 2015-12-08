@@ -17,11 +17,14 @@ Delete the unused hook configuration "obsolete":
 Delete the unused hook configuration "obsolete":
 
     razor delete-hook --name obsolete
+
+With positional arguments, this can be shortened::
+
+    razor delete-hook obsolete
   EOT
 
-
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250,
+  attr  'name', type: String, required: true, size: 1..250, position: 0,
                 help: _('The name of the hook to delete.')
 
   def run(request, data)

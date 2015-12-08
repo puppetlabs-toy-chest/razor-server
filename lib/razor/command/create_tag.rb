@@ -20,13 +20,17 @@ Create a simple tag:
 Create a simple tag:
 
     razor create-tag --name small --rule '["=", ["fact", "processorcount"], "2"]'
+
+With positional arguments, this can be shortened::
+
+    razor create-tag small '["=", ["fact", "processorcount"], "2"]'
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the tag.')
+                position: 0, help: _('The name of the tag.')
 
-  attr 'rule', required: true, type: Array, help: _(<<-HELP)
+  attr 'rule', required: true, type: Array, position: 1, help: _(<<-HELP)
     The tag matches a node if evaluating this run against the tag’s facts
     results in true. Note that tag matching is case sensitive.
 

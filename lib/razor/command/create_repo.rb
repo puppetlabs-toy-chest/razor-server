@@ -57,10 +57,15 @@ downloaded onto the Razor server:
     razor create-repo --name fedora21 --url \\
         http://mirrors.n-ix.net/fedora/linux/releases/21/Server/x86_64/os/ \\
         --task fedora
+
+With positional arguments, this can be shortened::
+
+    razor create-repo fedora21 --task fedora --url \\
+        http://mirrors.n-ix.net/fedora/linux/releases/21/Server/x86_64/os/
   EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250,
+  attr  'name', type: String, required: true, size: 1..250, position: 0,
                 help: _('The name of the repository.')
 
   attr 'url', type: URI, exclude: ['iso_url', 'no_content'], size: 1..1000,

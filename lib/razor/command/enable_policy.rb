@@ -19,12 +19,16 @@ Enable a policy:
 Enable a policy:
 
     razor enable-policy --name example
+
+With positional arguments, this can be shortened::
+
+    razor enable-policy example
   EOT
 
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Policy,
-                help: _('The name of the policy to enable.')
+                position: 0, help: _('The name of the policy to enable.')
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

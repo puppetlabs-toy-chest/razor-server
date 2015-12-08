@@ -19,18 +19,22 @@ Set a single key from a node:
 
     razor update-node-metadata --node node1 \\
         --key my_key --value twelve
+
+With positional arguments, this can be shortened:
+
+    razor update-node-metadata node1 my_key twelve
   EOT
 
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The node for which to update metadata.')
+               position: 0, help: _('The node for which to update metadata.')
 
   attr 'key', required: true, type: String, size: 1..Float::INFINITY,
-              help: _('The key to change in the metadata.')
+              position: 1, help: _('The key to change in the metadata.')
 
   attr 'value', required: true,
-                help: _('The value for the metadata.')
+                position: 2, help: _('The value for the metadata.')
 
   attr 'no_replace', type: :bool,
                      help: _('If true, it is an error to try to change an existing key')

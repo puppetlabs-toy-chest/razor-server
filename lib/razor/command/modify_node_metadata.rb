@@ -43,11 +43,16 @@ modify an existing value already present on a node:
 Removing all node metadata:
 
     razor modify-node-metadata --node node1 --clear
+
+With positional arguments, this can be shortened::
+
+    razor modify-node-metadata node1 --clear
   EOT
 
   authz '%{node}'
 
-  attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
+  attr 'node', type: String, required: true, position: 0,
+               references: [Razor::Data::Node, :name],
                help: _('The name of the node for which to modify metadata.')
 
   attr 'update',     type: Hash, help: _('The metadata to update')

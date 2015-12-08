@@ -21,19 +21,23 @@ Set a policy to a maximum of 15 nodes:
   example cli: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    razor --name example --no-max-count
+    razor modify-policy-max-count --name example --no-max-count
 
 Set a policy to a maximum of 15 nodes:
 
-    razor --name example --max-count 15
+    razor modify-policy-max-count --name example --max-count 15
+
+With positional arguments, this can be shortened::
+
+    razor modify-policy-max-count example 15
   EOT
 
   authz '%{name}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The name of the policy to modify.')
+               position: 0, help: _('The name of the policy to modify.')
 
-  attr 'max_count', type: Integer, help: _(<<-HELP)
+  attr 'max_count', position: 1, type: Integer, help: _(<<-HELP)
     The new maximum number of nodes bound by this policy. You cannot reduce the
     maximum number of nodes bound to a policy below the number of nodes
     currently bound to the policy with this command.

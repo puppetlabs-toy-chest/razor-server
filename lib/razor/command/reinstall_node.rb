@@ -30,11 +30,15 @@ Make 'node17' available for reinstallation:
 Reinstall 'node17' using its same policy:
 
     razor reinstall-node --name node17 --same-policy
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor reinstall-node node17 --same-policy
+  EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node,
+                position: 0,
                 help: _('The name of the node to flag for reinstallation.')
 
   attr  'same_policy', type: :bool, help: _('Keep the same policy for the node.')

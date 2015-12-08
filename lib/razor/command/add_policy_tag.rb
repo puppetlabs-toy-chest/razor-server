@@ -29,17 +29,25 @@ Adding a new tag `virtual` to the policy `example`:
 
     razor add-policy-tag --name example --tag virtual \\
         --rule '["=", ["fact", "virtual", "false"], "true"]'
+
+With positional arguments, this can be shortened::
+
+    razor add-policy-tag example virtual \\
+        '["=", ["fact", "virtual", "false"], "true"]'
+
   EOT
 
   authz '%{name}:%{tag}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The name of the policy to which to add the tag.')
+               position: 0, help: _('The name of the policy to which to add ' +
+                                    'the tag.')
 
   attr 'tag',  type: String, required: true, size: 1..Float::INFINITY,
-               help: _('The name of the tag to be added to the policy.')
+               position: 1, help: _('The name of the tag to be added to the ' +
+                                    'policy.')
 
-  attr 'rule', type: Array, help: _(<<-HELP)
+  attr 'rule', type: Array, position: 2, help: _(<<-HELP)
     The `rule` is optional.  If you supply this, you are creating a new tag
     rather than adding an existing tag to the policy.  In that case this
     contains the tag rule.

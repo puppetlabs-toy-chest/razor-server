@@ -34,11 +34,18 @@ Set IPMI credentials for node 'node17':
         --ipmi-hostname bmc17.example.com \\
         --ipmi-username null \\
         --ipmi-password sekretskwirrl
+
+With positional arguments, this can be shortened:
+
+    razor set-node-ipmi-credentials node17 \\
+        --ipmi-hostname bmc17.example.com \\
+        --ipmi-username null \\
+        --ipmi-password sekretskwirrl
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node,
-                help: _('The node on which to set IPMI credentials.')
+                position: 0, help: _('The node on which to set IPMI credentials.')
 
   attr 'ipmi_hostname', type: String, size: 1..255,
                         help: _('The IPMI hostname or IP address of the BMC of this host.')
