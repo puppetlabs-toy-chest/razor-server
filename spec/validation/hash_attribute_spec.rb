@@ -430,4 +430,28 @@ describe Razor::Validation::HashAttribute do
       end
     end
   end
+
+  context "position" do
+    let(:schema) do
+      Razor::Validation::HashSchema.new('test').tap do |schema|
+        schema.attr('attr', help: 'foo')
+      end
+    end
+
+    subject(:attr) { schema.attribute('attr') }
+
+    [true, false, 'abc', 1.1, -1, :string, [1, 2], {1 => 2}].each do |input|
+      it "should fail unless the position is a natural number (#{input.inspect})" do
+        expect { attr.position(input) }.
+            to raise_error(ArgumentError, /position must be an integer greater than or equal to 0/)
+      end
+    end
+
+    it "should work with position 0" do
+      expect do
+        attr.position(0)
+        attr.finalize(schema)
+      end.not_to raise_error
+    end
+  end
 end

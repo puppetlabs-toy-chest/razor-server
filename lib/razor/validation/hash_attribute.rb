@@ -70,7 +70,8 @@ class Razor::Validation::HashAttribute
   def to_json(arg)
       {'type' => @type.nil? ? nil : ruby_type_to_json(@type[:type]),
        # This alerts clients so they can apply their validation/mutation.
-       'aliases' => @aliases}.
+       'aliases' => @aliases,
+       'position' => @position}.
           delete_if { |_, v| v.nil? || v == [] }.to_json
   end
 
@@ -272,6 +273,19 @@ class Razor::Validation::HashAttribute
     else
       @help = Razor::Help.scrub(text) or
         raise ArgumentError, "the attribute summary must be a string"
+    end
+  end
+
+  # Override is necessary here since method declarations take priority over
+  # `attr_accessor` and the name `position` is used for both.
+  def position(pos = nil)
+    if pos.nil?
+      @position
+    else
+      unless pos.is_a?(Integer) and pos >= 0
+        raise ArgumentError, "position must be an integer greater than or equal to 0"
+      end
+      @position = pos
     end
   end
 end

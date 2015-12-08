@@ -28,6 +28,23 @@ class Razor::Validation::HashSchema
       end
     end
 
+    positions = []
+    @attributes.each do |_, attr|
+      attr.position and positions << attr.position
+    end
+    positions.sort!
+    unless positions.uniq.length == positions.length
+      raise ArgumentError, "positional argument indices should be unique"
+    end
+    unless positions.empty? or positions[0] == 0
+      raise ArgumentError, "positional argument indices should begin at 0 (found #{positions[0]})"
+    end
+    positions.each_with_index do |pos, idx|
+      unless pos == idx
+        raise ArgumentError, "positional argument indices should be sequential (#{pos} is present but #{idx} is absent)"
+      end
+    end
+
     @attributes.each {|_, attr| attr.finalize(self) }
   end
 

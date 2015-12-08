@@ -202,6 +202,10 @@ describe "command and query API" do
               },
               'aliases' => {
                 'type' => 'array'
+              },
+              'position' => {
+                'type' => 'integer',
+                'minimum' => 0
               }
             }
           }

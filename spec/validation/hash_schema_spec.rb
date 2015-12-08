@@ -37,6 +37,35 @@ describe Razor::Validation::HashSchema do
       expect { schema.finalize }.
         to raise_error(/additionally required attribute bad by good is not defined in the schema/)
     end
+
+    it "should fail if the 'position' attributes do not start at 0" do
+      schema.attr('good', help: 'foo', position: 1)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should begin at 0 \(found 1\)/)
+    end
+
+    it "should fail if the 'position' attributes are not sequential" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('ok', help: 'foo', position: 1)
+      schema.attr('bad', help: 'foo', position: 3)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should be sequential \(3 is present but 2 is absent\)/)
+    end
+
+    it "should fail if the 'position' attributes are not unique" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('allowed', help: 'foo', position: 1)
+      schema.attr('bad', help: 'foo', position: 1)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should be unique/)
+    end
+
+    it "should succeed with several position attributes" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('better', help: 'foo', position: 1)
+      schema.attr('best', help: 'foo', position: 2)
+      schema.finalize
+    end
   end
 
   context "authz" do
