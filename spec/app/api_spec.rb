@@ -144,6 +144,81 @@ describe "command and query API" do
     end
   end
 
+  context "/api/commands/*" do
+    CommandSchema = {
+      '$schema'  => 'http://json-schema.org/draft-04/schema#',
+      'title'    => "Command JSON Schema",
+      'type'     => 'object',
+      'additionalProperties' => false,
+      'required' => %w[name help schema],
+      'properties' => {
+        "name" => {
+          'type'    => 'string',
+          'pattern' => '^[^\n]+$'
+        },
+        "help" => {
+          'type'    => 'object',
+          'additionalProperties' => false,
+          'required' => %w[summary description schema examples full],
+          'properties' => {
+            'summary' => {
+              'type'    => 'string',
+              'pattern' => '^[^\n]+$'
+            },
+            'description' => {
+              'type'    => 'string'
+            },
+            'schema' => {
+              'type'    => 'string'
+            },
+            'examples' => {
+              'type'    => 'object',
+              'additionalProperties' => false,
+              'required' => %w[api cli],
+              'properties' => {
+                  'api' => {
+                      'type' => 'string'
+                  },
+                  'cli' => {
+                      'type' => 'string'
+                  }
+              }
+            },
+            'full' => {
+              'type'    => 'string'
+            }
+          }
+        },
+        "schema" => {
+          'type'    => 'object',
+          'additionalProperties' => {
+            'type' => 'object',
+            'minLength' => 1,
+            'additionalProperties' => false,
+            'properties' => {
+              'type' => {
+                'type' => 'string',
+                'pattern' => '^[^\n]+$'
+              },
+              'aliases' => {
+                'type' => 'array'
+              }
+            }
+          }
+        }
+      }
+    }.freeze
+
+    it "should include the correct command schema" do
+      get '/api'
+      data = last_response.json
+      data["commands"].all? do |row|
+        get row['id']
+        validate! CommandSchema, last_response.body
+      end
+    end
+  end
+
   context "/api/collections/policies - policy list" do
 
     # `before` is used instead of `let` since the database gets rolled
