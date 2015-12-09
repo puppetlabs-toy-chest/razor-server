@@ -45,9 +45,8 @@ Update `node172` with new hardware information:
   EOT
 
   authz  '%{node}'
-  attr   'node', required: true, references: Razor::Data::Node, help: _(<<-HELP)
-    The node for which to modify hardware information.
-  HELP
+  attr   'node', type: String, required: true, references: Razor::Data::Node,
+                 help: _('The node for which to modify hardware information.')
 
   object 'hw_info', required: true, size: 1..Float::INFINITY, help: _(<<-HELP) do
     The new hardware information for the node.
