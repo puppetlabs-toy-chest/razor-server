@@ -10,6 +10,14 @@ describe "command browser API" do
 
   # We want a command available for testing, unrelated to the default ones.
   let :cmd do Class.new(Razor::Command) end
+  # The `stub_const` call below has a side effect of not deleting the test
+  # Command from the @commands instance variable. This `around` hook reverts
+  # the list when the test is completed.
+  around :each do |example|
+    commands = Razor::Command.instance_variable_get('@commands').dup
+    example.run
+    Razor::Command.instance_variable_set('@commands', commands)
+  end
   before :each do stub_const('Razor::Command::TestBrowsing', cmd) end
 
   def last_response

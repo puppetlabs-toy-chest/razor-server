@@ -200,6 +200,15 @@ but the rest of the text is
       Class.new(Razor::Command)
     end
 
+    # The `stub_const` call below has a side effect of not deleting the test
+    # Command from the @commands instance variable. This `around` hook reverts
+    # the list when the test is completed.
+    around :each do |example|
+      commands = Razor::Command.instance_variable_get('@commands').dup
+      example.run
+      Razor::Command.instance_variable_set('@commands', commands)
+    end
+
     before :each do
       stub_const('Razor::Command::TestHelpRendering', cmd)
     end
