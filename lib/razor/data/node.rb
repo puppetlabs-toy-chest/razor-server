@@ -136,8 +136,15 @@ module Razor::Data
     # +log_append+ each entry will also contain the +timestamp+ in ISO8601
     # format
     def log(params = {})
-      cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
-          where(node_id: id).limit(params[:limit], params[:start])
+      cursor = Razor::Data::Event.order(:timestamp).order(:id).
+          where(node_id: id)
+      total = cursor.count if cursor.respond_to?(:count)
+      if params[:start].nil? and params[:limit] and !total.nil?
+        # We have a request for a limited list of facts without a starting
+        # value. Take from the end so the latest entries are included.
+        params[:start] = [total - params[:limit], 0].max
+      end
+      cursor = cursor.limit(params[:limit], params[:start])
       cursor.map do |log|
         { 'timestamp' => log.timestamp.xmlschema,
           'severity' => log.severity, }.update(log.entry)
