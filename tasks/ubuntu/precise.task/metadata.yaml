@@ -2,4 +2,5 @@
 
 os_version: precise
 label: Ubuntu Precise 12.04
+description: Ubuntu Precise Installer
 base: ubuntu

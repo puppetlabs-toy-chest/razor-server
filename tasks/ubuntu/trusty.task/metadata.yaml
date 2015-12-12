@@ -2,4 +2,5 @@
 
 os_version: trusty
 label: Ubuntu Trusty 14.04
+description: Ubuntu Trusty Installer
 base: ubuntu
