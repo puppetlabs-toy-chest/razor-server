@@ -1,0 +1,8 @@
+---
+
+os_version: 23
+label: Fedora 23
+description: Fedora 23 installer
+boot_sequence:
+  1: boot_install
+  default: boot_local

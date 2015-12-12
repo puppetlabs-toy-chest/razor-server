@@ -1,0 +1,9 @@
+---
+
+os_version: 23
+label: Fedora 23
+description: Fedora Generic installer
+base: redhat
+boot_sequence:
+  1: boot_install
+  default: boot_local
