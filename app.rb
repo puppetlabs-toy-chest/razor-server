@@ -560,7 +560,7 @@ and requires full control over the database (eg: add and remove tables):
   # hand-coded list, but ... it will do, for now.
   COLLECTIONS = [:brokers, :repos, :tags, :policies,
                  [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}],
-                  :tasks, :commands,
+                  :tasks, [:commands, {'start' => {'type' => 'number'}, 'limit' => {'type' => 'number'}}],
                  [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
 
   #
@@ -703,6 +703,8 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/commands' do
+    start, limit = paginate(params[:start], params[:limit])
+
     collection_view Razor::Data::Command.order(:submitted_at).order(:id),
       'commands', limit: limit, start: start, facts: true
   end
