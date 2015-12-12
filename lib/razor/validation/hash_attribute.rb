@@ -62,6 +62,9 @@ class Razor::Validation::HashAttribute
 % if @size
 - It must be between <%= @size.min %> and <%= @size.max %> in length.
 % end
+% if @position
+- Its argument position is <%= @position %>.
+% end
 % if @nested_schema
 <%= @nested_schema.help %>
 % end
