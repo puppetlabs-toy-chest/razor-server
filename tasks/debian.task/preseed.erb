@@ -14,7 +14,7 @@ d-i mirror/http/mirror string ftp.us.debian.org
 d-i mirror/http/directory string /debian
 d-i mirror/http/proxy string
 d-i mirror/suite string wheezy
-d-i time/zone string US/Central
+d-i time/zone string <%= node.metadata['timezone'] || 'US/Pacific' %>
 d-i clock-setup/utc boolean true
 d-i clock-setup/ntp boolean true
 d-i partman-auto/disk string /dev/sda
