@@ -437,6 +437,7 @@ describe Razor::Data::Repo do
         repo = Fabricate.build(:repo)
         repo.unpack_repo(command, tiny_iso)
         unpacked_iso_dir = File::join(repo_dir, repo.name)
+        FileUtils.chmod_R('-w', unpacked_iso_dir, force: true)
         Dir.exist?(unpacked_iso_dir).should be_true
         repo.save
         repo.destroy
@@ -541,6 +542,19 @@ describe Razor::Data::Repo do
         repo.unpack_repo(command, tiny_iso)
 
         root.should exist
+      end
+    end
+
+    it "should work if the repo dir is already present" do
+      Dir.mktmpdir do |root|
+        root = Pathname(root)
+        Razor.config['repo_store_root'] = root
+        repo_dir = Pathname(root) + repo.name
+        repo_dir.mkdir
+        file = repo_dir + 'some-undeletable-file'
+        file.open('w'){|f| f.print 'cant delete this' }
+        FileUtils.chmod('-w', file)
+        repo.unpack_repo(command, tiny_iso)
       end
     end
 
