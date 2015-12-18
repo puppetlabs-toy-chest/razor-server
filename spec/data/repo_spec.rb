@@ -448,6 +448,31 @@ describe Razor::Data::Repo do
       end
     end
 
+    it "should keep repo's manually created directory" do
+      command = Fabricate(:command)
+
+      begin
+        repo_root = Dir.mktmpdir('test-razor-repo-dir')
+        Razor.config.stub(:[]).with('repo_store_root').and_return(repo_root)
+        repo = Fabricate(:repo, :iso_url => nil)
+        repo_dir = File::join(repo_root, repo.name)
+        file = repo_dir + "some-file"
+        # Simulating no-content argument to create-repo
+        repo.unpack_repo(command, nil)
+        Dir.exist?(repo_dir).should be_true
+        File.open(file, 'w') { |f| f.write('precious text') }
+        File.exist?(file).should be_true
+        repo.save
+        repo.destroy
+        Dir.exist?(repo_dir).should be_true
+        File.exist?(file).should be_true
+        File.read(file).should == 'precious text'
+      ensure
+        # Cleanup
+        repo_root and FileUtils.remove_entry_secure(repo_root)
+      end
+    end
+
     it "should not fail if there is no temporary directory" do
       repo = Fabricate.build(:repo)
       repo.tmpdir = nil

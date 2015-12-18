@@ -35,7 +35,7 @@ module Razor::Data
     end
 
     def remove_directory(dir)
-      if Dir.exist?(iso_location)
+      if Dir.exist?(dir)
         FileUtils.chmod_R('+w', dir, force: true)
         FileUtils.remove_entry_secure(dir)
       end
@@ -52,7 +52,7 @@ module Razor::Data
       self.tmpdir and FileUtils.remove_entry_secure(self.tmpdir, true)
 
       # Remove repo directory.
-      if Dir.exist?(iso_location)
+      if self.iso_url
         # Some files in archives are write-only. Change this property so the
         # delete succeeds.
         remove_directory(iso_location)
