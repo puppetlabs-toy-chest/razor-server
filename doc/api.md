@@ -212,6 +212,26 @@ command:
 If the broker is used by a policy, the attempt to delete the broker will
 fail.
 
+### Update broker configuration
+
+A broker's configuration can be updated using the `update-broker-configuration`
+command. This command can set or clear a single key's value. The following
+arguments would set the configuration value for key `some_key` to `new_value`:
+
+    {
+      "broker": "mybroker",
+      "key": "some_key",
+      "value": "new_value"
+    }
+
+The following arguments would clear the configuration value for key `some_key`:
+
+    {
+      "broker": "mybroker",
+      "key": "some_key",
+      "clear": true
+    }
+
 ### Create tag
 
 To create a tag, clients post the following to the `/spec/create_tag`
