@@ -288,7 +288,7 @@ describe "provisioning API" do
       last_response.status.should == 404
     end
   end
-  
+
   describe "storing node metadata" do
     before(:each) do
       @node = Fabricate(:node)
@@ -512,8 +512,6 @@ describe "provisioning API" do
         node.registered?.should be_true
         node.installed.should == installed
         node.policy.should be_nil
-        # Checkin will not try to evaluate tags on installed nodes
-        node.tags.should be_empty
       end
     end
   end

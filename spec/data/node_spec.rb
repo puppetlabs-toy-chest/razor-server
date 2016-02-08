@@ -275,6 +275,35 @@ describe Razor::Data::Node do
     end
   end
 
+  describe "matching on checkin" do
+    hw_id = "001122334455"
+
+    let (:tag) {
+      Tag.create(:name => "t1", :matcher => Razor::Matcher.new(["=", ["fact", "f1"], "a"]))
+    }
+    let (:node) {
+      Node.create(:hw_info => ["mac=#{hw_id}"], :facts => { "f1" => "a" })
+    }
+
+    it "should update tags if the node is marked installed" do
+      node.installed = 'test'
+      node.save
+      node.tags.should == []
+
+      node.match_tags
+      tag.match?(node).should be_true
+
+      node.checkin('facts' => { 'f1' => 'a' })
+      node.reload
+      node.tags.should == [ tag ]
+      node.installed.should == 'test'
+
+      node.checkin('facts' => { 'f1' => 'b' })
+      node.reload
+      node.tags.should == []
+    end
+  end
+
   describe "binding on checkin" do
     hw_id = "001122334455"
 
@@ -347,7 +376,8 @@ describe Razor::Data::Node do
       it "should not change when policies change" do
         # Setup
         policy20 = make_tagged_policy(20)
-        node.match_and_bind
+        node.match_tags
+        node.bind_policy
         node.policy.should == policy20
 
         # Change the policies
@@ -366,13 +396,13 @@ describe Razor::Data::Node do
         policy20 = make_tagged_policy(20)
         node.checkin("facts" => { "f1" => "a" })
         node.reload
-        node.tags.should be_empty
         node.policy.should == random_policy
       end
 
-      it "should not change when a tag changes" do
+      it "should update tags" do
         policy20 = make_tagged_policy(20)
-        node.match_and_bind
+        node.match_tags
+        node.bind_policy
         node.policy.should == policy20
 
         # Make the tag not match the node anymore
@@ -382,8 +412,8 @@ describe Razor::Data::Node do
 
         node.checkin("facts" => { "f1" => "a" })
         node.reload
-        # node.tags reflects the tags that applied when the node was bound
-        node.tags.should == [ tag ]
+        # node.tags should be updated to be an empty set since the match is false
+        node.tags.should == []
         node.policy.should == policy20
       end
     end

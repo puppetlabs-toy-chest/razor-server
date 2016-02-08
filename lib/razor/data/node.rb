@@ -273,14 +273,18 @@ module Razor::Data
       (new_tags - self.tags).each { |t| self.add_tag(t) }
     end
 
-    # Update the tags for this node and try to bind a policy.
-    def match_and_bind
+    # Update the tags for this node.
+    def match_tags
       eval_tags
-      Policy.bind(self)
     rescue Razor::Matcher::RuleEvaluationError => e
       log_append :severity => "error", :msg => e.message
       save
       raise e
+    end
+
+    # Try to bind a policy to this node.
+    def bind_policy
+      Policy.bind(self)
     end
 
     # Modify metadata the API reciever does alot of sanity checking.
@@ -338,7 +342,8 @@ module Razor::Data
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
-      match_and_bind unless (installed or policy)
+      match_tags
+      bind_policy unless (installed or policy)
       if policy
         log_append(:action => :reboot, :policy => policy.name)
       elsif installed
