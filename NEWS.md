@@ -15,6 +15,8 @@
   tasks should now be up-to-date.
 + IMPROVEMENT: Updated Debian and Ubuntu stock tasks to use Pacific Time rather
   than Central Time and UTC, respectively.
++ IMPROVEMENT: Made the Powershell script that builds Razor's WinPE image more
+  robust in its error handling.
 + IMPROVEMENT: Added documentation for the `update-broker-configuration` command
   to api.md.
 + IMPROVEMENT: Add datatype for `node` argument of `set-node-hw-info` command.
