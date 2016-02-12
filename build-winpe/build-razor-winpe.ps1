@@ -12,8 +12,10 @@
 #   - driverdir: where extra drivers needed for the winpe are located
 #                Defaults to the "extra-drivers" directory in the folder
 #                containing this script
+#   - allowunsigned: supply this to allow unsigned drivers to be injected
+#                    into the WinPE image
 param([String] $workdir, [Parameter(Mandatory=$true)][String] $razorurl,
-      [String] $driverdir)
+      [String] $driverdir, [switch] $allowunsigned)
 $ErrorActionPreference = "Stop"
 
 function test-administrator {
@@ -148,8 +150,14 @@ Try {
         add-windowspackage -packagepath $pkg -path $mount -ErrorAction Stop
     }
 
-    write-host "* Installing extra drivers (if any) in $driverdir"
-    add-windowsdriver -Path $mount -Driver $driverdir -Recurse -ErrorAction Stop
+    # Add extra drivers
+    if ($allowunsigned) {
+        write-host "* Installing extra drivers (if any) in $driverdir, including unsigned"
+        add-windowsdriver -Path $mount -Driver $driverdir -Recurse -ForceUnsigned -ErrorAction Stop
+    } else {
+        write-host "* Installing extra drivers (if any) in $driverdir"
+        add-windowsdriver -Path $mount -Driver $driverdir -Recurse -ErrorAction Stop
+    }
 
     write-host "* Writing startup PowerShell script"
     $file   = join-path $mount "razor-client.ps1"

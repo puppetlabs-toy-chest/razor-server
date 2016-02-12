@@ -10,6 +10,8 @@
   (through e.g. the `protect_new_nodes` config) or bound to a policy.
 + NEW: Added positional arguments to API. These will be included in the help
   for each command.
++ NEW: Added flag "allowunsigned" to allow unsigned drivers to be added to the
+  WinPE image for Windows installations.
 + IMPROVEMENT: Updated and standardized documentation and metadata for existing
   stock tasks. Labels, descriptions, and README.md files inside these stock
   tasks should now be up-to-date.
