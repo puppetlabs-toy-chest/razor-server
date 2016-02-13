@@ -22,7 +22,7 @@ else
   # This could just as easily call an external system to retrieve the node's
   # hostname.
   new_hostname = config['hostname_pattern'].
-                 gsub('${count}', policy_counter.to_s.rjust(config['padding'], '0')).
+                 gsub('${count}', policy_counter.to_s.rjust(config['padding'].to_i, '0')).
                  gsub('${policy}', input['policy']['name'])
   output = {
       'node' => {
