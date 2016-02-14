@@ -85,4 +85,20 @@ describe 'hostname hook' do
     run_message(queue.receive)
     Razor::Data::Event.first.entry['error'].should == 'Hook configuration `padding` must be an integer (was: def)'
   end
+  it "should succeed with a string `padding` property" do
+    arguments = {:name => 'hostname-test', :hook_type => Razor::HookType.find(name: 'hostname'),
+                 :configuration => {'policy' => policy.name, 'hostname_pattern' => '${policy}${count}.com', 'padding' => '6'}}
+    hook = Razor::Data::Hook.new(arguments).save
+    hook.configuration['policy'].should == policy.name
+    hook.configuration['padding'].should == '6'
+    Razor::Data::Hook.trigger('node-bound-to-policy', node: node, policy: policy)
+    queue.count_messages.should == 1
+    run_message(queue.receive)
+    hook.reload
+    hook.configuration['policy'].should == policy.name
+    hook.configuration['counter'].should == 2
+    hook.configuration['padding'].should == '6'
+    node.reload
+    node.metadata['hostname'].should == policy.name + '000001' + '.com'
+  end
 end
