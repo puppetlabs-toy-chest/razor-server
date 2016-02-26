@@ -1,6 +1,22 @@
 # Razor Server Release Notes
 
-## Next - Next
+## 1.2.0 - 2016-03-08
+
+### API changes
+
++ NEW: Added positional arguments to API. These will be included in the help
+  for each command.
++ IMPROVEMENT: Add datatype for `node` argument of `set-node-hw-info` command.
+  The metadata for this argument wasn't included before, and is now declared
+  properly as a String.
+
+### Task changes
+
++ IMPROVEMENT: Updated and standardized documentation and metadata for existing
+  stock tasks. Labels, descriptions, and README.md files inside these stock
+  tasks should now be up-to-date.
++ IMPROVEMENT: Updated Debian and Ubuntu stock tasks to use Pacific Time rather
+  than Central Time and UTC, respectively.
 
 ### Other
 
@@ -8,22 +24,12 @@
   downloaded and extracted an ISO with the `iso-url` property.
 + BUGFIX: Nodes will match tags even if the node is already marked installed
   (through e.g. the `protect_new_nodes` config) or bound to a policy.
-+ NEW: Added positional arguments to API. These will be included in the help
-  for each command.
 + NEW: Added flag "allowunsigned" to allow unsigned drivers to be added to the
   WinPE image for Windows installations.
-+ IMPROVEMENT: Updated and standardized documentation and metadata for existing
-  stock tasks. Labels, descriptions, and README.md files inside these stock
-  tasks should now be up-to-date.
-+ IMPROVEMENT: Updated Debian and Ubuntu stock tasks to use Pacific Time rather
-  than Central Time and UTC, respectively.
 + IMPROVEMENT: Made the Powershell script that builds Razor's WinPE image more
   robust in its error handling.
 + IMPROVEMENT: Added documentation for the `update-broker-configuration` command
   to api.md.
-+ IMPROVEMENT: Add datatype for `node` argument of `set-node-hw-info` command.
-  The metadata for this argument wasn't included before, and is now declared
-  properly as a String.
 
 ## 1.1.0 - 2015-11-12
 
