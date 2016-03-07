@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'spec_helper'
 
-describe Razor::BrokerType.find(name: 'puppet') do
+describe Razor::BrokerType.find(name: 'legacy-puppet') do
   let :broker do
     Razor::Data::Broker.new(:name => 'puppet-test', :broker_type => subject)
   end
@@ -21,7 +21,7 @@ describe Razor::BrokerType.find(name: 'puppet') do
 
   it "should work without any configuration" do
     script.should be_an_instance_of String
-    script.should =~ /yum -y install puppet-agent/s
+    script.should =~ /yum -y install puppet/s
     script.should =~ /service puppet start/s # don't match . == newline
     script.should_not =~ /puppet resource ini_setting/
   end

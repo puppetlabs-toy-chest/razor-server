@@ -18,6 +18,13 @@
 + NEW: Added `update-policy-broker` command to facilitate
   migrating the broker that a policy uses.
 
+### Broker changes
+
++ RENAME: The `puppet` broker, which works for Puppet 3, has been
+  renamed to `legacy-puppet`. Use the `update-policy-broker` command to
+  migrate existing policies that must still use the old `puppet` broker.
++ NEW: The new `puppet` broker will work for Puppet 4.
+
 ### Other
 
 + BUGFIX: The `puppet-pe` broker for Windows now works properly for
