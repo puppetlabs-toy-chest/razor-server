@@ -38,7 +38,7 @@ describe Razor::Matcher do
     end
   end
 
-  def match(*rule)
+  def matches(*rule)
     facts = {}
     facts = rule.pop if rule.last.is_a?(Hash)
     m = Matcher.new(rule)
@@ -54,20 +54,20 @@ describe Razor::Matcher do
 
   describe "functions" do
     it "and should behave" do
-      match("and", true, true).should == true
-      match("and", true, true, false, true).should == false
+      matches("and", true, true).should == true
+      matches("and", true, true, false, true).should == false
     end
 
     it "or should behave" do
-      match("or", true, true).should == true
-      match("or", true, true, false, true).should == true
-      match("or", false, false, false).should == false
+      matches("or", true, true).should == true
+      matches("or", true, true, false, true).should == true
+      matches("or", false, false, false).should == false
     end
 
     it "not should behave" do
-      match("not", 1).should == false
-      match("not", false).should == true
-      match("not", true).should == false
+      matches("not", 1).should == false
+      matches("not", false).should == true
+      matches("not", true).should == false
     end
 
     it "metadata should behave" do
@@ -81,19 +81,19 @@ describe Razor::Matcher do
     end
 
     it "fact should behave" do
-      match("fact", "f1", { "f1" => "true" }).should == true
-      match("fact", "f1", { "f1" => false  }).should == false
+      matches("fact", "f1", { "f1" => "true" }).should == true
+      matches("fact", "f1", { "f1" => false  }).should == false
     end
 
     it "fact should raise if fact not found and one argument given" do
       expect do
-        match("fact", "f2", { "f1" => "true" })
+        matches("fact", "f2", { "f1" => "true" })
       end.to raise_error RuleEvaluationError
     end
 
     it "fact should return the default if fact not found" do
-      match("fact", "f1", false, { "f1" => true }).should == true
-      match("fact", "f2", false, { "f1" => true }).should == false
+      matches("fact", "f1", false, { "f1" => true }).should == true
+      matches("fact", "f2", false, { "f1" => true }).should == false
     end
 
     ["fact", "metadata", "state"].each do |func|
@@ -109,40 +109,40 @@ describe Razor::Matcher do
     describe "tag function" do
       it "should complain when tag does not exist" do
         expect do
-          match("tag", "t1")
+          matches("tag", "t1")
         end.to raise_error RuleEvaluationError
       end
 
       it "should return true when tag matches" do
         tag = Fabricate(:tag, :rule => ["=", "1", "1"])
-        match("tag", tag.name).should be_true
+        matches("tag", tag.name).should be_true
       end
 
       it "should return false when tag does not match" do
         tag = Fabricate(:tag, :rule => ["=", "1", "0"])
-        match("tag", tag.name).should be_false
+        matches("tag", tag.name).should be_false
       end
     end
 
     it "eq should behave" do
-      match("=", 1, 1).should == true
-      match("=", 1, 2).should == false
-      match("=", "abc", "abc").should == true
-      match("=", "abc", "abcd").should == false
-      match("=", "[]", "[]").should == true
+      matches("=", 1, 1).should == true
+      matches("=", 1, 2).should == false
+      matches("=", "abc", "abc").should == true
+      matches("=", "abc", "abcd").should == false
+      matches("=", "[]", "[]").should == true
     end
 
     describe "like function" do
       [['abc', 'abc'], ['abc', 'a.c'], ['abc', 'a.+'], ['abc', 'a.*'],
        ['abc', 'ab'], ['abc', ''], ['abc', '\Aabc\z'], ['abc', '^abc$']].each do |str, reg|
         it "matches with #{str.inspect} and #{reg.inspect}" do
-          match("like", str, reg).should == true
+          matches("like", str, reg).should == true
         end
       end
       [['abc', 'def'], ['abc', 'z'], ['3', '#{1+2}'], ['abc', '\Abc\z'],
        ['abc', '\zabc\A'], ['abc', '$abc^']].each do |str, reg|
         it "fails with #{str.inspect} and #{reg.inspect}" do
-          match("like", str, reg).should == false
+          matches("like", str, reg).should == false
         end
       end
       it "fails with invalid regular expression '*'" do
@@ -155,96 +155,96 @@ describe Razor::Matcher do
     end
 
     it "neq should behave" do
-      match("!=", 1, 1).should == false
-      match("!=", 1, 2).should == true
-      match("!=", "abc", "abc").should == false
-      match("!=", "abc", "abcd").should == true
+      matches("!=", 1, 1).should == false
+      matches("!=", 1, 2).should == true
+      matches("!=", "abc", "abc").should == false
+      matches("!=", "abc", "abcd").should == true
     end
 
     it "in should behave" do
-      match("in", "a", "b", "c", "a").should == true
-      match("in", "x", "b", "c", "a").should == false
+      matches("in", "a", "b", "c", "a").should == true
+      matches("in", "x", "b", "c", "a").should == false
     end
 
     describe "num" do
       it "should behave for valid integers" do
-        match("=", ["num", 9      ], 9 ).should == true
-        match("=", ["num", "10"   ], 0 ).should == false
-        match("=", ["num", "0xf"  ], 15).should == true
-        match("=", ["num", "0b110"], 6 ).should == true
-        match("=", ["num", "027"  ], 23).should == true
+        matches("=", ["num", 9      ], 9 ).should == true
+        matches("=", ["num", "10"   ], 0 ).should == false
+        matches("=", ["num", "0xf"  ], 15).should == true
+        matches("=", ["num", "0b110"], 6 ).should == true
+        matches("=", ["num", "027"  ], 23).should == true
       end
 
       it "should behave for valid floats" do
-        match("=", ["num", 5.4  ], 5  ).should == false
-        match("=", ["num", 5.4  ], 5.4).should == true
-        match("=", ["num", "2.7"], 2.7).should == true
-        match("=", ["num", "1e5"], 1e5).should == true
+        matches("=", ["num", 5.4  ], 5  ).should == false
+        matches("=", ["num", 5.4  ], 5.4).should == true
+        matches("=", ["num", "2.7"], 2.7).should == true
+        matches("=", ["num", "1e5"], 1e5).should == true
       end
 
       it "should raise exceptions for invalid numbers" do
-        expect {match("=", ["num", true], 1)}.to raise_error RuleEvaluationError
-        expect {match("=", ["num", "2t"], 2)}.to raise_error RuleEvaluationError
-        expect {match("=", ["num", "a2"], 2)}.to raise_error RuleEvaluationError
-        expect {match("=", ["num", nil ], 0)}.to raise_error RuleEvaluationError
+        expect {matches("=", ["num", true], 1)}.to raise_error RuleEvaluationError
+        expect {matches("=", ["num", "2t"], 2)}.to raise_error RuleEvaluationError
+        expect {matches("=", ["num", "a2"], 2)}.to raise_error RuleEvaluationError
+        expect {matches("=", ["num", nil ], 0)}.to raise_error RuleEvaluationError
       end
     end
 
     describe "str" do
       it "should behave for valid integers" do
-        match("=", ["str", 9      ], "9" ).should == true
-        match("=", ["str", "10"   ], "0" ).should == false
-        match("=", ["str", "0xf"  ], "0xf").should == true
-        match("=", ["str", "0b110"], "0b110" ).should == true
-        match("=", ["str", "027"  ], "027").should == true
+        matches("=", ["str", 9      ], "9" ).should == true
+        matches("=", ["str", "10"   ], "0" ).should == false
+        matches("=", ["str", "0xf"  ], "0xf").should == true
+        matches("=", ["str", "0b110"], "0b110" ).should == true
+        matches("=", ["str", "027"  ], "027").should == true
       end
 
       it "should behave for valid floats" do
-        match("=", ["str", 5.4  ], "5.4").should == true
-        match("=", ["str", "2.7"], "2.7").should == true
-        match("=", ["str", "1e5"], "1e5").should == true
+        matches("=", ["str", 5.4  ], "5.4").should == true
+        matches("=", ["str", "2.7"], "2.7").should == true
+        matches("=", ["str", "1e5"], "1e5").should == true
       end
 
       it "should behave for valid booleans and nil" do
-        match("=", ["str", true ], "true").should == true
-        match("=", ["str", false], "false").should == true
-        match("=", ["str", nil], '').should == true
+        matches("=", ["str", true ], "true").should == true
+        matches("=", ["str", false], "false").should == true
+        matches("=", ["str", nil], '').should == true
       end
     end
 
     it "gte should behave" do
-      match("gte", 3.5, 4).should == false
-      match(">=",  4,   4).should == true
-      match("gte", 100, 10).should == true
+      matches("gte", 3.5, 4).should == false
+      matches(">=",  4,   4).should == true
+      matches("gte", 100, 10).should == true
     end
 
     it "gt should behave" do
-      match("gt", 89, 34 ).should == true
-      match(">",  1,  2.5).should == false
+      matches("gt", 89, 34 ).should == true
+      matches(">",  1,  2.5).should == false
     end
 
     it "lte should behave" do
-      match("lte", 4.0,  4   ).should == true
-      match("lte", 2.3,  5   ).should == true
-      match("<=",  2.45, 2.44).should == false
+      matches("lte", 4.0,  4   ).should == true
+      matches("lte", 2.3,  5   ).should == true
+      matches("<=",  2.45, 2.44).should == false
     end
 
     it "lt should behave" do
-      match("<",  4,   3  ).should == false
-      match("lt", 3.5, 3.6).should == true
+      matches("<",  4,   3  ).should == false
+      matches("lt", 3.5, 3.6).should == true
     end
 
     it "lower should behave" do
-      match("=", ["lower", "ABC"], "abc").should == true
-      match("=", ["lower", "ABC"], "ABC").should_not == true
-      match("=", ["lower", ["fact", "f1"]], "abc",
+      matches("=", ["lower", "ABC"], "abc").should == true
+      matches("=", ["lower", "ABC"], "ABC").should_not == true
+      matches("=", ["lower", ["fact", "f1"]], "abc",
             { "f1" => "ABC" }).should == true
     end
 
     it "upper should behave" do
-      match("=", ["upper", "abc"], "ABC").should == true
-      match("=", ["upper", "abc"], "abc").should_not == true
-      match("=", ["upper", ["fact", "f1"]], "ABC",
+      matches("=", ["upper", "abc"], "ABC").should == true
+      matches("=", ["upper", "abc"], "abc").should_not == true
+      matches("=", ["upper", ["fact", "f1"]], "ABC",
             { "f1" => "abc" }).should == true
     end
   end
@@ -331,14 +331,14 @@ describe Razor::Matcher do
     it "should require string for lower" do
       Matcher.new(["=", ["lower", "ABC"], "abc"]).should be_valid
       Matcher.new(["=", ["lower", 1], "abc"]).should_not be_valid
-      expect { match("=", ["lower", ["fact", "f1"]], "123", { "f1" => 123 }) }.
+      expect { matches("=", ["lower", ["fact", "f1"]], "123", { "f1" => 123 }) }.
           to raise_error(RuleEvaluationError, /argument to 'lower' should be a string but was Fixnum/)
     end
 
     it "should require string for upper" do
       Matcher.new(["=", ["upper", "abc"], "abc"]).should be_valid
       Matcher.new(["=", ["upper", 1], "abc"]).should_not be_valid
-      expect { match("=", ["upper", ["fact", "f1"]], "123", { "f1" => 123 }) }.
+      expect { matches("=", ["upper", ["fact", "f1"]], "123", { "f1" => 123 }) }.
           to raise_error(RuleEvaluationError, /argument to 'upper' should be a string but was Fixnum/)
     end
 
@@ -406,10 +406,10 @@ describe Razor::Matcher do
   end
 
   it "should handle nested evaluation" do
-    match("and", ["=", ["fact", "f1"], 42],
+    matches("and", ["=", ["fact", "f1"], 42],
                  ["!=", ["fact", "f2"], 43],
           { "f1" => 42, "f2" => 42 }).should == true
-    match("and", ["in", ["fact", "f1"], 41, 42, 43, 44],
+    matches("and", ["in", ["fact", "f1"], 41, 42, 43, 44],
                  ["!=", ["fact", "f2"], 42],
           { "f1" => 42, "f2" => 42 }).should == false
   end
