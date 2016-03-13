@@ -14,19 +14,26 @@ require 'json'
 #   [op arg1 arg2 .. argn]
 #
 # The builtin operators are (see +Functions+)
-#   and, or - true if anding/oring arguments is true
-#   =, !=   - true if arg1 =/!= arg2
-#   like    - true if arg1 =~ arg2 (interpreting arg2 as Regex)
-#   in      - true if arg1 is one of arg2 .. argn
-#   fact    - retrieves the fact named arg1 from the node if it exists
+#   and, or  - true if anding/oring arguments is true
+#   =, !=    - true if arg1 =/!= arg2
+#   like     - true if arg1 =~ arg2 (interpreting arg2 as Regex)
+#   in       - true if arg1 is one of arg2 .. argn
+#   fact     - retrieves the fact named arg1 from the node if it exists
 #             If not, an error is raised unless a second argument is given, in
 #             which case it is returned as the default.
-#   num     - converts arg1 to a numeric value if possible; raises if not
-#   str     - converts arg1 to a string value if possible; raises if not
-#   <, <=   - true if arg1 </<= arg2
-#   >, >=   - true if arg1 >/>= arg2
-#   lower   - string result from converting arg1 to lower case
-#   upper   - string result from converting arg1 to upper case
+#   metadata - retrieves the metadata named arg1 from the node if it exists
+#              If not, an error is raised unless a second argument is given, in
+#              which case it is returned as the default.
+#   tag      - true if the node matches the tag with name arg1.
+#   num      - converts arg1 to a numeric value if possible; raises if not
+#   str      - converts arg1 to a string value if possible; raises if not
+#   <, <=    - true if arg1 </<= arg2
+#   >, >=    - true if arg1 >/>= arg2
+#   lower    - string result from converting arg1 to lower case
+#   upper    - string result from converting arg1 to upper case
+#   has_macaddress
+#            - true if any fact with prefix "macaddress" exists on the node and
+#              matches arg1 .. argn
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
@@ -75,6 +82,8 @@ class Razor::Matcher
         "lt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lower"    => {:expects => [[String]],        :returns => [String] },
         "upper"    => {:expects => [[String]],        :returns => [String] },
+        "has_macaddress" =>
+                      {:expects => [[String]],        :returns => Boolean }
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -191,6 +200,12 @@ class Razor::Matcher
       return value.upcase if value.is_a?(String)
 
       raise RuleEvaluationError.new _("argument to 'upper' should be a string but was %{raw}") % {raw: value.class.inspect}
+    end
+
+    def has_macaddress(*args)
+      (@values["facts"] || {}).any? do |key, value|
+        key =~ /^macaddress.*/ and args.include?(value)
+      end
     end
 
     private
