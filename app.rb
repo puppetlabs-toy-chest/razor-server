@@ -92,6 +92,9 @@ and requires full control over the database (eg: add and remove tables):
     # at the top level.
     #
     # If security is disabled then this simply succeeds.
+    #
+    # If auth.allow_localhost is set, requests from a local razor client are allowed without
+    # authentication.
     def check_permissions!(*which)
       Razor.config['auth.enabled'] and not local_request? and user.check_permissions(*which)
       true
