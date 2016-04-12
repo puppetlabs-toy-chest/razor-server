@@ -136,7 +136,7 @@ class Razor::BrokerType
   # If there is no configuration data, returns the empty hash.
   def configuration_schema
     @configuration_schema ||= if configuration_path.exist?
-                                YAML.load_file(configuration_path).freeze
+                                (YAML.load_file(configuration_path) || {}).freeze
                               else
                                 {}.freeze
                               end

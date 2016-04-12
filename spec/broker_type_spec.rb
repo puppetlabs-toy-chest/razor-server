@@ -350,6 +350,21 @@ describe Razor::BrokerType do
         }.to raise_error Psych::SyntaxError
       end
     end
+
+    it "should return a blank schema if the file is blank" do
+      broker = {'test' => {'install.erb' => "# no real content here\n",
+                           'configuration.yaml' => nil}}
+      with_brokers_in(path => broker) do
+        Razor::BrokerType.find(name: 'test').configuration_schema.should == {}
+      end
+    end
+    it "should return a blank schema if the file just has a yaml header" do
+      broker = {'test' => {'install.erb' => "# no real content here\n",
+                           'configuration.yaml' => '---'}}
+      with_brokers_in(path => broker) do
+        Razor::BrokerType.find(name: 'test').configuration_schema.should == {}
+      end
+    end
   end
 
   context "install_script" do
