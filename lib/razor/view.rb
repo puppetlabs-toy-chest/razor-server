@@ -216,6 +216,11 @@ module Razor
     def collection_view(cursor, name, args = {})
       perm = "query:#{name}"
       total = cursor.count if cursor.respond_to?(:count)
+      if args[:facts] and args[:start].nil? and args[:limit] and !total.nil?
+        # We have a request for a limited list of facts without a starting
+        # value. Take from the end so the latest entries are included.
+        args[:start] = [total - args[:limit], 0].max
+      end
       # This catches the case where a non-Sequel class is passed in.
       cursor = cursor.all if cursor.is_a?(Class) and !cursor.respond_to?(:cursor)
       cursor = cursor.limit(args[:limit], args[:start]) if cursor.respond_to?(:limit)

@@ -852,7 +852,7 @@ describe "command and query API" do
     let :node do Fabricate(:node) end
     let :msgs do [] end
     before :each do
-      5.times { msgs.unshift(Fabricate(:event, node: node).entry[:msg]) }
+      5.times { msgs.push(Fabricate(:event, node: node).entry[:msg]) }
     end
     it "should show log" do
       get "/api/collections/nodes/#{node.name}/log"
@@ -864,7 +864,7 @@ describe "command and query API" do
       get "/api/collections/nodes/#{node.name}/log?limit=2"
       last_response.status.should == 200
 
-      last_response.json['items'].map {|e| e['msg']}.should == msgs[0..1]
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[3..4]
     end
     it "should show limited log with offset" do
       get "/api/collections/nodes/#{node.name}/log?limit=2&start=2"
@@ -1119,7 +1119,7 @@ describe "command and query API" do
     let :hook do Fabricate(:hook) end
     let :msgs do [] end
     before :each do
-      5.times { msgs.unshift(Fabricate(:event, hook: hook).entry[:msg]) }
+      5.times { msgs.push(Fabricate(:event, hook: hook).entry[:msg]) }
     end
     it "should show log" do
       get "/api/collections/hooks/#{URI.escape(hook.name)}/log"
@@ -1131,7 +1131,7 @@ describe "command and query API" do
       get "/api/collections/hooks/#{URI.escape(hook.name)}/log?limit=2"
       last_response.status.should == 200
 
-      last_response.json['items'].map {|e| e['msg']}.should == msgs[0..1]
+      last_response.json['items'].map {|e| e['msg']}.should == msgs[3..4]
     end
     it "should show limited log with offset" do
       get "/api/collections/hooks/#{URI.escape(hook.name)}/log?limit=2&start=2"
@@ -1284,13 +1284,13 @@ describe "command and query API" do
         events = last_response.json['items']
         events.should be_an_instance_of Array
         events.count.should == 1
-        events.first['name'].should == names.last
+        events.last['name'].should == names.last
         last_response.json['total'].should == 3
         validate! ObjectRefCollectionSchema, last_response.body
       end
       it "should allow windowing of results" do
         names = []
-        6.times { names.unshift Fabricate(:event).name }
+        6.times { names.push Fabricate(:event).name }
         get "/api/collections/events?limit=2&start=2"
 
         last_response.status.should == 200
@@ -1303,7 +1303,7 @@ describe "command and query API" do
       end
       it "should allow just an offset" do
         names = []
-        6.times { names.unshift Fabricate(:event).name }
+        6.times { names.push Fabricate(:event).name }
         get "/api/collections/events?start=2"
 
         last_response.status.should == 200

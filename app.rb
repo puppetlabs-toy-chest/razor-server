@@ -567,7 +567,8 @@ and requires full control over the database (eg: add and remove tables):
   # @todo danielp 2013-06-26: this should be some sort of discovery, not a
   # hand-coded list, but ... it will do, for now.
   COLLECTIONS = [:brokers, :repos, :tags, :policies,
-                 [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :tasks, :commands,
+                 [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}],
+                  :tasks, [:commands, {'start' => {'type' => 'number'}, 'limit' => {'type' => 'number'}}],
                  [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
 
   #
@@ -619,6 +620,16 @@ and requires full control over the database (eg: add and remove tables):
   # collection entries, thankfully.
   before %r{^/api/collections/([^/]+)/?([^/]+)?$}i do |collection, item|
     check_permissions!("query:#{collection}" + (item ? ":#{item}" : ''))
+  end
+
+  def paginate(start, limit)
+    raise TypeError, _('limit must be a number, but was %{limit}') %
+        {limit: limit} unless limit.to_i.to_s == limit or limit.nil?
+    raise TypeError, _('start must be a number, but was %{start}') %
+        {start: start} unless start.to_i.to_s == start or start.nil?
+    limit = Integer(limit) if limit
+    start = Integer(start) if start
+    [start, limit]
   end
 
   get '/api/collections/tags' do
@@ -700,8 +711,10 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/commands' do
-    collection_view Razor::Data::Command.order(:submitted_at).reverse,
-      'commands'
+    start, limit = paginate(params[:start], params[:limit])
+
+    collection_view Razor::Data::Command.order(:submitted_at).order(:id),
+      'commands', limit: limit, start: start, facts: true
   end
 
   get '/api/collections/commands/:id' do
@@ -716,47 +729,50 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/api/collections/events' do
-    check_permissions!("query:events")
+    start, limit = paginate(params[:start], params[:limit])
 
     # Need to also order by ID here in case the granularity of timestamp is
     # not enough to maintain a consistent ordering.
-    cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse
-    collection_view cursor, 'events', limit: params[:limit], start: params[:start]
+    cursor = Razor::Data::Event.order(:timestamp).order(:id)
+    collection_view cursor, 'events', limit: limit, start: start, facts: true
   end
 
   get '/api/collections/events/:id' do
     params[:id] =~ /[0-9]+/ or error 400, :error => _("id must be a number but was %{id}") % {id: params[:id]}
-    check_permissions!("query:events:#{params[:id]}")
+
     event = Razor::Data::Event[:id => params[:id]] or
         error 404, :error => _("no event matched id=%{id}") % {id: params[:id]}
     event_hash(event).to_json
   end
 
   get '/api/collections/hooks' do
-    check_permissions!("query:hooks")
-
     collection_view Razor::Data::Hook, 'hooks'
   end
 
   get '/api/collections/hooks/:name' do
-    check_permissions!("query:hooks:#{params[:name]}")
     hook = Razor::Data::Hook[:name => params[:name]] or
         error 404, :error => _("no hook matched name=%{name}") % {name: params[:name]}
     hook_hash(hook).to_json
   end
 
   get '/api/collections/hooks/:name/log' do
-    check_permissions!("query:hooks:#{params[:name]}")
+    check_permissions!("query:hooks:#{params[:name]}:log")
+
+    start, limit = paginate(params[:start], params[:limit])
+
     hook = Razor::Data::Hook[:name => params[:name]] or
         error 404, :error => _("no hook matched name=%{name}") % {name: params[:name]}
     {
         "spec" => spec_url("collections", "hooks", "log"),
-        "items" => hook.log(limit: params[:limit], start: params[:start])
+        "items" => hook.log(limit: limit, start: start)
     }.to_json
   end
 
   get '/api/collections/nodes' do
-    collection_view Razor::Data::Node.search(params).order(:id), 'nodes', limit: params[:limit], start: params[:start]
+    start, limit = paginate(params[:start], params[:limit])
+
+    collection_view Razor::Data::Node.search(params).order(:id), 'nodes',
+                    limit: limit, start: start
   end
 
   get '/api/collections/nodes/:name' do
@@ -768,6 +784,8 @@ and requires full control over the database (eg: add and remove tables):
   get '/api/collections/nodes/:name/log' do
     check_permissions!("query:nodes:#{params[:name]}:log")
 
+    start, limit = paginate(params[:start], params[:limit])
+
     # @todo lutter 2013-08-20: There are no tests for this handler
     # @todo lutter 2013-08-20: Do we need to send the log through a view ?
     node = Razor::Data::Node[:name => params[:name]] or
@@ -777,7 +795,7 @@ and requires full control over the database (eg: add and remove tables):
     # view worthwhile without extra querying.
     {
       "spec" => spec_url("collections", "nodes", "log"),
-      "items" => node.log(limit: params[:limit], start: params[:start])
+      "items" => node.log(limit: limit, start: start)
     }.to_json
   end
 
