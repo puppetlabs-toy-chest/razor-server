@@ -873,6 +873,56 @@ describe "command and query API" do
       last_response.json['items'].map {|e| e['msg']}.should == msgs[2..3]
     end
   end
+  context "/api/collections/config" do
+    ConfigCollectionSchema = {
+        '$schema'  => 'http://json-schema.org/draft-04/schema#',
+        'title'    => "Config Collection JSON Schema",
+        'type'     => 'object',
+        'additionalProperties' => false,
+        'properties' => {
+            "spec" => {
+                'type'    => 'string',
+                'pattern' => '^https?://'
+            },
+            "items" => {
+                'type'    => 'array',
+                'items'    => {
+                    'type'     => 'object',
+                    'additionalProperties' => true,
+                }
+            }
+        }
+    }.freeze
+
+    it "should return the config" do
+      Razor.config['api_config_blacklist'] = ['database_url', 'facts.blacklist']
+      get '/api/collections/config'
+      last_response.status.should == 200
+      validate! ConfigCollectionSchema, last_response.body
+
+      items = last_response.json['items']
+      count = Razor.config.flat_values.length - Razor.config['api_config_blacklist'].length
+      items.length.should == count
+
+      items.each do |item|
+        Razor.config[item['name']].should == item['value']
+      end
+
+      Razor.config['api_config_blacklist'].each do |k,_|
+        items.map { |item| item['name'] }.should_not include k
+      end
+    end
+
+    it "should succeed without a config set" do
+      Razor.config['api_config_blacklist'] = nil
+      get '/api/collections/config'
+      last_response.status.should == 200
+
+      items = last_response.json['items']
+      items.length.should == Razor.config.flat_values.length
+      items.length.should > 0 # Just in case
+    end
+  end
 
   context "/api/collections/commands" do
     CommandItemSchema = {

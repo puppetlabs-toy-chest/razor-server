@@ -19,6 +19,9 @@ module Razor
     # The possible keys we allow in hw_info,
     HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
 
+    attr_reader :values
+    attr_reader :flat_values
+
     def initialize(env, fname = nil, defaults_file = nil)
       @values = {}
       # Load defaults first.
@@ -57,6 +60,23 @@ module Razor
       end
       @values.merge!(yaml["all"] || {})
       @values.merge!(yaml[Razor.env] || {})
+    end
+
+    def flat_values
+      @flat_values ||= flatten_hash(@values)
+    end
+
+    # Converts e.g. {'a' => {'b' => 1}} to {'a.b' => 1}
+    def flatten_hash(hash)
+      hash.each_with_object({}) do |(k, v), h|
+        if v.is_a? Hash
+          flatten_hash(v).map do |h_k, h_v|
+            h["#{k}.#{h_k}"] = h_v
+          end
+        else
+          h[k] = v
+        end
+      end
     end
 
     def root

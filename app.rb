@@ -568,7 +568,7 @@ and requires full control over the database (eg: add and remove tables):
   # hand-coded list, but ... it will do, for now.
   COLLECTIONS = [:brokers, :repos, :tags, :policies,
                  [:nodes, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :tasks, :commands,
-                 [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks]
+                 [:events, {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}], :hooks, :config]
 
   #
   # The main entry point for the public/management API
@@ -778,6 +778,22 @@ and requires full control over the database (eg: add and remove tables):
     {
       "spec" => spec_url("collections", "nodes", "log"),
       "items" => node.log(limit: params[:limit], start: params[:start])
+    }.to_json
+  end
+
+  get '/api/collections/config' do
+    blacklist = Razor.config['api_config_blacklist'] || []
+    items = Razor.config.flat_values.reject do |k, _|
+      blacklist.include? k
+    end
+    {
+        "spec" => spec_url("collections", "config"),
+        "items" => items.map do |k,v|
+          {
+            "name" => k,
+            "value" => v
+          }
+        end,
     }.to_json
   end
 

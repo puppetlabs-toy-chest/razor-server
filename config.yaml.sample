@@ -137,3 +137,10 @@ all:
     #match_on:
     #  - unique_fact
     #  - /other_facts_.*/
+
+  # These should correspond to config properties that should be hidden from the
+  # /api/collections/config endpoint. By default, this endpoint will reveal all
+  # config in this file.
+  api_config_blacklist:
+    - database_url
+    - facts.blacklist

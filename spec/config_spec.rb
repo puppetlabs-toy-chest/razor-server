@@ -159,6 +159,25 @@ describe Razor::Config do
     end
   end
 
+  describe "flat_values" do
+    it "builds a valid tree" do
+      config = make_config({'1' => {'2' => ['value']}, 'a' => 'other-value'})
+      config.flat_values.should == {'1.2' => ['value'], 'a' => 'other-value'}
+    end
+    it "works for empty configs" do
+      make_config({}).flat_values.should == {}
+    end
+    it "works for any depth" do
+      depth = Random.new.rand(100) + 2
+      config = {'a' => nil}
+      expected = {"#{(['a'] * (depth + 1)).join('.')}" => nil}
+      depth.times do
+        config['a'] = config.dup
+      end
+      make_config(config).flat_values.should == expected
+    end
+  end
+
   shared_examples "expanding paths" do |setting|
     let :setting_name    do setting + '_path' end
     let :setting_default do File.join(Razor.root, setting + 's') end
