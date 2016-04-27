@@ -1,13 +1,14 @@
 [Unit]
-Description=Puppet Enterprise Razor Server
+Description=Razor Server
 After=network.target
 
 [Service]
-EnvironmentFile=/usr/share/razor-server/razor-server.env
+EnvironmentFile=/opt/puppetlabs/server/apps/razor-server/share/razor-server/razor-server.env
+EnvironmentFile=/etc/sysconfig/razor-server
 User=razor
-ExecStart=/opt/razor-torquebox/jboss/bin/standalone.sh -Djboss.server.log.dir=${JBOSS_LOG_DIR} -Dhttp.port=${RAZOR_HTTP_PORT} -Dhttps.port=${RAZOR_HTTPS_PORT} -b 0.0.0.0
+ExecStart=/opt/puppetlabs/server/apps/razor-server/share/torquebox/jboss/bin/standalone.sh -Djboss.server.log.dir=${JBOSS_LOG_DIR} -Dhttp.port=${RAZOR_HTTP_PORT} -Dhttps.port=${RAZOR_HTTPS_PORT} -b 0.0.0.0
 Type=simple
-PIDFile=/run/razor-server/torquebox.pid
+PIDFile=/var/run/puppetlabs/razor-server/torquebox.pid
 
 [Install]
 WantedBy=multi-user.target

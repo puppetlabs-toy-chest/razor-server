@@ -2,12 +2,23 @@
 #
 # razor-server sysv startup script for multiple platforms
 #
-<%= @description.gsub(/^/, '# ').chomp %>
+#Razor is an advanced provisioning application which can deploy both bare-metal
+#and virtual systems. It's aimed at solving the problem of how to bring new
+#metal into a state where your existing DevOps/configuration management
+#workflows can take it over.
+#Newly added machines in a Razor deployment will PXE-boot from a special Razor
+#Microkernel image, then check in, provide Razor with inventory information, and
+#wait for further instructions. Razor will consult user-created policy rules to
+#choose which preconfigured model to apply to a new node, which will begin to
+#follow the model's directions, giving feedback to Razor as it completes various
+#steps. Models can include steps for handoff to a DevOps system such as Puppet
+#or to any other system capable of controlling the node (such as a vCenter
+#server taking possession of ESX systems).
 #
 # chkconfig: - 80 20
 # description: razor-server
 # processname: standalone
-# pidfile: /var/run/razor-server.pid
+# pidfile: /var/run/puppetlabs/razor-server/razor-server.pid
 
 # Ensure we have a sensible umask
 umask 0027
@@ -16,7 +27,7 @@ NAME="razor-server"
 WAIT=30 # seconds
 
 # Load the location data from our torquebox installation
-source /etc/razor/razor-torquebox.sh
+source /etc/puppetlabs/razor-server/razor-torquebox.sh
 
 # Configure our language -- needed to ensure we process Unicode content
 # correctly.  Should fall back to nothing worse than not setting this
@@ -29,9 +40,9 @@ export LANG
 export RAZOR_HTTP_PORT="${RAZOR_HTTP_PORT:-8150}"
 export RAZOR_HTTPS_PORT="${RAZOR_HTTPS_PORT:-8151}"
 
-export JBOSS_PIDFILE="/var/run/${NAME}/torquebox.pid"
+export JBOSS_PIDFILE="/var/run/puppetlabs/${NAME}/torquebox.pid"
 
-export JBOSS_LOG_DIR="/var/log/${NAME}"
+export JBOSS_LOG_DIR="/var/log/puppetlabs/${NAME}"
 export JBOSS_CONSOLE_LOG="${JBOSS_LOG_DIR}/console.log"
 
 JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
@@ -43,7 +54,7 @@ JBOSS_USER="razor"
 JBOSS_CONFIG="standalone.xml"
 JBOSS_SCRIPT="${JBOSS_HOME}/bin/standalone.sh"
 
-JBOSS_LIB="/var/lib/razor"
+JBOSS_LIB="/opt/puppetlabs/server/apps/razor-server/var/razor"
 
 LAUNCH_JBOSS_IN_BACKGROUND=true
 export LAUNCH_JBOSS_IN_BACKGROUND

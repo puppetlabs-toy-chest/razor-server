@@ -74,20 +74,20 @@ cp -p ext/razor-server.init %{buildroot}%{_initrddir}/razor-server
 rm -rf ext
 
 # Unpack the Razor server sources
-mkdir -p %{buildroot}/opt/razor
-cp -pr .bundle * %{buildroot}/opt/razor
+mkdir -p %{buildroot}/opt/puppetlabs/server/apps/razor-server
+cp -pr .bundle * %{buildroot}/opt/puppetlabs/server/apps/razor-server
 
 # Put the configuration in the global location
-mkdir -p %{buildroot}/etc/razor
-mv %{buildroot}/opt/razor/config.yaml.sample %{buildroot}/etc/razor/config.yaml
-mv %{buildroot}/opt/razor/shiro.ini %{buildroot}/etc/razor/shiro.ini
+mkdir -p %{buildroot}/etc/puppetlabs/razor-server
+mv %{buildroot}/opt/puppetlabs/server/apps/razor-server/config.yaml.sample %{buildroot}/etc/puppetlabs/razor-server/config.yaml
+mv %{buildroot}/opt/puppetlabs/server/apps/razor-server/shiro.ini %{buildroot}/etc/puppetlabs/razor-server/shiro.ini
 
 # Create the links to wrap our commands.
 mkdir -p %{buildroot}/usr/sbin
 for cmd in bin/*; do
     cmd=$(basename ${cmd})
     if test x"${cmd}" != x"razor-binary-wrapper"; then
-        ln -s /opt/razor/bin/razor-binary-wrapper %{buildroot}/usr/sbin/${cmd}
+        ln -s /opt/puppetlabs/server/apps/razor-server/bin/razor-binary-wrapper %{buildroot}/usr/sbin/${cmd}
     fi
 done
 
@@ -106,16 +106,16 @@ done
 # way that will break compared to that "admin intervention required"
 # planned downtime.
 if [ x"$1" = x"1" ]; then
-    source /etc/razor/razor-torquebox.sh
-    torquebox deploy /opt/razor --env=production
+    source /etc/puppetlabs/razor-server/razor-torquebox.sh
+    torquebox deploy /opt/puppetlabs/server/apps/razor-server --env=production
 fi
 
 exit 0
 
 %preun -p /bin/bash
 # Undeploy our application from TorqueBox.
-source /etc/razor/razor-torquebox.sh
-torquebox undeploy /opt/razor || :
+source /etc/puppetlabs/razor-server/razor-torquebox.sh
+torquebox undeploy /opt/puppetlabs/server/apps/razor-server || :
 %if 0%{?_with_systemd}
 %systemd_preun %{name}.service
 %else
@@ -150,7 +150,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) %{_initrddir}/%{name}
 %endif
 
-/opt/razor
+/opt/puppetlabs/server/apps/razor-server
 
 # When flagged as configuration files, I see this:
 # --> Processing Dependency: config(razor-server) = release.0.12.0.gc3c7b74-1.fc19 for package: razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch
@@ -158,11 +158,11 @@ rm -rf %{buildroot}
 # Error: Package: razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch (/razor-server-release.0.12.0.gc3c7b74-1.fc19.noarch)
 #            Requires: config(razor-server) = release.0.12.0.gc3c7b74-1.fc19
 #  You could try using --skip-broken to work around the problem
-# %config(noreplace) /etc/razor/config.yaml
-# %config(noreplace) /etc/razor/shiro.ini
+# %config(noreplace) /etc/puppetlabs/razor-server/config.yaml
+# %config(noreplace) /etc/puppetlabs/razor-server/shiro.ini
 
-/etc/razor/config.yaml
-/etc/razor/shiro.ini
+/etc/puppetlabs/razor-server/config.yaml
+/etc/puppetlabs/razor-server/shiro.ini
 
 # Our user focused symbolic links.
 /usr/sbin/razor-admin

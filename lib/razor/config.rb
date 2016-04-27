@@ -26,7 +26,7 @@ module Razor
       @values = {}
       # Load defaults first.
       defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
-          (File.file?('/opt/razor/config-defaults.yaml') and '/opt/razor/config-defaults.yaml') ||
+          (File.file?('/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') and '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') ||
           File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
       begin
         yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
@@ -43,7 +43,7 @@ module Razor
       # Use the filename given, or from the environment, or from /etc if it
       # exists, otherwise the one in our root directory...
       fname ||= ENV["RAZOR_CONFIG"] ||
-        (File.file?('/etc/razor/config.yaml') and '/etc/razor/config.yaml') ||
+        (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
 
       # Save this for later, since we use it to find relative paths.

@@ -1,0 +1,7 @@
+# The location of the razor config files
+RAZOR_CONFIG=/etc/puppetlabs/razor-server/config.yaml
+RAZOR_CONFIG_DEFAULTS=/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml
+# The ports that the razor-server service should listen on
+# Default from packaging.
+RAZOR_HTTP_PORT=8150
+RAZOR_HTTPS_PORT=8151
