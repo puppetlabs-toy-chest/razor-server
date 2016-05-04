@@ -63,7 +63,7 @@ module Razor
     end
 
     def flat_values
-      @flat_values ||= flatten_hash(@values)
+      flatten_hash(@values)
     end
 
     # Converts e.g. {'a' => {'b' => 1}} to {'a.b' => 1}
