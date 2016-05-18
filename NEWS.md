@@ -1,5 +1,16 @@
 # Razor Server Release Notes
 
+## 1.3.0 - 2016-05-19
+
+### API changes
+
++ NEW: Added "has_macaddress" tag matcher. Use this rather than
+  `["fact", "macaddress"]`.
++ NEW: Added `config` collection to display active config settings.
++ NEW: Added `allow_localhost` config to allow bypassing authentication when
+  requests originate from localhost.
++ BUGFIX: "microkernel.debug_level" is now no longer ignored.
+
 ## 1.2.0 - 2016-03-08
 
 ### API changes
