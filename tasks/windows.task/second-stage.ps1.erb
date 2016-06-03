@@ -6,10 +6,10 @@ write-host "Razor second-stage Windows installer script starting"
 # installer.  That will, I guess, have to change some time soon.  Look to see
 # something akin to the way that brokers work implemented.
 $server = '<%= `hostname`.strip %>'
-$share  = 'razor'
 $repo   = '<%= repo_url.split('/').last %>'
-$drive_path = "\\${server}\${share}\${repo}"
-$installer = "${drive_path}\setup.exe"
+$drive_path = "\\${server}\${repo}"
+$drive_letter = "I"
+$installer = "${drive_letter}:\setup.exe"
 
 write-host "fetching the unattended.xml file to feed the installer"
 $unattended_src = '<%= file_url('unattended.xml') %>'
@@ -21,10 +21,10 @@ write-host "mapping SMB share ${drive_path} for installer access"
 # As far as I can tell, if we don't persist, we don't connect the SMB share,
 # and that means we can't actually run stuff off it.
 new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
-If (!(Test-Path i:))
+If (!(Test-Path "$($drive_letter):"))
 {
-        Invoke-WebRequest -Uri "<%= log_url("samba share not accessible ${drive_path}", :error) %>" -UseBasicParsing
-        write-error "samba share not accessible ${drive_path}"
+        Invoke-WebRequest -Uri "<%= log_url("samba share not accessible on $drive_letter", :error) %>" -UseBasicParsing
+        write-error "samba share not accessible on $drive_letter"
         exit 1
 }
 start-sleep 10                  # time to settle -- needed on my VM :/
