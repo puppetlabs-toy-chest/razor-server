@@ -336,7 +336,8 @@ class Razor::Data::Hook < Sequel::Model
       stdin, stdout, stderr, wait_thr = Bundler.with_clean_env do
         extra_path = Razor.config['hook_execution_path']
         ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
-        Open3.popen3(script.to_s, :chdir => hook_dir)
+        Dir.chdir(hook_dir)
+        Open3.popen3(script.to_s)
       end
       stdin.write(args) if args
       begin

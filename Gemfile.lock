@@ -116,7 +116,13 @@ DEPENDENCIES
   simplecov
   sinatra (>= 1.4.4)
   timecop
-  torquebox (~> 3.1.1)
-  torquebox-server (~> 3.1.1)
+  torquebox (~> 3.1.2)
+  torquebox-server (~> 3.1.2)
   unix-crypt (~> 1.1.1)
   yard
+
+RUBY VERSION
+   ruby 1.9.3p551 (jruby 1.7.19)
+
+BUNDLED WITH
+   1.12.5

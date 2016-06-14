@@ -475,6 +475,37 @@ EOF
       input['node']['metadata'].should == node.metadata
     end
 
+    it "should run relative to the hook's directory" do
+      set_hook_file('test', 'configuration.yaml' => {}.to_yaml)
+      hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
+#! /bin/bash
+
+json=$(< /dev/stdin)
+
+cat <<EOF
+{
+  "output": "$(pwd)"
+}
+EOF
+      CONTENTS
+      node = Fabricate(:bound_node)
+      Razor::Data::Hook.trigger('node-booted', node: node, policy: node.policy)
+
+      # There will also be a 'Node' message on the queue.
+      messages = queue.count_messages.times.map {queue.receive}
+      event = messages.select {|message| message['class'] == 'Razor::Data::Hook'}.first
+
+      run_message(event)
+
+      event = Razor::Data::Event.find(hook_id: hook.id)
+      event.hook_id.should == hook.id
+      event.severity.should == 'info'
+      msg = event.entry['msg']
+      msg.should =~ /\/test\.hook$/
+    end
+
     context "with store_hook_input config" do
       after :each do
         Razor.config['store_hook_input'] = false
@@ -928,6 +959,7 @@ EOF
       end
     end
   end
+
   describe "events" do
     it "should fire for node-registered" do
       Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
