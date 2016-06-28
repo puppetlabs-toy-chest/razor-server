@@ -15,7 +15,7 @@ sleep 3
 <%# kernel image that doesn't include it, or something...                   %>
 <%
   facts = node.facts || {}
-  if !facts["is_virtual"] or facts["is_virtual"] != "false" or
+  if !facts.has_key?('is_virtual') or ((facts["is_virtual"] != "false") and (facts["is_virtual"] != false)) or
       node.metadata['sanboot'] %>
 echo forcing local booting with sanboot 0x80
 sanboot --no-describe --drive 0x80
