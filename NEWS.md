@@ -1,5 +1,17 @@
 # Razor Server Release Notes
 
+## 1.4.0 - 2016-06-30
+
+### API changes
+
++ IMPROVEMENT: Pathing is now consistent with the All-In-One (AIO) agent format.
+  This means that some pathing changes are necessary:
+  - `/etc/razor/config.yaml` to `/etc/puppetlabs/razor-server/config.yaml`
+  - `/etc/razor/shiro.ini` to `/etc/puppetlabs/razor-server/shiro.ini`
+  - `/var/log/razor-server/server.log` to `/var/log/razor-server/server.log`
+  Packaging will move these files automatically.
++ IMPROVEMENT: Updating Torquebox to 3.1.2 and JRuby to 1.7.19.
+
 ## 1.3.0 - 2016-05-19
 
 ### API changes
