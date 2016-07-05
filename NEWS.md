@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.4.0 - 2016-06-30
+## 1.4.0 - 2016-07-06
 
 ### API changes
 
