@@ -65,7 +65,7 @@ EOP
 (
 cat <<'EOFFIRSTRUN'
 {
-	"run_list": ["<%= broker.run_list %>"],
+	"run_list": <%= broker.run_list.split(/\s*,\s*/) %>,
 	"razor_metadata":  {
 <%
 unless node.metadata.empty?
