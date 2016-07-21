@@ -5,6 +5,18 @@ require 'uri'
 require 'fcntl'
 require 'archive'
 
+# This is a monkey-patch to fix an issue on Ubuntu. The `lchmod` command is not
+# implemented on every distro, so FileUtils performs `lchmod 0`, which is
+# supposed to determine whether `lchmod` is available. However, on Ubuntu, this
+# returns 0 rather than the NotImplementedException, meaning a runtime error
+# occurs when the real `lchmod <value>, <filename>` gets called. This patch
+# avoids the lchmod shenanigans altogether.
+class FileUtils::Entry_
+  def have_lchmod?
+    false
+  end
+end
+
 # Manage our unpacked OS repos on disk.  This is a relatively stateful class,
 # because it is a proxy for data physically stored outside our database.
 #
