@@ -490,6 +490,7 @@ cat <<EOF
 }
 EOF
       CONTENTS
+      old_dir = Dir.pwd
       node = Fabricate(:bound_node)
       Razor::Data::Hook.trigger('node-booted', node: node, policy: node.policy)
 
@@ -504,6 +505,7 @@ EOF
       event.severity.should == 'info'
       msg = event.entry['msg']
       msg.should =~ /\/test\.hook$/
+      Dir.pwd.should == old_dir
     end
 
     context "with store_hook_input config" do

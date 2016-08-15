@@ -334,10 +334,15 @@ class Razor::Data::Hook < Sequel::Model
       # Run the file from the hook's directory so that relative paths work.
       hook_dir = File.expand_path('..', script)
       stdin, stdout, stderr, wait_thr = Bundler.with_clean_env do
-        extra_path = Razor.config['hook_execution_path']
-        ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
-        Dir.chdir(hook_dir)
-        Open3.popen3(script.to_s)
+        begin
+          old = Dir.pwd
+          extra_path = Razor.config['hook_execution_path']
+          ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
+          Dir.chdir(hook_dir)
+          Open3.popen3(script.to_s)
+        ensure
+          Dir.chdir(old)
+        end
       end
       stdin.write(args) if args
       begin
