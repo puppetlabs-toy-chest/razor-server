@@ -386,6 +386,19 @@ policy when you run this command, provisioning errors may occur.
     "task": "other_task"
     }
 
+### Update policy repo
+
+This ensures that a specified policy uses the repo this command specifies.
+If a node is currently provisioning against the
+policy when you run this command, provisioning errors may occur.
+
+    The following shows how to update a policy’s repo to a repo called “other_repo”.
+
+    {
+    "policy": "my_policy",
+    "repo": "other_repo"
+    }
+
 ### Delete policy
 
 Policies can be deleted with the `delete-policy` command.  It accepts the
