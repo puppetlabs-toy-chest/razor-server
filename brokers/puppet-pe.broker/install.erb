@@ -30,6 +30,20 @@ trap "checkError" exit
 # could have been ignored or something.
 cmd bash || fail "we need bash available to be able to run the installer"
 
+# Synchronize time with ntpdate server before registering with the server.
+ntpdate_server=<% broker[:ntpdate_server] || '' %>
+if [ -z $ntpdate_server ]; then
+    : # skipping ntpdate since `ntpdate_server` is not set
+elif cmd ntpdate; then
+    ntpdate $ntpdate_server
+elif cmd apt-get; then
+    apt-get install ntpdate && ntpdate $ntpdate_server
+elif cmd yum; then
+    yum -y install ntpdate && ntpdate $ntpdate_server
+else
+    warn "unable to synchronize time with ntpdate"
+fi
+
 # ...our nice, generic, delegatable script.
 url="https://<%= (broker[:server] || 'puppet') %>:8140/packages/<%= broker[:version] || 'current' %>/install.bash"
 

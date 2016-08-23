@@ -36,6 +36,19 @@ else
     fail "neither yum or apt are installed, so I can't figure out what next!"
 fi
 
+# Synchronize time with ntpdate server before registering with the server.
+ntpdate_server=<% broker[:ntpdate_server] || '' %>
+if [ -z $ntpdate_server ]; then
+    : # skipping ntpdate since `ntpdate_server` is not set
+elif cmd ntpdate; then
+    ntpdate $ntpdate_server
+elif cmd apt-get; then
+    apt-get install ntpdate && ntpdate $ntpdate_server
+elif cmd yum; then
+    yum -y install ntpdate && ntpdate $ntpdate_server
+else
+    warn "unable to synchronize time with ntpdate"
+fi
 
 # Now we have that, we can install our platform specific package to define
 # the repositories.  Thankfully this is also pretty damn simple to get right.

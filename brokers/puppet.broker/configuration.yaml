@@ -5,3 +5,5 @@ server:
   description: "The puppet master server to request configurations from."
 environment:
   description: "On agent nodes, the environment to request configuration in."
+ntpdate_server:
+  description: "The server to use for synchronizing the agent's time"
