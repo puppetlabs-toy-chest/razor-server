@@ -36,6 +36,9 @@ else
     fail "neither yum or apt are installed, so I can't figure out what next!"
 fi
 
+#sync the time if possible
+yum -y install ntpdate && ntpdate us.pool.ntp.org
+
 
 # Now we have that, we can install our platform specific package to define
 # the repositories.  Thankfully this is also pretty damn simple to get right.
