@@ -11,11 +11,11 @@ policy, provisioning errors may arise.
   example api: <<-EOT
 Update policy's task to a task named 'other_task':
 
-    {"node": "node1", "policy": "my_policy", "task": "other_task"}
+    {"policy": "my_policy", "task": "other_task"}
 
 Use the task on the policy's repo:
 
-    {"node": "node1", "policy": "my_policy", "no_task": true}
+    {"policy": "my_policy", "no_task": true}
   EOT
 
   example cli: <<-EOT

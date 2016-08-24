@@ -286,7 +286,7 @@ will return with status code 400.
       "broker": "puppet",
       "hostname": "host${id}.example.com",
       "root_password": "secret",
-      "max_count": "20",
+      "max_count": 20,
       "before"|"after": "other policy",
       "node_metadata": { "key1": "value1", "key2": "value2" },
       "tags": ["existing_tag"]
@@ -369,7 +369,6 @@ existing tag, or create a new one by supplying a name and rule for the
 new tag:
 
     {
-      "name": "a-policy-name",
       "tag" : "a-tag-name",
       "rule": "new-match-expression" #Only for `add-policy-tag`
     }
@@ -383,7 +382,6 @@ policy when you run this command, provisioning errors may occur.
     The following shows how to update a policy’s task to a task called “other_task”.
 
     {
-    "node": "node1",
     "policy": "my_policy",
     "task": "other_task"
     }
