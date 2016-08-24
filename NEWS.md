@@ -1,5 +1,13 @@
 # Razor Server Release Notes
 
+## ? - ?
+
+### API changes
+
++ IMPROVEMENT: Added `update-policy-repo` command to facilitate changing
+  the repo associated with a policy without needing to manually update
+  the repo's contents or delete the policy.
+
 ## 1.4.0 - 2016-07-06
 
 ### API changes

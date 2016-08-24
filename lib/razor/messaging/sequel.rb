@@ -110,15 +110,10 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
       command        = find_command(body['command'])
     end
     if instance.nil?
-      # @todo danielp 2013-07-05: I genuinely don't know the correct way to
-      # handle this.  For the moment we raise an error that will cause the
-      # message to retry later, on the assumption that the object might come
-      # into existence later -- some sort of XA transaction race or failure,
-      # I guess, would be the root cause.
-      #
-      # Is that really the right strategy, though?
-      raise _("Unable to find %{class} with pk %{pk}") %
-        {class: class_constant.name, pk: body['instance'].inspect}
+      # Raise an error that will cause the message to fail. The most likely
+      # cause is that the object has been deleted, but its root cause could also
+      # be some sort of XA transaction race or failure.
+      raise MessageViolatesConsistencyChecks
     else
       # We might as well be tolerant of our inputs, and treat a nil/missing
       # arguments value as "no arguments"
