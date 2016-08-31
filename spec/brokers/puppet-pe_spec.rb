@@ -55,17 +55,21 @@ describe Razor::BrokerType.find(name: 'puppet-pe') do
       versions = [nil, '2.7.34', '~> 3.1']
       servers  = [nil, 'puppet', 'puppet.' + Faker::Internet.domain_name,
         Faker::Internet.ip_v4_address, Faker::Internet.ip_v6_address]
+      ntpdates = [nil, 'us.pool.ntp.org']
 
       versions.each do |version|
         servers.each do |server|
-          it "version #{version.inspect} and server #{server.inspect}" do
-            config = {}
-            version and config['version'] = version
-            server  and config['server']  = server
-            broker.configuration = config
+          ntpdates.each do |ntpdate|
+            it "version #{version.inspect} and server #{server.inspect}" do
+              config = {}
+              version and config['version'] = version
+              server  and config['server']  = server
+              ntpdate and config['ntpdate_server'] = ntpdate
+              broker.configuration = config
 
-            # turn on '-n' for "don't execute any commands"
-            system('/bin/bash', '-n', '-c', script) or raise "failed syntax check"
+              # turn on '-n' for "don't execute any commands"
+              system('/bin/bash', '-n', '-c', script) or raise "failed syntax check"
+            end
           end
         end
       end

@@ -52,19 +52,29 @@ describe Razor::BrokerType.find(name: 'puppet') do
     script.should =~ /setting=environment value=#{Regexp.escape(environment)}/
   end
 
+  it "should set the ntpdate_server if given" do
+    ntpdate_server = "us.pool.ntp.org"
+    broker.configuration = {'ntpdate_server' => ntpdate_server}
+
+    script.should =~ /setting=ntpdate_server value=#{Regexp.escape(ntpdate_server)}/
+  end
+
   it "should set multiple configuration values if given" do
     server = "puppet.#{Faker::Internet.domain_name}"
     certname = "agent.#{Faker::Internet.domain_name}"
     environment = "bananafudge"
+    ntpdate_server = "us.pool.ntp.org"
     broker.configuration = {
-      'server'      => server,
-      'certname'    => certname,
-      'environment' => environment
+      'server'         => server,
+      'certname'       => certname,
+      'environment'    => environment,
+      'ntpdate_server' => ntpdate_server
     }
 
     script.should =~ /setting=server value=#{Regexp.escape(server)}/
     script.should =~ /setting=certname value=#{Regexp.escape(certname)}/
     script.should =~ /setting=environment value=#{Regexp.escape(environment)}/
+    script.should =~ /setting=ntpdate_server value=#{Regexp.escape(ntpdate_server)}/
   end
 
   # This is not the most robust check for correctness in the world, but it
@@ -74,17 +84,21 @@ describe Razor::BrokerType.find(name: 'puppet') do
     versions = [nil, '2.7.34', '~> 3.1']
     servers  = [nil, 'puppet', 'puppet.' + Faker::Internet.domain_name,
       Faker::Internet.ip_v4_address, Faker::Internet.ip_v6_address]
+    ntpdates = [nil, 'us.pool.ntp.org']
 
     versions.each do |version|
       servers.each do |server|
-        it "version #{version.inspect} and server #{server.inspect}" do
-          config = {}
-          version and config['version'] = version
-          server  and config['server']  = server
-          broker.configuration = config
+        ntpdates.each do |ntp|
+          it "version #{version.inspect} and server #{server.inspect}" do
+            config = {}
+            version and config['version'] = version
+            server  and config['server']  = server
+            ntp and config['ntpdate_server'] = ntp
+            broker.configuration = config
 
-          # turn on '-n' for "don't execute any commands"
-          system('/bin/bash', '-n', '-c', script) or raise "failed syntax check"
+            # turn on '-n' for "don't execute any commands"
+            system('/bin/bash', '-n', '-c', script) or raise "failed syntax check"
+          end
         end
       end
     end
