@@ -388,15 +388,28 @@ policy when you run this command, provisioning errors may occur.
 
 ### Update policy repo
 
-This ensures that a specified policy uses the repo this command specifies.
-If a node is currently provisioning against the
-policy when you run this command, provisioning errors may occur.
+This ensures that a specified policy uses the repo this command
+specifies. If a node is currently provisioning against the policy when
+you run this command, provisioning errors may occur.
 
     The following shows how to update a policy’s repo to a repo called “other_repo”.
 
     {
     "policy": "my_policy",
     "repo": "other_repo"
+    }
+
+### Update policy broker
+
+This ensures that a specified policy uses the broker this command
+specifies. If a node is currently in the broker stage of provisioning,
+errors may occur.
+
+    The following shows how to update a policy’s broker to a broker called “other_broker”.
+
+    {
+    "policy": "my_policy",
+    "broker": "other_broker"
     }
 
 ### Delete policy
