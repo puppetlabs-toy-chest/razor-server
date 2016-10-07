@@ -4,6 +4,11 @@
 
 ### API changes
 
++ BUGFIX: The `update-node-metadata` and `modify-node-metadata` commands
+  now throw the intended errors if `no_replace` is supplied and the key
+  exists. For the latter command, you may supply the new argument
+  `force` to achieve the old functionality of simply skipping the
+  replacing key.
 + IMPROVEMENT: Added `update-policy-repo` command to facilitate changing
   the repo associated with a policy without needing to manually update
   the repo's contents or delete the policy.

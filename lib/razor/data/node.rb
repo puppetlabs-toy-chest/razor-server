@@ -30,6 +30,9 @@ module Razor::Data
     end
   end
 
+  class NoReplaceMetadataError < RuntimeError
+  end
+
   class Node < Sequel::Model
     # Since we generate the name in the database using a trigger, the
     # auto-validation plugin sets up the wrong constraint checks.
@@ -210,7 +213,7 @@ module Razor::Data
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
 
       if policy.node_metadata
-        modify_metadata('no_replace' => true, 'update' => policy.node_metadata)
+        modify_metadata('no_replace' => true, 'update' => policy.node_metadata, 'force' => true)
       end
 
       Razor::Data::Hook.trigger('node-bound-to-policy', node: self, policy: policy)
@@ -290,6 +293,7 @@ module Razor::Data
     # Modify metadata the API reciever does alot of sanity checking.
     # Lets not do to much here and assume that internal use is done with
     # intent.
+    # 'force' will cause no_replace errors to be simply skipped over.
     def modify_metadata(data)
       new_metadata = metadata
 
@@ -306,6 +310,8 @@ module Razor::Data
               # Otherwise just store the data as is.
               new_metadata[k] = v
             end
+          elsif not replace && new_metadata[k]
+            raise NoReplaceMetadataError unless data['force']
           end
         end
       end

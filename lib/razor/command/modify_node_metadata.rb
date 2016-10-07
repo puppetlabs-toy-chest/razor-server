@@ -64,8 +64,13 @@ With positional arguments, this can be shortened::
 
   attr 'no_replace', type: :bool, help: _(<<-HELP)
     If true, the `update` operation will cause this command to fail if the
-    metadata key is already present on the node.  No effect on `remove` or
-    clear.
+    metadata key is already present on the node. No effect on `remove` or
+    clear. This error can be suppressed through the `force` flag.
+  HELP
+
+  attr 'force', type: :bool, help: _(<<-HELP)
+    If true, no error will be thrown when `no_replace` is true but a key
+    already exists. Instead, this key will just be skipped.
   HELP
 
   # Take a bulk operation via POST'ed JSON
@@ -79,7 +84,11 @@ With positional arguments, this can be shortened::
     end
 
     node = Razor::Data::Node[:name => data.delete('node')]
-    node.modify_metadata(data)
+    begin
+      node.modify_metadata(data)
+    rescue Razor::Data::NoReplaceMetadataError
+      request.error 409, :error => _('no_replace supplied and key is present')
+    end
   end
 
   def self.conform!(data)

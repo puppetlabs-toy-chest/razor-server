@@ -106,23 +106,24 @@ describe Razor::Command::ModifyNodeMetadata do
       node_metadata['k1'].should == 'v2'
     end
 
-    it "should NOT update the value of an existing tag if no_replace is set" do
+    it "should throw an error if no_replace is set" do
       id = node.id
       data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
       data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true }
       modify_metadata(data)
-      last_response.status.should == 202
+      last_response.status.should == 409
+      last_response.json['error'].should == 'no_replace supplied and key is present'
       node_metadata = Node[:id => id].metadata
-      node_metadata['k1'].should == 'v1'  #should not have updated.
-      node_metadata['k2'].should == 'v2'  #still should have added this.
+      node_metadata['k1'].should == 'v1'
+      node_metadata['k2'].should be_nil
     end
 
-    it "should work for no_replace" do
+    it "should bypass problems if no_replace and force are both set" do
       id = node.id
       data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v1'} }
       modify_metadata(data)
-      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true }
+      data = { 'node' => "node#{id}", 'update' => { 'k1' => 'v2', 'k2' => 'v2'}, 'no_replace' => true, 'force' => true }
       modify_metadata(data)
       last_response.status.should == 202
       node_metadata = Node[:id => id].metadata
