@@ -45,9 +45,13 @@ With positional arguments, this can be shortened:
     operation = { 'update' => { data['key'] => data['value'] } }
     operation['no_replace'] = data['no_replace']
 
-    node.modify_metadata(operation)
+    begin
+      node.modify_metadata(operation)
+    rescue Razor::Data::NoReplaceMetadataError
+      request.error 409, :error => _('no_replace supplied and key is present')
+    end
   end
-  
+
   def self.conform!(data)
     data.tap do |_|
       data['all'] = true if data['all'] == 'true'
