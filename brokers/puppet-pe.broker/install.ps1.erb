@@ -3,7 +3,7 @@ write-host "Razor Windows broker script starting"
 $ErrorActionPreference = "Continue"
 $error.clear()
 
-if ((Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty OSArchitecture) -eq '64-bit') {
+if ((Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty OSArchitecture) -match '64') {
     $arch = 'x64'
 } else {
     $arch = 'x86'
