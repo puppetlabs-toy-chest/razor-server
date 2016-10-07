@@ -9,6 +9,9 @@
   exists. For the latter command, you may supply the new argument
   `force` to achieve the old functionality of simply skipping the
   replacing key.
++ NEW: Added `update-policy-node-metadata` command to facilitate
+  changing the metadata that gets added to a node when it binds to a
+  policy.
 + IMPROVEMENT: Added `update-policy-repo` command to facilitate changing
   the repo associated with a policy without needing to manually update
   the repo's contents or delete the policy.
