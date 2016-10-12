@@ -12,14 +12,19 @@
 + NEW: Added `update-policy-node-metadata` command to facilitate
   changing the metadata that gets added to a node when it binds to a
   policy.
-+ IMPROVEMENT: Added `update-policy-repo` command to facilitate changing
++ NEW: Added `update-policy-repo` command to facilitate changing
   the repo associated with a policy without needing to manually update
   the repo's contents or delete the policy.
-+ IMPROVEMENT: Added `update-policy-broker` command to facilitate
++ NEW: Added `update-policy-broker` command to facilitate
   migrating the broker that a policy uses.
 
 ### Other
 
++ BUGFIX: The `puppet-pe` broker for Windows now works properly for
+  non-English 64-bit Windows ISO files.
++ BUGFIX: The windows tasks now utilize an optional `win_language`
+  configuration in a node's metadata which allows users to install ISOs
+  in languages other than English.
 + IMPROVEMENT: The `puppet` and `puppet-pe` brokers will now attempt to
   run `ntpdate` against `pool.ntp.org` before registering. The server
   can be overridden using the new `ntpdate_server` config parameters.
