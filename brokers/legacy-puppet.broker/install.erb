@@ -60,9 +60,9 @@ case "${flavour}" in
     centos|redhat*)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
         case "${release}" in
-            5) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-5.noarch.rpm" ;;
-            6) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-6.noarch.rpm" ;;
-            7) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm" ;;
+            5) url="https://yum.puppetlabs.com/puppetlabs-release-el-5.noarch.rpm" ;;
+            6) url="https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm" ;;
+            7) url="https://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
 
@@ -73,15 +73,14 @@ case "${flavour}" in
             fail "unable to install the EL repository data file"
 
         # Install Puppet
-        yum -y install puppet-agent
+        yum -y install puppet
         ;;
 
     fedora)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
         case "$release" in
-            20) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-20.noarch.rpm" ;;
-            21) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-21.noarch.rpm" ;;
-            22) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-22.noarch.rpm" ;;
+            20) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-20.noarch.rpm" ;;
+            21) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-21.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
 
@@ -91,12 +90,12 @@ case "${flavour}" in
             rpm -ihv "${url}"     || \
             fail "unable to install the EL repository data file"
 
-        yum -y install puppet-agent
+        yum -y install puppet
         ;;
 
     debian|ubuntu)
         codename="$(lsb_release -c | cut -f 2 | tr '[:upper:]' '[:lower:]')"
-        package="puppetlabs-release-pc1-${codename}.deb"
+        package="puppetlabs-release-${codename}.deb"
         if cmd curl; then
             curl -o /tmp/"${package}" http://apt.puppetlabs.com/"${package}" || \
                 fail "unable to download ${package}"
@@ -110,7 +109,7 @@ case "${flavour}" in
         # Install the repo data, then fetch newer package lists.
         dpkg -i /tmp/"${package}" || fail "unable to install ${package}"
         apt-get -y update
-        apt-get -y install puppet-agent
+        apt-get -y install puppet
         ;;
 
     *)
@@ -123,17 +122,17 @@ esac
 # Now, configuration.  Much as I love the idea of editing an ini file with
 # basic Unix tools like sed and awk, this seems much less worse, even if it
 # puts a puppet module you might not expect into place on disk.
-/opt/puppetlabs/bin/puppet module install puppetlabs/inifile
+puppet module install puppetlabs/inifile
 
 # Update the ini file with the resource tool.
 <% broker.each do |setting, value| %>
-/opt/puppetlabs/bin/puppet resource ini_setting ensure=present path=/etc/puppetlabs/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
+puppet resource ini_setting ensure=present path=/etc/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
 <% end %>
 <% end %>
 
 # For debugging, just in case, dump out the modified confirmation file.
-echo ====================[ /etc/puppetlabs/puppet/puppet.conf ]=========================
-cat /etc/puppetlabs/puppet/puppet.conf
+echo ====================[ /etc/puppet/puppet.conf ]=========================
+cat /etc/puppet/puppet.conf
 echo ========================================================================
 
 
