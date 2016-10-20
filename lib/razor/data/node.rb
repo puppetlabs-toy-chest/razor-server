@@ -405,7 +405,8 @@ module Razor::Data
     def self.find_by_hw_info(params)
       # For matching nodes, we only consider the +hw_info+ values named in
       # the 'match_nodes_on' config setting.
-      hw_match = canonicalize_hw_info(params).select do |p|
+      canonicalized = canonicalize_hw_info(params)
+      hw_match = canonicalized.select do |p|
         name = p.split("=")[0]
         Razor.config['match_nodes_on'].include?(name) or
           name.start_with?('fact_')
@@ -413,7 +414,7 @@ module Razor::Data
 
       hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
 
-      [self.where(:hw_info.pg_array.overlaps(hw_match)).all, hw_match]
+      [self.where(:hw_info.pg_array.overlaps(hw_match)).all, canonicalized, hw_match]
     end
 
     # Look up a node by its hw_info; any node whose hw_info overlaps with
@@ -424,9 +425,13 @@ module Razor::Data
       dhcp_mac = params.delete("dhcp_mac")
       dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
 
-      nodes, hw_info = self.find_by_hw_info(params)
+      nodes, hw_info, match = self.find_by_hw_info(params)
       if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        begin
+          self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        rescue Sequel::UniqueConstraintViolation => _
+          raise ArgumentError, _("dhcp_mac %{dhcp_mac} already exists but hw_info does not match that node") % {dhcp_mac: dhcp_mac}
+        end
       elsif nodes.size == 1
         node = nodes.first
         # We do not want to update the hw_info at this point; all we know
@@ -441,7 +446,7 @@ module Razor::Data
         node
       else
         # We have more than one node matching hw_info; fail
-        raise DuplicateNodeError.new(hw_info, nodes)
+        raise DuplicateNodeError.new(match, nodes)
       end
     end
 
@@ -464,7 +469,7 @@ module Razor::Data
 
       # @todo lutter 2014-05-19: we should also fill the asset tag; I am
       # not sure which fact coresponds to the asset tag
-      nodes, hw_info = self.find_by_hw_info({
+      nodes, hw_info, match = self.find_by_hw_info({
         'mac'    => macs,
         'serial' => facts['serialnumber'],
         'uuid'   => facts['uuid'],
@@ -483,7 +488,7 @@ module Razor::Data
           kill_nodes = nodes.reject { |n| n.registered? }
           if kill_nodes.size != nodes.size - 1
             # We found more than one node that was already registered
-            raise DuplicateNodeError.new(hw_info, nodes)
+            raise DuplicateNodeError.new(match, nodes)
           end
         else
           keep_node  = nodes.first
