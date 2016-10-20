@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## ? - ?
+## 1.5.0 - 2016-10-20
 
 ### API changes
 
@@ -17,6 +17,8 @@
   the repo's contents or delete the policy.
 + NEW: Added `update-policy-broker` command to facilitate
   migrating the broker that a policy uses.
++ IMPROVEMENT: The `set-node-hw-info` command can now accept `mac` as an
+  argument.
 
 ### Broker changes
 
@@ -27,6 +29,8 @@
 
 ### Other
 
++ IMPROVEMENT: Nodes will now store all `hw_info`, not just the values
+  used for matching to nodes in the database.
 + BUGFIX: The `puppet-pe` broker for Windows now works properly for
   non-English 64-bit Windows ISO files.
 + BUGFIX: The windows tasks now utilize an optional `win_language`
