@@ -101,7 +101,7 @@ module Razor::Data
     # Turn the hw_info back into a hash. Possible keys are the ones in
     # +HW_INFO_KEYS+; all values are strings, except for +mac+, which is an
     # array of strings if any MAC addresses are present
-    def hw_hash
+    def self.hw_hashing(hw_info)
       hw_info.inject({}) do |h, p|
         pair = p.split("=", 2)
         if pair[0] == 'mac'
@@ -112,6 +112,10 @@ module Razor::Data
         end
         h
       end
+    end
+
+    def hw_hash
+      Node.hw_hashing(self.hw_info)
     end
 
     def task

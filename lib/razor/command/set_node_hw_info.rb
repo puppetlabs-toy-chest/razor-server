@@ -43,7 +43,7 @@ Update `node172` with new hardware information:
         --hw-info asset=Asset-1234567890 \\
         --hw-info uuid="Not Settable"
 
-With positional arguments, this can be shortened::
+With positional arguments, this can be shortened:
 
     razor set-node-hw-info node172 \\
         --hw-info mac=78:31:c1:be:c8:00
@@ -64,10 +64,13 @@ With positional arguments, this can be shortened::
     attr 'serial', type: String, help: _('The DMI serial number of the node')
     attr 'asset', type: String, help: _('The DMI asset tag of the node')
     attr 'uuid', type: String, help: _('The DMI UUID of the node')
+    attr 'mac', type: Array, help: _('The MAC addresses for the node. This can be used instead of `netX` values.')
   end
 
   def run(request, data)
-    if (data['hw_info'].keys & Razor.config['match_nodes_on']).empty?
+    canonicalized = Razor::Data::Node.canonicalize_hw_info(data['hw_info'])
+    keys = Razor::Data::Node.hw_hashing(canonicalized).keys
+    if (keys & Razor.config['match_nodes_on']).empty?
       msg = _('hw_info must contain at least one of the match keys: %{keys}') %
         {keys: Razor.config['match_nodes_on'].join(', ')}
       raise Razor::ValidationFailure.new(msg)
@@ -76,6 +79,13 @@ With positional arguments, this can be shortened::
         node.hw_hash = data['hw_info']
         node.save
       end
+    end
+  end
+
+  def self.conform!(data)
+    data.tap do |_|
+      mac = data['hw_info']['mac'] if data['hw_info']
+      data['hw_info']['mac'] = Array[mac] if mac.is_a?(String)
     end
   end
 end

@@ -55,6 +55,30 @@ describe Razor::Command::SetNodeHWInfo do
      last_response.status.should == 422
   end
 
+  it "should succeed when changing hw_info around `mac` key" do
+    Razor.config['match_nodes_on'] = ['mac']
+    command_hash['hw_info'] = {net0: '08:00:27:d9:2d:98'}
+    Razor::Data::Node[id: node.id].hw_hash.should_not == {'mac' => ['08-00-27-d9-2d-98']}
+    set_node_hw_info
+    Razor::Data::Node[id: node.id].hw_hash.should == {'mac' => ['08-00-27-d9-2d-98']}
+  end
+
+  it "should succeed when `mac` is supplied" do
+    Razor.config['match_nodes_on'] = ['mac']
+    command_hash['hw_info'] = {mac: ['08:00:27:d9:2d:98']}
+    Razor::Data::Node[id: node.id].hw_hash.should_not == {'mac' => ['08-00-27-d9-2d-98']}
+    set_node_hw_info
+    Razor::Data::Node[id: node.id].hw_hash.should == {'mac' => ['08-00-27-d9-2d-98']}
+  end
+
+  it "should behave when both `mac` and `net0` are supplied" do
+    Razor.config['match_nodes_on'] = ['mac']
+    command_hash['hw_info'] = {mac: ['02:02:02:02:02:02'], net0: '01:01:01:01:01:01'}
+    Razor::Data::Node[id: node.id].hw_hash.should_not == {'mac' => ['01-01-01-01-01-01', '02-02-02-02-02-02']}
+    set_node_hw_info
+    Razor::Data::Node[id: node.id].hw_hash.should == {'mac' => ['01-01-01-01-01-01', '02-02-02-02-02-02']}
+  end
+
   it "should succeed but not change the node hw_info if it is the same" do
     command_hash['hw_info'] = node_hw_hash_to_hw_info(node.hw_hash)
     set_node_hw_info
@@ -78,5 +102,12 @@ describe Razor::Command::SetNodeHWInfo do
     command_hash['hw-info'] = command_hash.delete('hw_info')
     set_node_hw_info
     last_response.status.should == 202
+  end
+
+  it "should conform a single `mac` string into an array" do
+    command_hash['hw_info'] = {'mac' => '00:00:00:00:00:00'}
+    set_node_hw_info
+    last_response.status.should == 202
+    Razor::Data::Node[id: node.id].hw_hash['mac'].should == ['00-00-00-00-00-00']
   end
 end
