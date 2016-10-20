@@ -382,8 +382,8 @@ policy when you run this command, provisioning errors may occur.
     The following shows how to update a policy’s task to a task called “other_task”.
 
     {
-    "policy": "my_policy",
-    "task": "other_task"
+      "policy": "my_policy",
+      "task": "other_task"
     }
 
 ### Update policy repo
@@ -395,8 +395,8 @@ you run this command, provisioning errors may occur.
     The following shows how to update a policy’s repo to a repo called “other_repo”.
 
     {
-    "policy": "my_policy",
-    "repo": "other_repo"
+      "policy": "my_policy",
+      "repo": "other_repo"
     }
 
 ### Update policy broker
@@ -408,8 +408,21 @@ errors may occur.
     The following shows how to update a policy’s broker to a broker called “other_broker”.
 
     {
-    "policy": "my_policy",
-    "broker": "other_broker"
+      "policy": "my_policy",
+      "broker": "other_broker"
+    }
+    
+### Update policy node metadata
+
+This ensures that the specified policy applies the given node metadata
+when a node binds to it. This command can update a single value.
+
+The following shows how to update a policy's metadata to include "a_key".
+
+    {
+      "policy": "my_policy",
+      "key": "a_key",
+      "value": "a_value"
     }
 
 ### Delete policy
@@ -505,7 +518,7 @@ A single hook can be removed from the database with the `delete-hook`
 command. It accepts the name of a single hook:
 
     {
-        "name": "myhook"
+      "name": "myhook"
     }
 
 The hook will then no longer be triggered for node events and any
@@ -643,22 +656,22 @@ Metadata is a collection of key => value pairs (like facts).  Use the
 metadata. The request should look like:
 
     {
-        "node": "node1",
-        "update": {                         # Add or update these keys
-            "key1": "value1",
-            "key2": "value2",
-            ...
-        }
-        "remove": [ "key3", "key4", ... ],  # Remove these keys
-        "no_replace": true                  # Do not replace keys on
-                                            # update. Only add new keys
+      "node": "node1",
+      "update": {                         # Add or update these keys
+          "key1": "value1",
+          "key2": "value2",
+          ...
+      }
+      "remove": [ "key3", "key4", ... ],  # Remove these keys
+      "no_replace": true                  # Do not replace keys on
+                                          # update. Only add new keys
     }
 
 or
 
     {
-        "node": "node1",
-        "clear": true                       # Clear all metadata
+      "node": "node1",
+      "clear": true                       # Clear all metadata
     }
 
 As above, multiple update and/or removes can be done in the one command,
@@ -670,10 +683,10 @@ Note that metadata values can also be structured data specified as native
 JSON or as a valid JSON string.  E.g:
 
     {
-        "node": "node1",
-        "update": {
-            "key1": [ "list", "of", "values" ],
-        }
+      "node": "node1",
+      "update": {
+        "key1": [ "list", "of", "values" ],
+      }
     }
 
 ### Update node metadata
@@ -683,19 +696,19 @@ that allows for updating single keys on the command line or with a GET
 request with a simple data structure that looks like.
 
     {
-        "node"      : "mode1",
-        "key"       : "my_key",
-        "value"     : "my_val",
-        "no_replace": true       #Optional. Will not replace existing keys
+      "node"      : "mode1",
+      "key"       : "my_key",
+      "value"     : "my_val",
+      "no_replace": true       #Optional. Will not replace existing keys
     }
 
 Note that metadata values can also be structured data specified as native
 JSON or as a valid JSON string.  E.g:
 
     {
-        "node"      : "mode1",
-        "key"       : "my_key",
-        "value"     : "[ "list", "of", "values" ]",
+      "node"      : "mode1",
+      "key"       : "my_key",
+      "value"     : "[ "list", "of", "values" ]",
     }
 
 ### Remove Node Metadata
@@ -705,15 +718,15 @@ that allows for removing a single key OR all keys only on the command
 like or with a GET request with a simple datastructure that looks like:
 
     {
-        "node" : "node1",
-        "key"  : "my_key",
+      "node" : "node1",
+      "key"  : "my_key",
     }
 
 or
 
     {
-        "node" : "node1",
-        "all"  : true,     # Removes all keys
+      "node" : "node1",
+      "all"  : true,     # Removes all keys
     }
 
 ### Set Node Hardware Info
@@ -728,15 +741,15 @@ booting the new node on the network. For example, to update `node172`
 with new hardware information:
 
     {
-        "node": "node172",
-        "hw_info": {
-          "net0":   "78:31:c1:be:c8:00",
-          "net1":   "72:00:01:f2:13:f0",
-          "net2":   "72:00:01:f2:13:f1",
-          "serial": "xxxxxxxxxxx",
-          "asset":  "Asset-1234567890",
-          "uuid":   "Not Settable"
-        }
+      "node": "node172",
+      "hw_info": {
+        "net0":   "78:31:c1:be:c8:00",
+        "net1":   "72:00:01:f2:13:f0",
+        "net2":   "72:00:01:f2:13:f1",
+        "serial": "xxxxxxxxxxx",
+        "asset":  "Asset-1234567890",
+        "uuid":   "Not Settable"
+      }
     }
 
 
