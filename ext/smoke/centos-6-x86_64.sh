@@ -12,32 +12,35 @@ set -x # Verbose output
 server_version=${1}
 [ -n "$server_version" ] || (echo "Server version (1st parameter) required" && exit 1)
 microkernel_version=007
-[  -n "${3}" ] && repo_conf=${3} || repo_conf="http://builds.puppetlabs.lan/razor/${server_version}/repo_configs/rpm/pl-razor-${server_version}-el-6-x86_64.repo"
+[  -n "${3}" ] && repo_conf=${3} || repo_conf="http://builds.puppetlabs.lan/razor-server/${server_version}/repo_configs/rpm/pl-razor-server-${server_version}-el-6-x86_64.repo"
 
 export razor_client_gem="http://builds.puppetlabs.lan/razor-client/${client_version}/artifacts/razor-client-${client_version}.gem"
 export microkernel_url="http://links.puppetlabs.com/razor-microkernel-${microkernel_version}.tar"
 
 echo " === Install repository === "
 yum install -y wget
-yum update -y --skip-broken
 wget -O /etc/yum.repos.d/razor.repo $repo_conf
+yum update -y --skip-broken
 yum clean all
 yum install -y razor-server
 
 echo " === Install Postgresql ==="
-yum install -y postgresql postgresql-server
-service postgresql initdb
-sed -i -r "s/  (peer|ident)/  trust/g" /var/lib/pgsql/data/pg_hba.conf
-service postgresql start
+# Following may be optional for other releases.
+yum install -y java-1.6.0-openjdk # May be needed to avoid JDK 1.5 error.
+yum localinstall -y http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-3.noarch.rpm
+yum install -y postgresql94 postgresql94-server
+service postgresql-9.4 initdb
+sed -i -r "s/  (peer|ident)/  trust/g" /var/lib/pgsql/9.4/data/pg_hba.conf
+service postgresql-9.4 start
 sudo su - postgres <<HERE
 psql -d postgres -c "create user razor with password 'razor';"
 createdb -O razor razor_prd
 HERE
-service postgresql restart
+service postgresql-9.4 restart
 psql -l -U razor razor_prd # Test that this connects.
 
 echo " === Install Razor Server Packages ==="
-yum update
+yum update -y --skip-broken
 yum install -y razor-server
 source /etc/profile.d/razorserver.sh
 sed -i "s/mypass/razor/g" /etc/puppetlabs/razor-server/config.yaml
@@ -51,7 +54,7 @@ cd ~
 wget -O razor-client.gem $razor_client_gem
 gem install ./razor-client.gem
 # Only needed if testing a different port.
-#export RAZOR_API="http://localhost:8150/api"
+#export RAZOR_API="http://localhost:8080/api"
 razor
 echo " === Microkernel ==="
 yum install -y wget

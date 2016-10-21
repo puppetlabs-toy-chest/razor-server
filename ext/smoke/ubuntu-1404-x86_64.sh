@@ -11,7 +11,7 @@ set -x # Verbose output
 [  -n "${2}" ] && client_version=${2} || client_version=${1}
 server_version=${1}
 [ -n "$server_version" ] || (echo "Server version (1st parameter) required" && exit 1)
-[  -n "${3}" ] && deb_conf=${3} || deb_conf="http://builds.puppetlabs.lan/razor/${server_version}/repo_configs/deb/pl-razor-${server_version}-xenial.list"
+[  -n "${3}" ] && deb_conf=${3} || deb_conf="http://builds.puppetlabs.lan/razor-server/${server_version}/repo_configs/deb/pl-razor-server-${server_version}-trusty.list"
 
 microkernel_version=007
 export razor_client_gem="http://builds.puppetlabs.lan/razor-client/${client_version}/artifacts/razor-client-${client_version}.gem"
@@ -27,8 +27,8 @@ mkdir -p /var/lib/pgsql/data
 chown postgres /var/lib/pgsql
 chown postgres /var/lib/pgsql/data
 sudo su - postgres <<HERE
-/usr/lib/postgresql/9.5/bin/initdb -D /var/lib/pgsql/data/
-sed -i -r "s/  (peer|ident)/  trust/g" /etc/postgresql/9.5/main/pg_hba.conf
+/usr/lib/postgresql/9.3/bin/initdb -D /var/lib/pgsql/data/
+sed -i -r "s/  (peer|ident)/  trust/g" /etc/postgresql/9.3/main/pg_hba.conf
 service postgresql restart
 psql -d postgres -c "create user razor with password 'razor';"
 createdb -O razor razor_prd
