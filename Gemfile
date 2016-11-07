@@ -48,7 +48,7 @@ group :test do
   gem 'simplecov'
   gem 'fabrication', '~> 2.7.2'
   gem 'faker', '~> 1.2.0'
-  gem 'json-schema', '~> 2.0'
+  gem 'json-schema', '2.6.2'
   gem 'timecop'
 end
 
