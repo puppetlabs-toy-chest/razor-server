@@ -21,8 +21,8 @@ GEM
     i18n (0.7.0)
     jdbc-postgres (9.4.1200)
     json (1.8.3-java)
-    json-schema (2.5.1)
-      addressable (~> 2.3.7)
+    json-schema (2.6.2)
+      addressable (~> 2.3.8)
     kramdown (1.7.0)
     locale (2.1.1)
     parslet (1.4.0)
@@ -105,7 +105,7 @@ DEPENDENCIES
   gettext (~> 3.1.1)
   hashie (~> 2.0.5)
   jdbc-postgres
-  json-schema (~> 2.0)
+  json-schema (= 2.6.2)
   kramdown
   rack-test
   rspec (~> 2.13.0)

@@ -48,7 +48,10 @@ group :test do
   gem 'simplecov'
   gem 'fabrication', '~> 2.7.2'
   gem 'faker', '~> 1.2.0'
-  gem 'json-schema', '~> 2.0'
+  # json-schema versions beyond this version require
+  # ruby version > 2.0 when jruby is upgraded to 9K+
+  # this pin can be removed 
+  gem 'json-schema', '2.6.2'
   gem 'timecop'
 end
 
