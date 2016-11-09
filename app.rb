@@ -106,7 +106,11 @@ and requires full control over the database (eg: add and remove tables):
 
     def json_body
       if request.content_type =~ %r'application/json'i
-        return JSON.parse(request.body.read)
+        # Slightly malformed JSON will read here as a string, so we should catch
+        # that case and report unparseable JSON.
+        JSON.parse(request.body.read).tap do |result|
+          raise ArgumentError unless result.is_a?(Hash) || result.is_a?(Array)
+        end
       else
         error 415, :error => _("only application/json is accepted here")
       end
