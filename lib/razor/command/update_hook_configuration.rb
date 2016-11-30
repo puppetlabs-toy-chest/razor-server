@@ -8,20 +8,20 @@ configuration.
   EOT
 
   example api: <<-EOT
-Set a single key from a node:
+Set a single key from a hook's configuration:
 
-    {"node": "node1", "key": "my_key", "value": "twelve"}
+    {"hook": "hook1", "key": "my_key", "value": "twelve"}
   EOT
 
   example cli: <<-EOT
-Set a single key from a node:
+Set a single key from a hook's configuration:
 
-    razor update-hook-configuration --node node1 \\
+    razor update-hook-configuration --hook hook1 \\
         --key my_key --value twelve
 
 With positional arguments, this can be shortened:
 
-    razor update-hook-configuration node1 my_key twelve
+    razor update-hook-configuration hook my_key twelve
   EOT
 
   authz '%{hook}'
