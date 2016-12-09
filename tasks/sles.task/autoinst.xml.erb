@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile
+    xmlns="http://www.suse.com/1.0/yast2ns"
+    xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+      <mode>
+        <confirm config:type="boolean">false</confirm>
+        <second_stage config:type="boolean">true</second_stage>
+      </mode>
+  </general>
+  <users config:type="list">
+    <user>
+      <username>root</username>
+      <user_password><%= node.metadata['root_password'] || node.root_password %></user_password>
+      <encrypted config:type="boolean"><%= node.metadata['root_password_encrypted'] || 'false' %></encrypted>
+      <forename/>
+      <surname/>
+    </user>
+  </users>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_resolv config:type="boolean">true</dhcp_resolv>
+      <domain><%= (node.metadata['hostname'] || node.hostname).split('.').drop(1).join('.') %></domain>
+      <hostname><%= node.metadata['hostname'] || node.hostname %></hostname>
+    </dns>
+  </networking>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone><%= node.metadata['timezone'] || 'America/Los_Angeles' %></timezone>
+  </timezone>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software>
+    <packages config:type="list">
+      <package>yast2-bootloader</package>
+    </packages>
+  </software>
+  <scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <filename>razor-post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+curl <%= stage_done_url("autoyast") %>
+]]>
+        </source>
+      </script>
+    </chroot-scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>razor-post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+<%= render_template("set_hostname") %>
+<%= render_template("store_ip") %>
+<%= render_template("os_complete") %>
+curl -s <%= stage_done_url("finished") %>
+]]>
+        </source>
+      </script>
+    </init-scripts>
+  </scripts>
+</profile>
