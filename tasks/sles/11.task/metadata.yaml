@@ -1,0 +1,5 @@
+---
+
+os_version: 11
+description: SLES 11 installer
+base: sles
