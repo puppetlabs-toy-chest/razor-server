@@ -1,9 +1,9 @@
 ---
 server:
-  description: "The puppet master to load configurations and installation packages from."
+  description: "The puppet master to load configurations and installation packages from; defaults to `puppet`"
 version:
   description: "Override the PE version to install; defaults to `current`."
 windows_agent_download_url:
-  description: "The download URL for a Windows PE agent installer; defaults to a URL derived from the `version` config."
+  description: "[Deprecated] The download URL for a Windows PE agent installer."
 ntpdate_server:
   description: "The server to use for synchronizing the agent's time"
