@@ -46,14 +46,17 @@ EOT
   def run(request, data)
     broker = Razor::Data::Broker[:name => data['broker']]
     config = broker.configuration
+    attr_schema = broker.broker_type.configuration_schema[data['key']]
     result = if data['value']
+               request.error 422, :error => _(
+                   "configuration key #{data['key']} is not in the schema " +
+                   "and must be cleared") unless attr_schema
                config[data['key']] = data['value']
                _("value for key %{name} updated") %
                    {name: data['key']}
              elsif data['clear'] and config.has_key?(data['key'])
                config.delete(data['key'])
-               attr_schema = broker.broker_type.configuration_schema[data['key']]
-               if attr_schema['default']
+               if attr_schema && attr_schema.has_key?('default')
                  # The actual setting happens as part of the validation.
                  _("value for key %{name} reset to default") %
                      {name: data['key']}

@@ -99,5 +99,73 @@ describe Razor::Command::UpdateBrokerConfiguration do
       broker.reload
       broker.configuration.should_not include command_hash['non-existent']
     end
+
+    context 'changing broker types on the fly' do
+      def paths; Razor.config.broker_paths; end
+      def path;  paths.first; end
+
+      def with_brokers_in(brokers)
+        brokers.each do |root, brokers|
+          root = Pathname(root)
+          brokers.each do |name, content|
+            dir = root + (name + '.broker')
+            dir.mkpath
+            content.each do |name, innards|
+              (dir + name).open('w') {|fh| fh.write innards }
+            end
+          end
+        end
+        yield
+      end
+
+      # Ensure that we have a clean, empty broker_path to test in.
+      around :each do |test|
+        Dir.mktmpdir do |dir|
+          Razor.config['broker_path'] = dir
+          test.run
+        end
+      end
+
+      initial_config = {'server' => {'required' => false}}
+
+      broker_hash = {'shifty' => {
+          'install.erb'        => "# no real content here\n",
+          'configuration.yaml' => initial_config.to_yaml}}
+      new_broker_hash = {'shifty' => {
+          'install.erb'        => "# no real content here\n",
+          'configuration.yaml' => {}.to_yaml}}
+
+      it 'should allow clearing of keys not in schema' do
+        with_brokers_in(path => broker_hash) do
+          brokertype = Razor::BrokerType.find(name: 'shifty')
+          broker = Razor::Data::Broker.new(name: 'shifty', broker_type: brokertype, configuration: {'server' => 'abc'}).save
+
+          # Change the brokertype
+          with_brokers_in(path => new_broker_hash) do
+            update_config({'broker' => broker.name,
+                           'key' => 'server',
+                           'clear' => true})
+            last_response.status.should == 202
+            last_response.json['result'].should == 'key server removed from configuration'
+          end
+        end
+      end
+
+      it 'should disallow changing of keys not in schema' do
+        with_brokers_in(path => broker_hash) do
+          brokertype = Razor::BrokerType.find(name: 'shifty')
+          broker = Razor::Data::Broker.new(name: 'shifty', broker_type: brokertype, configuration: {'server' => 'abc'}).save
+
+          # Change the brokertype
+          with_brokers_in(path => new_broker_hash) do
+            update_config({'broker' => broker.name,
+                           'key' => 'server',
+                           'value' => 'new-value'})
+            last_response.status.should == 422
+            last_response.json['error'].should == 'configuration key server is not in the schema and must be cleared'
+          end
+        end
+      end
+    end
   end
 end
