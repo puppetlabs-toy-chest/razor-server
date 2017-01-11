@@ -1,5 +1,11 @@
 # Task notes for Windows 2012 R2
 
+## Install Prerequisites
+
+- Machine must be running Windows Server 2012R2.
+- Windows Assessment and Deployment Kit (Windows ADK) version 8.0 or 8.1 is
+  installed.
+
 ## Pre-install Steps
 
 Follow same instructions for all other Windows tasks:
