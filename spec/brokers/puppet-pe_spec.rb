@@ -81,9 +81,9 @@ describe Razor::BrokerType.find(name: 'puppet-pe') do
 
     it "should work without any configuration" do
       script.should be_an_instance_of String
-      script.should include('$version = "latest"')
+      script.should include('$version = "current"')
       script.should include('$master = "puppet"')
-      script.should include('$installer = "https://pm.puppetlabs.com/cgi-bin/download.cgi?ver=${version}&dist=win&arch=${arch}"')
+      script.should include('$installer = "https://${master}:8140/packages/${version}/install.ps1"')
     end
 
     it "should set the server if given" do
@@ -98,12 +98,6 @@ describe Razor::BrokerType.find(name: 'puppet-pe') do
       script.should include("$version = \"#{version}\"")
     end
 
-    it "should set the windows_agent_download_url if given" do
-      download_url = Faker::Internet.url
-      broker.configuration = {'windows_agent_download_url' => download_url}
-      script.should include("$installer = \"#{download_url}\"")
-    end
-
     it "should set multiple configuration values if given" do
       server = "puppet.#{Faker::Internet.domain_name}"
       version = 3.times.map do Faker::Number.digit end.join('.')
@@ -111,12 +105,10 @@ describe Razor::BrokerType.find(name: 'puppet-pe') do
       broker.configuration = {
           'server'                     => server,
           'version'                    => version,
-          'windows_agent_download_url' => download_url
       }
 
       script.should include("$version = \"#{version}\"")
       script.should include("$master = \"#{server}\"")
-      script.should include("$installer = \"#{download_url}\"")
     end
   end
 end

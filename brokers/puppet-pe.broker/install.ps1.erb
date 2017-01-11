@@ -8,12 +8,13 @@ if ((Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty 
 } else {
     $arch = 'x86'
 }
-$version = "<%= (broker[:version] || 'latest') %>"
 $master = "<%= (broker[:server] || 'puppet') %>"
-$installer = "<%= (broker[:windows_agent_download_url] || 'https://pm.puppetlabs.com/cgi-bin/download.cgi?ver=${version}&dist=win&arch=${arch}') %>"
+$version = "<%= (broker[:version] || 'current') %>"
+$installer = "https://${master}:8140/packages/${version}/install.ps1"
 
-write-host "downloading MSI file to install PE agent from $installer"
-$installer_dest = "${ENV:TEMP}\puppet.msi"
+write-host "downloading PS1 file to install PE agent from $installer"
+$installer_dest = "${ENV:TEMP}\puppet-install.ps1"
+[Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 (New-Object System.Net.WebClient).DownloadFile($installer, $installer_dest)
 if($error.Count) {
     write-host "failed to download puppet agent installer: $error"
@@ -22,12 +23,9 @@ if($error.Count) {
     Exit 1
 }
 
-write-host "starting PE installer"
-$log_dest = "${ENV:TEMP}\puppet.log"
-$installer_args = @('/qn', "PUPPET_MASTER_SERVER=$master", "/l*v `"$log_dest`"")
-
-write-host "running $installer_dest $installer_args"
-Start-Process -File $installer_dest -Arg $installer_args -Passthru | Wait-Process
+write-host "starting PE installer at $installer_dest"
+$installer_args = @('-File', ${installer_dest})
+Start-Process -File "powershell.exe" -Args $installer_args -Passthru | Wait-Process
 if($error.Count) {
     write-host "failed to run puppet agent installer: $error"
     $error_url = "<%= log_url('failed to run puppet agent installer', :error) %>"
