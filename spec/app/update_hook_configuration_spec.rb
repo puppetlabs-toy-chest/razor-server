@@ -99,5 +99,73 @@ describe Razor::Command::UpdateHookConfiguration do
       hook.reload
       hook.configuration.should_not include command_hash['non-existent']
     end
+
+    context 'changing hook types on the fly' do
+      def paths; Razor.config.hook_paths; end
+      def path;  paths.first; end
+
+      def with_hooks_in(hooks)
+        hooks.each do |root, hooks|
+          root = Pathname(root)
+          hooks.each do |name, content|
+            dir = root + (name + '.hook')
+            dir.mkpath
+            content.each do |name, innards|
+              (dir + name).open('w') {|fh| fh.write innards }
+            end
+          end
+        end
+        yield
+      end
+
+      # Ensure that we have a clean, empty hook_path to test in.
+      around :each do |test|
+        Dir.mktmpdir do |dir|
+          Razor.config['hook_path'] = dir
+          test.run
+        end
+      end
+
+      initial_config = {'server' => {'required' => false}}
+
+      hook_hash = {'shifty' => {
+          'install.erb'        => "# no real content here\n",
+          'configuration.yaml' => initial_config.to_yaml}}
+      new_hook_hash = {'shifty' => {
+          'install.erb'        => "# no real content here\n",
+          'configuration.yaml' => {}.to_yaml}}
+
+      it 'should allow clearing of keys not in schema' do
+        with_hooks_in(path => hook_hash) do
+          hooktype = Razor::HookType.find(name: 'shifty')
+          hook = Razor::Data::Hook.new(name: 'shifty', hook_type: hooktype, configuration: {'server' => 'abc'}).save
+
+          # Change the hooktype
+          with_hooks_in(path => new_hook_hash) do
+            update_config({'hook' => hook.name,
+                           'key' => 'server',
+                           'clear' => true})
+            last_response.status.should == 202
+            last_response.json['result'].should == 'key server removed from configuration'
+          end
+        end
+      end
+
+      it 'should disallow changing of keys not in schema' do
+        with_hooks_in(path => hook_hash) do
+          hooktype = Razor::HookType.find(name: 'shifty')
+          hook = Razor::Data::Hook.new(name: 'shifty', hook_type: hooktype, configuration: {'server' => 'abc'}).save
+
+          # Change the hooktype
+          with_hooks_in(path => new_hook_hash) do
+            update_config({'hook' => hook.name,
+                           'key' => 'server',
+                           'value' => 'new-value'})
+            last_response.status.should == 422
+            last_response.json['error'].should == 'configuration key server is not in the schema and must be cleared'
+          end
+        end
+      end
+    end
   end
 end
