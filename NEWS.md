@@ -1,5 +1,18 @@
 # Razor Server Release Notes
 
+## Next - Next
+
+### Task changes
+
++ NEW: Added tasks for SLES versions 11 and 12.
++ NEW: Added task for Windows Server 2016
+
+### Broker changes
+
++ IMPROVEMENT: The Windows PE installer now downloads directly from the
+  puppet master. The `windows_agent_download_url` config property is
+  now ignored.
+
 ## 1.5.0 - 2016-10-20
 
 ### API changes
