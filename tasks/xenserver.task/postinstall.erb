@@ -1,0 +1,13 @@
+#!/bin/bash
+
+exec >> /var/log/razor.log 2>&1
+
+echo "Starting post_install"
+
+# Wait for network to come up when using NetworkManager.
+
+<%= render_template("os_complete") %>
+
+# We are done
+# curl -s <%= stage_done_url("finished") %>
+wget <%= stage_done_url("finished") %>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<installation mode="fresh" srtype="ext">
+        <primary-disk>sda</primary-disk>
+        <keymap>us</keymap>
+        <root-password><%= node.root_password %></root-password>
+        <source type="url"><%= repo_url %></source>
+        <hostname><%= node.hostname %></hostname>
+        <admin-interface name="eth0" proto="dhcp">
+        </admin-interface>
+        <script stage="installation-complete" type="url"><%= file_url("postinstall") %></script>
+        <timezone>Asia/Shanghai</timezone>
+</installation>
+

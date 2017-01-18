@@ -1,0 +1,3 @@
+kernel <%= repo_url("/boot/xen") %> dom0_max_vcpus=2 dom0_mem=max:752M com1=115200,8n1 console=com1,vga
+module <%= repo_url("/boot/vmlinux") %> xencons=hvc console=hvc0 console=tty0 answerfile_device=eth0 network_config=dhcp answerfile=<%= file_url("answerfile.xml") %> install
+module <%= repo_url("install.img") %>

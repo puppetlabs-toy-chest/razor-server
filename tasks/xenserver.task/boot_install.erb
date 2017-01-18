@@ -1,0 +1,12 @@
+#!ipxe
+echo Razor <%= task.label %> task boot_call
+echo Installation node: <%= node_url  %>
+echo Installation repo: <%= repo_url %>
+
+sleep 3
+<%= render_template("kernel_args") %> || goto error
+boot
+
+:error
+sleep 10
+prompt --key s --timeout 60 ERROR, hit 's' for the iPXE shell; reboot in 60 seconds && shell || reboot
