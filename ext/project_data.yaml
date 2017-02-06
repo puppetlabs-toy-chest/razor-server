@@ -31,19 +31,21 @@ files:
   - .bundle
   - config.ru
   - app.rb
-  - torquebox.rb
   - bin
-  - lib
+  - brokers
   - db
+  - doc
+  - lib
   - config.yaml.sample
+  - hooks
   - shiro.ini
   - jars
-  - build-winpe
-  - brokers
-  - doc
-  - tasks
-  - vendor
-  - '*.md'
   - LICENSE
+  - '*.md'
+  - build-winpe
+  - Rakefile
+  - tasks
+  - torquebox.rb
+  - vendor
   - 'locales/*.po'
   - 'locales/*.pot'

@@ -37,6 +37,35 @@ describe Razor::Validation::HashSchema do
       expect { schema.finalize }.
         to raise_error(/additionally required attribute bad by good is not defined in the schema/)
     end
+
+    it "should fail if the 'position' attributes do not start at 0" do
+      schema.attr('good', help: 'foo', position: 1)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should begin at 0 \(found 1\)/)
+    end
+
+    it "should fail if the 'position' attributes are not sequential" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('ok', help: 'foo', position: 1)
+      schema.attr('bad', help: 'foo', position: 3)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should be sequential \(3 is present but 2 is absent\)/)
+    end
+
+    it "should fail if the 'position' attributes are not unique" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('allowed', help: 'foo', position: 1)
+      schema.attr('bad', help: 'foo', position: 1)
+      expect { schema.finalize }.
+          to raise_error(/positional argument indices should be unique/)
+    end
+
+    it "should succeed with several position attributes" do
+      schema.attr('good', help: 'foo', position: 0)
+      schema.attr('better', help: 'foo', position: 1)
+      schema.attr('best', help: 'foo', position: 2)
+      schema.finalize
+    end
   end
 
   context "authz" do
@@ -233,6 +262,34 @@ describe Razor::Validation::HashSchema do
       it "should fail if three extra attributes are present" do
         expect { schema.validate!({'a' => 1, 'b' => 2, 'c' => 3}, nil) }.
           to raise_error(/extra attributes a, b, c were present in the command, but are not allowed/)
+      end
+    end
+
+    context "aliases" do
+      before :each do
+        Razor.config['auth.enabled'] = false
+        schema.authz 'none'
+      end
+      it "should apply an alias" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'b' => 2}, nil)
+      end
+      it "should ignore alias if not matched" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'a' => 2}, nil)
+      end
+      it "should throw an error if both are supplied" do
+        schema.attr('a', alias: 'b', required: true, help: 'foo')
+        schema.finalize
+        expect { schema.validate!({'a' => 1, 'b' => 2}, nil) }.
+          to raise_error(/cannot supply both a and b/)
+      end
+      it "should automatically apply aliases for underscores" do
+        schema.attr('a_b_c', required: true, help: 'foo')
+        schema.finalize
+        schema.validate!({'a-b-c' => 2}, nil)
       end
     end
   end

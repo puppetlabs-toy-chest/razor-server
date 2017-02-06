@@ -1,7 +1,6 @@
 # -*- powershell -*-
 # Run this script as:
-#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 \
-#     -razorurl http://razor:8150/svc -workdir C:\build-winpe
+#   powershell -executionpolicy bypass -file build-razor-winpe.ps1 -razorurl http://razor:8150/svc
 #
 # Produce a WinPE image suitable for use with Razor
 
@@ -10,7 +9,14 @@
 #     http://razor-server:8150/svc (note the /svc at the end, not /api)
 #   - workdir: where to create the WinPE image and intermediate files
 #              Defaults to the directory containing this script
-param([String] $workdir, [Parameter(Mandatory=$true)][String] $razorurl)
+#   - driverdir: where extra drivers needed for the winpe are located
+#                Defaults to the "extra-drivers" directory in the folder
+#                containing this script
+#   - allowunsigned: supply this to allow unsigned drivers to be injected
+#                    into the WinPE image
+param([String] $workdir, [Parameter(Mandatory=$true)][String] $razorurl,
+      [String] $driverdir, [switch] $allowunsigned)
+$ErrorActionPreference = "Stop"
 
 function test-administrator {
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -49,6 +55,9 @@ if (-not $uri.AbsolutePath.split('/')[-1] -eq 'svc') {
 $cwd = get-currentdirectory
 if ($workdir -eq "") {
     $workdir = $cwd
+}
+if ($driverdir -eq "") {
+    $driverdir = (join-path $cwd "extra-drivers")
 }
 
 $output = join-path $workdir "razor-winpe"
@@ -94,72 +103,90 @@ $packages = join-path $adk "WinPE_OCs"
 
 ########################################################################
 # ...and these are "constants" that are calculated from the above.
-write-host "* Make sure our working and output directories exist."
+write-host "* Make sure our working, output, and driver directories exist."
 if (test-path -path $output) {
     write-error "Output path $output already exists, delete these folders and try again!"
     exit 1
 } else {
-    new-item -type directory $output
+    new-item -type directory $output -ErrorAction Stop
 }
-
-if (-not(test-path -path $mount)) {
-    new-item -type directory $mount
+if (-not (test-path -path $driverdir)) {
+    New-Item -ItemType Directory -Force -Path $driverdir -ErrorAction Stop
+}
+if (-not (test-path -path $mount)) {
+    new-item -type directory $mount -ErrorAction Stop
 }
 
 
 write-host "* Copy the clean ADK WinPE image into our output area."
-copy-item $wim $output
+copy-item $wim (join-path $output "razor-winpe.wim") -ErrorAction Stop
 # update our wim location...
-$wim = join-path $output "winpe.wim"
+$wim = (join-path $output "razor-winpe.wim")
 
 
-
-import-module dism
+$env:Path = ($env:Path + ";$adk\..\..\Deployment Tools\amd64\DISM")
+import-module dism -ErrorAction Stop
 
 write-host "* Mounting the wim image"
 mount-windowsimage -imagepath $wim -index 1 -path $mount -erroraction stop
 
-write-host "* Adding powershell, and dependencies, to the image"
-# This order is documented in http://technet.microsoft.com/library/hh824926.aspx
-# I guess you can't change it safely, so respect that.
-if ($adkversion -eq '8.0') {
-  $cabs = @('WinPE-WMI', 'WinPE-NetFX4', 'WinPE-Scripting', 'WinPE-PowerShell3')
-} elseif ($adkversion -eq '8.1') {
-  $cabs = @('WinPE-WMI', 'WinPE-NetFX', 'WinPE-Scripting', 'WinPE-PowerShell')
-} else {
-  write-error "We can not deal with ADK version $adkversion"
-  exit 1
-}
+Try {
+    write-host "* Adding powershell, and dependencies, to the image"
+    # This order is documented in http://technet.microsoft.com/library/hh824926.aspx
+    # I guess you can't change it safely, so respect that.
+    if ($adkversion -eq '8.0') {
+      $cabs = @('WinPE-WMI', 'WinPE-NetFX4', 'WinPE-Scripting', 'WinPE-PowerShell3')
+    } elseif ($adkversion -eq '8.1') {
+      $cabs = @('WinPE-WMI', 'WinPE-NetFX', 'WinPE-Scripting', 'WinPE-PowerShell')
+    } else {
+      write-error "We can not deal with ADK version $adkversion"
+      exit 1
+    }
 
-foreach ($cab in $cabs ) {
-    write-host "** Installing $cab to image"
-    # there must be a way to do this without a temporary variable
-    $pkg = join-path $packages "$cab.cab"
-    add-windowspackage -packagepath $pkg -path $mount
-}
+    foreach ($cab in $cabs ) {
+        write-host "** Installing $cab to image"
+        # there must be a way to do this without a temporary variable
+        $pkg = join-path $packages "$cab.cab"
+        add-windowspackage -packagepath $pkg -path $mount -ErrorAction Stop
+    }
 
-write-host "* Writing startup PowerShell script"
-$file   = join-path $mount "razor-client.ps1"
-$client = join-path $cwd "razor-client.ps1"
-copy-item $client $file
+    # Add extra drivers
+    if ($allowunsigned) {
+        write-host "* Installing extra drivers (if any) in $driverdir, including unsigned"
+        add-windowsdriver -Path $mount -Driver $driverdir -Recurse -ForceUnsigned -ErrorAction Stop
+    } else {
+        write-host "* Installing extra drivers (if any) in $driverdir"
+        add-windowsdriver -Path $mount -Driver $driverdir -Recurse -ErrorAction Stop
+    }
 
-$file   = join-path $mount "razor-client-config.ps1"
-set-content $file @"
-`$baseurl = "$razorurl"
+    write-host "* Writing startup PowerShell script"
+    $file   = join-path $mount "razor-client.ps1"
+    $client = join-path $cwd "razor-client.ps1"
+    copy-item $client $file -ErrorAction Stop
+
+    $file   = join-path $mount "razor-client-config.ps1"
+    set-content $file @"
+    `$baseurl = "$razorurl"
 "@
 
-write-host "* Writing Windows\System32\startnet.cmd script"
-$file = join-path $mount "Windows\System32\startnet.cmd"
-set-content $file @"
-@echo off
-echo starting wpeinit to detect and boot network hardware
-wpeinit
-echo starting the razor client
-powershell -executionpolicy bypass -noninteractive -file %SYSTEMDRIVE%\razor-client.ps1
-echo dropping to a command shell now...
+    write-host "* Writing Windows\System32\startnet.cmd script"
+    $file = join-path $mount "Windows\System32\startnet.cmd"
+    set-content $file @"
+    @echo off
+    echo starting wpeinit to detect and boot network hardware
+    wpeinit
+    echo starting the razor client
+    powershell -executionpolicy bypass -noninteractive -file %SYSTEMDRIVE%\razor-client.ps1
+    echo dropping to a command shell now...
 "@
+}
+Finally
+{
+    write-host "* Unmounting and saving the wim image"
+    dismount-windowsimage -save -path $mount -erroraction stop
 
-write-host "* Unmounting and saving the wim image"
-dismount-windowsimage -save -path $mount -erroraction stop
+    remove-item -path $mount
+}
 
 write-host "* Work is complete and the WIM should be ready to roll!"
+write-host "* WIM is located here: $wim"

@@ -36,7 +36,7 @@ shared_examples "a command" do | attributes = {}|
           command command_name, without_attribute, :status => status
           last_response.json['error'].should satisfy,
                "should be required, but was: #{last_response.json['error'] or '[success]'}" do |value|
-            required_attribute_string = exclude_key.to_s.gsub('_', '-')
+            required_attribute_string = exclude_key.to_s
             required = (value == "#{required_attribute_string} is a required attribute, but it is not present")
             require_one_of = (value =~ /requires one out of the.+#{required_attribute_string}.+attributes to be supplied/)
             programmatic = (always_require.map(&:to_s).include?(exclude_key) and not value.nil?)

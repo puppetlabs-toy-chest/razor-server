@@ -29,7 +29,7 @@ describe Razor::Command::CreatePolicy do
         'task'          => 'some_os',
         'broker'        => broker.name,
         'hostname'      => "host${id}.example.com",
-        'root-password' => "geheim",
+        'root_password' => "geheim",
         'tags'          => [ tag1.name ]
       }
     end
@@ -85,7 +85,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should fail if the root password is missing" do
-      command_hash.delete('root-password')
+      command_hash.delete('root_password')
       create_policy
       last_response.status.should == 422
     end
@@ -105,7 +105,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should conform root password's legacy syntax" do
-      command_hash['root_password'] = command_hash.delete('root-password')
+      command_hash['root_password'] = command_hash.delete('root_password')
       create_policy
       last_response.status.should == 202
     end
@@ -131,7 +131,7 @@ describe Razor::Command::CreatePolicy do
     end
 
     it "should allow creating a policy with max count" do
-      command_hash['max-count'] = 10
+      command_hash['max_count'] = 10
 
       create_policy
 
@@ -140,7 +140,7 @@ describe Razor::Command::CreatePolicy do
 
     it "should allow creating a policy with node_metadata" do
       metadata = { "key1" => "value1", "key2" => "value2" }
-      command_hash['node-metadata'] = metadata
+      command_hash['node_metadata'] = metadata
       create_policy
       Razor::Data::Policy[:name => command_hash['name']].node_metadata.should == metadata
     end
@@ -151,10 +151,10 @@ describe Razor::Command::CreatePolicy do
       last_response.json['error'].should == 'repo should be a string, but was actually a object'
     end
 
-    it "should fail with the wrong datatype for max-count" do
-      command_hash['max-count'] = { }
+    it "should fail with the wrong datatype for max_count" do
+      command_hash['max_count'] = { }
       create_policy
-      last_response.json['error'].should =~ /max-count should be a number, but was actually a object/
+      last_response.json['error'].should =~ /max_count should be a number, but was actually a object/
     end
 
 
@@ -172,18 +172,19 @@ describe Razor::Command::CreatePolicy do
       ([tag1, tag2] & Razor::Data::Policy[:name => command_hash['name']].tags).should == [tag1, tag2]
     end
 
-    it "should conform tag string into tags" do
+    it "should not conform tag string into tags" do
       tag2 = Fabricate('tag')
       command_hash['tag'] = tag2.name
       create_policy
-      last_response.status.should == 202
-      ([tag1, tag2] & Razor::Data::Policy[:name => command_hash['name']].tags).should == [tag1, tag2]
+      last_response.json['error'].should == 'cannot supply both tags and tag'
+      last_response.status.should == 422
     end
 
     it "should fail with the wrong datatype for tag" do
       command_hash['tag'] = 123
+      command_hash.delete('tags')
       create_policy
-      last_response.json['error'].should == "tags[1] should be a string, but was actually a number"
+      last_response.json['error'].should == "tags[0] should be a string, but was actually a number"
       last_response.status.should == 422
     end
 

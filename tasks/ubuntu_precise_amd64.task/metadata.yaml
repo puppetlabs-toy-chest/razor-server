@@ -1,6 +1,0 @@
----
-
-os_version: precise
-architecture: amd64
-label: Ubuntu Precise 12.04 amd64
-base: ubuntu

@@ -8,11 +8,12 @@ describe Razor::Command::ModifyPolicyMaxCount do
   let(:app) { Razor::App }
 
   let(:policy) { Fabricate(:policy) }
-  let(:command_hash) { { "name" => policy.name, "max-count" => 1 } }
+  let(:command_hash) { { "name" => policy.name, "max_count" => 1 } }
 
   def set_max_count(count=nil)
-    command 'modify-policy-max-count',
-         { "name" => policy.name, "max-count" => count }
+    hash = count.nil? ? {"name" => policy.name, "no_max_count" => true} :
+        { "name" => policy.name, "max_count" => count }
+    command 'modify-policy-max-count', hash
   end
 
   context "/api/commands/modify-policy-max-count" do
@@ -23,18 +24,18 @@ describe Razor::Command::ModifyPolicyMaxCount do
 
     it_behaves_like "a command"
 
-    it "should accept a string for max-count" do
+    it "should not accept a string for max_count" do
       set_max_count("2")
-      last_response.status.should == 202
+      last_response.status.should == 422
     end
 
-    it "should reject a non-integer string for max-count" do
+    it "should reject a non-integer string for max_count" do
       set_max_count("a")
       last_response.status.should == 422
-      last_response.json['error'].should =~ /'a' is not a valid integer/
+      last_response.json['error'].should == 'max_count should be a number, but was actually a string'
     end
 
-    it "should allow increasing the max-count" do
+    it "should allow increasing the max_count" do
       policy.max_count = 1
       policy.save
 
@@ -45,7 +46,7 @@ describe Razor::Command::ModifyPolicyMaxCount do
       policy.max_count.should == 2
     end
 
-    it "should allow lifting the max-count alltogether" do
+    it "should allow lifting the max_count altogether" do
       set_max_count(nil)
       last_response.status.should == 202
 
@@ -53,7 +54,22 @@ describe Razor::Command::ModifyPolicyMaxCount do
       policy.max_count.should be_nil
     end
 
-    it "should fail when trying to lower the max-count below the number of currently bound nodes" do
+    it "should allow setting to zero" do
+      set_max_count(0)
+      last_response.status.should == 202
+
+      policy.reload
+      policy.max_count.should == 0
+    end
+
+    it "should throw error when both max_count and no_max_count are absent" do
+      command 'modify-policy-max-count', {'name' => policy.name}
+      last_response.status.should == 422
+      last_response.json['error'].should ==
+          'the command requires one out of the max_count, no_max_count attributes to be supplied'
+    end
+
+    it "should fail when trying to lower the max_count below the number of currently bound nodes" do
       policy.max_count = 2
       policy.save
       2.times do
@@ -64,6 +80,8 @@ describe Razor::Command::ModifyPolicyMaxCount do
 
       set_max_count(1)
       last_response.status.should == 400
+      last_response.json['error'].should ==
+          'There are currently 2 nodes bound to this policy. Cannot lower max_count to 1'
 
       policy.reload
       policy.max_count.should == 2

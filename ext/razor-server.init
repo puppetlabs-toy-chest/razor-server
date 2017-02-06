@@ -1,0 +1,185 @@
+#!/bin/bash
+#
+# razor-server sysv startup script for multiple platforms
+#
+#Razor is an advanced provisioning application which can deploy both bare-metal
+#and virtual systems. It's aimed at solving the problem of how to bring new
+#metal into a state where your existing DevOps/configuration management
+#workflows can take it over.
+#Newly added machines in a Razor deployment will PXE-boot from a special Razor
+#Microkernel image, then check in, provide Razor with inventory information, and
+#wait for further instructions. Razor will consult user-created policy rules to
+#choose which preconfigured model to apply to a new node, which will begin to
+#follow the model's directions, giving feedback to Razor as it completes various
+#steps. Models can include steps for handoff to a DevOps system such as Puppet
+#or to any other system capable of controlling the node (such as a vCenter
+#server taking possession of ESX systems).
+#
+# chkconfig: - 80 20
+# description: razor-server
+# processname: standalone
+# pidfile: /var/run/puppetlabs/razor-server/razor-server.pid
+
+# Ensure we have a sensible umask
+umask 0027
+
+NAME="razor-server"
+WAIT=30 # seconds
+
+# Load the location data from our torquebox installation
+source /etc/puppetlabs/razor-server/razor-torquebox.sh
+
+# Configure our language -- needed to ensure we process Unicode content
+# correctly.  Should fall back to nothing worse than not setting this
+# would cause.  At the point this is set, all the rest of our environment
+# should be cleared, so there shouldn't be other variables leaking in.
+LANG=en_US.UTF-8
+export LANG
+
+# Other configuration
+export RAZOR_HTTP_PORT="${RAZOR_HTTP_PORT:-8150}"
+export RAZOR_HTTPS_PORT="${RAZOR_HTTPS_PORT:-8151}"
+
+export JBOSS_PIDFILE="/var/run/puppetlabs/${NAME}/torquebox.pid"
+
+export JBOSS_LOG_DIR="/var/log/puppetlabs/${NAME}"
+export JBOSS_CONSOLE_LOG="${JBOSS_LOG_DIR}/console.log"
+
+JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
+JAVA_OPTS="-Xms128m -Xmx1024m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true"
+export JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
+
+JBOSS_USER="razor"
+
+JBOSS_CONFIG="standalone.xml"
+JBOSS_SCRIPT="${JBOSS_HOME}/bin/standalone.sh"
+
+JBOSS_LIB="/opt/puppetlabs/server/apps/razor-server/var/razor"
+
+LAUNCH_JBOSS_IN_BACKGROUND=true
+export LAUNCH_JBOSS_IN_BACKGROUND
+
+start() {
+    echo -n "Launching ${NAME}: "
+
+    if status >&/dev/null; then
+        echo "already running."
+        return 0
+    fi
+
+    # We want to truncate the logfile, not just ensure it exists.
+    echo >"${JBOSS_CONSOLE_LOG}"
+    chown "${JBOSS_USER}" "${JBOSS_CONSOLE_LOG}"
+
+    # We can't be sure any directory under /var/run exists after a reboot,
+    # since some distributions put it on a ramfs -- and not unreasonably.
+    mkdir -p --mode 0755 "$(dirname "${JBOSS_PIDFILE}")"
+    echo >"${JBOSS_PIDFILE}"
+    chown "${JBOSS_USER}" "${JBOSS_PIDFILE}"
+
+    # Delegate to another instance of the same script, run as another user, to
+    # actually fire off the software.  This helps isolate the context between
+    # the two, and ensures we don't depend on, eg, environment variables being
+    # copied by su -- which is less reliable than one may hope.
+    su "${JBOSS_USER}" -c "$0 run" &
+    pid=$!
+    disown ${pid}
+
+    # if the process stops running while we wait, it failed.
+    if ! kill -0 ${pid} >&/dev/null; then
+        echo "failed."
+        return 1
+    fi
+
+    echo "done."
+    echo -n "Waiting ${WAIT} seconds for start: "
+
+    # Wait for startup, up to the thirty second mark.
+    for (( count=0; count<${WAIT}; count++ )); do
+        # if the process stops running while we wait, it failed.
+        if ! kill -0 ${pid} >&/dev/null; then
+            echo " failed."
+            return 1
+        fi
+
+        # found the mark that we started, exit now.
+        if egrep -q 'JBoss AS .* started in' "${JBOSS_CONSOLE_LOG}"; then
+            echo " done."
+            return 0
+        fi
+
+        # otherwise wait, and try again.
+        echo -n '.'
+        sleep 1
+    done
+
+    echo " timed out, starting in background."
+    return 0
+}
+
+# This actually runs the software; we assume we are already running as the
+# subordinate user, and start in the background.
+run() {
+    exec >&"${JBOSS_CONSOLE_LOG}" "${JBOSS_SCRIPT}" \
+        "-Djboss.server.log.dir=${JBOSS_LOG_DIR}" \
+        "-b" "0.0.0.0" "-Dhttp.port=${RAZOR_HTTP_PORT:-8150}" \
+        "-Dhttps.port=${RAZOR_HTTPS_PORT}"
+}
+
+
+stop() {
+    if status >&/dev/null; then
+        echo -n "Stopping ${NAME}: "
+        kill $(< "${JBOSS_PIDFILE}")
+
+        # Wait for the process to terminate, which may take a little while
+        for (( count=0; count<=${WAIT}; count++ )); do
+            if ! status>&/dev/null; then
+                echo " done."
+                return 0
+            fi
+
+            echo -n '.'
+            sleep 1
+        done
+
+        echo " timed out waiting to die."
+        return 1
+    else
+        echo "${NAME} seemed to be stopped already, doing nothing"
+        return 0
+    fi
+}
+
+
+
+status() {
+    if [ -f "${JBOSS_PIDFILE}" ]; then
+        read pid < ${JBOSS_PIDFILE}
+        if ps --no-headers -p${pid} -oargs | grep -qc "${JBOSS_HOME}"; then
+            echo "${NAME} is running (pid $pid)"
+            return 0
+        else
+            echo "${NAME} dead but pid file exists"
+            return 1
+        fi
+    fi
+    echo "${NAME} is not running"
+    return 3
+}
+
+case "$1" in
+    start)      start   ;;
+    # used internally to manage user switching
+    run)        run     ;;
+    stop)       stop    ;;
+    status)     status  ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

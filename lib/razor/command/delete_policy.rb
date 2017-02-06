@@ -17,12 +17,16 @@ Delete the policy "obsolete":
 Delete the policy "obsolete":
 
     razor delete-policy --name obsolete
+
+With positional arguments, this can be shortened::
+
+    razor delete-policy obsolete
   EOT
 
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the policy to delete.')
+                position: 0, help: _('The name of the policy to delete.')
 
   def run(request, data)
     # deleting a policy will first remove the policy from any node associated

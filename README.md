@@ -15,14 +15,6 @@ steps. Tasks can include steps for handoff to a DevOps system such as
 of controlling the node (such as a vCenter server taking possession of ESX
 systems).
 
-***
-
-This is a [0.x release](http://semver.org); that means that we might make
-backwards incompatible changes, especially to the database schema which
-would force you to rebuild all the machines that Razor is managing. The
-current code base is perfectly suitable for evaluation and smaller lab
-setups but not for production use.
-
 ## Getting in touch
 
 * bug/issue tracker: [RAZOR project in JIRA](https://tickets.puppetlabs.com/browse/RAZOR)
@@ -37,6 +29,7 @@ details; in particular look at
 * [Installation](https://github.com/puppetlabs/razor-server/wiki/Installation): how to get a Razor environment up and running
 * [Getting started](https://github.com/puppetlabs/razor-server/wiki/Getting-started): using the CLI to do useful things
 * [Developer setup](https://github.com/puppetlabs/razor-server/wiki/Developer-setup): for when you feel like hacking
+* [Documentation](./doc/index.md): for when you want to learn how to use Razor
 
 ## What does Razor do anyway?
 
@@ -60,7 +53,7 @@ image that Razor boots on new nodes to do discovery. It periodically
 submits [facts](https://github.com/puppetlabs/facter) about the node and
 waits for instructions from the server about what to do next, if anything.
 
-A [prebuilt archive](http://links.puppetlabs.com/razor-microkernel-latest.tar)
+A [prebuilt archive](https://s3-us-west-2.amazonaws.com/razor-releases/microkernel-007.tar)
 is available.
 
 ## Razor Client

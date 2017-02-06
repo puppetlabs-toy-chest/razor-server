@@ -266,24 +266,23 @@ describe Razor::Messaging::Sequel do
       queue.count_messages.should == 0
     end
 
-    it "should queue a retry if the instance is not found" do
+    it "should fail the message if the instance is not found" do
+      cmd = Fabricate(:command)
       content = {
         'class'     => 'Razor::Data::Repo',
         'instance'  => {'name' => 'nonesuch'},
         'message'   => 'to_s',
-        'arguments' => []
+        'arguments' => [],
+        'command'   => { :id => cmd.id }
       }
 
       standpoint = Time.at(-771939039) # whatever
       Time.stub(:now).and_return(standpoint)
 
       handler.process!(message(content))
-      queue.count_messages.should == 1
-
-      message = queue.peek
-      message[:options][:scheduled].should be >= standpoint
-      message[:options][:scheduled].should be <= (standpoint + 1)
-      message[:body].should include content
+      cmd.reload
+      cmd.status.should == 'failed'
+      queue.count_messages.should == 0
     end
 
     it "should not queue a retry if the instance is found" do

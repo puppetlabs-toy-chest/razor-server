@@ -258,6 +258,10 @@ describe Razor::Validation::HashAttribute do
       end
     end
 
+    it "should allow nil" do
+      attr.type(nil)[:type].should == NilClass
+    end
+
     context "help" do
       subject :text do attr.help end
 
@@ -398,6 +402,56 @@ describe Razor::Validation::HashAttribute do
 
       attr.new('test', required: true, schema: child).help.
         should =~ %r~#{Regexp.escape(child.help.gsub(/^/, '  ').rstrip)}~
+    end
+  end
+
+  context "alias" do
+    let(:schema) do
+      Razor::Validation::HashSchema.new('test').tap do |schema|
+        schema.attr('attr', help: 'foo')
+      end
+    end
+
+    subject(:attr) { schema.attribute('attr') }
+
+    [true, false, 1, 1.1, :string, [1, 2]].each do |input|
+      it "should fail unless the alias is a string or array of strings (#{input.inspect})" do
+        expect { attr.alias(input) }.
+            to raise_error(ArgumentError, /alias must be a string or array of strings \(got .+\)/)
+      end
+    end
+
+    ['abc', ['abc', 'def']].each do |input|
+      it "should work with alias #{input}" do
+        expect do
+          attr.alias(input)
+          attr.finalize(schema)
+        end.not_to raise_error
+      end
+    end
+  end
+
+  context "position" do
+    let(:schema) do
+      Razor::Validation::HashSchema.new('test').tap do |schema|
+        schema.attr('attr', help: 'foo')
+      end
+    end
+
+    subject(:attr) { schema.attribute('attr') }
+
+    [true, false, 'abc', 1.1, -1, :string, [1, 2], {1 => 2}].each do |input|
+      it "should fail unless the position is a natural number (#{input.inspect})" do
+        expect { attr.position(input) }.
+            to raise_error(ArgumentError, /position must be an integer greater than or equal to 0/)
+      end
+    end
+
+    it "should work with position 0" do
+      expect do
+        attr.position(0)
+        attr.finalize(schema)
+      end.not_to raise_error
     end
   end
 end

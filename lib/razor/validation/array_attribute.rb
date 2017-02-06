@@ -107,8 +107,6 @@ class Razor::Validation::ArrayAttribute
   end
 
   def type(which)
-    which.nil? and raise ArgumentError, "type checks must be passed some type to check"
-
     @type = case which
       when nil    then {type: NilClass}
       when :bool  then {type: [TrueClass, FalseClass]}

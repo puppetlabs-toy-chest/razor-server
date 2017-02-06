@@ -37,12 +37,15 @@ Queue a node reboot:
 Queue a node reboot:
 
     razor reboot-node --name node1
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor reboot-node node1
+  EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, references: Razor::Data::Node,
-                help: _('The name of the node to reboot.')
+                position: 0, help: _('The name of the node to reboot.')
 
   def run(request, data)
     node = Razor::Data::Node[:name => data['name']]

@@ -1,13 +1,21 @@
 #! /usr/bin/env jruby
 
+# In case we're calling this from a symlink, we need to ensure all relative
+# paths are evaluated from the symlink source, thus we need to use the realpath,
+# which will evaluate to the absolute path of the source file
+APP_ROOT = File.realpath(__FILE__)
+
 # In case this file is executed from a directory that has its own
 # Gemfile, change directories to the razor-server directory first.
-Dir.chdir File.expand_path('../..', __FILE__)
+Dir.chdir File.expand_path('../..', APP_ROOT)
+
+# Ensure Razor libs are on the Ruby load path
+$:.unshift File.join(File.dirname(APP_ROOT), "../lib")
 
 require 'optparse'
 require 'bundler/setup'
 
-MIGRATION_DIR=File::expand_path(File::join(File::dirname(__FILE__), "../db/migrate"))
+MIGRATION_DIR=File::expand_path(File::join(File::dirname(APP_ROOT), "../db/migrate"))
 show_help=false
 target_revision = nil
 optparse = OptionParser.new do |opts|
@@ -78,7 +86,7 @@ end
 
 # It is very important that razor/initialize isn't loaded until after
 # RACK_ENV has been set
-require_relative '../lib/razor/initialize'
+require 'razor/initialize'
 require 'sequel/extensions/migration'
 
 exit COMMANDS[rest[0]].call

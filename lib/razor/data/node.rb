@@ -30,6 +30,9 @@ module Razor::Data
     end
   end
 
+  class NoReplaceMetadataError < RuntimeError
+  end
+
   class Node < Sequel::Model
     # Since we generate the name in the database using a trigger, the
     # auto-validation plugin sets up the wrong constraint checks.
@@ -98,7 +101,7 @@ module Razor::Data
     # Turn the hw_info back into a hash. Possible keys are the ones in
     # +HW_INFO_KEYS+; all values are strings, except for +mac+, which is an
     # array of strings if any MAC addresses are present
-    def hw_hash
+    def self.hw_hashing(hw_info)
       hw_info.inject({}) do |h, p|
         pair = p.split("=", 2)
         if pair[0] == 'mac'
@@ -109,6 +112,10 @@ module Razor::Data
         end
         h
       end
+    end
+
+    def hw_hash
+      Node.hw_hashing(self.hw_info)
     end
 
     def task
@@ -133,13 +140,14 @@ module Razor::Data
 
     # Retrieve the entire log for this node as an array of hashes, ordered
     # by increasing timestamp. In addition to the keys mentioned for
-    # +log_append+ each entry will also contain the +timstamp+ in ISO8601
+    # +log_append+ each entry will also contain the +timestamp+ in ISO8601
     # format
     def log(params = {})
       cursor = Razor::Data::Event.order(:timestamp).order(:id).reverse.
           where(node_id: id).limit(params[:limit], params[:start])
       cursor.map do |log|
-        { 'timestamp' => log.timestamp.xmlschema }.update(log.entry)
+        { 'timestamp' => log.timestamp.xmlschema,
+          'severity' => log.severity, }.update(log.entry)
       end
     end
 
@@ -209,17 +217,17 @@ module Razor::Data
       self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
 
       if policy.node_metadata
-        modify_metadata('no_replace' => true, 'update' => policy.node_metadata)
+        modify_metadata('no_replace' => true, 'update' => policy.node_metadata, 'force' => true)
       end
 
-      Razor::Data::Hook.run('node-bound-to-policy', node: self, policy: policy)
+      Razor::Data::Hook.trigger('node-bound-to-policy', node: self, policy: policy)
 
       self
     end
 
     def unbind
+      Razor::Data::Hook.trigger('node-unbound-from-policy', node: self, policy: self.policy)
       self.policy = nil
-      Razor::Data::Hook.run('node-unbound-from-policy', node: self)
     end
 
     # This is a hack around the fact that the auto_validates plugin does
@@ -272,27 +280,43 @@ module Razor::Data
       (new_tags - self.tags).each { |t| self.add_tag(t) }
     end
 
-    # Update the tags for this node and try to bind a policy.
-    def match_and_bind
+    # Update the tags for this node.
+    def match_tags
       eval_tags
-      Policy.bind(self)
     rescue Razor::Matcher::RuleEvaluationError => e
       log_append :severity => "error", :msg => e.message
       save
       raise e
     end
 
+    # Try to bind a policy to this node.
+    def bind_policy
+      Policy.bind(self)
+    end
+
     # Modify metadata the API reciever does alot of sanity checking.
     # Lets not do to much here and assume that internal use is done with
     # intent.
+    # 'force' will cause no_replace errors to be simply skipped over.
     def modify_metadata(data)
       new_metadata = metadata
 
       if data['update']
         data['update'].is_a? Hash or raise ArgumentError, _('update must be a hash')
         replace = (not [true, 'true'].include?(data['no_replace']))
+
         data['update'].each do |k,v|
-          new_metadata[k] = v if replace or not new_metadata[k]
+          if replace or not new_metadata[k]
+            begin
+              # If the value is valid json, parse it and store as structured
+              new_metadata[k] = JSON::parse(v)
+            rescue
+              # Otherwise just store the data as is.
+              new_metadata[k] = v
+            end
+          elsif not replace && new_metadata[k]
+            raise NoReplaceMetadataError unless data['force']
+          end
         end
       end
       if data['remove']
@@ -322,13 +346,14 @@ module Razor::Data
       end
       if facts != new_facts
         self.facts = new_facts
-        Razor::Data::Hook.run('node-facts-changed', node: self)
+        Razor::Data::Hook.trigger('node-facts-changed', node: self)
       end
       # @todo lutter 2013-09-09: we'd really like to use the DB's idea of
       # time, i.e. have the update statement do 'last_checkin = now()' but
       # that is currently not possible with Sequel
       self.last_checkin = Time.now
-      match_and_bind unless (installed or policy)
+      match_tags
+      bind_policy unless (installed or policy)
       if policy
         log_append(:action => :reboot, :policy => policy.name)
       elsif installed
@@ -380,7 +405,8 @@ module Razor::Data
     def self.find_by_hw_info(params)
       # For matching nodes, we only consider the +hw_info+ values named in
       # the 'match_nodes_on' config setting.
-      hw_match = canonicalize_hw_info(params).select do |p|
+      canonicalized = canonicalize_hw_info(params)
+      hw_match = canonicalized.select do |p|
         name = p.split("=")[0]
         Razor.config['match_nodes_on'].include?(name) or
           name.start_with?('fact_')
@@ -388,7 +414,7 @@ module Razor::Data
 
       hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}
 
-      [self.where(:hw_info.pg_array.overlaps(hw_match)).all, hw_match]
+      [self.where(:hw_info.pg_array.overlaps(hw_match)).all, canonicalized, hw_match]
     end
 
     # Look up a node by its hw_info; any node whose hw_info overlaps with
@@ -399,9 +425,13 @@ module Razor::Data
       dhcp_mac = params.delete("dhcp_mac")
       dhcp_mac = nil if !dhcp_mac.nil? and dhcp_mac.empty?
 
-      nodes, hw_info = self.find_by_hw_info(params)
+      nodes, hw_info, match = self.find_by_hw_info(params)
       if nodes.size == 0
-        self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        begin
+          self.create(:hw_info => hw_info, :dhcp_mac => dhcp_mac)
+        rescue Sequel::UniqueConstraintViolation => _
+          raise ArgumentError, _("dhcp_mac %{dhcp_mac} already exists but hw_info does not match that node") % {dhcp_mac: dhcp_mac}
+        end
       elsif nodes.size == 1
         node = nodes.first
         # We do not want to update the hw_info at this point; all we know
@@ -416,13 +446,13 @@ module Razor::Data
         node
       else
         # We have more than one node matching hw_info; fail
-        raise DuplicateNodeError.new(hw_info, nodes)
+        raise DuplicateNodeError.new(match, nodes)
       end
     end
 
     def destroy
       super
-      Razor::Data::Hook.run('node-deleted', node: self)
+      Razor::Data::Hook.trigger('node-deleted', node: self)
     end
 
     # Use the facts +facts+ to fully register the node; this is a
@@ -439,7 +469,7 @@ module Razor::Data
 
       # @todo lutter 2014-05-19: we should also fill the asset tag; I am
       # not sure which fact coresponds to the asset tag
-      nodes, hw_info = self.find_by_hw_info({
+      nodes, hw_info, match = self.find_by_hw_info({
         'mac'    => macs,
         'serial' => facts['serialnumber'],
         'uuid'   => facts['uuid'],
@@ -458,7 +488,7 @@ module Razor::Data
           kill_nodes = nodes.reject { |n| n.registered? }
           if kill_nodes.size != nodes.size - 1
             # We found more than one node that was already registered
-            raise DuplicateNodeError.new(hw_info, nodes)
+            raise DuplicateNodeError.new(match, nodes)
           end
         else
           keep_node  = nodes.first
@@ -472,7 +502,7 @@ module Razor::Data
           kill_node.destroy
         end
         keep_node.save
-        Razor::Data::Hook.run('node-registered', node: keep_node)
+        Razor::Data::Hook.trigger('node-registered', node: keep_node)
         keep_node
       end
     end
@@ -484,7 +514,7 @@ module Razor::Data
       node.boot_count += 1
       if name == "finished" and node.policy
         node.installed = node.policy.name
-        Razor::Data::Hook.run('node-install-finished', node: self)
+        Razor::Data::Hook.trigger('node-install-finished', node: node)
       end
       node.save
     end

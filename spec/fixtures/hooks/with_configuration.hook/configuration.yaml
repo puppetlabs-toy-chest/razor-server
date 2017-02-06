@@ -1,6 +1,13 @@
 ---
-some-key:
-  description: "Some variable."
+key-with-default:
+  description: "Some variable with a default."
   default: 1
-some-other-key:
-  description: "Some other variable."
+required-key:
+  description: "Some required variable."
+  required: true
+optional-key:
+  description: "Some optional variable."
+optional-key-with-default:
+  description: "Some optional variable with a default."
+  required: false
+  default: 1

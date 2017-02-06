@@ -5,10 +5,11 @@ write-host "Razor second-stage Windows installer script starting"
 # guess these because we don't have a way to set this when creating the
 # installer.  That will, I guess, have to change some time soon.  Look to see
 # something akin to the way that brokers work implemented.
-$server = '<%= URI.parse(repo_url).host %>'
+$server = '<%= `hostname`.strip %>'
 $share  = 'razor'
 $repo   = '<%= repo_url.split('/').last %>'
-$installer = "\\${server}\${share}\${repo}\setup.exe"
+$drive_path = "\\${server}\${share}\${repo}"
+$installer = "${drive_path}\setup.exe"
 
 write-host "fetching the unattended.xml file to feed the installer"
 $unattended_src = '<%= file_url('unattended.xml') %>'
@@ -16,10 +17,16 @@ $unattended = "${env:SYSTEMDRIVE}\unattended.xml"
 (new-object System.Net.WebClient).DownloadFile($unattended_src, $unattended)
 
 
-write-host "mapping SMB share \\${server}\${share} for installer access"
+write-host "mapping SMB share ${drive_path} for installer access"
 # As far as I can tell, if we don't persist, we don't connect the SMB share,
 # and that means we can't actually run stuff off it.
-new-psdrive -name 'i' -psprovider filesystem -root "\\${server}\${share}" -persist
+new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
+If (!(Test-Path i:))
+{
+        Invoke-WebRequest -Uri "<%= log_url("samba share not accessible ${drive_path}", :error) %>" -UseBasicParsing
+        write-error "samba share not accessible ${drive_path}"
+        exit 1
+}
 start-sleep 10                  # time to settle -- needed on my VM :/
 
 write-host "starting installer ${installer}"
@@ -29,11 +36,17 @@ start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -
 write-host "notify Razor that the installer completed"
 (new-object System.Net.WebClient).DownloadString('<%= stage_done_url("finished") %>')
 
-write-host "registering broker to run after reboot before login screen"
-New-Item -ItemType Directory -Force -Path D:\Windows\Setup\Scripts
-# The D: drive is the freshly installed but not-yet-booted operating system.
-(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>','D:\Windows\Setup\Scripts\SetupComplete.cmd')
+# Determine Windows installation drive
+Write-Host "Determining drive letter for Windows installation"
+$osDrive = (bcdedit /enum OSLOADER | Select-String osdevice)[0].ToString().Split('=')[-1]
+Write-Host "Drive letter for installation is $($osDrive)"
+
+Write-Host "registering broker to run after reboot before login screen"
+New-Item -ItemType Directory -Force -Path "$($osDrive)\Windows\Setup\Scripts"
+# The $osDrive drive is the freshly installed but not-yet-booted operating system.
+(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>',"$($osDrive)\Windows\Setup\Scripts\SetupComplete.cmd")
 
 write-host "restarting the system to complete installation"
+# wait for the reboot to complete before exiting
 restart-computer
-start-sleep 30                  # wait for the reboot to complete before exiting
+start-sleep 30

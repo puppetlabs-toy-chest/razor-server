@@ -17,15 +17,19 @@ Remove the tag `virtual` to the policy `example`:
 Remove the tag `virtual` to the policy `example`:
 
     razor remove-policy-tag --name example --tag virtual
+
+With positional arguments, this can be shortened::
+
+    razor remove-policy-tag example virtual
   EOT
 
   authz '%{name}:%{tag}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The policy from which to remove the tag.')
+               position: 0, help: _('The policy from which to remove the tag.')
 
   attr 'tag', type: String, required: true, size: 1..Float::INFINITY,
-              help: _('The tag to remove from the policy.')
+              position: 1, help: _('The tag to remove from the policy.')
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]

@@ -1,3 +1,0 @@
-#!/bin/bash
-source /etc/razor/razor-torquebox.sh ||:
-torquebox undeploy /opt/razor ||:

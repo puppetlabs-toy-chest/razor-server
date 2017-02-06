@@ -29,12 +29,15 @@ Delete a tag, but only if it is not used:
 Delete a tag regardless of it being used:
 
     razor delete-tag --name example --force
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor delete-tag example --force
+  EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the tag to delete.')
+                position: 0, help: _('The name of the tag to delete.')
 
   attr 'force', type: :bool, help: _(<<-HELP)
     If the tag is already in use, by default it will not be deleted.

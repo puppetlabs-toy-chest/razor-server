@@ -89,15 +89,12 @@ module Razor::Data
       node_tags = node.tags
       # The policies that could be bound must
       # - be enabled
-      # - have at least one tag
       # - the tags must be a subset of the node's tags
       # - allow unlimited nodes (max_count is NULL) or have fewer
       #   than max_count nodes bound to them
       tag_ids = node.tags.map { |t| t.id }.join(",")
       sql = <<SQL
 enabled is true
-and
-exists (select count(*) from policies_tags pt where pt.policy_id = policies.id)
 and
 (select array(select pt.tag_id from policies_tags pt where pt.policy_id = policies.id)) <@ array[#{tag_ids}]::integer[]
 and

@@ -3,9 +3,9 @@
 ## Definition
 
 Allowing for full clusters of CoreOS to be deployed, automatically
-configuring the setup with heavy use of Razor's node-metadata function to
+configuring the setup with heavy use of Razor's node_metadata function to
 enable features like etcd configuration, fleet metadata, formatting of
-drives and automatic addition of SSH keys. Since the node-metadata is
+drives and automatic addition of SSH keys. Since the node_metadata is
 applied on all nodes, their value can easily be updated with different
 settings on a per-node basis if wanted.
 
@@ -40,7 +40,7 @@ Create tags for whatever you have in your DC that you'd like to use for CoreOS.
 }
 ```
 
-Create a policy and make sure you exchange the following node-metadata with
+Create a policy and make sure you exchange the following node_metadata with
 your own:
 
  - persistent-drive
@@ -58,7 +58,7 @@ your own:
   "hostname": "host.lab.purevirtual.eu",
   "root_password": "secret",
   "max_count": 10,
-  "node-metadata": {
+  "node_metadata": {
 	  "persistent-drive": "sda",
 	  "fleet-metadata": "region=us-east",
 	  "discovery-token": "7577ba844d87b990e2d79717852fb4d4",

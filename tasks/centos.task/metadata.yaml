@@ -1,5 +1,5 @@
 ---
 
 os_version: 6
-description: CentOS 6 Installer
+description: CentOS Generic Installer
 base: redhat

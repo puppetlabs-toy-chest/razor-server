@@ -110,15 +110,10 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
       command        = find_command(body['command'])
     end
     if instance.nil?
-      # @todo danielp 2013-07-05: I genuinely don't know the correct way to
-      # handle this.  For the moment we raise an error that will cause the
-      # message to retry later, on the assumption that the object might come
-      # into existence later -- some sort of XA transaction race or failure,
-      # I guess, would be the root cause.
-      #
-      # Is that really the right strategy, though?
-      raise _("Unable to find %{class} with pk %{pk}") %
-        {class: class_constant.name, pk: body['instance'].inspect}
+      # Raise an error that will cause the message to fail. The most likely
+      # cause is that the object has been deleted, but its root cause could also
+      # be some sort of XA transaction race or failure.
+      raise MessageViolatesConsistencyChecks
     else
       # We might as well be tolerant of our inputs, and treat a nil/missing
       # arguments value as "no arguments"
@@ -342,7 +337,10 @@ class Razor::Messaging::Sequel < TorqueBox::Messaging::MessageProcessor
           raise ArgumentError, _("wrong number of arguments sending %{class}.%{message} (%{count} for %{arity}") % {class: self.class, message: message, count: count, arity: arity}
         end
 
-        queue_name = arguments.delete('queue') || '/queues/razor/sequel-instance-messages'
+        queue_name = '/queues/razor/sequel-instance-messages'
+        if !arguments.empty? and arguments.first.is_a?(Hash) and arguments.first.has_key?('queue')
+          queue_name = arguments.first.delete('queue')
+        end
         # Looks good, publish it; EDN encoding has reasonably good fidelity
         # for transmitting Ruby values over the wire, and this allows us to
         # enforce that during sending.

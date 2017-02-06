@@ -19,11 +19,31 @@ module Razor
     # The possible keys we allow in hw_info,
     HW_INFO_KEYS = [ 'mac', 'serial', 'asset', 'uuid']
 
-    def initialize(env, fname = nil)
+    attr_reader :values
+    attr_reader :flat_values
+
+    def initialize(env, fname = nil, defaults_file = nil)
+      @values = {}
+      # Load defaults first.
+      defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
+          (File.file?('/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') and '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') ||
+          File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
+      begin
+        yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
+
+        @values.merge!(yaml["all"] || {})
+        @values.merge!(yaml[Razor.env] || {})
+      rescue Errno::ENOENT
+        # The defaults file does not exist. This is okay.
+      rescue Errno::EACCES
+        raise InvalidConfigurationError,
+              _("The configuration defaults file %{filename} is not readable") % {filename: defaults_file}
+      end
+
       # Use the filename given, or from the environment, or from /etc if it
       # exists, otherwise the one in our root directory...
       fname ||= ENV["RAZOR_CONFIG"] ||
-        (File.file?('/etc/razor/config.yaml') and '/etc/razor/config.yaml') ||
+        (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
         File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
 
       # Save this for later, since we use it to find relative paths.
@@ -38,8 +58,25 @@ module Razor
         raise InvalidConfigurationError,
           _("The configuration file %{filename} is not readable") % {filename: fname}
       end
-      @values = yaml["all"] || {}
+      @values.merge!(yaml["all"] || {})
       @values.merge!(yaml[Razor.env] || {})
+    end
+
+    def flat_values
+      flatten_hash(@values)
+    end
+
+    # Converts e.g. {'a' => {'b' => 1}} to {'a.b' => 1}
+    def flatten_hash(hash)
+      hash.each_with_object({}) do |(k, v), h|
+        if v.is_a? Hash
+          flatten_hash(v).map do |h_k, h_v|
+            h["#{k}.#{h_k}"] = h_v
+          end
+        else
+          h[k] = v
+        end
+      end
     end
 
     def root

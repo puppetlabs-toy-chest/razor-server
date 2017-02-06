@@ -1,8 +1,8 @@
-# This file will be executed after reboot but before the login screen
-# is displayed.
-# The script itself does several things:
-# - Gets the proper temporary folder to store the broker file.
-# - Downloads the broker to this folder.
-# - Runs the broker.
-# - Deletes the file it downloaded.
+:: This file will be executed after reboot but before the login screen
+:: is displayed.
+:: The script itself does several things:
+:: - Gets the proper temporary folder to store the broker file.
+:: - Downloads the broker to this folder.
+:: - Runs the broker.
+:: - Deletes the file it downloaded.
 powershell.exe -executionpolicy bypass -command "set-variable -name temp -value (join-path -path (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Session Manager\Environment' -Name TEMP).TEMP -childpath razor-broker.ps1); (New-Object System.Net.WebClient).DownloadFile('<%= broker_install_url('install.ps1') %>',$temp);invoke-expression $temp;remove-item $temp"

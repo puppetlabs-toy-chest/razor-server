@@ -297,7 +297,7 @@ describe Razor::Data::Repo do
         ).on(queue)
       end
 
-      it "should publish 'unpack_repo' with nil path if no url or iso-url" do
+      it "should publish 'unpack_repo' with nil path if no url or iso_url" do
         repo.iso_url = nil
         repo.url = nil
         expect {
@@ -437,6 +437,7 @@ describe Razor::Data::Repo do
         repo = Fabricate.build(:repo)
         repo.unpack_repo(command, tiny_iso)
         unpacked_iso_dir = File::join(repo_dir, repo.name)
+        FileUtils.chmod_R('-w', unpacked_iso_dir, force: true)
         Dir.exist?(unpacked_iso_dir).should be_true
         repo.save
         repo.destroy
@@ -444,6 +445,31 @@ describe Razor::Data::Repo do
       ensure
         # Cleanup
         repo_dir and FileUtils.remove_entry_secure(repo_dir)
+      end
+    end
+
+    it "should keep repo's manually created directory" do
+      command = Fabricate(:command)
+
+      begin
+        repo_root = Dir.mktmpdir('test-razor-repo-dir')
+        Razor.config.stub(:[]).with('repo_store_root').and_return(repo_root)
+        repo = Fabricate(:repo, :iso_url => nil)
+        repo_dir = File::join(repo_root, repo.name)
+        file = repo_dir + "some-file"
+        # Simulating no-content argument to create-repo
+        repo.unpack_repo(command, nil)
+        Dir.exist?(repo_dir).should be_true
+        File.open(file, 'w') { |f| f.write('precious text') }
+        File.exist?(file).should be_true
+        repo.save
+        repo.destroy
+        Dir.exist?(repo_dir).should be_true
+        File.exist?(file).should be_true
+        File.read(file).should == 'precious text'
+      ensure
+        # Cleanup
+        repo_root and FileUtils.remove_entry_secure(repo_root)
       end
     end
 
@@ -541,6 +567,19 @@ describe Razor::Data::Repo do
         repo.unpack_repo(command, tiny_iso)
 
         root.should exist
+      end
+    end
+
+    it "should work if the repo dir is already present" do
+      Dir.mktmpdir do |root|
+        root = Pathname(root)
+        Razor.config['repo_store_root'] = root
+        repo_dir = Pathname(root) + repo.name
+        repo_dir.mkdir
+        file = repo_dir + 'some-undeletable-file'
+        file.open('w'){|f| f.print 'cant delete this' }
+        FileUtils.chmod('-w', file)
+        repo.unpack_repo(command, tiny_iso)
       end
     end
 

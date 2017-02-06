@@ -1,0 +1,13 @@
+<%# -*- shell-script -*- %>
+cat <<EOF > /etc/motd
+Installed by Razor using <%= task.label %> - <%= task.description %>
+Repo: <%= repo_url %>
+Node: <%= node_url %>
+Install log: /var/adm/autoinstall
+EOF
+
+curl -s <%= broker_install_url %> | /bin/bash
+
+if [ $? -ne 0 ]; then
+  echo "Broker run failed; see /var/adm/autoinstall/log/razor-post.sh.log for more details" >> /etc/motd
+fi

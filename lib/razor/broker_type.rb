@@ -103,14 +103,20 @@ class Razor::BrokerType
         raise Razor::InstallTemplateNotFoundError,
               _('could not find install template \'%{name}\' for broker \'%{broker_name}\'') %
                   {name: install_template_path(script).basename, broker_name: broker.name}
+    object = Object.new
+    object.define_singleton_method('log_url') do |msg, severity|
+      q = ::URI::encode_www_form(:msg => msg, :severity => severity)
+      "#{options['log_url']}?#{q}"
+    end
     Tilt.new(install_template_path(script).to_s).render(
       # The namespace to work in: a new, blank, disconnected, immutable
       # object, to prevent users getting odd expectations or visibility into,
       # eg, our local scope.
-      Object.new.freeze,
+      object.freeze,
       # The local values to bind into the template follow, as a hash.
       :node   => node.dup.freeze,
       :stage_done_url => options['stage_done_url'],
+      :error_url => options['error_url'],
       # We only need the configuration, which is really what the user
       # "created" when they created the broker; everything else is just
       # meta-information used to tie together our object model.
@@ -130,7 +136,7 @@ class Razor::BrokerType
   # If there is no configuration data, returns the empty hash.
   def configuration_schema
     @configuration_schema ||= if configuration_path.exist?
-                                YAML.load_file(configuration_path).freeze
+                                (YAML.load_file(configuration_path) || {}).freeze
                               else
                                 {}.freeze
                               end

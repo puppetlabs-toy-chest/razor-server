@@ -67,7 +67,7 @@ contain a 'hook' property:
     {
       "hook": {
         "name": hook name,
-        "configuration": ... user-defined object ...
+        "configuration": ... operations to perform ...
       }
     }
 
@@ -80,8 +80,10 @@ above, the input JSON would be:
       "hook": {
         "name": "myhook",
         "configuration": {
-          "foo": 7,
-          "bar": "rhubarb"
+          "update": {
+            "foo": 7,
+            "bar": "rhubarb"
+          }
         }
       }
     }
@@ -129,6 +131,9 @@ The JSON output of the event script can modify the node metadata:
 
 ### Available events
 
+The exact list of events can be seen from the help for the `run-hook` command,
+but here are the primary events:
+
 * `node-registered`: triggered after a node has been registered, i.e. after
   its facts have been set for the first time by the Microkernel.
 * `node-bound-to-policy`: triggered after a node has been bound to a policy. The
@@ -165,6 +170,19 @@ human-readable message; additional properties can be set. Example:
       }
     }
 
+## Development Tools
+
+There are three commands which may help with writing custom hooks:
+
+- The `run-hook` command can be used to arbitrarily execute a hook with a given
+  node input (and policy if applicable). Note that only "node-bound-to-policy" and
+  "node-unbound-from-policy" will include the policy when executing the hook.
+- The `update-hook-configuration` command can be used to reset a hook's
+  configuration. This is helpful when you are testing that the hook's output
+  correctly updates a hook's configuration.
+- The `update-node-metadata` command can be used to reset a node's metadata. This
+  is helpful when you are testing that a hook's output correctly updates a node's
+  metadata.
 
 ## Sample input
 
@@ -244,6 +262,52 @@ The input to the hook script will be in JSON, containing a structure like below:
   }
 }
 
+## Input format
+
+The input will contain these keys, where many will disappear if their value is
+null:
+
+- hook
+    - id
+    - name
+    - type (this is the hook type)
+    - configuration
+    - cause (this is the event string, e.g. `node-booted`)
+- node
+    - id
+    - name
+    - hw_info
+    - dhcp_mac
+    - tags (array of hash; use `name` for each)
+    - facts
+    - metadata
+    - state
+        - installed
+        - installed_at
+        - stage
+    - power
+        - desired_power_state
+        - last_known_power_state
+        - last_power_state_update_at
+    - hostname
+    - root_password
+    - ipmi
+        - hostname
+        - username
+    - last_checkin
+- policy (for `node-bound-to-policy` and `node-unbound-from-policy` events only)
+    - id
+    - name
+    - repo (object; use `name`)
+    - task (object; use `name`)
+    - broker (object; use `name`)
+    - enabled
+    - hostname_pattern
+    - root_password
+    - tags => (array of objects; use `name` in each)
+    - nodes
+        - count
+
 ## Sample hook
 
 Here is an example of a basic hook that will count the number of times Razor
@@ -274,14 +338,21 @@ the configuration on the hook object:
     {
       "hook": {
         "configuration": {
-          "count": $value
+          "update": {
+            "count": $value
+          }
         }
       },
-      "metadata": {
-        $name: $value
+      "node": {
+        "metadata": {
+          $name: $value
+        }
       }
     }
     EOF
+
+Note that this script uses [`jq`](http://stedolan.github.io/jq/), a bash JSON manipulation framework.
+This must be on the $PATH in order for execution to succeed.
 
 That completes the hook type. Next, we'll create the hook object which will
 store the configuration via:

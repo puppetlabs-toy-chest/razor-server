@@ -14,10 +14,14 @@ Delete the node "node17":
 Delete the node "node17":
 
     razor delete-node --name node17
+
+With positional arguments, this can be shortened::
+
+    razor delete-node node17
   EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250,
+  attr  'name', type: String, required: true, size: 1..250, position: 0,
                 help: _('the name of the node to delete.')
 
   def run(request, data)

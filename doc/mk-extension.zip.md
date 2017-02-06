@@ -14,7 +14,7 @@ with the Razor server.
 An example of this setting would be:
 
       microkernel:
-        extension-zip: /etc/razor/mk-extension.zip
+        extension-zip: /etc/puppetlabs/razor-server/mk-extension.zip
 
 The microkernel attempts to retrieve and unpack this file just prior to
 each checkin. Even microkernels that have been booted for a while will

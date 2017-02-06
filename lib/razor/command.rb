@@ -29,17 +29,10 @@ class Razor::Command
     data.is_a?(Hash) or
         raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
             {expected: ruby_type_to_json(Hash), actual: ruby_type_to_json(data)}
-    old_data = data.to_json
-    data = self.class.conform!(data)
-    unless data.class <= Hash
-      raise _(<<-ERR) % {class: self.class, type: data.class, body: old_data.inspect}
-Internal error: Please report this to JIRA at http://jira.puppetlabs.com/
-`%{class}.conform!` returned unexpected class %{type} instead of Hash
-Body is: '%{body}'
-      ERR
-    end
 
-    self.class.validate!(data, nil)
+    self.class.validate!(data, nil) do |data|
+      self.class.conform!(data)
+    end
 
     @command = Razor::Data::Command.start(name, data.dup, app.user.principal)
 
@@ -57,39 +50,18 @@ Body is: '%{body}'
     [202, result.to_json]
   end
 
+  def self.run_alias(data, alias_name, real_attribute)
+    schema.run_alias(data, alias_name, real_attribute)
+  end
+
+  def self.apply_aliases!(data)
+    schema.apply_aliases!(data)
+  end
+
   # This method is overridden in subclasses to change data such that it meets
   # current standards.
   def self.conform!(data)
     data
-  end
-
-  # This is a convenience method for adding aliases between two hashes. It
-  # will remove any references to the alias in `data`, merging it with the
-  # object in `real_attribute`. Data for both `real_attribute` and
-  # `alias_name` will be ignored if not `nil` or a Hash.
-  def self.add_hash_alias(data, real_attribute, alias_name)
-    self.add_alias(data, real_attribute, alias_name, Hash, {}) do |first, second|
-      first.merge(second)
-    end
-  end
-
-  # This is a convenience method for adding aliases between two arrays. It
-  # will remove any references to the alias in `data`, merging it with the
-  # object in `real_attribute`. Data for both `real_attribute` and
-  # `alias_name` will be ignored if not `nil` or an Array.
-  def self.add_array_alias(data, real_attribute, alias_name)
-    self.add_alias(data, real_attribute, alias_name, Array, []) do |first, second|
-      first + second
-    end
-  end
-
-  def self.add_alias(data, real_attribute, alias_name, clazz, default)
-    data[alias_name] = default if data[alias_name].nil?
-    data[real_attribute] = default if data[real_attribute].nil?
-
-    if data[alias_name].is_a?(clazz) and data[real_attribute].is_a?(clazz)
-      data[real_attribute] = yield data[real_attribute], data.delete(alias_name)
-    end
   end
 
   # Handle execution of the command.  We have already decoded and validated

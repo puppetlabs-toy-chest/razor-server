@@ -16,16 +16,6 @@ set cmdline <%= render_template("kernel_args").strip %>
 # check for 64-bit CPU support and boot the AMD64 installer.
 cpuid --ext 29 || goto i386
 
-# Loading the preseed file is done this way because of a "feature" where
-# the preseed/url kernel argument is augmented if the url's domain does not
-# contain a period. So if the policy's hostname pattern was
-# "node${id}.example.com", the preseed URL would be mutated from
-# "http://razor-server:8080/svc/file/preseed" to
-# "http://razor-server.example.com:8080/svc/file/preseed" This method grabs
-# the preseed file first, then passes it using preseed/file instead of
-# preseed/url.
-initrd <%= file_url('preseed') %> preseed.cfg                   || goto error
-
 # AMD64 support in CPU, boot the AMD64 installer.
 <% if repo_file('install.amd') %>
 echo detected AMD64 CPU support, booting AMD64 installer

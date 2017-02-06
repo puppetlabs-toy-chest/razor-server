@@ -23,11 +23,11 @@ A sample policy installing CentOS 6.4:
       "broker":        "noop",
       "enabled":       true,
       "hostname":      "host${id}.example.com",
-      "root-password": "secret",
-      "max-count":     20,
+      "root_password": "secret",
+      "max_count":     20,
       "before":        "other policy",
       "tags":          ["small"],
-      "node-metadata": {"key": "value"}
+      "node_metadata": {"key": "value"}
     }
   EOT
 
@@ -36,14 +36,19 @@ A sample policy installing CentOS 6.4:
 
     razor create-policy --name centos-for-small \\
       --repo centos-6.4 --task centos --broker noop \\
-      --enabled --hostname "host${id}.example.com" \\
+      --enabled --hostname 'host${id}.example.com' \\
       --root-password secret --max-count 20 \\
       --before "other policy" --tag small --node-metadata key=value
+
+With positional arguments, this can be shortened::
+
+    razor create-policy centos-for-small --repo centos-6.4 --broker noop \\
+      --hostname 'host${id}.example.com' --root-password secret
   EOT
 
   authz '%{name}'
   attr  'name', type: String, required: true, size: 1..Float::INFINITY,
-                help: _('The name of the policy to create.')
+                position: 0, help: _('The name of the policy to create.')
 
   attr 'hostname', type: String, required: true, size: 1..Float::INFINITY, help: _(<<-HELP)
     The hostname pattern to use for newly installed nodes.  This is filled
@@ -56,7 +61,7 @@ A sample policy installing CentOS 6.4:
     - id -- the internal node ID number
   HELP
 
-  attr 'root-password', required: true, type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
+  attr 'root_password', required: true, type: String, size: 1..Float::INFINITY, help: _(<<-HELP)
     The root password for newly installed systems.  This is passed directly
     to the individual task, rather than "understood" by the server, so the
     valid values are dependent on the individual task capabilities.
@@ -64,7 +69,7 @@ A sample policy installing CentOS 6.4:
 
   attr 'enabled', type: :bool, help: _('Is this policy enabled when first created?')
 
-  attr 'max-count', type: Integer, help: _(<<-HELP)
+  attr 'max_count', type: Integer, help: _(<<-HELP)
     The maximum number of nodes that can bind to this policy.
     If omitted, the policy is 'unlimited', and no maximum is applied.
   HELP
@@ -77,7 +82,7 @@ A sample policy installing CentOS 6.4:
     The name of the policy to create this policy after in the policy list.
   HELP
 
-  array 'tags', help: _(<<-HELP) do
+  array 'tags', alias: 'tag', help: _(<<-HELP) do
     The names of tags that are used for matching nodes to this policy.
 
     When a node has all these tags matched on it, it will be a candidate
@@ -100,12 +105,12 @@ A sample policy installing CentOS 6.4:
     which is distinct from the broker types found on disk.
   HELP
 
-  attr 'task', type: String, required: true, help: _(<<-HELP)
+  attr 'task', type: String, help: _(<<-HELP)
     The name of the task used to install nodes that match this policy.  This must
     match the selected repo, as it references files contained within that repository.
   HELP
 
-  attr 'node-metadata', type: Hash, help: _(<<-HELP)
+  attr 'node_metadata', type: Hash, help: _(<<-HELP)
     Allows a policy to apply metadata to a node when it binds. This is NON
     AUTHORITATIVE in that it will not replace existing metadata on the node
     with the same keys it will only add keys that are missing.
@@ -133,10 +138,6 @@ A sample policy installing CentOS 6.4:
 
     data["enabled"] = true if data["enabled"].nil?
 
-    data["max_count"] = data.delete("max-count") if data.has_key?("max-count")
-    data["root_password"] = data.delete("root-password") if data.has_key?("root-password")
-    data["node_metadata"] = data.delete("node-metadata") if data.has_key?("node-metadata")
-
     # Create the policy
     policy, is_new = Razor::Data::Policy.import(data)
 
@@ -154,10 +155,8 @@ A sample policy installing CentOS 6.4:
       data['before'] = data['before']['name'] if data['before'].is_a?(Hash) and data['before'].keys == ['name']
       data['after'] = data['after']['name'] if data['after'].is_a?(Hash) and data['after'].keys == ['name']
 
-      data['tag'] = Array[data['tag']] unless [NilClass, Array, Hash].include?(data['tag'].class)
       data['tags'] = Array[data['tags']] unless [NilClass, Array, Hash].include?(data['tags'].class)
-      add_array_alias(data, 'tags', 'tag')
-      
+
       # Removed feature: Cannot create tags in create-policy
       if data['tags'].is_a?(Array) && data['tags'].any? {|tag_pair| tag_pair.is_a?(Hash) and tag_pair.keys == ['name', 'rule'] }
         raise Razor::ValidationFailure, _('this command can no longer create tags; see `razor help create-tag`')
@@ -169,9 +168,6 @@ A sample policy installing CentOS 6.4:
       data['repo'] = data['repo']['name'] if data['repo'].is_a?(Hash) and data['repo'].keys == ['name']
       data['broker'] = data['broker']['name'] if data['broker'].is_a?(Hash) and data['broker'].keys == ['name']
       data['task'] = data['task']['name'] if data['task'].is_a?(Hash) and data['task'].keys == ['name']
-      data['root-password'] = data.delete('root_password') if data['root_password']
-      data['max-count'] = data.delete('max_count') if data['max_count']
-      data['node-metadata'] = data.delete('node_metadata') if data['node_metadata']
     end
   end
 end

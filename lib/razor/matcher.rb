@@ -14,17 +14,26 @@ require 'json'
 #   [op arg1 arg2 .. argn]
 #
 # The builtin operators are (see +Functions+)
-#   and, or - true if anding/oring arguments is true
-#   =, !=   - true if arg1 =/!= arg2
-#   in      - true if arg1 is one of arg2 .. argn
-#   fact    - retrieves the fact named arg1 from the node if it exists
+#   and, or  - true if anding/oring arguments is true
+#   =, !=    - true if arg1 =/!= arg2
+#   like     - true if arg1 =~ arg2 (interpreting arg2 as Regex)
+#   in       - true if arg1 is one of arg2 .. argn
+#   fact     - retrieves the fact named arg1 from the node if it exists
 #             If not, an error is raised unless a second argument is given, in
 #             which case it is returned as the default.
-#   num     - converts arg1 to a numeric value if possible; raises if not
-#   <, <=   - true if arg1 </<= arg2
-#   >, >=   - true if arg1 >/>= arg2
-#   lower   - string result from converting arg1 to lower case
-#   upper   - string result from converting arg1 to upper case
+#   metadata - retrieves the metadata named arg1 from the node if it exists
+#              If not, an error is raised unless a second argument is given, in
+#              which case it is returned as the default.
+#   tag      - true if the node matches the tag with name arg1.
+#   num      - converts arg1 to a numeric value if possible; raises if not
+#   str      - converts arg1 to a string value if possible; raises if not
+#   <, <=    - true if arg1 </<= arg2
+#   >, >=    - true if arg1 >/>= arg2
+#   lower    - string result from converting arg1 to lower case
+#   upper    - string result from converting arg1 to upper case
+#   has_macaddress
+#            - true if any fact with prefix "macaddress" exists on the node and
+#              matches arg1 .. argn
 #
 # FIXME: This needs lots more error checking to become robust
 class Razor::Matcher
@@ -62,15 +71,19 @@ class Razor::Matcher
         "tag"      => {:expects => [[String]],        :returns => Mixed   },
         "state"    => {:expects => [[String], [String]], :returns => Mixed   },
         "eq"       => {:expects => [Mixed],           :returns => Boolean },
+        "like"     => {:expects => [[String], [String]], :returns => Boolean },
         "neq"      => {:expects => [Mixed],           :returns => Boolean },
         "in"       => {:expects => [Mixed],           :returns => Boolean },
         "num"      => {:expects => [Mixed],           :returns => Number  },
+        "str"      => {:expects => [Mixed],           :returns => [String] },
         "gte"      => {:expects => [[Numeric]],       :returns => Boolean },
         "gt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lte"      => {:expects => [[Numeric]],       :returns => Boolean },
         "lt"       => {:expects => [[Numeric]],       :returns => Boolean },
         "lower"    => {:expects => [[String]],        :returns => [String] },
         "upper"    => {:expects => [[String]],        :returns => [String] },
+        "has_macaddress" =>
+                      {:expects => [[String]],        :returns => Boolean }
       }.freeze
 
     # FIXME: This is pretty hackish since Ruby semantics will shine through
@@ -100,7 +113,11 @@ class Razor::Matcher
     end
 
     def metadata(*args)
-      value_lookup("metadata", args)
+      value_lookup("metadata", args).tap do |val|
+        if val.is_a?(Hash) or val.is_a?(Array)
+          raise RuleEvaluationError.new(_("cannot evaluate #{val.class} returned from metadata #{args[0]}"))
+        end
+      end
     end
 
     def tag(*args)
@@ -119,6 +136,10 @@ class Razor::Matcher
 
     def eq(*args)
       args[0] == args[1]
+    end
+
+    def like(*args)
+      !(args[0] =~ Regexp.new(args[1])).nil?
     end
 
     def neq(*args)
@@ -145,6 +166,10 @@ class Razor::Matcher
       end
 
       raise RuleEvaluationError.new _("can't convert %{raw} to number") % {raw: value.inspect}
+    end
+
+    def str(*args)
+      args[0].to_s
     end
 
     def gte(*args)
@@ -175,6 +200,12 @@ class Razor::Matcher
       return value.upcase if value.is_a?(String)
 
       raise RuleEvaluationError.new _("argument to 'upper' should be a string but was %{raw}") % {raw: value.class.inspect}
+    end
+
+    def has_macaddress(*args)
+      (@values["facts"] || {}).any? do |key, value|
+        key =~ /^macaddress.*/ and args.include?(value)
+      end
     end
 
     private
@@ -300,6 +331,16 @@ class Razor::Matcher
                     "%{expected} are accepted") %
             {arg: arg.inspect, type: arg.class, name: name, position: pos, expected: expected_types}
         end
+      end
+    end
+
+    if name == 'like' and errors.empty?
+      begin
+        Regexp.new(rule[2])
+      rescue RegexpError => e
+        errors << _("invalid regular expression supplied to `like` for argument %{position}: %{message}") %
+            { position: caller_position || 1,
+              message: e.message }
       end
     end
   end

@@ -1,0 +1,28 @@
+#! /bin/bash
+
+set -e
+
+json=$(< /dev/stdin)
+
+# This script requires `jq` in $PATH: http://stedolan.github.io/jq/
+name=$(jq '.hook.name' <<< "${json}")
+value=$(( $(jq '.hook.configuration."node-registered"' <<< "${json}") + 1 ))
+
+cat <<EOF
+{
+  "hook": {
+    "configuration": {
+      "update": {
+        "node-registered": $value
+      }
+    }
+  },
+  "node": {
+    "metadata": {
+      "update": {
+        "last_hook_execution": "node-registered"
+      }
+    }
+  }
+}
+EOF

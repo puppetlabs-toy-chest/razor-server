@@ -1,0 +1,170 @@
+#!/bin/bash
+<% require 'shellwords' %>
+set -u
+set -e
+
+# Some utility functions.
+fail() { echo >&2 "$@"; exit 1; }
+warn() { echo >&2 "$@"; }
+cmd()  { hash "$1" >&/dev/null; } # portable 'which'
+
+
+# Figure out which package installer is available and, consequently, which OS
+# family we are running on.  Then get `lsb_release` installed on
+# this platform.
+#
+# Thankfully, we don't care which variant we are on because they are uniformly
+# enough structured to make sense.
+if cmd lsb_release; then
+    :                           # nothing to do
+elif cmd apt-get; then
+    # All the distributions I am familiar with inherited this package name
+    # from Debian itself.
+    apt-get -y install lsb-release
+    apt_install
+elif cmd yum; then
+    # We try the second path just in case some distribution comes up with the
+    # brilliant idea that this needs to work before `/usr` can be mounted or
+    # something akin to that.
+    #
+    # This installs a lot of potentially undesirable packages on EL5 systems.
+    # Sorry about that -- take it up with your upstream.  EL6+ improve that.
+    yum -y install /usr/bin/lsb_release || \
+        yum -y install /bin/lsb_release || \
+        fail "neither /usr/bin/lsb_release or /bin/lsb_release found with yum!"
+else
+    fail "neither yum or apt are installed, so I can't figure out what next!"
+fi
+
+# Synchronize time with ntpdate server before registering with the server.
+ntpdate_server=<% broker[:ntpdate_server] || '' %>
+if [ -z $ntpdate_server ]; then
+    : # skipping ntpdate since `ntpdate_server` is not set
+elif cmd ntpdate; then
+    ntpdate $ntpdate_server
+elif cmd apt-get; then
+    apt-get install ntpdate && ntpdate $ntpdate_server
+elif cmd yum; then
+    yum -y install ntpdate && ntpdate $ntpdate_server
+else
+    warn "unable to synchronize time with ntpdate"
+fi
+
+# Now we have that, we can install our platform specific package to define
+# the repositories.  Thankfully this is also pretty damn simple to get right.
+# In this case we don't skip installation even if the package was already
+# present, since the tool should handle that, and it may gather updates as a
+# consequence of taking the action.
+flavour="$(lsb_release -i | cut -f 2 | tr '[:upper:]' '[:lower:]')"
+case "${flavour}" in
+    centos|redhat*)
+        release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
+        case "${release}" in
+            5) url="https://yum.puppetlabs.com/puppetlabs-release-el-5.noarch.rpm" ;;
+            6) url="https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm" ;;
+            7) url="https://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm" ;;
+            *) fail "sorry, don't know how release ${release} works!" ;;
+        esac
+
+        # No need to update package lists for yum, and rpm will fetch the pkg
+        # for us, which is convenient.
+        rpm -q puppetlabs-release || \
+            rpm -ihv "${url}"     || \
+            fail "unable to install the EL repository data file"
+
+        # Install Puppet
+        yum -y install puppet
+        ;;
+
+    fedora)
+        release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
+        case "$release" in
+            20) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-20.noarch.rpm" ;;
+            21) url="http://yum.puppetlabs.com/puppetlabs-release-fedora-21.noarch.rpm" ;;
+            *) fail "sorry, don't know how release ${release} works!" ;;
+        esac
+
+        # No need to update package lists for yum, and rpm will fetch the pkg
+        # for us, which is convenient.
+        rpm -q puppetlabs-release || \
+            rpm -ihv "${url}"     || \
+            fail "unable to install the EL repository data file"
+
+        yum -y install puppet
+        ;;
+
+    debian|ubuntu)
+        codename="$(lsb_release -c | cut -f 2 | tr '[:upper:]' '[:lower:]')"
+        package="puppetlabs-release-${codename}.deb"
+        if cmd curl; then
+            curl -o /tmp/"${package}" http://apt.puppetlabs.com/"${package}" || \
+                fail "unable to download ${package}"
+        elif cmd wget; then
+            wget -O /tmp/"${package}" http://apt.puppetlabs.com/"${package}" || \
+                fail "unable to download ${package}"
+        else
+            fail "sorry, can't find curl or wget to download the package"
+        fi
+
+        # Install the repo data, then fetch newer package lists.
+        dpkg -i /tmp/"${package}" || fail "unable to install ${package}"
+        apt-get -y update
+        apt-get -y install puppet
+        ;;
+
+    *)
+        fail "I don't know what flavour distribution '${flavour}' is, sorry."
+        ;;
+esac
+
+
+<% unless broker.empty? %>
+# Now, configuration.  Much as I love the idea of editing an ini file with
+# basic Unix tools like sed and awk, this seems much less worse, even if it
+# puts a puppet module you might not expect into place on disk.
+puppet module install puppetlabs/inifile
+
+# Update the ini file with the resource tool.
+<% broker.each do |setting, value| %>
+puppet resource ini_setting ensure=present path=/etc/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
+<% end %>
+<% end %>
+
+# For debugging, just in case, dump out the modified confirmation file.
+echo ====================[ /etc/puppet/puppet.conf ]=========================
+cat /etc/puppet/puppet.conf
+echo ========================================================================
+
+
+
+# Finally, set Puppet to auto-start, and run the daemon.
+case "${flavour}" in
+    centos|redhat*)
+        chkconfig puppet on
+        service puppet start
+        ;;
+
+    fedora)
+        systemctl enable puppetagent
+        systemctl start puppetagent
+        ;;
+
+    debian|ubuntu)
+        # puppet is automatically configured to run on boot, but...
+        sed -i -e 's/^START=.*$/START=yes/' /etc/default/puppet
+        /etc/init.d/puppet start
+        ;;
+
+    *)
+        fail "I don't know what flavour distribution '${flavour}' is, sorry."
+        ;;
+esac
+
+# Log that the broker is finished.
+if cmd curl; then
+    curl -sL "<%= stage_done_url %>" || fail "curl failed to log broker completion"
+elif cmd wget; then
+    wget -qO- "<%= stage_done_url %>" || fail "wget failed to log broker completion" &> /dev/null
+else
+    warn "neither curl nor wget installed; cannot log completion of broker"
+fi

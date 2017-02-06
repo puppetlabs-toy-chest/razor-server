@@ -97,7 +97,7 @@ module Razor
 
       view_object_hash(broker).merge(
         :configuration   => broker.configuration,
-        :"broker-type"   => broker.broker_type,
+        :broker_type   => broker.broker_type,
         :policies        => { :id => view_object_url(broker) + "/policies",
                               :count => broker.policies.count,
                               :name => "policies" })
@@ -201,7 +201,7 @@ module Razor
       view_object_hash(hook).merge(
       {
         :name          => hook.name,
-        :"hook-type"   => hook.hook_type,
+        :hook_type   => hook.hook_type,
         :configuration => hook.configuration,
         :log           => { :id => view_object_url(hook) + "/log",
                             :name => "log",

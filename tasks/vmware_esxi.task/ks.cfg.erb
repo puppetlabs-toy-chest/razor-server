@@ -1,14 +1,15 @@
 # Thanks to William Lam for being the guru
 accepteula
 rootpw --iscrypted <%=
-  if node.root_password =~ /^\$\d+\$[^$]*\$/
-    node.root_password
+  root_password = node.metadata['root_password'] || node.root_password
+  if root_password =~ /^\$\d+\$[^$]*\$/
+    root_password
   else
     require 'unix_crypt'
     # @todo danielp 2013-11-07: if ESXi supports a stronger algorithm, we
     # should probably upgrade to using it in preference to MD5.  SHA512 is
     # current state-of-the-art practice, elsewhere.
-    UnixCrypt::MD5.build(node.root_password)
+    UnixCrypt::MD5.build(root_password)
   end
 %>
 clearpart --firstdisk --overwritevmfs
@@ -22,13 +23,13 @@ reboot
 %pre --interpreter=busybox
 wget <%= stage_done_url("kickstart") %>
 
-# echo 'network --bootproto=static --addvmportgroup=false --device=vmnic0 --ip=<%= @node_ip_address %> --netmask=<%= @ip_range_subnet %> --gateway=<%= @gateway %> --nameserver=<%= @nameserver %> --hostname=<%= @node_hostname %>' > /tmp/networkconfig
+# echo 'network --bootproto=static --addvmportgroup=false --device=vmnic0 --ip=<%= @node_ip_address %> --netmask=<%= @ip_range_subnet %> --gateway=<%= @gateway %> --nameserver=<%= @nameserver %> --hostname=<%= node.metadata['hostname'] || node.hostname %>' > /tmp/networkconfig
 
 
 
 %firstboot --interpreter=busybox
 # set the hostname correctly before we do anythig else
-esxcli system hostname set --fqdn <%= node.hostname %>
+esxcli system hostname set --fqdn <%= node.metadata['hostname'] || node.hostname %>
 
 # enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
 grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config

@@ -27,18 +27,18 @@ describe Razor::Command::SetNodeIPMICredentials do
     node.ipmi_password.should be_nil
 
     update = {
-      'ipmi-hostname' => Faker::Internet.ip_v4_address,
-      'ipmi-username' => Faker::Internet.user_name,
-      'ipmi-password' => Faker::Internet.password[0..19]
+      'ipmi_hostname' => Faker::Internet.ip_v4_address,
+      'ipmi_username' => Faker::Internet.user_name,
+      'ipmi_password' => Faker::Internet.password[0..19]
     }
 
     command 'set-node-ipmi-credentials', {:name => node.name}.merge(update)
     last_response.status.should == 202
     node.reload                 # refresh from the database, plz
 
-    node.ipmi_hostname.should == update['ipmi-hostname']
-    node.ipmi_username.should == update['ipmi-username']
-    node.ipmi_password.should == update['ipmi-password']
+    node.ipmi_hostname.should == update['ipmi_hostname']
+    node.ipmi_username.should == update['ipmi_username']
+    node.ipmi_password.should == update['ipmi_password']
   end
 end
 

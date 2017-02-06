@@ -1,1 +1,0 @@
-BOOTIF=01-${netX/mac} preseed/url=<%= file_url("preseed") %> debian-installer/locale=en_US netcfg/no_default_route=true netcfg/choose_interface=auto netcfg/get_hostname=<%= node.shortname %> netcfg/get_domain=<%= node.domainname %> priority=critical

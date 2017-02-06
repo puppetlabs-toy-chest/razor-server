@@ -1,8 +1,8 @@
 #!/bin/sh
-. /etc/razor/razor-torquebox.sh
+. /etc/puppetlabs/razor-server/razor-torquebox.sh
 
 # If we support moving, this needs to change.
-RAZOR_HOME='/opt/razor'
+RAZOR_HOME='/opt/puppetlabs/server/apps/razor-server/share/razor-server'
 
 # Make sure our Gemfile is found by the tool.  This is needed because Bundler
 # checks for the Gemfile relative to the current working directory, not the

@@ -105,12 +105,12 @@ There are three flavors of repositories: ones where Razor unpacks ISO's for
 you and serves their contents, ones that are somewhere else (For example,
 on a mirror you maintain), and ones where a stub directory is created and
 the contents can be entered manually. The first form is created by creating a
-repo with the `iso-url` property; the server will download and unpack the
+repo with the `iso_url` property; the server will download and unpack the
 ISO image into its file system:
 
     {
       "name": "fedora19",
-      "iso-url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
+      "iso_url": "file:///tmp/Fedora-19-x86_64-DVD.iso"
       "task": "puppet"
     }
 
@@ -191,10 +191,10 @@ To create a broker, clients post the following to the `create-broker` URL:
          "server": "puppet.example.org",
          "environment": "production"
       },
-      "broker-type": "puppet"
+      "broker_type": "puppet"
     }
 
-The `broker-type` must correspond to a broker that is present on the
+The `broker_type` must correspond to a broker that is present on the
 `broker_path` set in `config.yaml`.
 
 The permissible settings for the `configuration` hash depend on the broker
@@ -211,6 +211,26 @@ command:
 
 If the broker is used by a policy, the attempt to delete the broker will
 fail.
+
+### Update broker configuration
+
+A broker's configuration can be updated using the `update-broker-configuration`
+command. This command can set or clear a single key's value. The following
+arguments would set the configuration value for key `some_key` to `new_value`:
+
+    {
+      "broker": "mybroker",
+      "key": "some_key",
+      "value": "new_value"
+    }
+
+The following arguments would clear the configuration value for key `some_key`:
+
+    {
+      "broker": "mybroker",
+      "key": "some_key",
+      "clear": true
+    }
 
 ### Create tag
 
@@ -266,7 +286,7 @@ will return with status code 400.
       "broker": "puppet",
       "hostname": "host${id}.example.com",
       "root_password": "secret",
-      "max_count": "20",
+      "max_count": 20,
       "before"|"after": "other policy",
       "node_metadata": { "key1": "value1", "key2": "value2" },
       "tags": ["existing_tag"]
@@ -320,7 +340,7 @@ accept the same body, consisting of the name of the policy in question:
       "name": "a policy"
     }
 
-### Modify the max-count for a policy
+### Modify the max_count for a policy
 
 The command `modify-policy-max-count` makes it possible to manipulate how
 many nodes can be bound to a specific policy at the most. The body of the
@@ -328,12 +348,17 @@ request should be of the form:
 
     {
       "name": "a policy"
-      "max-count": new-count
+      "max_count": new-count
     }
 
 The `new-count` can be an integer, which must be larger than the number of
-nodes that are currently bound to the policy, or `null` to make the policy
-unbounded
+nodes that are currently bound to the policy. Alternatively, the `no_max_count`
+argument will make the policy unbounded:
+
+    {
+      "name": "a policy"
+      "no_max_count": true
+    }
 
 ### Add/remove tags to/from Policy
 
@@ -344,9 +369,60 @@ existing tag, or create a new one by supplying a name and rule for the
 new tag:
 
     {
-      "name": "a-policy-name",
       "tag" : "a-tag-name",
       "rule": "new-match-expression" #Only for `add-policy-tag`
+    }
+
+### Update policy task
+
+This ensures that a specified policy uses the task this command specifies,
+setting the task if necessary. If a node is currently provisioning against the
+policy when you run this command, provisioning errors may occur.
+
+    The following shows how to update a policy’s task to a task called “other_task”.
+
+    {
+      "policy": "my_policy",
+      "task": "other_task"
+    }
+
+### Update policy repo
+
+This ensures that a specified policy uses the repo this command
+specifies. If a node is currently provisioning against the policy when
+you run this command, provisioning errors may occur.
+
+    The following shows how to update a policy’s repo to a repo called “other_repo”.
+
+    {
+      "policy": "my_policy",
+      "repo": "other_repo"
+    }
+
+### Update policy broker
+
+This ensures that a specified policy uses the broker this command
+specifies. If a node is currently in the broker stage of provisioning,
+errors may occur.
+
+    The following shows how to update a policy’s broker to a broker called “other_broker”.
+
+    {
+      "policy": "my_policy",
+      "broker": "other_broker"
+    }
+    
+### Update policy node metadata
+
+This ensures that the specified policy applies the given node metadata
+when a node binds to it. This command can update a single value.
+
+The following shows how to update a policy's metadata to include "a_key".
+
+    {
+      "policy": "my_policy",
+      "key": "a_key",
+      "value": "a_value"
     }
 
 ### Delete policy
@@ -362,16 +438,38 @@ Note that this does not affect the `installed` status of a node, and
 therefore won't, by itself, cause a node to be bound to another policy upon
 reboot.
 
+### Update repo task
+
+This ensures that a specified repo uses the task this command specifies,
+setting the task if necessary. If a node is currently provisioning against the
+repo when you run this command, provisioning errors may occur.
+
+    The following shows how to update a repo’s task to a task called “other_task”.
+
+    {
+    "node": "node1",
+    "repo": "my_repo",
+    "task": "other_task"
+    }
+
+    The following shows how to update a repo’s task to its repo's task.
+
+    {
+    "node": "node1",
+    "repo": "my_repo",
+    "no_task": true
+    }
+
 ### Create hook
 
 A hook can be created with the `create-hook` command.  It accepts the name
-of a single hook, plus the `hook-type` which references existing code
+of a single hook, plus the `hook_type` which references existing code
 on the Razor server's `hooks` directory, and an optional starting
-configuration corresponding to that hook-type:
+configuration corresponding to that hook_type:
 
     {
       "name": "myhook",
-      "hook-type": "some_hook",
+      "hook_type": "some_hook",
       "configuration": {"foo": 7, "bar": "rhubarb"}
     }
 
@@ -379,13 +477,48 @@ The code on the server would be contained in the `hooks/some_hook.hook`
 directory. More information on hooks can be found in the Hooks README 
 (`hooks.md`).
 
+### Update hook configuration
+
+A hook's configuration can be updated using the `update-hook-configuration`
+command. This command can set or clear a single key's value. The following
+arguments would set the configuration value for key `some_key` to `new_value`:
+
+    {
+      "hook": "myhook",
+      "key": "some_key",
+      "value": "new_value"
+    }
+
+The following arguments would clear the configuration value for key `some_key`:
+
+    {
+      "hook": "myhook",
+      "key": "some_key",
+      "clear": true
+    }
+
+### Run hook
+
+The `run-hook` command triggers a hook to execute. This is helpful when writing
+your own hook scripts in testing their validity. To run the hook which would
+occur when the given node boots, use the following arguments:
+
+    {
+      "name": "myhook",
+      "node": "node1",
+      "event": "node-booted"
+    }
+
+Note that any of the usual event names can be used for the `event` argument.
+See `hooks.md` for a list of these possibilities.
+
 ### Delete hook
 
 A single hook can be removed from the database with the `delete-hook`
 command. It accepts the name of a single hook:
 
     {
-        "name": "myhook"
+      "name": "myhook"
     }
 
 The hook will then no longer be triggered for node events and any
@@ -409,10 +542,19 @@ This command removes a node's association with any policy and clears its
 `installed` flag; once the node reboots, it will boot back into the
 Microkernel and go through discovery, tag matching and possibly be bound to
 another policy. This command does not change its metadata or facts. Specify
-which node to unbind by sending the node's name in the body of the request
+which node to unbind by sending the node's name in the body of the request:
 
     {
       "name": "node17"
+    }
+
+The `same_policy` flag can be used to skip the microkernel boot and policy
+binding stage, installing the same task/repo/policy again. This is most helpful
+when developing a custom task.
+
+    {
+      "name": "node17",
+      "same_policy: true
     }
 
 ### Set node IPMI credentials
@@ -430,9 +572,9 @@ The structure of a request is:
 
     {
       "name": "node17",
-      "ipmi-hostname": "bmc17.example.com",
-      "ipmi-username": null,
-      "ipmi-password": "sekretskwirrl"
+      "ipmi_hostname": "bmc17.example.com",
+      "ipmi_username": null,
+      "ipmi_password": "sekretskwirrl"
     }
 
 The various IPMI fields can be null (representing no value, or the NULL
@@ -514,28 +656,38 @@ Metadata is a collection of key => value pairs (like facts).  Use the
 metadata. The request should look like:
 
     {
-        "node": "node1",
-        "update": {                         # Add or update these keys
-            "key1": "value1",
-            "key2": "value2",
-            ...
-        }
-        "remove": [ "key3", "key4", ... ],  # Remove these keys
-        "no_replace": true                  # Do not replace keys on
-                                            # update. Only add new keys
+      "node": "node1",
+      "update": {                         # Add or update these keys
+          "key1": "value1",
+          "key2": "value2",
+          ...
+      }
+      "remove": [ "key3", "key4", ... ],  # Remove these keys
+      "no_replace": true                  # Do not replace keys on
+                                          # update. Only add new keys
     }
 
 or
 
     {
-        "node": "node1",
-        "clear": true                       # Clear all metadata
+      "node": "node1",
+      "clear": true                       # Clear all metadata
     }
 
 As above, multiple update and/or removes can be done in the one command,
 however, clear can only be done on its own (it doesnt make sense to
 update some details and then clear everything).  An error will also be
 returned if an attempt is made to update and remove the same key.
+
+Note that metadata values can also be structured data specified as native
+JSON or as a valid JSON string.  E.g:
+
+    {
+      "node": "node1",
+      "update": {
+        "key1": [ "list", "of", "values" ],
+      }
+    }
 
 ### Update node metadata
 
@@ -544,10 +696,19 @@ that allows for updating single keys on the command line or with a GET
 request with a simple data structure that looks like.
 
     {
-        "node"      : "mode1",
-        "key"       : "my_key",
-        "value"     : "my_val",
-        "no_replace": true       #Optional. Will not replace existing keys
+      "node"      : "mode1",
+      "key"       : "my_key",
+      "value"     : "my_val",
+      "no_replace": true       #Optional. Will not replace existing keys
+    }
+
+Note that metadata values can also be structured data specified as native
+JSON or as a valid JSON string.  E.g:
+
+    {
+      "node"      : "mode1",
+      "key"       : "my_key",
+      "value"     : "[ "list", "of", "values" ]",
     }
 
 ### Remove Node Metadata
@@ -557,15 +718,15 @@ that allows for removing a single key OR all keys only on the command
 like or with a GET request with a simple datastructure that looks like:
 
     {
-        "node" : "node1",
-        "key"  : "my_key",
+      "node" : "node1",
+      "key"  : "my_key",
     }
 
 or
 
     {
-        "node" : "node1",
-        "all"  : true,     # Removes all keys
+      "node" : "node1",
+      "all"  : true,     # Removes all keys
     }
 
 ### Set Node Hardware Info
@@ -580,15 +741,15 @@ booting the new node on the network. For example, to update `node172`
 with new hardware information:
 
     {
-        "node": "node172",
-        "hw_info": {
-          "net0":   "78:31:c1:be:c8:00",
-          "net1":   "72:00:01:f2:13:f0",
-          "net2":   "72:00:01:f2:13:f1",
-          "serial": "xxxxxxxxxxx",
-          "asset":  "Asset-1234567890",
-          "uuid":   "Not Settable"
-        }
+      "node": "node172",
+      "hw_info": {
+        "net0":   "78:31:c1:be:c8:00",
+        "net1":   "72:00:01:f2:13:f0",
+        "net2":   "72:00:01:f2:13:f1",
+        "serial": "xxxxxxxxxxx",
+        "asset":  "Asset-1234567890",
+        "uuid":   "Not Settable"
+      }
     }
 
 
@@ -683,5 +844,5 @@ number that booted nodes will use to communicate with the Razor server.
 
 A full request to render a bootstrap file might look like this, where 8150 is
 the port used for HTTP communication:
-`curl https://user:password@razor-server:8151/api/microkernel/bootstrap?nic_max=4&http_port=8150`
+`curl -k "https://user:password@razor-server:8151/api/microkernel/bootstrap?nic_max=4&http_port=8150"`
 

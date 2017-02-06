@@ -1,0 +1,49 @@
+#!/bin/bash
+# Kickstart for RHEL/CentOS 6
+# see: http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s1-kickstart2-options.html
+
+install
+url --url=<%= repo_url %>
+cmdline
+lang en_US.UTF-8
+keyboard us
+rootpw <%= node.metadata['root_password'] || node.root_password %>
+network --hostname <%= node.metadata['hostname'] || node.hostname %>
+firewall --enabled --ssh
+authconfig --enableshadow --passalgo=sha512 --enablefingerprint
+timezone --utc <%= node.metadata['timezone'] || 'America/Los_Angeles' %>
+# Avoid having 'rhgb quiet' on the boot line
+bootloader --location=mbr --append="crashkernel=auto"
+# The following is the partition information you requested
+# Note that any partitions you deleted are not expressed
+# here so unless you clear all partitions first, this is
+# not guaranteed to work
+zerombr
+clearpart --all --initlabel
+autopart
+# reboot automatically
+reboot
+
+# following is MINIMAL https://partner-bugzilla.redhat.com/show_bug.cgi?id=593309
+%packages
+@core
+
+%end
+
+%post --log=/var/log/razor.log
+echo Kickstart post
+curl -s -o /root/razor_postinstall.sh <%= file_url("post_install") %>
+
+# Run razor_postinstall.sh on next boot via rc.local
+if [ ! -f /etc/rc.d/rc.local ]; then
+  # On systems using systemd /etc/rc.d/rc.local does not exist at all
+  # though systemd is set up to run the file if it exists
+  echo '#!/bin/bash' >> /etc/rc.d/rc.local
+fi
+chmod a+x /etc/rc.d/rc.local
+echo bash /root/razor_postinstall.sh >> /etc/rc.d/rc.local
+chmod +x /root/razor_postinstall.sh
+
+curl -s <%= stage_done_url("kickstart") %>
+%end
+############

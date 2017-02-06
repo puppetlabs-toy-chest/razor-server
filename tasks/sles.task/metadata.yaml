@@ -1,0 +1,8 @@
+---
+
+os_version: 12
+label: SUSE Linux Enterprise Server
+description: SLES Generic installer
+boot_sequence:
+  1: boot_install
+  default: boot_local

@@ -1,0 +1,53 @@
+# -*- powershell -*-
+write-host "Razor second-stage Windows installer script starting"
+
+# @todo danielp 2013-11-06: configuration data -- right now we hard-code /
+# guess these because we don't have a way to set this when creating the
+# installer.  That will, I guess, have to change some time soon.  Look to see
+# something akin to the way that brokers work implemented.
+$server = '<%= `hostname`.strip %>'
+$share  = 'razor'
+$repo   = '<%= repo_url.split('/').last %>'
+$drive_path = "\\${server}\${share}\${repo}"
+$installer = "${drive_path}\setup.exe"
+
+write-host "fetching the unattended.xml file to feed the installer"
+$unattended_src = '<%= file_url('unattended.xml') %>'
+$unattended = "${env:SYSTEMDRIVE}\unattended.xml"
+(new-object System.Net.WebClient).DownloadFile($unattended_src, $unattended)
+
+write-host "fetching fastprox.dll from repo to overwrite the local copy (workaround)"
+# This is a workaround for an installer issue with WinPE 4.0 + 2008R2.
+$fastprox_loc = '<%= repo_url('sources/fastprox.dll') %>'
+$fastprox = "${env:SYSTEMDRIVE}\Windows\System32\wbem\fastprox.dll"
+$fastprox_backup = $fastprox + ".bak"
+move $fastprox $fastprox_backup
+(new-object System.Net.WebClient).DownloadFile($fastprox_loc, $fastprox)
+
+write-host "mapping SMB share ${drive_path} for installer access"
+# As far as I can tell, if we don't persist, we don't connect the SMB share,
+# and that means we can't actually run stuff off it.
+new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
+start-sleep 10                  # time to settle -- needed on my VM :/
+
+write-host "starting installer ${installer}"
+dir ${installer}
+start-process "${installer}" -argumentlist "/unattend:${unattended} /noreboot" -wait
+
+write-host "notify Razor that the installer completed"
+(new-object System.Net.WebClient).DownloadString('<%= stage_done_url("finished") %>')
+
+# Determine Windows installation drive
+Write-Host "Determining drive letter for Windows installation"
+$osDrive = (bcdedit /enum OSLOADER | Select-String osdevice)[0].ToString().Split('=')[-1]
+Write-Host "Drive letter for installation is $($osDrive)"
+
+Write-Host "registering broker to run after reboot before login screen"
+New-Item -ItemType Directory -Force -Path "$($osDrive)\Windows\Setup\Scripts"
+# The $osDrive drive is the freshly installed but not-yet-booted operating system.
+(New-Object System.Net.WebClient).DownloadFile('<%= file_url('SetupComplete.cmd') %>',"$($osDrive)\Windows\Setup\Scripts\SetupComplete.cmd")
+
+write-host "restarting the system to complete installation"
+# wait for the reboot to complete before exiting
+restart-computer
+start-sleep 30

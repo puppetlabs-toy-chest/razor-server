@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+require 'json'
+
+input = STDIN.read
+STDIN.close_read
+
+input = JSON.parse(input)
+config = input['hook']['configuration']
+policy = input['policy']['name']
+
+if config['counter'].to_i.to_s != config['counter'].to_s
+  puts({ 'error' => "Hook configuration `counter` must be an integer (was: #{config['counter']})" }.to_json)
+  exit 1
+elsif config['padding'].to_i.to_s != config['padding'].to_s
+  puts({'error' => "Hook configuration `padding` must be an integer (was: #{config['padding']})"}.to_json)
+  exit 1
+elsif policy != config['policy']
+  output = {'output' => "No match for policy '#{policy}' found in hook; skipping"}
+else
+  policy_counter = config['counter'].to_i
+  next_policy_counter = policy_counter + 1
+  # This could just as easily call an external system to retrieve the node's
+  # hostname.
+  new_hostname = config['hostname_pattern'].
+                 gsub('${count}', policy_counter.to_s.rjust(config['padding'].to_i, '0')).
+                 gsub('${policy}', input['policy']['name'])
+  output = {
+      'node' => {
+          'metadata' => {
+              'update' => {
+                  'hostname' => new_hostname
+              }
+          }
+      },
+      'hook' => {
+          'configuration' => {
+              'update' => {
+                  'counter' => next_policy_counter
+              }
+          }
+      }
+  }
+end
+
+puts output.to_json

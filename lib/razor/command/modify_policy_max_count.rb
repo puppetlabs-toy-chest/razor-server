@@ -11,58 +11,62 @@ greater than the number of nodes currently bound to the policy; it may also be
   example api: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    {"name": "example", "max-count": null}
+    {"name": "example", "no_max_count": true}
 
 Set a policy to a maximum of 15 nodes:
 
-    {"name": "example", "max-count": 15}
+    {"name": "example", "max_count": 15}
   EOT
 
   example cli: <<-EOT
 Set a policy to match an unlimited number of nodes:
 
-    razor --name example --max-count null
+    razor modify-policy-max-count --name example --no-max-count
 
 Set a policy to a maximum of 15 nodes:
 
-    razor --name example --max-count 15
+    razor modify-policy-max-count --name example --max-count 15
+
+With positional arguments, this can be shortened::
+
+    razor modify-policy-max-count example 15
   EOT
 
   authz '%{name}'
 
   attr 'name', type: String, required: true, references: Razor::Data::Policy,
-               help: _('The name of the policy to modify.')
+               position: 0, help: _('The name of the policy to modify.')
 
-  attr 'max-count', required: true, help: _(<<-HELP)
-    The new maximum number of nodes bound by this policy.  This can be
-    "null", in which case the policy becomes unlimited, or an integer
-    greater than or equal to one.
+  attr 'max_count', position: 1, type: Integer, help: _(<<-HELP)
+    The new maximum number of nodes bound by this policy. You cannot reduce the
+    maximum number of nodes bound to a policy below the number of nodes
+    currently bound to the policy with this command.
 
-    You cannot reduce the maximum number of nodes bound to a policy below
-    the number of nodes currently bound to the policy with this command.
+    To make the policy unbounded, use the `no_max_count` argument instead.
   HELP
+
+  attr 'no_max_count', type: TrueClass, help: _(<<-HELP)
+    Make the maximum number of nodes that can bind to this policy unlimited.
+  HELP
+
+  require_one_of 'max_count', 'no_max_count'
 
   def run(request, data)
     policy = Razor::Data::Policy[:name => data['name']]
 
-    max_count_s = data['max-count']
-
-    if max_count_s.nil?
+    if data['no_max_count']
       max_count = nil
       bound = "unbounded"
     else
-      max_count = max_count_s.to_i
-      max_count.to_s == max_count_s.to_s or
-        request.error 422, :error => _("New max-count '%{raw}' is not a valid integer") % {raw: max_count_s}
-      bound = max_count_s
+      bound = max_count = data['max_count']
       node_count = policy.nodes.count
       node_count <= max_count or
         request.error 400, :error => n_(
-        "There is currently %{node_count} node bound to this policy. Cannot lower max-count to %{max_count}",
-        "There are currently %{node_count} nodes bound to this policy. Cannot lower max-count to %{max_count}",
+        "There is currently %{node_count} node bound to this policy. Cannot lower max_count to %{max_count}",
+        "There are currently %{node_count} nodes bound to this policy. Cannot lower max_count to %{max_count}",
         node_count) % {node_count: node_count, max_count: max_count}
     end
     policy.set(max_count: max_count).save
-    { :result => _("Changed max-count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
+    { :result => _("Changed max_count for policy %{name} to %{count}") % {name: policy.name, count: bound} }
   end
 end

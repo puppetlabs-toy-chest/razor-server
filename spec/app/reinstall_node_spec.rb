@@ -48,6 +48,23 @@ describe Razor::Command::ReinstallNode do
       node.policy.should be_nil
       node.installed.should be_nil
       node.installed_at.should be_nil
+      node.boot_count.should == 1
+    end
+
+    it "should keep same policy if flag is supplied" do
+      node = Fabricate(:bound_node,
+                       :installed => 'some_thing',
+                       :installed_at => DateTime.now)
+      command 'reinstall-node', { "name" => node.name, 'same_policy' => true }
+
+      last_response.status.should == 202
+      last_response.json['result'].should =~ /installed flag cleared/
+      node.reload
+      node.policy.should_not be_nil
+      node.installed.should be_nil
+      node.installed_at.should be_nil
+      node.boot_count.should == 1
+      node.task.boot_template(node).should == 'boot_first'
     end
 
     it "should succeed for an unbound node" do
@@ -63,6 +80,13 @@ describe Razor::Command::ReinstallNode do
       last_response.status.should == 404
       last_response.json['error'].should ==
         "name must be the name of an existing node, but is 'not really an existing node'"
+    end
+    [[false], 'abc', {'abc' => 1}].each do |invalid|
+      it "should reject #{invalid} for 'same_policy'" do
+        command 'reinstall-node', { "name" => node.name, 'same_policy' => invalid }
+        last_response.status.should == 422
+        last_response.json['error'].should == "same_policy should be a boolean, but was actually a #{ruby_type_to_json(invalid.class)}"
+      end
     end
   end
 end

@@ -22,6 +22,12 @@ describe Razor::Data::Policy do
     @node.log.last["event"].should == "bind"
     @node.log.last["policy"].should == pl.name
   end
+  it "does not require any tags" do
+    pl = Fabricate(:policy, :repo => @repo)
+
+    Policy.bind(@node)
+    @node.policy.should == pl
+  end
 
   it "does not save a policy if the named task does not exist" do
     pl = Fabricate(:policy, :repo => @repo)

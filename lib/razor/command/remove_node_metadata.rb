@@ -26,15 +26,18 @@ Remove a single key from a node:
 or remove all keys from a node:
 
     razor remove-node-metadata --node node1 --all
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor remove-node-metadata node1 --all
+  EOT
 
   authz '%{node}'
 
   attr 'node', type: String, required: true, references: [Razor::Data::Node, :name],
-               help: _('The node from which to remove metadata')
+               position: 0, help: _('The node from which to remove metadata')
 
-  attr 'key', type: String, size: 1..Float::INFINITY,
+  attr 'key', type: String, size: 1..Float::INFINITY, position: 1,
               help: _('The name of the metadata item to remove from the node.')
 
   attr 'all', type: TrueClass,

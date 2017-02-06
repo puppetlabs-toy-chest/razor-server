@@ -16,11 +16,12 @@ source 'https://rubygems.org'
 # Note that the lack of whitespace matters in those two lines:
 #ruby=jruby-1.7.8
 #ruby-gemset=razor-server
-ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.13'
+ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.19'
 
-gem 'torquebox', '~> 3.1.1'
+gem 'torquebox', '~> 3.1.2'
 gem 'sinatra', '>= 1.4.4'
-gem 'sequel', '= 4.3'
+# sequel 4.10 has issues with the serialization plugin; rspec tests fail.
+gem 'sequel', '= 4.9'
 gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
@@ -47,7 +48,10 @@ group :test do
   gem 'simplecov'
   gem 'fabrication', '~> 2.7.2'
   gem 'faker', '~> 1.2.0'
-  gem 'json-schema', '~> 2.0'
+  # json-schema versions beyond this version require
+  # ruby version > 2.0 when jruby is upgraded to 9K+
+  # this pin can be removed 
+  gem 'json-schema', '2.6.2'
   gem 'timecop'
 end
 
@@ -59,7 +63,7 @@ group :development do
   #
   # For production you can use this, or deploy to a distinct installation of
   # TorqueBox, as you prefer.
-  gem 'torquebox-server', '~> 3.1.1'
+  gem 'torquebox-server', '~> 3.1.2'
 
   # This provides the rxgettext tool, used to manage our pot translation
   # template file generation.  Unfortunately, while fast_gettext is better for

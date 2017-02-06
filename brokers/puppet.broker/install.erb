@@ -36,6 +36,19 @@ else
     fail "neither yum or apt are installed, so I can't figure out what next!"
 fi
 
+# Synchronize time with ntpdate server before registering with the server.
+ntpdate_server=<% broker[:ntpdate_server] || '' %>
+if [ -z $ntpdate_server ]; then
+    : # skipping ntpdate since `ntpdate_server` is not set
+elif cmd ntpdate; then
+    ntpdate $ntpdate_server
+elif cmd apt-get; then
+    apt-get install ntpdate && ntpdate $ntpdate_server
+elif cmd yum; then
+    yum -y install ntpdate && ntpdate $ntpdate_server
+else
+    warn "unable to synchronize time with ntpdate"
+fi
 
 # Now we have that, we can install our platform specific package to define
 # the repositories.  Thankfully this is also pretty damn simple to get right.
@@ -46,12 +59,10 @@ flavour="$(lsb_release -i | cut -f 2 | tr '[:upper:]' '[:lower:]')"
 case "${flavour}" in
     centos|redhat*)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
-        # @todo danielp 2013-09-30: this should be updated to reflect the
-        # portable names once https://jira.puppetlabs.com/browse/RE-359 is
-        # addressed and we have those available.
         case "${release}" in
-            5) url="http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-7.noarch.rpm" ;;
-            6) url="http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-7.noarch.rpm" ;;
+            5) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-5.noarch.rpm" ;;
+            6) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-6.noarch.rpm" ;;
+            7) url="https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
 
@@ -62,19 +73,15 @@ case "${flavour}" in
             fail "unable to install the EL repository data file"
 
         # Install Puppet
-        yum -y install puppet
+        yum -y install puppet-agent
         ;;
 
     fedora)
         release="$(lsb_release -r | cut -f2 | cut -d. -f1)"
-        # @todo danielp 2013-09-30: this should be updated to reflect the
-        # portable names once https://jira.puppetlabs.com/browse/RE-359 is
-        # addressed and we have those available.
         case "$release" in
-            17) url="http://yum.puppetlabs.com/fedora/f17/products/i386/puppetlabs-release-17-7.noarch.rpm" ;;
-            18) url="http://yum.puppetlabs.com/fedora/f18/products/i386/puppetlabs-release-18-7.noarch.rpm" ;;
-            # NOTE: the package version is lower on this one!
-            19) url="http://yum.puppetlabs.com/fedora/f19/products/i386/puppetlabs-release-19-2.noarch.rpm" ;;
+            20) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-20.noarch.rpm" ;;
+            21) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-21.noarch.rpm" ;;
+            22) url="http://yum.puppetlabs.com/puppetlabs-release-pc1-fedora-22.noarch.rpm" ;;
             *) fail "sorry, don't know how release ${release} works!" ;;
         esac
 
@@ -84,12 +91,12 @@ case "${flavour}" in
             rpm -ihv "${url}"     || \
             fail "unable to install the EL repository data file"
 
-        yum -y install puppet
+        yum -y install puppet-agent
         ;;
 
     debian|ubuntu)
         codename="$(lsb_release -c | cut -f 2 | tr '[:upper:]' '[:lower:]')"
-        package="puppetlabs-release-${codename}.deb"
+        package="puppetlabs-release-pc1-${codename}.deb"
         if cmd curl; then
             curl -o /tmp/"${package}" http://apt.puppetlabs.com/"${package}" || \
                 fail "unable to download ${package}"
@@ -103,7 +110,7 @@ case "${flavour}" in
         # Install the repo data, then fetch newer package lists.
         dpkg -i /tmp/"${package}" || fail "unable to install ${package}"
         apt-get -y update
-        apt-get -y install puppet
+        apt-get -y install puppet-agent
         ;;
 
     *)
@@ -116,17 +123,17 @@ esac
 # Now, configuration.  Much as I love the idea of editing an ini file with
 # basic Unix tools like sed and awk, this seems much less worse, even if it
 # puts a puppet module you might not expect into place on disk.
-puppet module install puppetlabs/inifile
+/opt/puppetlabs/bin/puppet module install puppetlabs/inifile
 
 # Update the ini file with the resource tool.
 <% broker.each do |setting, value| %>
-puppet resource ini_setting ensure=present path=/etc/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
+/opt/puppetlabs/bin/puppet resource ini_setting ensure=present path=/etc/puppetlabs/puppet/puppet.conf section=main setting=<%= setting.shellescape %> value=<%= value.shellescape %>
 <% end %>
 <% end %>
 
 # For debugging, just in case, dump out the modified confirmation file.
-echo ====================[ /etc/puppet/puppet.conf ]=========================
-cat /etc/puppet/puppet.conf
+echo ====================[ /etc/puppetlabs/puppet/puppet.conf ]=========================
+cat /etc/puppetlabs/puppet/puppet.conf
 echo ========================================================================
 
 

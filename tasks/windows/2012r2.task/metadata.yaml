@@ -1,7 +1,7 @@
 ---
-os_version: 2012
-label: Microsoft Windows Generic
-description: Microsoft Windows
+os_version: 2012R2
+label: Microsoft Windows 2012 R2
+description: Microsoft Windows 2012 R2
 base: windows
 boot_sequence:
   1: boot_wim

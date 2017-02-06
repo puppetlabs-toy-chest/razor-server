@@ -1,0 +1,6 @@
+---
+
+os_version: 6
+label: Red Hat Enterprise Linux 6
+description: Red Hat Enterprise Linux 6 Installer
+base: redhat

@@ -1,0 +1,24 @@
+#
+# Local settings can be configured without being overwritten by package upgrades, for example
+# if you want to increase razor-server open-files-limit to 10000,
+# you need to increase systemd's LimitNOFILE setting, so create a file named
+# "/etc/systemd/system/razor-server.service.d/limits.conf" containing:
+# [Service]
+# LimitNOFILE=10000
+# You can confirm it worked by running systemctl daemon-reload
+# then running systemctl show razor-server | grep LimitNOFILE
+#
+[Unit]
+Description=Razor Server
+After=network.target
+
+[Service]
+EnvironmentFile=/opt/puppetlabs/server/apps/razor-server/share/razor-server/razor-server.env
+EnvironmentFile=/etc/sysconfig/razor-server
+User=razor
+ExecStart=/opt/puppetlabs/server/apps/razor-server/share/torquebox/jboss/bin/standalone.sh -Djboss.server.log.dir=${JBOSS_LOG_DIR} -Dhttp.port=${RAZOR_HTTP_PORT} -Dhttps.port=${RAZOR_HTTPS_PORT} -b 0.0.0.0
+Type=simple
+PIDFile=/var/run/puppetlabs/razor-server/torquebox.pid
+
+[Install]
+WantedBy=multi-user.target

@@ -17,11 +17,14 @@ Delete the unused broker configuration "obsolete":
 Delete the unused broker configuration "obsolete":
 
     razor delete-broker --name obsolete
-  EOT
 
+With positional arguments, this can be shortened::
+
+    razor delete-broker obsolete
+EOT
 
   authz '%{name}'
-  attr  'name', type: String, required: true, size: 1..250,
+  attr  'name', type: String, required: true, size: 1..250, position: 0,
                 help: _('The name of the broker to delete.')
 
   def run(request, data)

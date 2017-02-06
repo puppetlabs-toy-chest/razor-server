@@ -34,6 +34,8 @@ all:
     # relative path it is relative to the root directory of the
     # Razor installation.
     config: shiro.ini
+    # Allow request to '/api' from localhost even if authentication is enabled.
+    allow_localhost: false
 
   microkernel:
     debug_level: debug
@@ -46,7 +48,7 @@ all:
     # If it is not set, no update will be sent, and the ISO will use only the
     # default facts, etc, available in the default build.
     #
-    # extension-zip: /etc/razor/mk-extension.zip
+    # extension-zip: /etc/puppetlabs/razor-server/mk-extension.zip
 
   # Should communications with /api be secured? This property determines
   # whether to require HTTPS/SSL when making calls in the /api namespace.
@@ -54,6 +56,11 @@ all:
 
   # Should newly discovered nodes be marked installed?
   protect_new_nodes: false
+
+  # Should hook input be recorded in the event log for debugging?
+  store_hook_input: false
+  # Should hook output be recorded in the event log for debugging?
+  store_hook_output: false
 
   # How to match nodes to possibly existing nodes in the database. The node
   # sends us the MAC addresses of its network interfaces, serial number,
@@ -77,13 +84,18 @@ all:
   # Colon-separated list of paths; each entry must be a directory in which
   # we should look for tasks
   task_path: tasks
-  repo_store_root: /var/lib/razor/repo-store
+  repo_store_root: /opt/puppetlabs/server/data/razor-server/repo
   # The *broker_path* is a colon separated list of directories containing
   # broker types
   broker_path: brokers
   # The *hook_path* is a colon separated list of directories containing
   # hook types
   hook_path: hooks
+  # The *hook_execution_path* is a colon separated list of paths that
+  # Razor will search, in order, when running hooks, prior to using the
+  # default execution path.
+  hook_execution_path:
+
   facts:
     # Facts that we should always ignore. These are stripped out before we
     # do anything else with facts coming in from a node. Each entry in this
@@ -125,3 +137,10 @@ all:
     #match_on:
     #  - unique_fact
     #  - /other_facts_.*/
+
+  # These should correspond to config properties that should be hidden from the
+  # /api/collections/config endpoint. By default, this endpoint will reveal all
+  # config in this file.
+  api_config_blacklist:
+    - database_url
+    - facts.blacklist

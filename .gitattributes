@@ -2,3 +2,5 @@
 * text=auto
 
 *.ps1 text eol=crlf
+*.ps1.erb text eol=crlf
+SetupComplete.cmd.erb text eol=crlf

@@ -17,20 +17,25 @@ describe Razor::Command::CreateHook do
     before :each do
       header 'content-type', 'application/json'
 
-      Razor.config['hook_path'] =
-          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'hooks').realpath.to_s
+      use_hook_fixtures
     end
 
     let :command_hash do
       { 'name'        => Faker::Commerce.product_name,
-        'hook-type' => 'test'
+        'hook_type' => 'test'
       }
     end
 
     it_behaves_like "a command"
 
     def create_hook(params)
-      command 'create-hook', params
+      # These configuration parameters are added to the return response from
+      # the server. Our validation needs a way to anticipate these in the
+      # response, so they're passed to the `command` helper.
+      expect = if params['hook_type'] == 'with_configuration'
+                 {'configuration' => {'key-with-default' => 1, 'optional-key-with-default' => 1}}
+               end || {}
+      command 'create-hook', params, expect: expect
       params
     end
 
@@ -48,11 +53,11 @@ describe Razor::Command::CreateHook do
     end
 
     it "should fail if the named hook does not actually exist" do
-      create_hook command_hash.merge 'hook-type' => 'no-such-hook-for-me'
+      create_hook command_hash.merge 'hook_type' => 'no-such-hook-for-me'
 
       last_response.status.should == 404
       last_response.json['error'].should ==
-          "hook-type must be the name of an existing hook type, but is 'no-such-hook-for-me'"
+          "hook_type must be the name of an existing hook type, but is 'no-such-hook-for-me'"
     end
 
     it "should fail cleanly if 'configuration' is a string" do
@@ -97,17 +102,17 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate valid configuration" do
-      command_hash['hook-type'] = 'with_configuration'
-      command_hash['configuration'] = {'some-key' => 'valid-value'}
+      command_hash['hook_type'] = 'with_configuration'
+      command_hash['configuration'] = {'required-key' => 'valid-value'}
       command = create_hook command_hash
 
       last_response.status.should == 202
-      Razor::Data::Hook[:name => command['name']].configuration['some-key'].should == 'valid-value'
+      Razor::Data::Hook[:name => command['name']].configuration['required-key'].should == 'valid-value'
     end
 
     it "should validate invalid configuration" do
-      command_hash['hook-type'] = 'with_configuration'
-      command_hash['configuration'] = {'not-valid-key' => 'not-valid-value'}
+      command_hash['hook_type'] = 'with_configuration'
+      command_hash['configuration'] = {'not-valid-key' => 'not-valid-value', 'required-key' => 'value'}
       command = create_hook command_hash
 
       last_response.json['error'].should == "configuration key 'not-valid-key' is not defined for this hook type"
@@ -115,17 +120,17 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate valid configuration abbreviation" do
-      command_hash['hook-type'] = 'with_configuration'
-      command_hash['c'] = {'some-key' => 'valid-value'}
+      command_hash['hook_type'] = 'with_configuration'
+      command_hash['c'] = {'required-key' => 'valid-value'}
       command = create_hook command_hash
 
       last_response.status.should == 202
-      Razor::Data::Hook[:name => command['name']].configuration['some-key'].should == 'valid-value'
+      Razor::Data::Hook[:name => command['name']].configuration['required-key'].should == 'valid-value'
     end
 
     it "should validate invalid configuration abbreviation" do
-      command_hash['hook-type'] = 'with_configuration'
-      command_hash['c'] = {'not-valid-key' => 'not-valid-value'}
+      command_hash['hook_type'] = 'with_configuration'
+      command_hash['c'] = {'not-valid-key' => 'not-valid-value', 'required-key' => 'value'}
       command = create_hook command_hash
 
       last_response.json['error'].should == "configuration key 'not-valid-key' is not defined for this hook type"
@@ -133,15 +138,15 @@ describe Razor::Command::CreateHook do
     end
 
     it "should validate mixed shorthand and longhand configuration" do
-      command_hash['hook-type'] = 'with_configuration'
-      command_hash['c'] = {'some-key' => 'valid-value'}
-      command_hash['configuration'] = {'some-other-key' => 'other-valid-value'}
+      command_hash['hook_type'] = 'with_configuration'
+      command_hash['c'] = {'required-key' => 'valid-value'}
+      command_hash['configuration'] = {'key-with-default' => 'other-valid-value'}
       command = create_hook command_hash
 
       last_response.status.should == 202
       configuration = Razor::Data::Hook[:name => command['name']].configuration
-      configuration['some-key'].should == 'valid-value'
-      configuration['some-other-key'].should == 'other-valid-value'
+      configuration['required-key'].should == 'valid-value'
+      configuration['key-with-default'].should == 'other-valid-value'
     end
   end
 end
