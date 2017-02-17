@@ -30,7 +30,8 @@ class Razor::Command
         raise Razor::ValidationFailure, _('expected %{expected} but got %{actual}') %
             {expected: ruby_type_to_json(Hash), actual: ruby_type_to_json(data)}
 
-    self.class.validate!(data, nil) do |data|
+    opts = {local_bypass: app.local_request?}
+    self.class.validate!(data, nil, opts) do |data|
       self.class.conform!(data)
     end
 

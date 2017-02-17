@@ -13,6 +13,11 @@ class Razor::Validation::HashSchema
     @require_one_of      = []
   end
 
+  # Check if request is from localhost and if bypass for localhost is enabled
+  def local_request?
+    request.ip == '127.0.0.1' and Razor.config['auth.allow_localhost']
+  end
+
   # Perform any final checks that our content is sane, for things that could
   # be misordered in the DSL.
   def finalize
@@ -108,7 +113,9 @@ file; on this server security is currently <%= auth %>.
   # - Checking existing attributes
   # - Checking `require_one_of`
   # - Checking for additional attributes
-  def validate!(data, path)
+  #
+  # `opts` can include `:local_bypass` of `true` if authz should be skipped.
+  def validate!(data, path, opts = {})
     checked = {}
 
     # Ensure that we have the correct base data type, since nothing else will
@@ -138,7 +145,7 @@ file; on this server security is currently <%= auth %>.
 This is an internal error; please report it to Puppet Labs
 at https://tickets.puppetlabs.com/
       EOT
-    elsif @authz_template and Razor.config['auth.enabled']
+    elsif @authz_template and Razor.config['auth.enabled'] and not opts[:local_bypass]
       fields = @authz_dependencies.inject({}) do |hash, name|
         hash[name.to_sym] = data[name]
         hash
