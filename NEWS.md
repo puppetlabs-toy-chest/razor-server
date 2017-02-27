@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## Next - Next
+## 1.6.0 - 2017-03-07
 
 ### Task changes
 
@@ -12,6 +12,11 @@
 + IMPROVEMENT: The Windows PE installer now downloads directly from the
   puppet master. The `windows_agent_download_url` config property is
   now ignored.
+
+### Other
+
++ BUGFIX: Fixed unauthenticated commands being executed when
+  `auth.allow_localhost` is enabled.
 
 ## 1.5.0 - 2016-10-20
 
