@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.6.0 - 2017-03-07
+## 1.6.0 - 2017-03-09
 
 ### Task changes
 
@@ -17,6 +17,8 @@
 
 + BUGFIX: Fixed unauthenticated commands being executed when
   `auth.allow_localhost` is enabled.
++ BUGFIX: Allow properties to be deleted when the on-disk types
+  (broker-type, hook-type) change.
 
 ## 1.5.0 - 2016-10-20
 
