@@ -58,8 +58,8 @@ if [ -d "${RBENV_ROOT}" ]; then
   eval "$(rbenv init -)"
 fi
 
-openssl-devel
-rbenv install 1.9.3-p484
+yum install -y openssl-devel
+rbenv install -s 1.9.3-p484
 rbenv global 1.9.3-p484
 
 cd ~

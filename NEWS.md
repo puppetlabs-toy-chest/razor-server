@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.6.0 - 2017-03-09
+## 1.6.1 - 2017-03-09
 
 ### Task changes
 
