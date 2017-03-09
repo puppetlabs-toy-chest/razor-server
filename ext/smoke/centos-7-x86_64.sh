@@ -76,4 +76,7 @@ razor create-hook --name counter --hook-type counter
 razor run-hook --node node1 --name counter --event node-deleted
 razor hooks counter configuration | grep -q "node-deleted: 1"
 
+echo " === Checking version ==="
+razor -v
+
 echo " === Smoke test completed successfully ==="

@@ -50,6 +50,18 @@ sleep 20
 curl http://localhost:8150/api
 
 echo " === Install razor-client ==="
+yum install -y git
+curl https://raw.githubusercontent.com/fesplugas/rbenv-installer/master/bin/rbenv-installer | bash
+export RBENV_ROOT="${HOME}/.rbenv"
+if [ -d "${RBENV_ROOT}" ]; then
+  export PATH="${RBENV_ROOT}/bin:${PATH}"
+  eval "$(rbenv init -)"
+fi
+
+openssl-devel
+rbenv install 1.9.3-p484
+rbenv global 1.9.3-p484
+
 cd ~
 wget -O razor-client.gem $razor_client_gem
 gem install ./razor-client.gem
@@ -78,5 +90,8 @@ razor register-node --hw-info net0=ab:ab:ab:ab --installed
 razor create-hook --name counter --hook-type counter
 razor run-hook --node node1 --name counter --event node-deleted
 razor hooks counter configuration | grep -q "node-deleted: 1"
+
+echo " === Checking version ==="
+razor -v
 
 echo " === Smoke test completed successfully ==="
