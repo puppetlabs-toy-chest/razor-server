@@ -1,11 +1,14 @@
 # -*- encoding: utf-8 -*-
 require 'sinatra'
+require 'gettext-setup'
 
 require_relative './lib/razor/initialize'
 require_relative './lib/razor'
 
 class Razor::App < Sinatra::Base
   extend Razor::Validation
+
+  GettextSetup.initialize(File.absolute_path('locales', File.dirname(__FILE__)))
 
   configure do
     # FIXME: This turns off template caching all together since I am not
@@ -53,6 +56,10 @@ and requires full control over the database (eg: add and remove tables):
     pass if request.path_info.start_with?("/svc/repo")
     # Set our content type: like many people, we simply don't negotiate.
     content_type 'application/json'
+  end
+
+  before do
+    FastGettext.locale = GettextSetup.negotiate_locale(env["HTTP_ACCEPT_LANGUAGE"])
   end
 
   before %r'/api($|/)'i do
