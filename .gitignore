@@ -1,4 +1,4 @@
-config.yaml
+/config.yaml
 log/*
 /pkg/
 /.yardoc
