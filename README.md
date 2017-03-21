@@ -53,7 +53,7 @@ image that Razor boots on new nodes to do discovery. It periodically
 submits [facts](https://github.com/puppetlabs/facter) about the node and
 waits for instructions from the server about what to do next, if anything.
 
-A [prebuilt archive](https://s3-us-west-2.amazonaws.com/razor-releases/microkernel-007.tar)
+A [prebuilt archive](http://pup.pt/razor-microkernel-latest)
 is available.
 
 ## Razor Client
