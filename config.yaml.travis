@@ -1,0 +1,141 @@
+---
+# This is the configuration file for the Razor server. For each
+# environment, the file contains a hash of configuration values. The
+# special environment 'all' is used to set configuration values for all
+# environments
+#
+# The *database_url* setting must be a connection URL for
+# (Sequel)[http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html]
+
+all:
+  database_url: 'jdbc:postgresql:razor?user=postgres'
+  # This section configures authentication for the Razor server.
+  # Authentication applies to access to the `/api` URL path only.
+  auth:
+    # You can enable or disable authentication support.  When disabled, all
+    # authentication is ignored and access to `/api` is unrestricted.
+    # When enabled a valid username and password must be present in all
+    # requests to `/api`.
+    enabled: false
+    # The path to the authentication configuration file.  We use Apache Shiro
+    # to manage authentication, since it provides a solid and effective
+    # abstraction over common third party sources of authentication and role
+    # management information.
+    #
+    # You can learn more about the content of this file in their documentation:
+    # http://shiro.apache.org/configuration.html
+    #
+    # If this is an absolute path it will be used as-is, but if you give a
+    # relative path it is relative to the root directory of the
+    # Razor installation.
+    config: shiro.ini
+    # Allow request to '/api' from localhost even if authentication is enabled.
+    allow_localhost: false
+
+  microkernel:
+    debug_level: debug
+    kernel_args:
+    # If this value is present, and points to a zip file, it will be
+    # downloaded and unpacked by the MK client prior to checkin.  This allows
+    # for custom facts and other code to be shipped to the client without
+    # having to rebuild the ISO image.
+    #
+    # If it is not set, no update will be sent, and the ISO will use only the
+    # default facts, etc, available in the default build.
+    #
+    # extension-zip: /etc/puppetlabs/razor-server/mk-extension.zip
+
+  # Should communications with /api be secured? This property determines
+  # whether to require HTTPS/SSL when making calls in the /api namespace.
+  secure_api: false
+
+  # Should newly discovered nodes be marked installed?
+  protect_new_nodes: false
+
+  # Should hook input be recorded in the event log for debugging?
+  store_hook_input: false
+  # Should hook output be recorded in the event log for debugging?
+  store_hook_output: false
+
+  # How to match nodes to possibly existing nodes in the database. The node
+  # sends us the MAC addresses of its network interfaces, serial number,
+  # asset tag, and UUID. We consider two nodes to be the same if they agree
+  # on any of the values named in the array +match_nodes_on+. Array entries
+  # can be any of 'mac', 'serial', 'asset', or 'uuid', in any order.
+  #
+  # Note that if you have nodes that have dummy values for one of these,
+  # e.g. that all have an asset tag of 'No asset tag' and +match_nodes_on+
+  # contains 'asset', all these nodes will be assumed to be the
+  # same. Better yet: make sure that +match_nodes_on+ does not contain
+  # 'asset' in that situation
+  #
+  # By default, we only match on MAC's, which is generally safe, but will
+  # cause trouble if the NIC's in a node are ever completely
+  # replaced. Consider adding one of the other possible values, e.g. 'uuid'
+  # to the array
+  match_nodes_on:
+    - mac
+  checkin_interval: 15
+  # Colon-separated list of paths; each entry must be a directory in which
+  # we should look for tasks
+  task_path: tasks
+  repo_store_root: /tmp/repo
+  # The *broker_path* is a colon separated list of directories containing
+  # broker types
+  broker_path: brokers
+  # The *hook_path* is a colon separated list of directories containing
+  # hook types
+  hook_path: hooks
+  # The *hook_execution_path* is a colon separated list of paths that
+  # Razor will search, in order, when running hooks, prior to using the
+  # default execution path.
+  hook_execution_path:
+
+  facts:
+    # Facts that we should always ignore. These are stripped out before we
+    # do anything else with facts coming in from a node. Each entry in this
+    # array can either be a string (literal name of a fact) or a regexp
+    # enclosed in /../ where any fact that matches the regexp will be
+    # dropped
+    blacklist:
+      - domain
+      - filesystems
+      - fqdn
+      - hostname
+      - id
+      - /kernel.*/
+      - memoryfree
+      - memorysize
+      - memorytotal
+      - /operatingsystem.*/
+      - osfamily
+      - path
+      - ps
+      - rubysitedir
+      - rubyversion
+      - selinux
+      - sshdsakey
+      - /sshfp_[dr]sa/
+      - sshrsakey
+      - /swap.*/
+      - timezone
+      - /uptime.*/
+    # Facts that should be used to match nodes on; these are useful if the
+    # primary hardware information like MAC addresses has changed (e.g.,
+    # because of a motherboard replacement), but you want to make sure that
+    # an existing node is still identified as the 'old' node. These facts
+    # must be unique across all nodes that Razor manages - otherwise, it
+    # will erroneously identify two physically different nodes as the same.
+    #
+    # The entries in the array follow the same format as those for
+    # facts.blacklist
+    #match_on:
+    #  - unique_fact
+    #  - /other_facts_.*/
+
+  # These should correspond to config properties that should be hidden from the
+  # /api/collections/config endpoint. By default, this endpoint will reveal all
+  # config in this file.
+  api_config_blacklist:
+    - database_url
+    - facts.blacklist
