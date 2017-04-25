@@ -71,7 +71,7 @@ $mount  = join-path $workdir "razor-winpe-mount"
 
 # The ADK versions we can deal with. Different versions unfortunately
 # require slightly different handling
-$adkversions = @('8.1', '8.0')
+$adkversions = @('8.1', '8.0', '10')
 
 foreach ($adkversion in $adkversions) {
     # Default install root for the ADK; since the installer database
@@ -136,7 +136,7 @@ Try {
     # I guess you can't change it safely, so respect that.
     if ($adkversion -eq '8.0') {
       $cabs = @('WinPE-WMI', 'WinPE-NetFX4', 'WinPE-Scripting', 'WinPE-PowerShell3')
-    } elseif ($adkversion -eq '8.1') {
+    } elseif ($adkversion -eq '8.1' -Or $adkversion -eq '10') {
       $cabs = @('WinPE-WMI', 'WinPE-NetFX', 'WinPE-Scripting', 'WinPE-PowerShell')
     } else {
       write-error "We can not deal with ADK version $adkversion"
