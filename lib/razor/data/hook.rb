@@ -163,7 +163,7 @@ class Razor::Data::Hook < Sequel::Model
   # absolute path. Return nil if there is no such script
   def find_script(cause)
     Razor.config.hook_paths.collect do |path|
-      Pathname.new(path) + "#{hook_type.name}.hook" + cause
+      Pathname.new(path) + "#{hook_type.name}.hook/" + cause
     end.find do |script|
       script.file? and (script.executable? or (!log_append(msg: _("file %{script} is not executable") % {script: script}, severity: 'warn', event: cause) ))
     end
