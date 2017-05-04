@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+require 'erb'
+
 module Razor::Data
   class DuplicateNodeError < RuntimeError
     attr_reader :hw_info, :nodes
@@ -214,7 +216,9 @@ module Razor::Data
       #    policy or not
       self.installed = nil
       self.root_password = policy.root_password
-      self.hostname = policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
+      self.hostname = ERB.new(
+          policy.hostname_pattern.gsub(/\$\{\s*id\s*\}/, id.to_s)
+      ).result(binding)
 
       if policy.node_metadata
         modify_metadata('no_replace' => true, 'update' => policy.node_metadata, 'force' => true)
