@@ -69,7 +69,7 @@ end
 Fabricator(:policy, :class_name => Razor::Data::Policy) do
   name             { Faker::Commerce.product_name + " #{Fabricate.sequence}" }
   enabled          true
-  hostname_pattern 'host${id}.example.org'
+  hostname_pattern 'host<%= @id %>.example.org'
   root_password    { Faker::Internet.password }
 
   repo
@@ -156,7 +156,6 @@ Fabricator(:bound_node, from: :node) do
   end
 
   after_save do |node, _|
-    node.hostname = node.policy.hostname_pattern.gsub('${id}', node.id.to_s)
     node.save
   end
 end
