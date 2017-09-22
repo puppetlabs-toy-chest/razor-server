@@ -67,6 +67,8 @@ module Razor
         raise InvalidConfigurationError,
           _("The configuration file %{filename} is not readable") % {filename: fname}
       end
+
+      @values
     end
 
     def flat_values
