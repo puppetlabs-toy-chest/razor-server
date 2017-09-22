@@ -29,8 +29,10 @@ describe Razor::Config do
         # Write the resulting YAML file
         defaults_name.open('w') { |fh| fh.write hash.to_yaml }
       end
-      if content_default
+      if content_default && content
         Razor::Config.new(Razor.env, fname.to_s, defaults_name.to_s)
+      elsif content_default
+        Razor::Config.new(Razor.env, nil, defaults_name.to_s)
       else
         Razor::Config.new(Razor.env, fname.to_s)
       end
@@ -38,8 +40,8 @@ describe Razor::Config do
   end
 
   describe "loading" do
-    it "should raise InvalidConfigurationError for nonexistant config" do
-      expect { make_config(nil) }.to raise_error(Razor::InvalidConfigurationError)
+    it "should tolerate nonexistant config" do
+      make_config(nil, {}).should be_an_instance_of(Razor::Config)
     end
 
     it "should tolerate an empty config file" do
