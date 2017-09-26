@@ -83,6 +83,8 @@ class Razor::Matcher
         "lower"    => {:expects => [[String]],        :returns => [String] },
         "upper"    => {:expects => [[String]],        :returns => [String] },
         "has_macaddress" =>
+                      {:expects => [[String]],        :returns => Boolean },
+        "has_macaddress_like" =>
                       {:expects => [[String]],        :returns => Boolean }
       }.freeze
 
@@ -204,7 +206,13 @@ class Razor::Matcher
 
     def has_macaddress(*args)
       (@values["facts"] || {}).any? do |key, value|
-        key =~ /^macaddress.*/ and args.include?(value)
+        key =~ /^macaddress.*/ and args.any?{ |s| s.casecmp(value) == 0 }
+      end
+    end
+
+    def has_macaddress_like(*args)
+      (@values["facts"] || {}).any? do |key, value|
+        key =~ /^macaddress.*/ and args.any?{ |s| Regexp.new(s, Regexp::IGNORECASE) =~ value }
       end
     end
 
@@ -339,6 +347,16 @@ class Razor::Matcher
         Regexp.new(rule[2])
       rescue RegexpError => e
         errors << _("invalid regular expression supplied to `like` for argument %{position}: %{message}") %
+            { position: caller_position || 1,
+              message: e.message }
+      end
+    end
+
+    if name == 'has_macaddress_like' and errors.empty?
+      begin
+        rule.each { |regex| Regexp.new(regex) }
+      rescue RegexpError => e
+        errors << _("invalid regular expression supplied to `has_macaddress_like` for argument %{position}: %{message}") %
             { position: caller_position || 1,
               message: e.message }
       end
