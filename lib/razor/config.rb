@@ -24,42 +24,53 @@ module Razor
 
     def initialize(env, fname = nil, defaults_file = nil)
       @values = {}
-      # Load defaults first.
+      # Find the defaults file.
+      # Priority: 1) environment variable
+      # 2) default path in /opt
+      # 3) root directory
       defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
           (File.file?('/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') and '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') ||
           File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
-      begin
+
+      # Find the user-maintained config.yaml
+      # Priority: 1) environment variable
+      # 2) default path in /etc
+      # 3) root directory
+      fname ||= ENV["RAZOR_CONFIG"] ||
+          (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
+          File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
+
+      unless File.readable?(defaults_file) || File.readable?(fname)
+        raise InvalidConfigurationError,
+              _("Either the configuration defaults file %{defaults} or the configuration file %{file} must be readable") % {defaults: defaults_file, file: fname}
+      end
+
+      if File.readable?(defaults_file)
+        # Save this for later, since we use it to find relative paths.
+        @fname = fname
+
         yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
 
         @values.merge!(yaml["all"] || {})
         @values.merge!(yaml[Razor.env] || {})
-      rescue Errno::ENOENT
-        # The defaults file does not exist. This is okay.
-      rescue Errno::EACCES
+      elsif File.exists?(defaults_file)
         raise InvalidConfigurationError,
               _("The configuration defaults file %{filename} is not readable") % {filename: defaults_file}
       end
 
-      # Use the filename given, or from the environment, or from /etc if it
-      # exists, otherwise the one in our root directory...
-      fname ||= ENV["RAZOR_CONFIG"] ||
-        (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
-        File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
+      if File.readable?(fname)
+        # Save this for later, since we use it to find relative paths.
+        @fname = fname
 
-      # Save this for later, since we use it to find relative paths.
-      @fname = fname
-
-      begin
         yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
-      rescue Errno::ENOENT
+        @values.merge!(yaml["all"] || {})
+        @values.merge!(yaml[Razor.env] || {})
+      elsif File.exists?(fname)
         raise InvalidConfigurationError,
-          _("The configuration file %{filename} does not exist") % {filename: fname}
-      rescue Errno::EACCES
-        raise InvalidConfigurationError,
-          _("The configuration file %{filename} is not readable") % {filename: fname}
+              _("The configuration file %{filename} is not readable") % {filename: fname}
       end
-      @values.merge!(yaml["all"] || {})
-      @values.merge!(yaml[Razor.env] || {})
+
+      @values
     end
 
     def flat_values
