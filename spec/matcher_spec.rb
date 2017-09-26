@@ -119,6 +119,22 @@ describe Razor::Matcher do
       matches("has_macaddress", "almost-match", { "not_macaddress" => "almost-match" }).should == false
     end
 
+    it "has_macaddress_like should behave" do
+      matches("has_macaddress_like", "matches", { "macaddress" => "matches" }).should == true
+      matches("has_macaddress_like", "mat.hes", { "macaddress" => "matches" }).should == true
+      matches("has_macaddress_like", "atch", { "macaddress" => "matches" }).should == true
+      matches("has_macaddress_like", "matches_other", { "macaddress_1" => "matches_other" }).should == true
+      matches("has_macaddress_like", "mat.hes_other", { "macaddress_1" => "matches_other" }).should == true
+      matches("has_macaddress_like", "no-matcah", "a-m.tch",
+              { "macaddress_1" => "a-match" }).should == true
+      matches("has_macaddress_like", "a-match",
+              { "macaddress_1" => "no-match",
+                "macaddress_2" => "a-match" }).should == true
+      matches("has_macaddress_like", "no-match", { }).should == false
+      matches("has_macaddress_like", "not-match", { "macaddress_1" => "still-no-match" }).should == false
+      matches("has_macaddress_like", "almost-match", { "not_macaddress" => "almost-match" }).should == false
+    end
+
     describe "tag function" do
       it "should complain when tag does not exist" do
         expect do
