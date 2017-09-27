@@ -5,7 +5,7 @@ test_name 'Stop Razor Service'
 step 'https://testrail.ops.puppetlabs.net/index.php?/cases/view/9'
 
 step 'Stop Razor Service'
-on agents, 'service pe-razor-server stop'
+on agents, 'service razor-server stop'
 
 step 'Verify that the service is not operational'
 agents.each do |agent|

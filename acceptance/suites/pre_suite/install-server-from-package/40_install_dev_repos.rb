@@ -5,7 +5,7 @@ when :package
     if package_build_version
       razor_hosts = get_razor_hosts
       razor_hosts.each do |host|
-        install_dev_repo_on host, 'pe-razor-server', package_build_version, "repo_configs"
+        install_dev_repo_on host, 'razor-server', package_build_version, "repo_configs"
       end
     else
       abort("Environment variable PE_RAZOR_SERVER_PACKAGE_BUILD_VERSION require for package install!")

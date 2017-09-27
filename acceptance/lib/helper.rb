@@ -57,7 +57,7 @@ module RazorExtensions
   def install_pe_razor_server (host)
     case test_config[:pe_razor_server_install_type]
     when :package
-      install_package host, 'pe-razor-server'
+      install_package host, 'razor-server'
     else
       abort("Invalid install type: " + test_config[:pe_razor_server_install_type])
     end
@@ -140,7 +140,7 @@ module RazorExtensions
 
   def restart_razor_service(server, test_url = nil)
     test_command = if test_url.nil? then 'razor' else "razor -u '#{test_url}'" end
-    on server, 'service pe-razor-server restart >&/dev/null'
+    on server, 'service razor-server restart >&/dev/null'
     step 'Verify that the port is open'
     unless port_open_within?(server, 8151, 60)
       raise RuntimeError, "server #{server} did not start back up"
