@@ -49,3 +49,4 @@ files:
   - vendor
   - 'locales/*.po'
   - 'locales/*.pot'
+tar_excludes: "brokers/chef.broker"
