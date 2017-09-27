@@ -16,7 +16,7 @@ source 'https://rubygems.org'
 # Note that the lack of whitespace matters in those two lines:
 #ruby=jruby-1.7.8
 #ruby-gemset=razor-server
-ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.19'
+ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.26'
 
 gem 'torquebox', '~> 3.1.2'
 gem 'sinatra', '>= 1.4.4'
@@ -50,7 +50,7 @@ group :test do
   gem 'faker', '~> 1.2.0'
   # json-schema versions beyond this version require
   # ruby version > 2.0 when jruby is upgraded to 9K+
-  # this pin can be removed 
+  # this pin can be removed
   gem 'json-schema', '2.6.2'
   gem 'timecop'
 end
