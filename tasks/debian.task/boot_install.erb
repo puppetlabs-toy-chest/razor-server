@@ -11,13 +11,13 @@ set cmdline <%= render_template("kernel_args").strip %>
     # one architecture present in the files we discover?  If so, we
     # want to use that.  This also allows us to handle architecture
     # nicely for installation.
-    if repo_file('install.amd') or repo_file('install.386')
+    if repo_file?('install.amd') or repo_file?('install.386')
 %>
 # check for 64-bit CPU support and boot the AMD64 installer.
 cpuid --ext 29 || goto i386
 
 # AMD64 support in CPU, boot the AMD64 installer.
-<% if repo_file('install.amd') %>
+<% if repo_file?('install.amd') %>
 echo detected AMD64 CPU support, booting AMD64 installer
 kernel <%= repo_url('install.amd/vmlinuz') %> ${cmdline}        || goto error
 initrd <%= repo_url('install.amd/initrd.gz') %>                 || goto error
@@ -27,7 +27,7 @@ echo No AMD64 installer present, expected install.amd directory
 <% end %>
 
 :i386
-<% if repo_file('install.386') %>
+<% if repo_file?('install.386') %>
 kernel <%= repo_url('install.386/vmlinuz') %> ${cmdline}        || goto error
 initrd <%= repo_url('install.386/initrd.gz') %>                 || goto error
 boot

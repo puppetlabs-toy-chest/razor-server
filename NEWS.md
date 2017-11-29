@@ -1,5 +1,21 @@
 # Razor Server Release Notes
 
+## Next - Next
+
+### API changes
+
++ NEW: Added `repo_file_contents` method for use in templates that
+  returns the contents of a file in the repo.
++ NEW: Added `repo_file?` method for use in task templates that returns
+  a path to a file in a repo, if it exists. This will replace the
+  current `repo_file` method.
+
+### Task changes
+
++ BUGFIX: Task method `repo_file` was not functional for remote repo
+  sources. Stock task usages of this function have been replaced with
+  the two methods above.
+
 ## 1.6.1 - 2017-03-09
 
 ### Task changes

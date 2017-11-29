@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'sinatra'
 require 'gettext-setup'
+require 'open-uri'
 
 require_relative './lib/razor/initialize'
 require_relative './lib/razor'
@@ -192,15 +193,55 @@ and requires full control over the database (eg: add and remove tables):
       URI::parse(repo_url(path))
     end
 
-    def repo_file(path = "")
-      root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
-      if path.empty?
-        root
+    # Checks for the existence of a file in the repo; returns `nil` if absent,
+    # otherwise either a string path to the file or a URI to the file.
+    def repo_file?(path = '')
+      if @repo.url
+        uri = repo_uri(path)
+        logger.info("repo_file?(#{uri})")
+        open(uri) && uri rescue nil
       else
-        logger.info("repo_file(#{path.inspect})")
-        Razor::Data::Repo.find_file_ignoring_case(root, path)
+        logger.warn("`repo_file` is deprecated; use `repo_file_contents` or `repo_file?`")
+        root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
+        if path.empty?
+          root
+        else
+          logger.info("repo_file?(#{path.inspect})")
+          Razor::Data::Repo.find_file_ignoring_case(root, path)
+        end
       end
     end
+
+    # Deprecated: Only kept in case a user is relying on this function for
+    # custom tasks.
+    def repo_file(path = '')
+      logger.warn("repo_file is deprecated; use `repo_file_contents` or `repo_file?`")
+      if @repo.url
+        # This preserves past behavior, where an empty string would be returned.
+        # The `repo_file?` method below would return a URL.
+        ''
+      else
+        repo_file?(path)
+      end
+    end
+
+    def repo_file_contents(path = '')
+      if @repo.url
+        uri = repo_uri(path)
+        logger.info("repo_file_contents(#{uri})")
+        open(uri).read rescue ''
+      else
+        root = File.expand_path(@repo.name, Razor.config['repo_store_root'])
+        if path.empty?
+          root
+        else
+          logger.info("repo_file_contents(#{path.inspect})")
+          file = Razor::Data::Repo.find_file_ignoring_case(root, path)
+          File.read(file) rescue ''
+        end
+      end
+    end
+
 
     # @todo lutter 2013-08-21: all the tasks need to be adapted to do a
     # 'curl <%= stage_done_url %> to signal that they are ready to proceed to
