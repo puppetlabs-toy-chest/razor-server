@@ -16,7 +16,7 @@
     # Given the changes are purely mechanical and well understood, this will
     # do for the majority of cases without the risk / cost that a slight
     # variant in the CD breaks everything, I think. --daniel 2013-10-14
-    (File.read(repo_file('/boot.cfg')) rescue '').split("\n").map do |line|
+    (repo_file_contents('/boot.cfg')).split("\n").map do |line|
       case line
         when /^kernel=/
           'kernel=' + repo_url(line.sub('kernel=', ''))
