@@ -72,7 +72,7 @@ describe 'hostname hook' do
     Razor::Data::Hook.trigger('node-bound-to-policy', node: node, policy: policy)
     queue.count_messages.should == 1
     run_message(queue.receive)
-    Razor::Data::Event.first.entry['error'].should == 'Hook configuration `counter` must be an integer (was: abc)'
+    Razor::Data::Event.first.entry['error'].should =~ /Hook configuration `counter` must be an integer \(was: abc\)/
   end
   it "should fail with invalid `padding` property" do
     arguments = {:name => 'hostname-test', :hook_type => Razor::HookType.find(name: 'hostname'),
@@ -83,7 +83,7 @@ describe 'hostname hook' do
     Razor::Data::Hook.trigger('node-bound-to-policy', node: node, policy: policy)
     queue.count_messages.should == 1
     run_message(queue.receive)
-    Razor::Data::Event.first.entry['error'].should == 'Hook configuration `padding` must be an integer (was: def)'
+    Razor::Data::Event.first.entry['error'].should =~ /Hook configuration `padding` must be an integer \(was: def\)/
   end
   it "should succeed with a string `padding` property" do
     arguments = {:name => 'hostname-test', :hook_type => Razor::HookType.find(name: 'hostname'),
