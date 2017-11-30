@@ -1,7 +1,7 @@
 ---
 
-os_version: trusty
-label: Ubuntu Trusty 14.04
+os_version: xenial
+label: Ubuntu Xenial 16.04
 description: Ubuntu Generic Installer
 boot_sequence:
   1: boot_install

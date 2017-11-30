@@ -1,0 +1,6 @@
+---
+
+os_version: xenial
+label: Ubuntu Xenial 14.04
+description: Ubuntu Xenial Installer
+base: ubuntu
