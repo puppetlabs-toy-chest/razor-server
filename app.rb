@@ -264,6 +264,7 @@ and requires full control over the database (eg: add and remove tables):
         vars[net_id] = "${#{net_id}/mac:hexhyp}"
       end
       ["dhcp_mac", "serial", "asset", "uuid"].each { |k| vars[k] = "${#{k}}" }
+      vars['fact_boot_type'] = "${platform}"
       q = vars.map { |k,v| "#{k}=#{v}" }.join("&")
       # Sinatra's URL generation is not robust, meaning changes need to happen
       # as string substitutions.
