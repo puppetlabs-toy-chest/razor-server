@@ -441,6 +441,14 @@ module Razor::Data
         # call register to merge the existing and the new node
         unless dhcp_mac.nil? || node.dhcp_mac == dhcp_mac
           node.dhcp_mac = dhcp_mac
+        end
+        hw_info_facts = Node.hw_hashing(hw_info).select do
+          |name| name.start_with?('fact_')
+        end
+        unless hw_info_facts.empty?
+          node.hw_hash = node.hw_hash.merge(hw_info_facts)
+        end
+        if node.modified?
           node.save
         end
         node
@@ -495,7 +503,7 @@ module Razor::Data
           kill_nodes = nodes[1..-1]
         end
 
-        keep_node.hw_info = hw_info
+        keep_node.hw_hash = keep_node.hw_hash.merge(Node.hw_hashing(hw_info))
 
         kill_nodes.each do |kill_node|
           kill_node.events_dataset.update(:node_id => keep_node.id)
