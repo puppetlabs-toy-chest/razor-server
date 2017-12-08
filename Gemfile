@@ -19,13 +19,16 @@ source 'https://rubygems.org'
 ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.19'
 
 gem 'torquebox', '~> 3.1.2'
-gem 'sinatra', '>= 1.4.4'
+# sinatra 2.0 pulls in dependencies that don't work on ruby 1.9
+gem 'sinatra', '~> 1.4.4'
 # sequel 4.10 has issues with the serialization plugin; rspec tests fail.
 gem 'sequel', '= 4.9'
 gem 'jdbc-postgres'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 gem 'gettext-setup'
+# rake 12.3 requires ruby >= 2.0.0
+gem 'rake', '~> 12.2.1'
 
 ## support for various tasks and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,
@@ -35,12 +38,14 @@ gem "unix-crypt", "~> 1.1.1"
 
 group :doc do
   gem 'yard'
-  gem 'kramdown'
+  # kramdown 1.15.0 requires ruby >= 2.0
+  gem 'kramdown', '~> 1.14.0'
 end
 
 # This group will be excluded by default in `torquebox archive`
 group :test do
-  gem 'rack-test'
+  # rack-test 0.8.0 requires ruby >= 2.2.2
+  gem 'rack-test', '~> 0.7.0'
   gem 'rspec', '~> 2.13.0'
   gem 'rspec-core', '~> 2.13.1'
   gem 'rspec-expectations', '~> 2.13.0'
@@ -50,7 +55,7 @@ group :test do
   gem 'faker', '~> 1.2.0'
   # json-schema versions beyond this version require
   # ruby version > 2.0 when jruby is upgraded to 9K+
-  # this pin can be removed 
+  # this pin can be removed
   gem 'json-schema', '2.6.2'
   gem 'timecop'
 end
