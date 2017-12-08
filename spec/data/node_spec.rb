@@ -178,6 +178,20 @@ describe Razor::Data::Node do
       n2.hw_info.should == [ "asset=abcd", "mac=00-11-22-33-44-55" ]
     end
 
+    it "should add new hw_info facts to node" do
+      Razor.config['match_nodes_on'] = ['mac']
+
+      hw_hash = { "mac" => ["00-11-22-33-44-55"], "uuid" => "before", "fact_overwrite" => "old" }
+      n1 = Node.lookup(hw_hash)
+      n1.should_not be_nil
+
+      hw_hash = { "net0" => "00-11-22-33-44-55", "uuid" => "not used", "fact_new" => "created", "fact_overwrite" => "new" }
+      n2 = Node.lookup(hw_hash)
+      n2.id.should == n1.id
+      n2.hw_info.should == [ "fact_new=created", "fact_overwrite=new", "mac=00-11-22-33-44-55", "uuid=before" ]
+      n1.reload.hw_info.should == n2.hw_info
+    end
+
     it "should complain if hardware is moved between known nodes" do
       hw1 = { "net0" => "01:01", "net1" => "01:02" }
       hw2 = { "net0" => "02:01" }
@@ -542,6 +556,24 @@ describe Razor::Data::Node do
 
           Node.register(facts)
           Node[n2.id].should be_nil
+        end
+
+        it "should retain fact hw_info from first checkin" do
+          n1_hw_hash = { "mac" => ["00-11-22-33-44-55"], "uuid" => "lookup", "fact_fact1" => "value1", "fact_fact2" => "value2" }
+
+          facts = {
+              "uuid"       => "register",
+              "macaddress" => "00:11:22:33:44:55"
+          }
+
+          n1 = Fabricate(:node, :hw_hash => n1_hw_hash,
+                         :facts => { "fact1" => "value1", "fact2" => "value2" })
+
+          Node.register(facts)
+          Node[n1.id].hw_hash.should == {"fact_fact1" => "value1",
+                                         "fact_fact2" => "value2",
+                                         "mac" => ["00-11-22-33-44-55"],
+                                         "uuid" => "register"}
         end
       end
     end
