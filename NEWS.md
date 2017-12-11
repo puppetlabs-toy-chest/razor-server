@@ -15,8 +15,25 @@
 + BUGFIX: Task method `repo_file` was not functional for remote repo
   sources. Stock task usages of this function have been replaced with
   the two methods above.
++ NEW: Added ESXi 6 task, `vmware_esxi/6`.
++ NEW: Added Ubuntu Xenial task, `ubuntu/xenial`.
++ NEW: Added UEFI support for Windows 2012r2 and 2016 on x64 machines.
 + NEW: On the Windows side, ADK 10 is now supported. The output from
   `build-razor-winpe.ps1` will now be named `boot.wim`.
+
+### Other
+
++ NEW: The final step of internationalization, reading the locale from
+  incoming API messages, is complete. Razor will now parse the
+  ACCEPT_LANGUAGE header in requests.
++ NEW: Added `has_macaddress_like` tag matcher, which will use a regex
+  to match macaddresses.
++ NEW: A new `fact_boot_type` value in `hw_info` will reveal which
+  style of booting is used, whether that be `efi` or `pcbios`.
++ IMPROVEMENT: When nodes PXE boot, their `hw_info` will be preserved,
+  even if it is not used for matching to a node in the Razor database.
++ IMPROVEMENT: Updated the README to reference the latest version of the
+  microkernel.
 
 ## 1.6.1 - 2017-03-09
 
