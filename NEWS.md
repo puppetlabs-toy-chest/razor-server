@@ -15,6 +15,8 @@
 + BUGFIX: Task method `repo_file` was not functional for remote repo
   sources. Stock task usages of this function have been replaced with
   the two methods above.
++ NEW: On the Windows side, ADK 10 is now supported. The output from
+  `build-razor-winpe.ps1` will now be named `boot.wim`.
 
 ## 1.6.1 - 2017-03-09
 

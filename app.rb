@@ -587,6 +587,16 @@ and requires full control over the database (eg: add and remove tables):
     # hit trouble.  So, to make this more user friendly we look for a
     # case-insensitive match on the file.
     fpath = Razor::Data::Repo.find_file_ignoring_case(root, path)
+    if fpath.nil? && path == 'razor-winpe.wim'
+      # These are odd cases; Windows 2012r2 and 2016 require the winpe file to
+      # be called `boot.wim`. Our old tasks used `razor-winpe.wim` instead.
+      # For backwards compatibility, we should also look for razor-winpe.wim in
+      # this case. This checks both, in case the user copied our task.
+      fpath = Razor::Data::Repo.find_file_ignoring_case(root, 'boot.wim')
+    elsif fpath.nil? and path == 'boot.wim'
+      fpath = Razor::Data::Repo.find_file_ignoring_case(root, 'razor-winpe.wim')
+    end
+
     if fpath and fpath.start_with?(root) and File.file?(fpath)
       content_type nil
       send_file fpath, :disposition => nil
