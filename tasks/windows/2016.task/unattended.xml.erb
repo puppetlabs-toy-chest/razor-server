@@ -4,7 +4,7 @@
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <DiskConfiguration>
         <Disk wcm:action="add">
-<% if node.hw_hash['fact_platform'] == "efi" %>
+<% if node.hw_hash['fact_boot_type'] == "efi" %>
            <CreatePartitions>
             <CreatePartition wcm:action="add">
               <Order>1</Order>
@@ -75,7 +75,7 @@
           </InstallFrom>
           <InstallTo>
             <DiskID>0</DiskID>
-<% if node.hw_hash['fact_platform'] == "efi" %>
+<% if node.hw_hash['fact_boot_type'] == "efi" %>
             <PartitionID>3</PartitionID>
 <% else %>
             <PartitionID>2</PartitionID>
