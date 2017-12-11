@@ -119,9 +119,9 @@ if (-not (test-path -path $mount)) {
 
 
 write-host "* Copy the clean ADK WinPE image into our output area."
-copy-item $wim (join-path $output "razor-winpe.wim") -ErrorAction Stop
+copy-item $wim (join-path $output "boot.wim") -ErrorAction Stop
 # update our wim location...
-$wim = (join-path $output "razor-winpe.wim")
+$wim = (join-path $output "boot.wim")
 
 
 $env:Path = ($env:Path + ";$adk\..\..\Deployment Tools\amd64\DISM")

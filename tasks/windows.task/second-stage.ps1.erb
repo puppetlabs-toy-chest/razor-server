@@ -20,7 +20,9 @@ $unattended = "${env:SYSTEMDRIVE}\unattended.xml"
 write-host "mapping SMB share ${drive_path} for installer access"
 # As far as I can tell, if we don't persist, we don't connect the SMB share,
 # and that means we can't actually run stuff off it.
-new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
+$pass = "password" | ConvertTo-SecureString -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential('user', $pass)
+new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist -credential $cred
 If (!(Test-Path i:))
 {
         Invoke-WebRequest -Uri "<%= log_url("samba share not accessible ${drive_path}", :error) %>" -UseBasicParsing
