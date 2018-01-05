@@ -23,7 +23,7 @@ gem 'torquebox', '~> 3.1.2'
 gem 'sinatra', '~> 1.4.4'
 # sequel 4.10 has issues with the serialization plugin; rspec tests fail.
 gem 'sequel', '= 4.9'
-gem 'jdbc-postgres'
+gem 'jdbc-postgres', '= 9.4.1206'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 gem 'gettext-setup'
@@ -37,7 +37,7 @@ gem "unix-crypt", "~> 1.1.1"
 
 
 group :doc do
-  gem 'yard'
+  gem 'yard', '~> 0.9.11'
   # kramdown 1.15.0 requires ruby >= 2.0
   gem 'kramdown', '~> 1.14.0'
 end
