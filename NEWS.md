@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## Next - Next
+## 1.7.0 - 2018-01-10
 
 ### API changes
 
