@@ -128,7 +128,7 @@ DEPENDENCIES
   yard (~> 0.9.11)
 
 RUBY VERSION
-   ruby 1.9.3p551 (jruby 1.7.19)
+   ruby 1.9.3p551 (jruby 1.7.26)
 
 BUNDLED WITH
    1.15.4
