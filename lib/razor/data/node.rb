@@ -42,8 +42,6 @@ module Razor::Data
     auto_validate_not_null_columns.delete(:name)
     auto_validate_explicit_not_null_columns << :name
 
-    #See the method schema_type_class() for some special considerations
-    #regarding the use of serialization.
     plugin :serialization, :json, :facts
     plugin :serialization, :json, :metadata
 
@@ -154,7 +152,7 @@ module Razor::Data
     def freeze
       # Validation, which should not change the object, sometimes does. So
       # validate before we freeze
-      validate
+      valid?
       super
     end
 
@@ -230,24 +228,6 @@ module Razor::Data
       self.policy = nil
     end
 
-    # This is a hack around the fact that the auto_validates plugin does
-    # not play nice with the JSON serialization plugin (the serializaton
-    # happens in the before_save hook, which runs after validation)
-    #
-    # To avoid spurious error messages, we tell the validation machinery to
-    # expect a Hash resp.
-    #
-    # Add the fields to be serialized to the 'serialized_fields' array
-    #
-    # FIXME: Figure out a way to address this issue upstream
-    def schema_type_class(k)
-      if [ :facts, :metadata ].include?(k)
-        Hash
-      else
-        super
-      end
-    end
-
     def validate
       super
 
@@ -299,7 +279,7 @@ module Razor::Data
     # intent.
     # 'force' will cause no_replace errors to be simply skipped over.
     def modify_metadata(data)
-      new_metadata = metadata
+      new_metadata = metadata.dup
 
       if data['update']
         data['update'].is_a? Hash or raise ArgumentError, _('update must be a hash')
@@ -330,7 +310,7 @@ module Razor::Data
       end
 
       self.metadata = new_metadata
-      save_changes
+      self.save_changes
       self
     end
 

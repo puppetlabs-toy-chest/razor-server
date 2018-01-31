@@ -67,7 +67,7 @@ describe Razor::Validation::HashAttribute do
 
     it "should fail if the type is URI, and it has a bad URI passed" do
       attr.type(URI)
-      expect { attr.validate!({'attr' => 'http://'}, nil) }.
+      expect { attr.validate!({'attr' => 'http://%'}, nil) }.
         to raise_error(/bad URI/)
     end
 

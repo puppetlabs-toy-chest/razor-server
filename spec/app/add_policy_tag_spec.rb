@@ -36,7 +36,7 @@ describe Razor::Command::AddPolicyTag do
     it "should advise that that tag is already on policy" do
       count = policy.tags.count
       add_policy_tag(policy.name, policy.tags.first.name)
-      policy.tags(true).count.should == count
+      policy.tags(reload: true).count.should == count
       last_response.status.should == 202
       last_response.json?.should be_true
       last_response.json.keys.should =~ %w[result]
@@ -46,7 +46,7 @@ describe Razor::Command::AddPolicyTag do
     it "should add a tag to a policy" do
       count = policy.tags.count
       add_policy_tag(policy.name, tag.name)
-      policy.tags(true).count.should == count + 1
+      policy.tags(reload: true).count.should == count + 1
       last_response.status.should == 202
     end
 
@@ -55,7 +55,7 @@ describe Razor::Command::AddPolicyTag do
       tag_name = 'new_tag'
       matcher  = [ "eq", 1, 1 ]
       add_policy_tag(policy.name, tag_name, matcher)
-      policy.tags(true).count.should == count + 1
+      policy.tags(reload: true).count.should == count + 1
       last_response.status.should == 202
     end
 
@@ -63,7 +63,7 @@ describe Razor::Command::AddPolicyTag do
       count = policy.tags.count
       tag_name = 'another_tag'
       add_policy_tag(policy.name, tag_name)
-      policy.tags(true).count.should == count
+      policy.tags(reload: true).count.should == count
       last_response.status.should == 422
     end
   end

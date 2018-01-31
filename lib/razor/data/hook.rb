@@ -38,28 +38,9 @@ class Razor::Data::Hook < Sequel::Model
   plugin :serialization, :json, :configuration
 
   serialize_attributes [
-                           ->(b){ b.name },               # serialize
-                           ->(b){ Razor::HookType.find(name: b) } # deserialize
-                       ], :hook_type
-
-
-  # This is a hack around the fact that the auto_validates plugin does
-  # not play nice with the JSON serialization plugin (the serializaton
-  # happens in the before_save hook, which runs after validation)
-  #
-  # To avoid spurious error messages, we tell the validation machinery to
-  # expect a Hash
-  #
-  # FIXME: Figure out a way to address this issue upstream
-  def schema_type_class(k)
-    if k == :configuration
-      Hash
-    elsif k == :hook_type
-      Razor::HookType
-    else
-      super
-    end
-  end
+      ->(b){ b.is_a?(Razor::HookType) ? b.name : b }, # serialize
+      ->(b){ Razor::HookType.find(name: b) } # deserialize
+  ], :hook_type
 
   def _run(hash)
     run(hash['cause'], hash['args'])
@@ -137,12 +118,15 @@ class Razor::Data::Hook < Sequel::Model
       end
 
       # Required keys that are missing from the supplied configuration.
+      changed = false
       schema.each do |key, details|
         next if configuration.has_key? key
-        (configuration[key] = details['default']) and next if details['default']
+        (configuration[key] = details['default'] and changed = true) and next if details['default']
         next unless details['required']
         errors.add(:configuration, _("key '%{key}' is required by this hook type, but was not supplied") % {key: key})
       end
+      # We need to re-serialize here, since our data has changed.
+      serialize_deserialized_values if changed
     else
       errors.add(:hook_type, _("'%{name}' is not valid") % {name: hook_type})
     end
