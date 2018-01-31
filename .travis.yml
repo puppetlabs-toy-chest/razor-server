@@ -23,7 +23,7 @@ script:
 notifications:
   email: false
 rvm:
-  - jruby-1.7.19
+  - jruby-9.1.5.0
 addons:
   postgresql: "9.3"
   apt:

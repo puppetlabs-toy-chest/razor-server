@@ -26,7 +26,7 @@ class Razor::App < Sinatra::Base
     # eg, get the subject work.  The middleware is responsible for binding
     # into place our security manager and subject instance.  We only protect
     # paths if security is enabled, though.
-    use Razor::Middleware::Auth, %r{/api($|/)}i
+    use Razor::Middleware::Auth, %r{/api}i
 
     set :show_exceptions, false
   end
@@ -61,9 +61,11 @@ and requires full control over the database (eg: add and remove tables):
 
   before do
     FastGettext.locale = GettextSetup.negotiate_locale(env["HTTP_ACCEPT_LANGUAGE"])
+
+    params.delete('captures')
   end
 
-  before %r'/api($|/)'i do
+  before %r'/api'i do
     # Ensure that we can happily talk application/json with the client.
     # At least this way we tell you when we are going to be mean.
     #
@@ -289,31 +291,37 @@ and requires full control over the database (eg: add and remove tables):
 
   # Error handlers for node API
   error Razor::TemplateNotFoundError do
-    status [404, {error: env["sinatra.error"].to_s}.to_json]
+    status 404
+    body ({error: env["sinatra.error"].to_s}.to_json)
   end
 
   error Razor::Util::ConfigAccessProhibited do
-    status [500, {error: env["sinatra.error"].to_s}.to_json]
+    status 500
+    body ({error: env["sinatra.error"].to_s}.to_json)
   end
 
   error org.apache.shiro.authz.UnauthorizedException do
-    status [403, {error: env["sinatra.error"].to_s}.to_json]
+    status 403
+    body ({error: env["sinatra.error"].to_s}.to_json)
   end
 
   [ArgumentError, TypeError, Sequel::ValidationFailed, Sequel::Error].each do |fault|
     error fault do
       e = env["sinatra.error"]
-      status [400, {error: e.to_s}.to_json]
+      status 400
+      body ({error: e.to_s}.to_json)
     end
   end
 
   error Razor::ValidationFailure do
     e = env["sinatra.error"]
-    status [e.status, {error: e.to_s}.to_json]
+    status e.status
+    body ({error: e.to_s}.to_json)
   end
 
   error Razor::Conflict do
-    status [409, {error: env['sinatra.error'].to_s}.to_json]
+    status 409
+    body ({error: env['sinatra.error'].to_s}.to_json)
   end
 
 
@@ -420,6 +428,7 @@ and requires full control over the database (eg: add and remove tables):
   end
 
   get '/svc/boot' do
+    params.delete('captures')
     begin
       @node = Razor::Data::Node.lookup(params)
     rescue Razor::Data::DuplicateNodeError => e
@@ -462,7 +471,7 @@ and requires full control over the database (eg: add and remove tables):
   get '/svc/file/:node_id/raw/:filename' do
     logger.info("#{params[:node_id]}: raw file #{params[:filename]}")
 
-    halt 404 if params[:filename] =~ /\.erb$/i # no raw template access
+    halt 404 if params[:filename] =~ /\.erb/i # no raw template access
 
     @node = Razor::Data::Node[params[:node_id]]
     halt 404 unless @node
@@ -680,7 +689,8 @@ and requires full control over the database (eg: add and remove tables):
 
   # We can generically permission check "any read at all" on the
   # collection entries, thankfully.
-  before %r{^/api/collections/([^/]+)/?([^/]+)?$}i do |collection, item|
+  before %r{/api/collections/([^/]+)/?([^/]+)?}i do |collection, item|
+    params.delete('captures')
     check_permissions!("query:#{collection}" + (item ? ":#{item}" : ''))
   end
 

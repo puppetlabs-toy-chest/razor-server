@@ -16,19 +16,16 @@ source 'https://rubygems.org'
 # Note that the lack of whitespace matters in those two lines:
 #ruby=jruby-1.7.8
 #ruby-gemset=razor-server
-ruby '1.9.3', :engine => 'jruby', :engine_version => '1.7.19'
+ruby '2.3.1', :engine => 'jruby', :engine_version => '9.1.5.0'
 
-gem 'torquebox', '~> 3.1.2'
-# sinatra 2.0 pulls in dependencies that don't work on ruby 1.9
-gem 'sinatra', '~> 1.4.4'
-# sequel 4.10 has issues with the serialization plugin; rspec tests fail.
-gem 'sequel', '= 4.9'
+gem 'torquebox', '~> 3.2.0'
+gem 'sinatra'
+gem 'sequel'
 gem 'jdbc-postgres', '= 9.4.1206'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 gem 'gettext-setup'
-# rake 12.3 requires ruby >= 2.0.0
-gem 'rake', '~> 12.2.1'
+gem 'rake'
 
 ## support for various tasks and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,
@@ -53,10 +50,7 @@ group :test do
   gem 'simplecov'
   gem 'fabrication', '~> 2.7.2'
   gem 'faker', '~> 1.2.0'
-  # json-schema versions beyond this version require
-  # ruby version > 2.0 when jruby is upgraded to 9K+
-  # this pin can be removed
-  gem 'json-schema', '2.6.2'
+  gem 'json-schema'
   gem 'timecop'
 end
 
@@ -68,7 +62,7 @@ group :development do
   #
   # For production you can use this, or deploy to a distinct installation of
   # TorqueBox, as you prefer.
-  gem 'torquebox-server', '~> 3.1.2'
+  gem 'torquebox-server', '~> 3.2.0'
 end
 
 # This allows you to create `Gemfile.local` and have it loaded automatically;

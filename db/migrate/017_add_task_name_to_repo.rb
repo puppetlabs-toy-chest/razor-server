@@ -19,8 +19,8 @@ Sequel.migration do
     # If only one task exists for the repo (via policy), assign it to repo and remove it from policy.
     from(:policies).
         join(:repos, :id => :repo_id).
-        select_group(:repos__id).
-        having("count(*) = 1").
+        select_group(Sequel[:repos][:id]).
+        having{count.function.* == 1}.
         each do |repo|
           task_name = from(:policies).select(:task_name).where(:repo_id => repo[:id])
           from(:repos).where(id: repo[:id]).update(:task_name => task_name)
@@ -30,8 +30,8 @@ Sequel.migration do
     # Warning if using repo's task 'noop' + override on policy.
     from(:policies).
         join(:repos, :id => :repo_id).
-        select_group(:repos__id).
-        having("count(*) > 1").
+        select_group(Sequel[:repos][:id]).
+        having{count.function.* > 1}.
         each do |repo|
           repo_name = from(:repos).select(:name).where(:id => repo[:id]).single_value
           puts _("Warning: Multiple policies found for repo #{repo_name}; unable to control task from repo")

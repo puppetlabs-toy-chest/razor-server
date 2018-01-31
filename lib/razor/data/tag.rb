@@ -28,14 +28,6 @@ class Razor::Data::Tag < Sequel::Model
     self.all.select { |tag| tag.match?(node) }
   end
 
-  # This is the same hack around auto_validation as in +Node+
-  def schema_type_class(k)
-    case k
-    when :matcher then Razor::Matcher
-    else super
-    end
-  end
-
   def validate
     super
     unless matcher.nil?

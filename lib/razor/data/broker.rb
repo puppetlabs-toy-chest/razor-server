@@ -7,7 +7,7 @@ class Razor::Data::Broker < Sequel::Model
   plugin :serialization, :json, :configuration
 
   serialize_attributes [
-    ->(b){ b.name },               # serialize
+    ->(b){ b.is_a?(Razor::BrokerType) ? b.name : b }, # serialize
     ->(b){ Razor::BrokerType.find(name: b) } # deserialize
   ], :broker_type
 
@@ -32,24 +32,19 @@ class Razor::Data::Broker < Sequel::Model
         errors.add(:configuration, _("must be a Hash"))
       end
 
-      # Required keys that are missing from the supplied configuration.
+      # Required keys that are missing from the supplied configuration. Default
+      # values are already added in `before_validation`.
+      changed = false
       schema.each do |key, details|
         next if configuration.has_key? key
-        (configuration[key] = details['default']) and next if details['default']
+        (configuration[key] = details['default'] and changed = true) and next if details['default']
         next unless details['required']
         errors.add(:configuration, _("key '%{key}' is required by this broker type, but was not supplied") % {key: key})
       end
+      # We need to re-serialize here, since our data has changed.
+      serialize_deserialized_values if changed
     else
       errors.add(:broker_type, _("'%{name}' is not valid") % {name: broker_type})
-    end
-  end
-
-  # This is the same hack around auto_validation as in +Node+
-  def schema_type_class(k)
-    case k
-    when :configuration then Hash
-    when :broker_type   then Razor::BrokerType
-    else                     super
     end
   end
 

@@ -51,15 +51,6 @@ module Razor::Data
       end
     end
 
-    # This is the same hack around auto_validation as in +Node+
-    def schema_type_class(k)
-      if k == :boot_seq or k == :templates
-        Hash
-      else
-        super
-      end
-    end
-
     def boot_template(node)
       boot_seq[node.boot_count] || boot_seq["default"]
     end

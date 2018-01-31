@@ -86,12 +86,14 @@ describe Razor::Data::Hook do
     end
 
     context "with configuration items defined" do
-      before :each do
+      around :each do |test|
         configuration = {
             'server'  => {'required' => false, 'description' => 'foo'},
             'version' => {'required' => true,  'description' => 'bar'}
         }
-        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml)
+        set_hook_file('test', 'configuration.yaml' => configuration.to_yaml) do
+          test.run
+        end
       end
 
       def new_hook(config = {})
@@ -199,11 +201,13 @@ exit 0
       second_event.entry['msg'].should == 'standard output'
       second_event.severity.should == 'info'
     end
-    it "should properly log malformed scripts" do
+    it "should fail when it can't run the shebang line" do
       Razor::Data::Hook.new(:name => 'hook', :hook_type => hook_type).save
 
       set_hook_file('test', 'node-booted' => <<-CONTENTS)
-#! /no/such/executable
+#! /something/that/doesnt/exist
+
+set -e
 
 cat <<EOF
 {
@@ -220,9 +224,11 @@ exit 0
       event = events.first
       event.node_id.should == node.id
       event.severity.should == 'error'
-      event.entry['exit_status'].should == 1
+      # The exact error here will vary by OS. Ubuntu won't even find the file
+      # if the shebang line is invalid.
+      event.entry['error'].should =~ /test.hook\/node-booted/
+      event.entry['exit_status'].should satisfy{|s| [126, 127].include?(s)}
       event.entry['event'].should == 'node-booted'
-      event.entry['error'].should =~ /Cannot run program.+test.hook\/node-booted/
     end
     it "should properly log failing executables" do
       Razor::Data::Hook.new(:name => 'hook', :hook_type => hook_type).save

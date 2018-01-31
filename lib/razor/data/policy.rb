@@ -47,24 +47,6 @@ module Razor::Data
       end
     end
 
-    # This is a hack around the fact that the auto_validates plugin does
-    # not play nice with the JSON serialization plugin (the serializaton
-    # happens in the before_save hook, which runs after validation)
-    #
-    # To avoid spurious error messages, we tell the validation machinery to
-    # expect a Hash resp.
-    #
-    # Add the fields to be serialized to the 'serialized_fields' array
-    #
-    # FIXME: Figure out a way to address this issue upstream
-    def schema_type_class(k)
-      if [ :node_metadata ].include?(k)
-        Hash
-      else
-        super
-      end
-    end
-
     def task
       task_name ? Razor::Task.find(task_name) : repo.task
     end
@@ -101,7 +83,7 @@ and
 (max_count is NULL or (select count(*) from nodes n where n.policy_id = policies.id) < max_count)
 SQL
       begin
-        match = Policy.where(sql).order(:rule_number).first
+        match = Policy.where(Sequel.lit(sql)).order(:rule_number).first
         if match
           match.lock!
           # Make sure nobody raced us to binding to the policy
