@@ -399,17 +399,20 @@ module Razor::Data
     end
 
     # Find all nodes matching the hardware criteria in +params+ which must
-    # be in a format that +canonicalize_hw_info+ understands. Return a
-    # pair, where the first part is an array of nodes, and the second part
-    # the +hw_info+ that was used for the lookup
+    # be in a format that +canonicalize_hw_info+ understands. Return three
+    # pieces, where the first part is an array of nodes, the second part the
+    # canonicalized +hw_info+ for the node, and the third the +hw_info+ used
+    # for the lookup.
     def self.find_by_hw_info(params)
       # For matching nodes, we only consider the +hw_info+ values named in
       # the 'match_nodes_on' config setting.
       canonicalized = canonicalize_hw_info(params)
       hw_match = canonicalized.select do |p|
         name = p.split("=")[0]
+        # Ignore the 'fact_boot_type' fact when doing matching. It is retrieved
+        # when iPXE runs but has nothing to do with identifying the node.
         Razor.config['match_nodes_on'].include?(name) or
-          name.start_with?('fact_')
+          name.start_with?('fact_') && name != 'fact_boot_type'
       end
 
       hw_match.empty? and raise ArgumentError, _("Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})") % {keys: params.keys, match_nodes_on: Razor.config['match_nodes_on']}

@@ -215,6 +215,19 @@ describe Razor::Data::Node do
       n1.registered?.should be_false
     end
 
+    it "should ignore the 'fact_boot_type' fact when matching" do
+      Razor.config['match_nodes_on'] = ['mac']
+
+      hw_hash = { "fact_boot_type" => "pcbios", "mac" => ["00-11-22-33-44-55"], "uuid" => "before" }
+      n1 = Node.lookup(hw_hash)
+      n1.should_not be_nil
+
+      hw_hash = { "fact_boot_type" => "pcbios", "net0" => "00-11-22-33-44-56" }
+      n2 = Node.lookup(hw_hash)
+      n2.id.should_not == n1.id
+      n2.hw_info.should == [ "fact_boot_type=pcbios", "mac=00-11-22-33-44-56" ]
+    end
+
     it "should return a DuplicateNodeError if 3 or more matches are found" do
       hw_hash = { "mac" => ["00-11-22-33-44-55"], "uuid" => "abcd" }
 
