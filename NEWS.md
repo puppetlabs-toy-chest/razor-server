@@ -1,5 +1,12 @@
 # Razor Server Release Notes
 
+## 1.7.1 - 2018-02-07
+
+### Other
+
++ BUGFIX: Fixed error in 1.7.0 where nodes would be incorrectly
+  coalesced together due to the new `fact_boot_type` value in `hw_info`.
+
 ## 1.7.0 - 2018-01-17
 
 ### API changes
