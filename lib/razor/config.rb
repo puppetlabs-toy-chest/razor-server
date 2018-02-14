@@ -22,12 +22,26 @@ module Razor
     attr_reader :values
     attr_reader :flat_values
 
+    def logger
+      @logger ||= TorqueBox::Logger.new(self.class)
+    end
+
     def initialize(env, fname = nil, defaults_file = nil)
       @values = {}
       # Load defaults first.
       defaults_file ||= ENV["RAZOR_CONFIG_DEFAULTS"] ||
-          (File.file?('/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') and '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml') ||
           File::join(File::dirname(__FILE__), '..', '..', 'config-defaults.yaml')
+      # Use the filename given, or from the environment, or from /etc if it
+      # exists, otherwise the one in our root directory...
+      fname ||= ENV["RAZOR_CONFIG"] ||
+          (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
+          File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
+
+      # Save this for later, since we use it to find relative paths.
+      @fname = fname
+
+      logger.info(_("Searching config files: %{defaults} and %{override}") % {defaults: defaults_file, override: fname})
+
       begin
         yaml = File::open(defaults_file, "r") { |fp| YAML::load(fp) } || {}
 
@@ -40,26 +54,19 @@ module Razor
               _("The configuration defaults file %{filename} is not readable") % {filename: defaults_file}
       end
 
-      # Use the filename given, or from the environment, or from /etc if it
-      # exists, otherwise the one in our root directory...
-      fname ||= ENV["RAZOR_CONFIG"] ||
-        (File.file?('/etc/puppetlabs/razor-server/config.yaml') and '/etc/puppetlabs/razor-server/config.yaml') ||
-        File::join(File::dirname(__FILE__), '..', '..', 'config.yaml')
-
-      # Save this for later, since we use it to find relative paths.
-      @fname = fname
-
       begin
         yaml = File::open(fname, "r") { |fp| YAML::load(fp) } || {}
+
+        @values.merge!(yaml["all"] || {})
+        @values.merge!(yaml[Razor.env] || {})
       rescue Errno::ENOENT
+        # This is only an error if we don't have any config values yet.
         raise InvalidConfigurationError,
-          _("The configuration file %{filename} does not exist") % {filename: fname}
+          _("The configuration file %{filename} does not exist") % {filename: fname} if @values.empty?
       rescue Errno::EACCES
         raise InvalidConfigurationError,
           _("The configuration file %{filename} is not readable") % {filename: fname}
       end
-      @values.merge!(yaml["all"] || {})
-      @values.merge!(yaml[Razor.env] || {})
     end
 
     def flat_values
