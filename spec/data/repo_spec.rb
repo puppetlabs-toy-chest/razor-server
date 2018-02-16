@@ -278,6 +278,9 @@ describe Razor::Data::Repo do
       let :command do Fabricate(:command) end
 
       it "should raise (to trigger a retry) if the repo is not readable" do
+        pending("Skipping this test because process is running with " +
+                "root user privileges and root can read everything") if Process.uid == 0
+
         File.chmod(00000, path) # yes, *no* permissions, thanks
         expect {
           repo.make_the_repo_accessible(command)
