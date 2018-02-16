@@ -137,6 +137,9 @@ describe Razor::BrokerType do
       end
 
       it "should raise if the install template is present but unreadable" do
+        pending("Skipping this test because process is running with " +
+                "root user privileges and root can read everything") if Process.uid == 0
+
         broker = {'test' => {'install.erb' => "# no real content here\n"}}
         with_brokers_in(paths.first => broker) do
           (Pathname(paths.first) + 'test.broker' + 'install.erb').chmod(0000)
