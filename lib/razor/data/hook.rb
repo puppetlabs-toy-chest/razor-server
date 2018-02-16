@@ -318,37 +318,38 @@ class Razor::Data::Hook < Sequel::Model
       # Run the file from the hook's directory so that relative paths work.
       hook_dir = File.expand_path('..', script)
       stdin, stdout, stderr, wait_thr = Bundler.with_clean_env do
-        begin
-          old = Dir.pwd
-          extra_path = Razor.config['hook_execution_path']
-          ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
-          Dir.chdir(hook_dir)
+        extra_path = Razor.config['hook_execution_path']
+        ENV['PATH'] = "#{extra_path}:#{ENV['PATH']}" if extra_path
+        Dir.chdir(hook_dir) do
           Open3.popen3(script.to_s)
-        ensure
-          Dir.chdir(old)
         end
       end
-      stdin.write(args) if args
+
       begin
-        stdin.close unless stdin.closed?
-      rescue Errno::EPIPE, Errno::EBADF, IOError
+        stdin.write(args) if args
+      rescue Errno::EPIPE
         # Do nothing; this means the hook did not read stdin or that stdin
         # closed already.
       end
+
+      # This is necessary for the join call below, as otherwise the thread will not
+      # finish
+      stdin.close
       wait_thr.join
-      # Prefer nil over an empty string.
+
       output = stdout.readlines.join
       error = stderr.readlines.join
       process = wait_thr.value
+      # Prefer nil over an empty string.
       [process.exitstatus, process.success?, output.empty? ? nil : output,
        error.empty? ? nil : error]
-    rescue IOError => e
+    rescue IOError, SystemCallError => e
       # Error running the script. Catch the message and continue.
       [1, false, nil, e.message]
     ensure
-      stdin.close unless !stdin or stdin.closed?
-      stdout.close unless !stdout or stdout.closed?
-      stderr.close unless !stderr or stderr.closed?
+      stdin.close
+      stdout.close
+      stderr.close
     end
   end
 
