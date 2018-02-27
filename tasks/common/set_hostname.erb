@@ -1,6 +1,6 @@
 <%# -*- shell-script -*- %>
 # Configure hostname.
-hostname <%= node.metadata['hostname'] || node.hostname %>
+hostname <%= (node.metadata['hostname'] || node.hostname).split('.').first %>
 echo <%= node.metadata['hostname'] || node.hostname %> > /etc/hostname
 
 # This set of commands should convert the first local (but non-loopback) IP
