@@ -29,7 +29,9 @@ wget <%= stage_done_url("kickstart") %>
 
 %firstboot --interpreter=busybox
 # set the hostname correctly before we do anythig else
+#raw
 esxcli system hostname set --fqdn <%= node.metadata['hostname'] || node.hostname %>
+#end raw
 
 # enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)
 grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config

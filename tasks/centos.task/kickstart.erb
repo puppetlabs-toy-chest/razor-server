@@ -3,15 +3,23 @@
 # see: http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s1-kickstart2-options.html
 
 install
+#raw
 url --url=<%= repo_url %>
+#end raw
 cmdline
 lang en_US.UTF-8
 keyboard us
+#raw
 rootpw <%= node.metadata['root_password'] || node.root_password %>
+#end raw
+#raw
 network --hostname <%= node.metadata['hostname'] || node.hostname %>
+#end raw
 firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
+#raw
 timezone --utc <%= node.metadata['timezone'] || 'America/Los_Angeles' %>
+#end raw
 # This skips over the subscription for redhat.
 
 # Avoid having 'rhgb quiet' on the boot line
@@ -34,7 +42,9 @@ reboot
 
 %post --log=/var/log/razor.log
 echo Kickstart post
+#raw
 curl -s -o /root/razor_postinstall.sh <%= file_url("post_install") %>
+#end raw
 
 # Run razor_postinstall.sh on next boot via rc.local
 if [ ! -f /etc/rc.d/rc.local ]; then
@@ -46,6 +56,8 @@ chmod a+x /etc/rc.d/rc.local
 echo bash /root/razor_postinstall.sh >> /etc/rc.d/rc.local
 chmod +x /root/razor_postinstall.sh
 
+#raw
 curl -s <%= stage_done_url("kickstart") %>
+#end raw
 %end
 ############
