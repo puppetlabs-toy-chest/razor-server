@@ -1,5 +1,13 @@
 # Razor Server Release Notes
 
+## Next - Next
+
+### Task changes
+
++ NEW: Removed `ubuntu/lucid` and `ubuntu/precise` tasks due to their
+  End-of-Life dates being reached (April 2015 and April 2017
+  respectively).
+
 ## 1.7.1 - 2018-02-07
 
 ### Other
