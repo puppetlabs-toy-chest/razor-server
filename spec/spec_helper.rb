@@ -140,6 +140,18 @@ RSpec.configure do |c|
   end
 end
 
+# Include the Razor::Data item schemas + related schema helpers for the
+# api spec tests, specifically the /api/collection endpoint spec tests.
+# Note that we chose to put these in a separate file, because they take
+# up a lot of space without adding much additional clarity.
+require_relative 'lib/razor/spec/collection_schemas'
+RSpec.configure do |c|
+  # extend is necessary to use the helpers outside of an "it" block;
+  # include is to use the helpers inside an "it" block.
+  c.extend Razor::Spec::CollectionSchemas, api_spec: true
+  c.include Razor::Spec::CollectionSchemas, api_spec: true
+end
+
 # Provide some common infrastructure emulation for use across our test
 # framework.  This provides enough messaging emulation that we can send
 # messages in tests and capture the fact they were sent without worrying

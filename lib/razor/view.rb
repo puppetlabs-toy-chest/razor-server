@@ -219,9 +219,18 @@ module Razor
       # This catches the case where a non-Sequel class is passed in.
       cursor = cursor.all if cursor.is_a?(Class) and !cursor.respond_to?(:cursor)
       cursor = cursor.limit(args[:limit], args[:start]) if cursor.respond_to?(:limit)
-      items = cursor.
-        map {|t| view_object_reference(t)}.
-        select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
+
+      # Check the depth parameter, then compute the "items" hash
+      valid_depths = [0, 1].map(&:to_s)
+      depth = args[:depth] || "0"
+      unless valid_depths.include?(depth)
+        error 400, :error => _("'#{depth}' is not a valid value for the depth parameter. Valid values are 0 or 1")
+      end
+      hash_fn = depth == "0" ? :view_object_reference : args[:hash_fn]
+      items = cursor
+        .map { |t| self.send(hash_fn, t) }
+        .select { |o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
+
       hash = {
           "spec" => spec_url("collections", name),
           "items" => items
