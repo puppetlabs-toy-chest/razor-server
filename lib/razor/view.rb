@@ -211,17 +211,40 @@ module Razor
 
     # Produces a standard hash view for a collection given either
     # a Class or a Dataset as `cursor`. `name` is a reference used
-    # in the spec string. Optional arguments are `limit` and
-    # `start`.
+    # in the spec string. Optional arguments are `limit`, `start`,
+    # `depth`, and `hash_fn`. The possible values for `depth` should be:
+    #
+    #   (1) 0 -- Given this value, `collection_view` will return a list
+    #   of object references in the collection -- see the code for the
+    #   'view_object_reference' routine above for the schema of each object
+    #   reference. Note that this is what `collection_view` returns by default
+    #   when the `depth` argument is not provided.
+    #
+    #   (2) 1 -- Given this value, `collection_view` will return a list
+    #   of fully expanded objects using the given `hash_fn` argument. `hash_fn`
+    #   should be a symbol name corresponding to one of the methods in
+    #   this file that takes in an object returned from the cursor and converts
+    #   it to a hash that contains the fully expanded object's details. Example
+    #   values for `hash_fn` are :node_hash for node_hash, and :hook_hash for
+    #   hook_hash
     def collection_view(cursor, name, args = {})
       perm = "query:#{name}"
       total = cursor.count if cursor.respond_to?(:count)
       # This catches the case where a non-Sequel class is passed in.
       cursor = cursor.all if cursor.is_a?(Class) and !cursor.respond_to?(:cursor)
       cursor = cursor.limit(args[:limit], args[:start]) if cursor.respond_to?(:limit)
-      items = cursor.
-        map {|t| view_object_reference(t)}.
-        select {|o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
+
+      # Check the depth parameter, then compute the "items" hash
+      valid_depths = [0, 1].map(&:to_s)
+      depth = args[:depth] || "0"
+      unless valid_depths.include?(depth)
+        error 400, :error => _("'#{depth}' is not a valid value for the depth parameter. Valid values are 0 or 1")
+      end
+      hash_fn = depth == "0" ? :view_object_reference : args[:hash_fn]
+      items = cursor
+        .map { |t| self.send(hash_fn, t) }
+        .select { |o| check_permissions!("#{perm}:#{o[:name]}") rescue nil }
+
       hash = {
           "spec" => spec_url("collections", name),
           "items" => items

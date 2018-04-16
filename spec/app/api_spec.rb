@@ -4,60 +4,89 @@ require_relative '../../app'
 
 require 'json-schema'
 
-describe "command and query API" do
+describe "command and query API", :api_spec do
+  # extend lets us use the helpers outside of an "it" block,
+  # include lets us use them inside of the "it" block.
   include Rack::Test::Methods
+  extend Razor::Spec::CollectionSchemas
+  include Razor::Spec::CollectionSchemas
 
   let(:app) { Razor::App }
+  let(:depth_param) { { 'depth' => { "type" => "number" } } }
 
   before :each do
     authorize 'fred', 'dead'
   end
 
-  def validate!(schema, json)
-    # Why does the validate method insist it should be able to modify
-    # my schema?  That would be, y'know, bad.
-    JSON::Validator.validate!(schema.dup, json, :validate_schema => true)
+  # Returns a generation function that uses fabricate
+  # to generate 'size' amount of items. It is meant to be
+  # used with the "depth parameter tests" shared example
+  # below.
+  def coll_generator_from_fabricate(size, item)
+    lambda do
+      size.times { Fabricate(item) }
+      size
+    end
   end
 
-  # JSON schema for collections where we only send back object references;
-  # these are the same no matter what the underlying collection elements
-  # look like
-  ObjectRefCollectionSchema = {
-    '$schema'  => 'http://json-schema.org/draft-04/schema#',
-    'title'    => "Object Reference Collection JSON Schema",
-    'type'     => 'object',
-    'additionalProperties' => false,
-    'properties' => {
-      "spec" => {
-        'type'    => 'string',
-        'pattern' => '^https?://'
-      },
-      "items" => {
-        'type'    => 'array',
-        'items'    => {
-          'type'     => 'object',
-          'additionalProperties' => false,
-          'properties' => {
-            "spec" => {
-              'type'    => 'string',
-              'pattern' => '^https?://'
-            },
-            "id" => {
-              'type'    => 'string',
-              'pattern' => '^https?://'
-            },
-            "name" => {
-              'type'    => 'string',
-              'pattern' => '^[^\n]+$'
-            }
-          }
-        }
-      },
-      'total' => {
-          'type'     => 'number'
-      }
-    }
-  }.freeze
+  # This shared example gives the caller two options. Either they:
+  #   (1) Can initialize their own collection, whereby they are required to set the
+  #   @expected_coll_size instance variable indicating the collection size
+  #
+  #   (2) Can pass-in a function that generates the collection, declared as "generate_coll".
+  #   "generate_coll" should return the size of the generated collection. Note that
+  #   "generate_coll" must be initialized in a previous context, or you can initialize
+  #   it with:
+  #     include_examples "depth parameter tests" <endpoint>, <item_schema> do
+  #       let(:generate_coll) do
+  #         <code goes here, should return a callable object (e.g. a lambda)>
+  #       end
+  #     end
+  shared_examples "depth parameter tests" do |endpoint, item_schema|
+    context "with the depth parameter" do
+      let(:collection_endpoint) { "/api/collections/#{endpoint}" }
+      before(:each) do
+        next if @expected_coll_size
+        unless defined?(generate_coll) && generate_coll.respond_to?(:call)
+          fail "The items for #{collection_endpoint} have not been created,"\
+               " and a generation function 'generate_coll' is not provided!"
+        end
+
+        @expected_coll_size = generate_coll.call()
+      end
+
+      context "depth == 0" do
+        it "should return a list of item references" do
+          get "#{collection_endpoint}?depth=0"
+          last_response.status.should == 200
+  
+          items = last_response.json['items']
+          items.should be_an_instance_of Array
+          items.count.should == @expected_coll_size
+          validate_schema! collection_schema, last_response.body
+        end
+      end
+  
+      context "depth == 1" do
+        it "should return a detailed list of the items in the collection" do
+          get "#{collection_endpoint}?depth=1"
+          last_response.status.should == 200
+  
+          items = last_response.json['items']
+          items.should be_an_instance_of Array
+          items.count.should == @expected_coll_size
+          validate_schema! collection_schema(item_schema), last_response.body
+        end
+      end
+  
+      context "invalid depth" do
+        it "should return a 400 error response" do
+          get "#{collection_endpoint}?depth=bad_depth"
+          last_response.status.should == 400
+        end
+      end
+    end
+  end
 
   context "/ - API navigation index" do
     %w[text/plain text/html text/* application/js].each do |type|
@@ -218,13 +247,12 @@ describe "command and query API" do
       data = last_response.json
       data["commands"].all? do |row|
         get row['id']
-        validate! CommandSchema, last_response.body
+        validate_schema! CommandSchema, last_response.body
       end
     end
   end
 
   context "/api/collections/policies - policy list" do
-
     # `before` is used instead of `let` since the database gets rolled
     # back after every test
     before(:each) do
@@ -233,6 +261,17 @@ describe "command and query API" do
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @repo = Fabricate(:repo)
+
+      @mock_policies = [
+        Fabricate(:policy, :repo => @repo).tap do |pl| 
+          pl.add_tag @tag
+          pl.max_count = 10
+          pl.node_metadata = { "key1" => "val1" }
+
+          pl.save
+        end
+      ]
+      @expected_coll_size = @mock_policies.size
     end
 
     it "should return JSON content" do
@@ -242,16 +281,20 @@ describe "command and query API" do
     end
 
     it "should list all policies" do
-      pl =  Fabricate(:policy, :repo => @repo)
-      pl.add_tag @tag
-
       get '/api/collections/policies'
-      data = last_response.json['items']
-      data.size.should be 1
-      data.all? do |policy|
-        policy.keys.should =~ %w[id name spec]
-      end
+
+      policies = last_response.json['items']
+      policies.size.should be @expected_coll_size
+      validate_schema! collection_schema, last_response.body
     end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'policies'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "policies", policy_item_schema
   end
 
   context "/api/collections/policies/ID - get policy" do
@@ -261,33 +304,31 @@ describe "command and query API" do
       @node = Fabricate(:node_with_facts)
       @tag = Razor::Data::Tag.create(:name => "t1", :rule => ["=", ["fact", "f1"], "a"])
       @repo = Fabricate(:repo)
-    end
 
-    subject(:pl){ Fabricate(:policy, :repo => @repo, :task_name => "some_os")}
+      @mock_policy = Fabricate(:policy, :repo => @repo).tap do |pl| 
+        pl.add_tag @tag
+        pl.max_count = 10
+        pl.node_metadata = { "key1" => "val1" }
 
-    it "should exist" do
-      get "/api/collections/policies/#{URI.escape(pl.name)}"
-      last_response.status.should be 200
+        pl.save
+      end
     end
 
     it "should have the right keys" do
-      pl.max_count = 10
-      pl.node_metadata = { "key1" => "val1" }
-      pl.save
-
-      get "/api/collections/policies/#{URI.escape(pl.name)}"
-      policy = last_response.json
-
-      policy.keys.should =~ %w[name id spec configuration enabled max_count repo tags task broker node_metadata nodes]
-      policy["repo"].keys.should =~ %w[id name spec]
-      policy["configuration"].keys.should =~ %w[hostname_pattern root_password]
-      policy["tags"].should be_empty
-      policy["tags"].all? {|tag| tag.keys.should =~ %w[spec url obj_id name] }
-      policy["broker"].keys.should =~ %w[id name spec]
+      get "/api/collections/policies/#{URI.escape(@mock_policy.name)}"
+      last_response.status.should be 200
+      validate_schema! policy_item_schema, last_response.body
     end
   end
 
   context "/api/collections/tags - tag list" do
+    before(:each) do
+      @mock_tags = [
+        Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
+      ]
+      @expected_coll_size = @mock_tags.size
+    end
+
     it "should return JSON content" do
       get '/api/collections/tags'
       last_response.status.should == 200
@@ -295,45 +336,57 @@ describe "command and query API" do
     end
 
     it "should list all tags" do
-      t = Razor::Data::Tag.create(:name=>"tag 1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
       get '/api/collections/tags'
-      data = last_response.json['items']
-      data.size.should be 1
-      data.all? do |tag|
-        tag.keys.should =~ %w[id name spec]
-      end
+      last_response.status.should == 200
+
+      tags = last_response.json['items']
+      tags.size.should == @expected_coll_size
+      validate_schema! collection_schema, last_response.body
     end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'tags'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "/tags", tag_item_schema
   end
 
   context "/api/collections/tags/ID - get tag" do
-    subject(:t) {Razor::Data::Tag.create(:name=>"tag_1", :rule => ["=",["fact","one"],"1"])}
-
-    it "should exist" do
+    it "should exist and have the right keys" do
+      t = Razor::Data::Tag.create(:name=>"tag_1", :matcher =>Razor::Matcher.new(["=",["fact","one"],"1"]))
       get "/api/collections/tags/#{t.name}"
       last_response.status.should be 200
-    end
 
-    it "should have the right keys" do
-      get "/api/collections/tags/#{t.name}"
       tag = last_response.json
-      tag.keys.should =~ %w[ spec id name rule nodes policies]
+      validate_schema! tag_item_schema, last_response.body
       tag["rule"].should == ["=",["fact","one"],"1"]
     end
   end
 
   context "/api/collections/repos" do
-    it "should list all repos" do
-      repo1 = Fabricate(:repo, :name => "repo1")
-      repo2 = Fabricate(:repo, :name => "repo2")
+    before(:each) do
+      @mock_repos = (0..2).map { |i| Fabricate(:repo, :name => "repo#{i}") }
+      @expected_coll_size = @mock_repos.size
+    end
 
+    it "should list all repos" do
       get "/api/collections/repos"
       last_response.status.should == 200
 
       repos = last_response.json['items']
-      repos.size.should == 2
-      repos.map { |repo| repo["name"] }.should =~ %w[ repo1 repo2 ]
-      repos.all? { |repo| repo.keys.should =~ %w[id name spec] }
+      repos.size.should == @expected_coll_size
+      validate_schema! collection_schema, last_response.body
     end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'repos'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "repos", repo_item_schema
   end
 
   context "/api/collections/repos/:name" do
@@ -342,95 +395,31 @@ describe "command and query API" do
 
       get "/api/collections/repos/#{repo1.name}"
       last_response.status.should == 200
-
-      data = last_response.json
-      data.keys.should =~ %w[spec id name iso_url task url]
+      validate_schema! repo_item_schema, last_response.body 
     end
 
     it "should return 404 when repo not found" do
-      get "/api/collections/repos/not_an_repo"
+      get "/api/collections/repos/not_a_repo"
       last_response.status.should == 404
     end
   end
 
-  context "/api/collections/tasks/:name" do
-    # @todo lutter 2013-10-08: I would like to pull the schema for the base
-    # property out into a ObjectReferenceSchema and make the base property
-    # a $ref to that. My attempts at doing that have failed so far, because
-    # json-schema fails when we validate against the resulting
-    # TaskItemSchema, complaining that the schema for base is not
-    # valid
-    #
-    # Note that to use a separate ObjectReferenceSchema, we have to
-    # register it first with the Validator:
-    #   url = "http://api.puppetlabs.com/razor/v1/reference"
-    #   ObjectReferenceSchema['id'] = url
-    #   sch = JSON::Schema::new(ObjectReferenceSchema, url)
-    #   JSON::Validator.add_schema(sch)
-    TaskItemSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Task Item JSON Schema",
-      'type'     => 'object',
-      'required' => %w[spec id name os boot_seq],
-      'properties' => {
-        'spec' => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          'type'     => 'string',
-          'pattern'  => '^[a-zA-Z0-9_/]+$'
-        },
-        'base'     => {
-          'title'    => "Object Reference Schema",
-          'type'     => 'object',
-          'required' => %w[spec id name],
-          'properties' => {
-            'spec' => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'id'       => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'name'     => {
-              'type'     => 'string',
-              'pattern'  => '^[a-zA-Z0-9_/]+$'
-            }
-          },
-          'additionalProperties' => false
-        },
-        'description' => {
-          'type'     => 'string'
-        },
-        'os' => {
-          'type'    => 'object',
-          'properties' => {
-            'name' => {
-              'type' => 'string'
-            },
-            'version' => {
-              'type' => 'string'
-            }
-          }
-        },
-        'boot_seq' => {
-          'type' => 'object',
-          'required' => %w[default],
-          'patternProperties' => {
-            "^([0-9]+|default)$" => {}
-          },
-          'additionalProperties' => false,
-        }
-      },
-      'additionalProperties' => false,
-    }.freeze
+  context "/api/collections/tasks" do
+    before(:each) do
+      use_task_fixtures
+      @expected_coll_size = Razor::Task.all.size
+    end
 
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'tasks'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "tasks", task_item_schema
+  end
+
+  context "/api/collections/tasks/:name" do
     before(:each) do
       use_task_fixtures
     end
@@ -443,7 +432,7 @@ describe "command and query API" do
       data["name"].should == "some_os"
       data["boot_seq"].keys.should =~ %w[1 2 default]
       data["boot_seq"]["2"].should == "boot_again"
-      validate! TaskItemSchema, last_response.body
+      validate_schema! task_item_schema, last_response.body
     end
 
     it "works for DB-backed tasks" do
@@ -458,7 +447,7 @@ describe "command and query API" do
       data = last_response.json
       data["name"].should == "dbinst"
       data["boot_seq"].keys.should =~ %w[1 default]
-      validate! TaskItemSchema, last_response.body
+      validate_schema! task_item_schema, last_response.body
     end
 
     it "includes a reference to the base task" do
@@ -469,68 +458,11 @@ describe "command and query API" do
       data["name"].should == "some_os/derived"
       data["os"]["version"].should == "4"
       data["base"]["name"].should == "some_os/base"
-      validate! TaskItemSchema, last_response.body
+      validate_schema! task_item_schema, last_response.body
     end
   end
 
   context "/api/collections/brokers" do
-    BrokerItemSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Broker Collection JSON Schema",
-      'type'     => 'object',
-      'required' => %w[spec id name configuration broker_type],
-      'properties' => {
-        'spec' => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          'type'     => 'string',
-          'pattern'  => '^[a-zA-Z0-9 ]+$'
-        },
-        'broker_type' => {
-          'type'     => 'string',
-          'pattern'  => '^[a-zA-Z0-9 ]+$'
-        },
-        'configuration' => {
-          'type'    => 'object',
-          'additionalProperties' => {
-            'oneOf'     => [
-              {
-                'type'      => 'string',
-                'minLength' => 1
-              },
-              {
-                'type'      => 'number',
-              }
-            ]
-          }
-        },
-        'policies'     => {
-          'type'    => 'object',
-          'required' => %w[id count name],
-          'properties' => {
-            'id'   => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'count'     => {
-              'type'     => 'integer'
-            },
-            'name'     => {
-              'type'     => 'string',
-              'pattern'  => '^[a-zA-Z0-9 ]+$'
-            }
-          }
-        }
-      },
-      'additionalProperties' => false,
-    }.freeze
-
     shared_examples "a broker collection" do |expected|
       before :each do
         Razor.config['broker_path'] =
@@ -545,8 +477,9 @@ describe "command and query API" do
         brokers = last_response.json['items']
         brokers.should be_an_instance_of Array
         brokers.count.should == expected
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
+
 
       it "should 404 a broker requested that does not exist" do
         get "/api/collections/brokers/fast%20freddy"
@@ -558,7 +491,7 @@ describe "command and query API" do
           Razor::Data::Broker.all.each do |broker|
             get "/api/collections/brokers/#{URI.escape(broker.name)}"
             last_response.status.should == 200
-            validate! BrokerItemSchema, last_response.body
+            validate_schema! broker_item_schema, last_response.body
           end
         end
       end
@@ -583,149 +516,26 @@ describe "command and query API" do
 
       it_should_behave_like "a broker collection", 10
     end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'brokers'}.first['params']
+      params.should == depth_param 
+    end
+
+    include_examples "depth parameter tests", "brokers", broker_item_schema do
+      let(:generate_coll) do
+        lambda do
+          Razor.config['broker_path'] =
+          (Pathname(__FILE__).dirname.parent + 'fixtures' + 'brokers').realpath.to_s
+    
+          coll_generator_from_fabricate(10, :broker).call() 
+        end
+      end
+    end
   end
 
   context "/api/collections/nodes" do
-    NodeItemSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Node Collection JSON Schema",
-      'type'     => 'object',
-      'required' => %w[spec id name],
-      'properties' => {
-        'spec' => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          'type'     => 'string',
-          'pattern'  => '^node[0-9]+$'
-        },
-        'hw_info'    => {
-          'type'     => 'object'
-        },
-        'dhcp_mac' => {
-          'type'     => 'string',
-          'pattern'  => '^[0-9a-fA-F]+$'
-        },
-        'log'   => {
-          'type'       => 'object',
-          'required'   => %w[id name],
-          'properties' => {
-            'id'       => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'name'     => {
-              'type'      => 'string',
-              'minLength' => 1
-            },
-          },
-        },
-        'tags'     => {
-          'type'       => 'array',
-          'items'      => {
-            'type'       => 'object',
-            'required'   => %w[id name spec],
-            'properties'  => {
-              'id'       => {
-                'type'     => 'string',
-                'pattern'  => '^https?://'
-              },
-              'name'     => {
-                'type'      => 'string',
-                'minLength' => 1
-              },
-              'spec' => {
-                'type'     => 'string',
-                'pattern'  => '^https?://'
-              },
-            },
-          },
-        },
-        'policy'   => {
-          'type'       => 'object',
-          'required'   => %w[spec id name],
-          'properties' => {
-            'spec' => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'id'       => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'name'     => {
-              'type'      => 'string',
-              'minLength' => 1
-            },
-          },
-          'additionalProperties' => false,
-        },
-        'facts' => {
-          'type'          => 'object',
-          'minProperties' => 1,
-          'additionalProperties' => {
-            'type'      => 'string',
-            'minLength' => 0
-          }
-        },
-        'metadata' => {
-          'type'          => 'object',
-          'minProperties' => 0,
-          'additionalProperties' => {
-            'type'      => 'string',
-            'minLength' => 0
-          }
-        },
-        'state' => {
-          'type'          => 'object',
-          'minProperties' => 0,
-          'properties'    => {
-            'installed' => {
-              'type'     => ['string', 'boolean'],
-            }
-          },
-          'additionalProperties' => {
-            'type'      => 'string',
-            'minLength' => 0
-          }
-        },
-        'hostname' => {
-          'type'     => 'string',
-        },
-        'root_password' => {
-          'type'     => 'string',
-        },
-        'power' => {
-          'type'       => 'object',
-          'properties' => {
-            'desired_power_state' => {
-              'type'     => ['string', 'null'],
-              'pattern'  => 'on|off'
-            },
-            'last_known_power_state' => {
-              'type'     => ['string', 'null'],
-              'pattern'  => 'on|off'
-            },
-            'last_power_state_update_at' => {
-              'type'     => ['string', 'null'],
-              # 'pattern' => '' ...date field.
-            }
-          },
-          'additionalProperties' => false,
-        },
-        'ipmi' => {
-            'hostname' => nil,
-            'username' => nil
-        }
-      },
-      'additionalProperties' => false,
-    }.freeze
-
     shared_examples "a node collection" do |expected|
       before :each do
         Razor.config['broker_path'] =
@@ -739,7 +549,7 @@ describe "command and query API" do
         nodes = last_response.json['items']
         nodes.should be_an_instance_of Array
         nodes.count.should == expected
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
 
       it "should 404 a node requested that does not exist" do
@@ -752,7 +562,7 @@ describe "command and query API" do
           Razor::Data::Node.all.each do |node|
             get "/api/collections/nodes/#{URI.escape(node.name)}"
             last_response.status.should == 200
-            validate! NodeItemSchema, last_response.body
+            validate_schema! node_item_schema, last_response.body
           end
         end
       end
@@ -779,10 +589,10 @@ describe "command and query API" do
       it_should_behave_like "a node collection", 10
     end
 
-    it "should state that 'start' and 'limit' are valid parameters" do
+    it "should state that 'start', 'limit' and 'depth' are valid parameters" do
       get '/api'
       params = last_response.json['collections'].select {|c| c['name'] == 'nodes'}.first['params']
-      params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+      params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}.merge(depth_param)
     end
 
     context "limiting" do
@@ -807,6 +617,10 @@ describe "command and query API" do
 
         last_response.json['items'].map {|e| e['name']}.should == names[2..3]
       end
+    end
+
+    include_examples "depth parameter tests", "nodes", node_item_schema do
+      let(:generate_coll)  { coll_generator_from_fabricate(10, :node) }
     end
   end
 
@@ -898,7 +712,7 @@ describe "command and query API" do
       Razor.config['api_config_blacklist'] = ['database_url', 'facts.blacklist']
       get '/api/collections/config'
       last_response.status.should == 200
-      validate! ConfigCollectionSchema, last_response.body
+      validate_schema! ConfigCollectionSchema, last_response.body
 
       items = last_response.json['items']
       count = Razor.config.flat_values.length - Razor.config['api_config_blacklist'].length
@@ -925,64 +739,6 @@ describe "command and query API" do
   end
 
   context "/api/collections/commands" do
-    CommandItemSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Command item JSON Schema",
-      'type'     => 'object',
-      'required' => %w[spec id name command],
-      'properties' => {
-        'spec' => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          'type'     => 'string',
-          'pattern'  => '^[0-9]+$'
-        },
-        'command'    => {
-          'type'     => 'string',
-          'pattern'  => '^[a-z-]+$'
-        },
-        'params'     => {
-          'type'     => 'object',
-        },
-        'errors'     => {
-          'type'     => 'array',
-          'items'    =>  {
-            'type'     => 'object',
-            'required' => %w[exception message attempted_at],
-            'properties' => {
-              'exception' => {
-                 'type'   => 'string'
-              },
-              'message'   => {
-                'type'    => 'string'
-              },
-              'attempted_at' => {
-                'type' => 'string'
-              }
-            },
-            'additionalProperties' => false
-          }
-        },
-        'status' => {
-          'type'     => 'string',
-          'pattern'  => '^(pending|running|finished|failed)$'
-        },
-        'submitted_at' => {
-          'type'       => 'string',
-        },
-        'finished_at'  => {
-          'type'       => 'string'
-        }
-      },
-      'additionalProperties' => false,
-    }.freeze
-
     shared_examples "a command collection" do |expected|
       it "should return a valid collection" do
         get "/api/collections/commands"
@@ -991,7 +747,7 @@ describe "command and query API" do
         nodes = last_response.json['items']
         nodes.should be_an_instance_of Array
         nodes.count.should == expected
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
 
       it "should 404 a command requested that does not exist" do
@@ -1004,7 +760,7 @@ describe "command and query API" do
           Razor::Data::Command.all.each do |command|
             get "/api/collections/commands/#{command.name}"
             last_response.status.should == 200
-            validate! CommandItemSchema, last_response.body
+            validate_schema! command_item_schema, last_response.body
           end
         end
       end
@@ -1037,12 +793,22 @@ describe "command and query API" do
       command.store('failed')
       get "/api/collections/commands/#{command.id}"
       last_response.status.should == 200
-      validate! CommandItemSchema, last_response.body
+      validate_schema! command_item_schema, last_response.body
 
       last_response.json['status'].should == 'failed'
       last_response.json['errors'].should_not be_nil
       last_response.json['errors'][0]['message'].should == "Exception 1"
       last_response.json['errors'][1]['message'].should == "Exception 2"
+    end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'commands'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "commands", command_item_schema do
+      let(:generate_coll) { coll_generator_from_fabricate(10, :command) }
     end
   end
 
@@ -1051,69 +817,15 @@ describe "command and query API" do
       use_hook_fixtures
     end
 
-    HookItemSchema = {
-      '$schema'  => 'http://json-schema.org/draft-04/schema#',
-      'title'    => "Hook Collection JSON Schema",
-      'type'     => 'object',
-      'required' => %w[spec id name hook_type],
-      'properties' => {
-        'spec' => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'id'       => {
-          'type'     => 'string',
-          'pattern'  => '^https?://'
-        },
-        'name'     => {
-          'type'     => 'string',
-          'pattern'  => '^[^\n]+$'
-        },
-        'hook_type' => {
-          'type'     => 'string',
-          'pattern'  => '^[a-zA-Z0-9 ]+$'
-        },
-        'configuration' => {
-          'type'    => 'object',
-          'additionalProperties' => {
-            'oneOf'     => [
-              {
-                'type'      => 'string',
-                'minLength' => 1
-              },
-              {
-                'type'      => 'number',
-              }
-            ]
-          }
-        },
-        'log'   => {
-          'type'       => 'object',
-          'required'   => %w[id name],
-          'properties' => {
-            'id'       => {
-              'type'     => 'string',
-              'pattern'  => '^https?://'
-            },
-            'name'     => {
-              'type'      => 'string',
-              'minLength' => 1
-            },
-          },
-        },
-      },
-      'additionalProperties' => false,
-    }.freeze
-
     shared_examples "a hook collection" do |expected|
       it "should return a valid collection" do
         get "/api/collections/hooks"
 
         last_response.status.should == 200
-        nodes = last_response.json['items']
-        nodes.should be_an_instance_of Array
-        nodes.count.should == expected
-        validate! ObjectRefCollectionSchema, last_response.body
+        hooks = last_response.json['items']
+        hooks.should be_an_instance_of Array
+        hooks.count.should == expected
+        validate_schema! collection_schema, last_response.body
       end
 
       it "should 404 a hook requested that does not exist" do
@@ -1126,7 +838,7 @@ describe "command and query API" do
           Razor::Data::Hook.all.each do |hook|
             get "/api/collections/hooks/#{URI::escape(hook.name)}"
             last_response.status.should == 200
-            validate! HookItemSchema, last_response.body
+            validate_schema! hook_item_schema, last_response.body
           end
         end
       end
@@ -1150,6 +862,16 @@ describe "command and query API" do
       end
 
       it_should_behave_like "a hook collection", 10
+    end
+
+    it "should state that 'depth' is a valid parameter" do
+      get '/api'
+      params = last_response.json['collections'].select {|c| c['name'] == 'hooks'}.first['params']
+      params.should == depth_param
+    end
+
+    include_examples "depth parameter tests", "hooks", hook_item_schema do
+      let(:generate_coll) { coll_generator_from_fabricate(10, :hook) }
     end
   end
 
@@ -1216,45 +938,6 @@ describe "command and query API" do
   end
 
   context "/api/collections/events" do
-    EventItemSchema = {
-        '$schema'  => 'http://json-schema.org/draft-04/schema#',
-        'title'    => "Event Collection JSON Schema",
-        'type'     => 'object',
-        'required' => %w[spec id name severity entry],
-        'properties' => {
-            'spec' => {
-                'type'     => 'string',
-                'pattern'  => '^https?://'
-            },
-            'id'       => {
-                'type'     => 'string',
-                'pattern'  => '^https?://'
-            },
-            'name'     => {
-                'type'     => 'number',
-                'pattern'  => '^[^\n]+$'
-            },
-            'node' => {
-                'type'     => 'object'
-            },
-            'policy' => {
-                'type'     => 'object'
-            },
-            'timestamp' => {
-                'type'     => 'string'
-                # 'pattern' => '' ...date field.
-            },
-            'entry' => {
-                'type'     => 'object'
-            },
-            'severity' => {
-                'type'     => 'string',
-                'pattern'   => 'error|warning|info',
-            }
-        },
-        'additionalProperties' => false,
-    }.freeze
-
     it "should 404 a event requested that does not exist" do
       get "/api/collections/events/238902423"
       last_response.status.should == 404
@@ -1274,7 +957,7 @@ describe "command and query API" do
         nodes = last_response.json['items']
         nodes.should be_an_instance_of Array
         nodes.count.should == expected
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
 
       if expected > 0
@@ -1282,7 +965,7 @@ describe "command and query API" do
           Razor::Data::Event.all.each do |event|
             get "/api/collections/events/#{URI::escape(event.name)}"
             last_response.status.should == 200
-            validate! EventItemSchema, last_response.body
+            validate_schema! event_item_schema, last_response.body
           end
         end
       end
@@ -1309,10 +992,10 @@ describe "command and query API" do
     end
 
     context "event limiting" do
-      it "should state that 'start' and 'limit' are valid parameters" do
+      it "should state that 'start', 'limit' and 'depth' are valid parameters" do
         get '/api'
         params = last_response.json['collections'].select {|c| c['name'] == 'events'}.first['params']
-        params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}
+        params.should == {'start' => {"type" => "number"}, 'limit' => {"type" => "number"}}.merge(depth_param)
       end
       it "should view all results by default" do
         21.times { Fabricate(:event) }
@@ -1323,7 +1006,7 @@ describe "command and query API" do
         events.should be_an_instance_of Array
         events.count.should == 21
         last_response.json['total'].should == 21
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
       it "should allow limiting results" do
         names = []
@@ -1336,7 +1019,7 @@ describe "command and query API" do
         events.count.should == 1
         events.first['name'].should == names.last
         last_response.json['total'].should == 3
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
       it "should allow windowing of results" do
         names = []
@@ -1349,7 +1032,7 @@ describe "command and query API" do
         events.map {|n| n['name']}.should == names[2..3]
         events.count.should == 2
         last_response.json['total'].should == 6
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
       it "should allow just an offset" do
         names = []
@@ -1362,8 +1045,12 @@ describe "command and query API" do
         events.map {|n| n['name']}.should == names[2..-1]
         events.count.should == 4
         last_response.json['total'].should == 6
-        validate! ObjectRefCollectionSchema, last_response.body
+        validate_schema! collection_schema, last_response.body
       end
+    end
+
+    include_examples "depth parameter tests", "events", event_item_schema do
+      let(:generate_coll) { coll_generator_from_fabricate(10, :event) } 
     end
   end
 end
