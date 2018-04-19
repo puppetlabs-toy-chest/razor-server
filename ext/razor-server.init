@@ -82,7 +82,11 @@ start() {
     # actually fire off the software.  This helps isolate the context between
     # the two, and ensures we don't depend on, eg, environment variables being
     # copied by su -- which is less reliable than one may hope.
-    runuser -s /bin/bash "${JBOSS_USER}" -c "$0 run" >&/dev/null &
+    run_command=$(which runuser)
+    if [[ -z $run_command ]]; then
+      run_command=$(which su)
+    fi
+    $run_command -s /bin/bash "${JBOSS_USER}" -c "$0 run" >&/dev/null &
     pid=$!
     disown ${pid}
 
