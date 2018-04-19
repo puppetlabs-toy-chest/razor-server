@@ -768,6 +768,14 @@ id   | a URL that uniquely identifies the object
 spec | a URL that identifies the type of the object
 name | a human-readable name for the object
 
+A `GET` request to an `/api/collections/<type>` endpoint, save for when `<type> = config`,
+also lets you pass in an optional `depth` parameter that has two possible values:
+`0` and `1`. `0` will return a list of JSON objects containing only the `id`, `spec`, and
+`name` keys above (i.e. a list of object references) -- this is the default behavior.
+`1` will return a fully expanded list of JSON objects containing additional keys, where
+each object is equivalent to the JSON returned by querying the URL specified in the `id`
+key.
+
 Different types of objects may specify other properties by defining additional
 key-value pairs. For example, here is a sample tag listing:
 
