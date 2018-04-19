@@ -2,6 +2,14 @@
 
 ## Next - Next
 
+### API changes
+
++ NEW: Added a `depth` parameter to the `/api/collections/<type>` endpoints,
+  save for when `<type> = config`, that has two possible values: `0` and `1`. `0`
+  will return a list of object references, while `1` will return the fully expanded
+  list of objects. `0` is the default behavior when the `depth` parameter is not
+  provided. See `doc/api.md` for more details.
+
 ### Task changes
 
 + NEW: Removed `ubuntu/lucid` and `ubuntu/precise` tasks due to their
