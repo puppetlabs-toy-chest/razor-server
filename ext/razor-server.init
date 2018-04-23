@@ -60,6 +60,17 @@ JBOSS_LIB="/opt/puppetlabs/server/apps/razor-server/var/razor"
 LAUNCH_JBOSS_IN_BACKGROUND=true
 export LAUNCH_JBOSS_IN_BACKGROUND
 
+# Load overrides and defaults. Fail if it isn't there.
+[ -e "/etc/sysconfig/${NAME}" ] || exit 1
+# Enable variable auto-exporting when we source the
+# sysconfig file so that the exec below doesn't drop
+# the variables set here. We can't export the vars
+# inside the sysconfig file due to the way systemd
+# parses the file.
+set -a
+[ -e "/etc/sysconfig/${NAME}" ] && . "/etc/sysconfig/${NAME}"
+set +a
+
 start() {
     echo -n "Launching ${NAME}: "
 
