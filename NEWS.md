@@ -1,12 +1,25 @@
 # Razor Server Release Notes
 
-## Next - Next
+## 1.8.1 - 2018-04-24
 
 ### Task changes
 
-+ NEW: Removed `ubuntu/lucid` and `ubuntu/precise` tasks due to their
-  End-of-Life dates being reached (April 2015 and April 2017
++ BUGFIX: Fixed typo in the `windws/2012r2` task's unattended.xml.
++ REMOVED: Removed `ubuntu/lucid` and `ubuntu/precise` tasks due to
+  their End-of-Life dates being reached (April 2015 and April 2017
   respectively).
+
+### Other
+
++ BUGFIX: Fixed scenario where fast-running hook scripts would exit
+  before STDIN could be written.
++ IMPROVEMENT: Updated to JRuby 9000.
++ IMPROVEMENT: Updated to Torquebox 3.2.0.
++ IMPROVEMENT: Standardizing vanagon packaging for easier future
+  maintenance.
++ IMPROVEMENT: Now attempts HEAD request with TLS on localhost port 8151
+  before falling back to non-TLS on localhost port 8150.
++ IMPROVEMENT: Added documentation for encrypting passwords in Shiro.
 
 ## 1.7.1 - 2018-02-07
 
