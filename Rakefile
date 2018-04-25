@@ -1,6 +1,5 @@
 require 'rake'
 require 'pathname'
-JRUBY_BIN  = "/usr/local/share/pl-jruby/bin/jruby -S"
 RAKE_ROOT = File.expand_path(File.dirname(__FILE__))
 
 begin
