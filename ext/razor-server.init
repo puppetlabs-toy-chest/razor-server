@@ -30,36 +30,6 @@ WAIT=30 # seconds
 # Load the location data from our torquebox installation
 source /etc/puppetlabs/razor-server/razor-torquebox.sh
 
-# Configure our language -- needed to ensure we process Unicode content
-# correctly.  Should fall back to nothing worse than not setting this
-# would cause.  At the point this is set, all the rest of our environment
-# should be cleared, so there shouldn't be other variables leaking in.
-LANG=en_US.UTF-8
-export LANG
-
-# Other configuration
-export RAZOR_HTTP_PORT="${RAZOR_HTTP_PORT:-8150}"
-export RAZOR_HTTPS_PORT="${RAZOR_HTTPS_PORT:-8151}"
-
-export JBOSS_PIDFILE="/var/run/puppetlabs/${REALNAME}/torquebox.pid"
-
-export JBOSS_LOG_DIR="/var/log/puppetlabs/${REALNAME}"
-export JBOSS_CONSOLE_LOG="${JBOSS_LOG_DIR}/console.log"
-
-JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
-JAVA_OPTS="-Xms128m -Xmx1024m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true"
-export JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
-
-JBOSS_USER="razor"
-
-JBOSS_CONFIG="standalone.xml"
-JBOSS_SCRIPT="${JBOSS_HOME}/bin/standalone.sh"
-
-JBOSS_LIB="/opt/puppetlabs/server/apps/razor-server/var/razor"
-
-LAUNCH_JBOSS_IN_BACKGROUND=true
-export LAUNCH_JBOSS_IN_BACKGROUND
-
 # Load overrides and defaults. Fail if it isn't there.
 [ -e "/etc/sysconfig/${NAME}" ] || exit 1
 # Enable variable auto-exporting when we source the
