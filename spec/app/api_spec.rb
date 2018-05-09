@@ -4,7 +4,7 @@ require_relative '../../app'
 
 require 'json-schema'
 
-describe "command and query API", :api_spec do
+describe "command and query API", :api_spec => true do
   # extend lets us use the helpers outside of an "it" block,
   # include lets us use them inside of the "it" block.
   include Rack::Test::Methods
