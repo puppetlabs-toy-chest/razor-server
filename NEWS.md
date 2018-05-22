@@ -1,18 +1,27 @@
 # Razor Server Release Notes
 
-## 1.8.1 - 2018-04-24
+## 1.9.0 - 2018-05-30
 
 ### API changes
 
-+ NEW: Added a `depth` parameter to the `/api/collections/<type>` endpoints,
-  save for when `<type> = config`, that has two possible values: `0` and `1`. `0`
-  will return a list of object references, while `1` will return the fully expanded
-  list of objects. `0` is the default behavior when the `depth` parameter is not
-  provided. See `doc/api.md` for more details.
++ NEW: Added a `depth` parameter to the `/api/collections/<type>`
+  endpoints, save for when `<type> = config`, that has two possible
+  values: `0` and `1`. `0` will return a list of object references,
+  while `1` will return the fully expanded list of objects. `0` is the
+  default behavior when the `depth` parameter is not provided. See
+  `doc/api.md` for more details.
+
+### Other
+
++ IMPROVEMENT: Updated Sinatra to version 2.0.1.
++ IMPROVEMENT: System config files for packaging various
+  distributions are now consolidated.
+
+## 1.8.1 - 2018-04-24
 
 ### Task changes
 
-+ BUGFIX: Fixed typo in the `windws/2012r2` task's unattended.xml.
++ BUGFIX: Fixed typo in the `windows/2012r2` task's unattended.xml.
 + REMOVED: Removed `ubuntu/lucid` and `ubuntu/precise` tasks due to
   their End-of-Life dates being reached (April 2015 and April 2017
   respectively).
