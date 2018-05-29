@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.9.0 - 2018-05-30
+## 1.9.1 - 2018-05-31
 
 ### API changes
 
