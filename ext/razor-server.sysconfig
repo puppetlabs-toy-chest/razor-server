@@ -5,18 +5,3 @@ RAZOR_CONFIG_DEFAULTS=/opt/puppetlabs/server/apps/razor-server/config-defaults.y
 # Default from packaging.
 RAZOR_HTTP_PORT=8150
 RAZOR_HTTPS_PORT=8151
-# Torquebox args
-TORQUEBOX_HOME=/opt/puppetlabs/server/apps/razor-server/share/torquebox
-JBOSS_HOME=${TORQUEBOX_HOME}/jboss
-JRUBY_HOME=${TORQUEBOX_HOME}/jruby
-JBOSS_LIB=/opt/puppetlabs/server/apps/razor-server/var/razor
-JBOSS_PIDFILE=/var/run/puppetlabs/razor-server/torquebox.pid
-JBOSS_LOG_DIR=/var/log/puppetlabs/razor-server
-JBOSS_CONSOLE_LOG=${JBOSS_LOG_DIR}/console.log
-JBOSS_USER=razor
-JBOSS_CONFIG=standalone.xml
-JBOSS_SCRIPT=${JBOSS_HOME}/bin/standalone.sh
-JBOSS_MODULES_SYSTEM_PKGS=org.jboss.byteman
-LAUNCH_JBOSS_IN_BACKGROUND=true
-LANG=en_US.UTF-8
-JAVA_OPTS='-Xms128m -Xmx1024m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=${JBOSS_MODULES_SYSTEM_PKGS} -Djava.awt.headless=true'
