@@ -22,6 +22,9 @@ init systems.
 This file contains environment variables that are used by the razor-server
 service on both SysV and systemd.
 
+### razor-server.env
+This file contains environment variables used only by systemd.
+
 ### razor-server-tmpfiles.conf
 This file uses "the systemd tmpfiles.d mechanism to ensure that the
 /run/razor-server directory is created on boot with the proper ownership as /run

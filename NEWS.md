@@ -14,8 +14,6 @@
 ### Other
 
 + IMPROVEMENT: Updated Sinatra to version 2.0.1.
-+ IMPROVEMENT: System config files for packaging various
-  distributions are now consolidated.
 
 ## 1.8.1 - 2018-04-24
 
