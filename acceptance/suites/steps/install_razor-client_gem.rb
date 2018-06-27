@@ -3,6 +3,7 @@ confine :except, :roles => %w{master dashboard database frictionless}
 
 test_name 'Install Razor Client'
 step 'https://testrail.ops.puppetlabs.net/index.php?/cases/view/6'
+gem_source = ENV['GEM_SOURCE'] || 'https://artifactory.delivery.puppetlabs.net/artifactory/api/gems/rubygems/'
 
 step 'Install the Razor client'
 # This can use the FOSS razor-client gem too. Ideally, a private
@@ -16,7 +17,8 @@ step 'Install the Razor client'
 # "undefined method `map' for Gem::Specification:Class"
 # The other potential fix is to do `gem update --system`, which is
 # a larger system change.
-on agents, '/opt/puppetlabs/puppet/bin/gem install --clear-sources --source http://rubygems.delivery.puppetlabs.net pe-razor-client --no-ri'
+on agents, "/opt/puppetlabs/puppet/bin/gem install --clear-sources " +
+           "--source #{gem_source} razor-client --no-ri"
 # Symlink razor into the path so just `razor` works.
 on agents, 'ln -s /opt/puppetlabs/puppet/bin/razor /usr/bin/razor'
 

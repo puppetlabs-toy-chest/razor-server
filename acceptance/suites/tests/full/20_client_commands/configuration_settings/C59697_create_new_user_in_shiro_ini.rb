@@ -7,7 +7,7 @@ confine :except, :roles => %w{master dashboard database frictionless}
 test_name 'Create new user in shiro.ini'
 step 'https://testrail.ops.puppetlabs.net/index.php?/cases/view/59697'
 
-config_yaml       = '/etc/puppetlabs/razor-server/config-defaults.yaml'
+config_yaml       = '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml'
 shiro_ini         = '/etc/puppetlabs/razor-server/shiro.ini'
 
 teardown do
@@ -30,14 +30,13 @@ agents.each do |agent|
 
       step "Create new user on  #{agent}"
       shiro = on(agent, "cat #{shiro_ini}").output
-      new_file = shiro.gsub(/razor = razor, admin/, "razor = razor, admin\nnewUser = newPassword, admin")
+      # newUser's password is 'newPassword'
+      new_file = shiro.gsub(/razor = 9b4f1d0e11dcc029c3493d945e44ee077b68978466c0aab6d1ce453aac5f0384, admin/, "razor = 9b4f1d0e11dcc029c3493d945e44ee077b68978466c0aab6d1ce453aac5f0384, admin\nnewUser = 5c29a959abce4eda5f0e7a4e7ea53dce4fa0f0abbe8eaa63717e2fed5f193d31, admin")
 
       create_remote_file(agent, "#{shiro_ini}", new_file)
 
-      step "Set up users on #{agent}"
-      on(agent, 'cat /etc/puppetlabs/razor-server/shiro.ini') do |result|
-        assert_match /^\s*razor = razor/, result.stdout, 'User razor should already have password "razor"'
-      end
+      step "Verify shiro on #{agent}"
+      verify_shiro_default(agent)
 
       step "Restart Razor Service on #{agent}"
       restart_razor_service(agent, "https://razor:razor@#{agent}:8151/api")
