@@ -9,6 +9,24 @@ RAZOR_HOME='/opt/puppetlabs/server/apps/razor-server/share/razor-server'
 # code you are running -- so fails for anything, say, in the path. :/
 export BUNDLE_GEMFILE="${RAZOR_HOME}/Gemfile"
 
+# Load the sysconfig file for the service, primarily
+# to get the RAZOR_CONFIG setting.
+if [ -e /etc/sysconfig/pe-razor-server ]; then
+  sysconfig='/etc/sysconfig/pe-razor-server'
+elif [ -e /etc/sysconfig/razor-server ]; then
+  sysconfig='/etc/sysconfig/razor-server'
+fi
+if [ ! -z "${sysconfig}" ]; then
+  # Enable variable auto-exporting when we source the
+  # sysconfig file so that the exec below doesn't drop
+  # the variables set here. We can't export the vars
+  # inside the sysconfig file due to the way systemd
+  # parses the file.
+  set -a
+  . "${sysconfig}"
+  set +a
+fi
+
 # Figure out what we were asked to execute.
 exe="$(basename $0)"
 
