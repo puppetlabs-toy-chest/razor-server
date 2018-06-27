@@ -205,3 +205,9 @@ def long_string(length = 250)
   name = long_string(length) if name =~ /^--/
   name
 end
+
+def verify_shiro_default(agent)
+  on(agent, 'cat /etc/puppetlabs/razor-server/shiro.ini') do |result|
+    assert_match /^\s*razor = 9b4f1d0e11dcc029c3493d945e44ee077b68978466c0aab6d1ce453aac5f0384/, result.stdout, 'User razor should already have password "razor"'
+  end
+end

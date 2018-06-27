@@ -1,3 +1,1 @@
-step "Install PE"
-  install_pe
-
+../../steps/install_pe.rb

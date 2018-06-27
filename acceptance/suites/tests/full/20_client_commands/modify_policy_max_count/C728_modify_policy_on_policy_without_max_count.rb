@@ -11,7 +11,7 @@ result = create_policy agents, policy_max_count: nil
 
 agents.each do |agent|
   text = on(agent, "razor policies puppet-test-policy").output
-  assert_match /max_count:\s+nil/, text
+  assert_match /max_count:\s+\n/, text
 end
 
 razor agents, "modify-policy-max-count --name #{result[:policy][:name]} --max-count 6" do |agent|

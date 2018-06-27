@@ -7,7 +7,7 @@ confine :except, :roles => %w{master dashboard database frictionless}
 test_name 'Configure Razor server for basic authentication'
 step 'https://testrail.ops.puppetlabs.net/index.php?/cases/view/259'
 
-config_yaml = '/etc/puppetlabs/razor-server/config-defaults.yaml'
+config_yaml = '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml'
 shiro_ini = '/etc/puppetlabs/razor-server/shiro.ini'
 
 agents.each do |agent|
@@ -23,11 +23,10 @@ agents.each do |agent|
       scp_to agent, File::join(config_tmpdir, 'new-config.yaml'), config_yaml
       on agent, "chmod +r #{config_yaml}"
 
-      step "Set up users on #{agent}"
-      with_backup_of(agent, shiro_ini) do |_|
-        shiro = on(agent, "cat #{shiro_ini}").output
-        assert_match /^\s*razor = razor/, shiro, 'User razor should already have password "razor"'
+      step "Verify shiro on #{agent}"
+      verify_shiro_default(agent)
 
+      with_backup_of(agent, shiro_ini) do |_|
         step "Restart Razor Service on #{agent}"
         # the redirect to /dev/null is to work around a bug in the init script or
         # service, per: https://tickets.puppetlabs.com/browse/RAZOR-247

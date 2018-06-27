@@ -7,7 +7,7 @@ confine :except, :roles => %w{master dashboard database frictionless}
 test_name 'Enable auth and authenticate with good user and bad password'
 step 'https://testrail.ops.puppetlabs.net/index.php?/cases/view/62408'
 
-config_yaml       = '/etc/puppetlabs/razor-server/config-defaults.yaml'
+config_yaml       = '/opt/puppetlabs/server/apps/razor-server/config-defaults.yaml'
 
 teardown do
   agents.each do |agent|
@@ -26,10 +26,8 @@ agents.each do |agent|
     step "Create new #{config_yaml} on #{agent}"
     create_remote_file(agent, "#{config_yaml}", config)
 
-    step "Set up users on #{agent}"
-    on(agent, 'cat /etc/puppetlabs/razor-server/shiro.ini') do |result|
-      assert_match /^\s*razor = razor/, result.stdout, 'User razor should already have password "razor"'
-    end
+    step "Verify shiro on #{agent}"
+    verify_shiro_default(agent)
 
     step "Restart Razor Service on #{agent}"
     # the redirect to /dev/null is to work around a bug in the init script or
