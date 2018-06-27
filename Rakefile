@@ -1,5 +1,6 @@
 require 'rake'
 require 'pathname'
+load './acceptance/tasks/acceptance.rake'
 RAKE_ROOT = File.expand_path(File.dirname(__FILE__))
 
 begin
