@@ -52,6 +52,60 @@ SH
   on servers, puppet('agent -t'), acceptable_exit_codes: [0,2]
 end
 
+# TODO Remove this when the shipped version of razor-admin reads
+# either razor-server or pe-razor-server sysconfig. `razor-admin` currently
+# looks for `razor-server.sysconfig` when it executes. This updates the binary
+# wrapper to use `pe-razor-server.sysconfig` if it exists, otherwise
+# `razor-server.sysconfig`.
+servers.each do |server|
+  on server, <<SH
+cat > '/opt/puppetlabs/server/apps/razor-server/share/razor-server/bin/razor-binary-wrapper' <<'EOT'
+#!/bin/sh
+. /etc/puppetlabs/razor-server/razor-torquebox.sh
+
+# If we support moving, this needs to change.
+RAZOR_HOME='/opt/puppetlabs/server/apps/razor-server/share/razor-server'
+
+# Make sure our Gemfile is found by the tool.  This is needed because Bundler
+# checks for the Gemfile relative to the current working directory, not the
+# code you are running -- so fails for anything, say, in the path. :/
+export BUNDLE_GEMFILE="${RAZOR_HOME}/Gemfile"
+
+# Load the sysconfig file for the service, primarily
+# to get the RAZOR_CONFIG setting.
+if [ -e /etc/sysconfig/pe-razor-server ]; then
+  sysconfig='/etc/sysconfig/pe-razor-server'
+elif [ -e /etc/sysconfig/razor-server ]; then
+  sysconfig='/etc/sysconfig/razor-server'
+fi
+if [ ! -z "${sysconfig}" ]; then
+  # Enable variable auto-exporting when we source the
+  # sysconfig file so that the exec below doesn't drop
+  # the variables set here. We can't export the vars
+  # inside the sysconfig file due to the way systemd
+  # parses the file.
+  set -a
+  . "${sysconfig}"
+  set +a
+fi
+
+# Figure out what we were asked to execute.
+exe="$(basename $0)"
+
+# Find the executable, and run it directly, or fail out gracefully.
+if test -f "${RAZOR_HOME}/bin/${exe}"; then
+    exec "${RAZOR_HOME}/bin/${exe}" "$@"
+elif test -f "${JRUBY_HOME}/bin/${exe}"; then
+    exec "${JRUBY_HOME}/bin/${exe}"
+else
+    echo "unable to find the ${exe} command in razor or bundled gems!"
+    exit 1
+fi
+
+EOT
+SH
+end
+
 step 'Verify that Razor is installed on the nodes, and our database is correct'
 servers.each do |server|
   retry_on server, 'curl -kf https://localhost:8151/api', :max_retries => 24, :retry_interval => 15
