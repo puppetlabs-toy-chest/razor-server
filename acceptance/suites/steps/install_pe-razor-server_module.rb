@@ -25,7 +25,7 @@ on servers, 'iptables --flush'
 
 step 'add node definitions for servers to the master'
 
-manifest_path = master.puppet('master')['manifest']
+manifest_path = master.puppet('agent')['manifest']
 
 if manifest_path.end_with? '.pp'
   manifest = manifest_path
