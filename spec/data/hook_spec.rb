@@ -306,6 +306,35 @@ exit #{exitcode}
         Razor::Data::Event.count.should == 1
       end
     end
+    it "should properly log STDERR and 'error' key" do
+      Razor::Data::Hook.new(:name => 'hook', :hook_type => hook_type).save
+
+      set_hook_file('test', 'node-booted' => <<-CONTENTS)
+#! /bin/bash
+
+set -e
+
+>&2 echo "stderror error"
+
+cat <<EOF
+{
+  "error": {"json error": "true"}
+}
+EOF
+exit 0
+      CONTENTS
+      Razor::Data::Hook.trigger('node-booted', node: node)
+      queue.count_messages.should == 1
+      run_message(queue.receive)
+      events = Razor::Data::Event.all
+      events.size.should == 1
+      event = events.first
+      event.node_id.should == node.id
+      event.severity.should == 'error'
+      event.entry['exit_status'].should == 0
+      event.entry['event'].should == 'node-booted'
+      event.entry['error'].should == "{\"json error\"=>\"true\"} and stderror error\n"
+    end
     it "should create an info event if hook script exits with 0" do
       hook = Razor::Data::Hook.new(:name => 'test', :hook_type => hook_type).save
 
