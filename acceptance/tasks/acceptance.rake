@@ -3,6 +3,7 @@ require 'rake'
 def generate_hosts(pe_version, hypervisor = 'vmpooler',
                    test_target = 'centos7-64mdc-64a')
   hosts_file = 'hosts.cfg'
+  pe_version = pe_version.gsub(/\.x$/, '')
   puts "Generating hosts..."
   cmd = <<HEREDOC
 export BUNDLE_PATH=.bundle/gems
@@ -54,7 +55,7 @@ namespace :acceptance do
     server_version = args[:razor_server_version] || `git rev-parse HEAD`
     tests = 'suites/tests/smoke'
     hosts = args[:hosts_file]
-    hosts = generate_hosts(pe_version) if hosts.nil?
+    hosts = generate_hosts(args[:pe_version]) if hosts.nil?
     run_beaker(hosts, tests, server_version)
   end
 end
