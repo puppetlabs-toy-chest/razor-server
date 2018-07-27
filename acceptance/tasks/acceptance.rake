@@ -1,7 +1,6 @@
 require 'rake'
 
-def generate_hosts(pe_version, hypervisor = 'vmpooler',
-                   test_target = 'centos7-64mdc-64a')
+def generate_hosts(pe_version, test_target)
   hosts_file = 'hosts.cfg'
   pe_version = pe_version.gsub(/\.x$/, '')
   puts "Generating hosts..."
@@ -12,7 +11,7 @@ export BUNDLE_BIN=.bundle/bin
 bundle install
 
 beaker-hostgenerator --pe_dir=http://enterprise.delivery.puppetlabs.net/#{pe_version}/ci-ready \
---disable-default-role --hypervisor #{hypervisor} #{test_target} > #{hosts_file}
+--disable-default-role --hypervisor vmpooler #{test_target} > #{hosts_file}
 HEREDOC
 
   Dir.chdir('acceptance'){
@@ -40,22 +39,21 @@ end
 
 namespace :acceptance do
   desc "Run acceptance tests"
-  task :full, [:pe_version, :razor_server_version, :hosts_file] do |t, args|
+  task :full, [:pe_version, :razor_server_version, :test_target] do |t, args|
     abort("Required argument: :pe_version") if args[:pe_version].nil?
     server_version = args[:razor_server_version] || `git rev-parse HEAD`
     tests = 'suites/tests/smoke,suites/tests/full'
-    hosts = args[:hosts_file]
-    hosts = generate_hosts(args[:pe_version]) if hosts.nil?
+    hosts = generate_hosts(args[:pe_version], args[:test_target])
     run_beaker(hosts, tests, server_version)
   end
 
   desc "Run smoke tests"
-  task :smoke, [:pe_version, :razor_server_version, :hosts_file] do |t, args|
+  task :smoke, [:pe_version, :razor_server_version, :test_target] do |t, args|
     abort("Required argument: :pe_version") if args[:pe_version].nil?
     server_version = args[:razor_server_version] || `git rev-parse HEAD`
+    test_target = args[:test_target] || 'centos7-64mdc-64a'
     tests = 'suites/tests/smoke'
-    hosts = args[:hosts_file]
-    hosts = generate_hosts(args[:pe_version]) if hosts.nil?
+    hosts = generate_hosts(args[:pe_version], test_target)
     run_beaker(hosts, tests, server_version)
   end
 end
