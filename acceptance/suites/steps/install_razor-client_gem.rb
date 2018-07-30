@@ -18,7 +18,7 @@ step 'Install the Razor client'
 # The other potential fix is to do `gem update --system`, which is
 # a larger system change.
 on agents, "/opt/puppetlabs/puppet/bin/gem install --clear-sources " +
-           "--source #{gem_source} razor-client --no-ri"
+           "--source #{gem_source} --prerelease razor-client --no-ri"
 # Symlink razor into the path so just `razor` works.
 on agents, 'ln -s /opt/puppetlabs/puppet/bin/razor /usr/bin/razor'
 
