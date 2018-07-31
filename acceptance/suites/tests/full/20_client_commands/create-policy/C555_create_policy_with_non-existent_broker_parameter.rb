@@ -33,6 +33,6 @@ json = {
 }
 
 razor agents, 'create-policy', json, exit: 1 do |agent, text|
-  assert_match /404 Resource Not Found/, text
+  assert_match /404 (Resource )?Not Found/, text
   assert_match /broker must be the name of an existing broker, but is 'noop'/, text
 end
