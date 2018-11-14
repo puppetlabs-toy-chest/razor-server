@@ -1,1 +1,1 @@
-ks=<%= file_url("kickstart") %> network ksdevice=bootif BOOTIF=01-${netX/mac}
+ks=<%= file_url("kickstart") %> initrd=initrd.img network ksdevice=bootif BOOTIF=01-${netX/mac}
