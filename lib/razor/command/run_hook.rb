@@ -34,7 +34,7 @@ With positional arguments, this can be shortened::
                 position: 0, help: _('The name of the hook to run.')
   attr  'event', type: String, required: true,
                 one_of: Razor::Data::Hook::AVAILABLE_EVENTS,
-                help: _('The name of the hook to run.')
+                help: _('The name of the event to handle.')
 
   attr  'node', type: String, required: true, references: [Razor::Data::Node, :name],
                 help: _('The name of the node involved in the hook execution.')
