@@ -1,16 +1,16 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) 2018 Puppet, LLC.
+# Copyright (C) 2019 Puppet, LLC.
 # This file is distributed under the same license as the Razor Server package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Razor Server 1.9.2-1-g0adcc23\n"
+"Project-Id-Version: Razor Server 1.9.4-1-g2e38de6\n"
 "\n"
 "Report-Msgid-Bugs-To: puppet-razor@googlegroups.com\n"
-"POT-Creation-Date: 2018-07-09 21:00+0000\n"
-"PO-Revision-Date: 2018-07-09 21:00+0000\n"
+"POT-Creation-Date: 2019-02-27 01:47+0000\n"
+"PO-Revision-Date: 2019-02-27 01:47+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -680,8 +680,12 @@ msgstr ""
 msgid "Tag %{tag} was not on policy %{policy}"
 msgstr ""
 
-#: ../lib/razor/command/run_hook.rb:34 ../lib/razor/command/run_hook.rb:37
+#: ../lib/razor/command/run_hook.rb:34
 msgid "The name of the hook to run."
+msgstr ""
+
+#: ../lib/razor/command/run_hook.rb:37
+msgid "The name of the event to handle."
 msgstr ""
 
 #: ../lib/razor/command/run_hook.rb:40
