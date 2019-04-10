@@ -7,7 +7,7 @@ url --url=<%= repo_url %>
 cmdline
 lang en_US.UTF-8
 keyboard us
-rootpw <%= node.metadata['root_password'] || node.root_password %>
+rootpw '<%= node.metadata["root_password"] || node.root_password %>'
 network --hostname <%= node.metadata['hostname'] || node.hostname %>
 firewall --enabled --ssh
 authconfig --enableshadow --passalgo=sha512 --enablefingerprint
