@@ -1,6 +1,41 @@
 # Razor Server Release Notes
 
-## 1.9.1 - 2018-05-31
+## 1.9.5 - ??
+
+### Broker changes
+
++ IMPROVEMENT: Fix puppet-pe broker's ntpdate in template.
+
+### Task changes
+
++ IMPROVEMENT: Handle passwords with spaces in kickstart files.
+
+### Other
+
++ IMPROVEMENT: Minor docs fix for `run_hook` help content.
+
+## 1.9.4 - 2019-01-22
+
+### Other
+
++ BUGFIX: Updated RHEL kernel_args for improved handling of UEFI.
++ IMPROVEMENT: Updated various gem versions.
+
+## 1.9.3 - 2018-10-01
+
+### Other
+
++ IMPROVEMENT: Update Sinatra to 2.0.3.
++ IMPROVEMENT: Updated various gem versions.
++ IMPROVEMENT: Various packing and test improvements.
+
+## 1.9.2 - 2018-05-31
+
+### Other
+
++ BUGFIX: Reverted some packaging changes.
+
+## 1.9.1 - 2018-05-29
 
 ### API changes
 
@@ -14,6 +49,7 @@
 ### Other
 
 + IMPROVEMENT: Updated Sinatra to version 2.0.1.
++ IMPROVEMENT: Updated some packaging bits.
 
 ## 1.8.1 - 2018-04-24
 
