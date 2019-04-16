@@ -31,7 +31,7 @@ trap "checkError" exit
 cmd bash || fail "we need bash available to be able to run the installer"
 
 # Synchronize time with ntpdate server before registering with the server.
-ntpdate_server=<% broker[:ntpdate_server] || '' %>
+ntpdate_server=<%= broker[:ntpdate_server] || '' %>
 if [ -z $ntpdate_server ]; then
     : # skipping ntpdate since `ntpdate_server` is not set
 elif cmd ntpdate; then
