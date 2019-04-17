@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# A script for running the Razor server, i.e. as a development environment.
+# This will: download the microkernel, migrate the database, deploy
+# the app to torquebox, install the razor-client, then start torquebox.
+
+set -e
+set -x
+
+printf "ensuring microkernel is in place"
+if [ ! -e /var/lib/razor/repo-store/microkernel ]
+then
+    cd /var/lib/razor/repo-store
+    wget -c -O microkernel.tar https://pup.pt/razor-microkernel-latest
+    tar -xvf microkernel.tar
+fi
+
+# Migrate the database.
+$(dirname $0)/razor-admin migrate-database
+
+gem install razor-client
+
+# Deploy and start torquebox
+(cd $(dirname $0)/..; torquebox deploy)
+torquebox run -b 0.0.0.0 --port 8150
