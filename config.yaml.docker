@@ -1,0 +1,50 @@
+---
+
+all:
+  database_url: 'jdbc:postgresql://razor-postgres:5432/razor?user=razor&password=razor'
+  auth:
+    enabled: false
+    config: shiro.ini
+    allow_localhost: false
+  microkernel:
+    debug_level: debug
+    kernel_args:
+  secure_api: false
+  protect_new_nodes: false
+  store_hook_input: false
+  store_hook_output: false
+  match_nodes_on:
+    - mac
+  checkin_interval: 15
+  task_path: tasks
+  repo_store_root: /var/lib/razor/repo-store
+  broker_path: brokers
+  hook_path: hooks
+  hook_execution_path:
+  facts:
+    blacklist:
+      - domain
+      - filesystems
+      - fqdn
+      - hostname
+      - id
+      - /kernel.*/
+      - memoryfree
+      - memorysize
+      - memorytotal
+      - /operatingsystem.*/
+      - osfamily
+      - path
+      - ps
+      - rubysitedir
+      - rubyversion
+      - selinux
+      - sshdsakey
+      - /sshfp_[dr]sa/
+      - sshrsakey
+      - /swap.*/
+      - timezone
+      - /uptime.*/
+  api_config_blacklist:
+    - database_url
+    - facts.blacklist

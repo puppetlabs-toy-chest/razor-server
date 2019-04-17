@@ -8,3 +8,4 @@ log/*
 /.project
 /.ruby-version
 /ext/packaging/
+/repo
