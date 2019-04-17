@@ -54,6 +54,32 @@ namespace :db do
   task :reset, [:env] => [:nuke, :migrate]
 end
 
+# Start a docker instance that hosts a Razor database. By default this adds
+# user 'razor' and password 'razor', creating a database named 'razor'. This
+# can be used to run spec tests locally.
+# Arguments:
+# - 'env' : The environment, found in the config.yaml, used for the database.
+#           Defaults to 'test'.
+namespace :docker do
+  desc "Start docker container"
+  task :db, :env do |cmd, args|
+    # Stop if already running.
+    sh "docker stop razor-postgres || true"
+    # Creates a postgres container in Docker.
+    sh "docker run -d --rm -p 5432:5432 --name razor-postgres -e POSTGRES_PASSWORD=razor -e POSTGRES_USER=razor -e POSTGRES_DB=razor postgres"
+    env = args[:env] || "test"
+    # Time for the docker container to settle.
+    sleep 10
+    Rake::Task['environment'].invoke(env)
+    Rake::Task['db:migrate'].invoke(env)
+  end
+
+  desc "Stop docker container"
+  task :stop do
+    sh "docker stop razor-postgres"
+  end
+end
+
 if defined?(RSpec::Core::RakeTask)
   namespace :spec do
     require 'rspec/core'
