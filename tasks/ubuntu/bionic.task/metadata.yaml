@@ -1,0 +1,6 @@
+---
+
+os_version: bionic
+label: Ubuntu Bionic 18.04
+description: Ubuntu Bionic Installer
+base: ubuntu

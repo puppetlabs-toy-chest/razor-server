@@ -49,9 +49,10 @@ d-i finish-install/reboot_in_progress note
 # Our callbacks
 d-i preseed/early_command string wget <%= log_url("preseed start") %>
 d-i preseed/late_command string  wget <%= log_url("preseed end") %>; \
-wget <%= file_url("os_boot") %> -O /target/usr/local/sbin/razor_postinstall.sh;  \
-printf %b '#!/bin/sh\n/usr/local/sbin/razor_postinstall.sh\nexit 0\n' > /target/etc/rc.local; \
-chmod +x /target/usr/local/sbin/razor_postinstall.sh; \
-chmod +x /target/etc/rc.local; \
+wget <%= file_url("os_boot") %> -O /target/usr/local/bin/razor_postinstall.sh;  \
+sed -i '/exit 0/d' /target/etc/rc.local;  \
+echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \
+echo exit 0 >> /target/etc/rc.local;  \
+chmod +x /target/usr/local/bin/razor_postinstall.sh; \
 wget <%= stage_done_url("preseed") %>
 

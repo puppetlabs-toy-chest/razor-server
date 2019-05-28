@@ -11,3 +11,4 @@
 - 'hostname' (optional) - This is an override for the hostname that exists
   on the node when it binds to a policy. If this is provided, it will be used
   for the node's hostname.
+  
