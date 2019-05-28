@@ -2,13 +2,8 @@
 
 exec >> /var/log/razor.log 2>&1
 
-# ubuntu 18.04 networking doesn't wake up right away, so...
-for i in {1..15}; do
-  curl -s <%= compose_url %> >/dev/null && break
-  sleep 1
-done
-
 <%= render_template("set_hostname") %>
+
 
 # APT configuration and system update
 sed -i s$'\001'<%= repo_url %>$'\001'http://gb.archive.ubuntu.com/ubuntu$'\001' /etc/apt/sources.list
