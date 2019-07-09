@@ -34,7 +34,7 @@ gem "unix-crypt", "~> 1.1.1"
 
 
 group :doc do
-  gem 'yard', '~> 0.9.11'
+  gem 'yard', '>= 0.9.20'
   # kramdown 1.15.0 requires ruby >= 2.0
   gem 'kramdown', '~> 1.14.0'
 end
