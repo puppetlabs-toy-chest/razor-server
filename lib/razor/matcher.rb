@@ -111,7 +111,11 @@ class Razor::Matcher
     # If no fact with the specified name exists, args[1] is returned if given.
     # If no fact exists and args[1] is not given, an ArgumentError is raised.
     def fact(*args)
-      value_lookup("facts", args)
+      value_lookup("facts", args).tap do |val|
+        if val.is_a?(Hash) or val.is_a?(Array)
+          raise RuleEvaluationError.new(_("cannot evaluate #{val.class} returned from fact #{args[0]}"))
+        end
+      end
     end
 
     def metadata(*args)
@@ -217,11 +221,31 @@ class Razor::Matcher
     end
 
     private
+    def traverse_map(map, parts)
+      parts.inject(map) do |submap, v|
+        if submap.is_a?(Hash) && submap.key?(v)
+          submap[v]
+        elsif v.to_i.to_s == v && submap.is_a?(Array) && v.to_i < submap.length
+          submap[v.to_i]
+        elsif v == 'length' && submap.is_a?(Array)
+          submap.length
+        else
+          break
+        end
+      end
+    end
+
     def value_lookup(map_name, args)
       map = @values[map_name] || {}
-      case
-      when map.include?(args[0]) then map[args[0]]
-      when args.length > 1 then args[1]
+      if map.include?(args[0])
+        return map[args[0]]
+      elsif args[0].include?('.')
+        found = traverse_map(map, args[0].split('.'))
+        return found unless found.is_a?(Hash) || found.is_a?(Array) || found.nil?
+      end
+      # Not found
+      if args.length > 1
+        args[1]
       else
         name = map_name == "facts" ? "fact" : map_name
         raise RuleEvaluationError.new _("Couldn't find %{name} '%{raw}' and no default supplied") % {name: name, raw: args[0]}

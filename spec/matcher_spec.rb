@@ -70,30 +70,72 @@ describe Razor::Matcher do
       matches("not", true).should == false
     end
 
-    it "metadata should behave" do
-      match_metadata("=", ["metadata", "f1"], true, { "f1" => true }).should == true
-      match_metadata("=", ["metadata", "f1"], false, { "f1" => false }).should == true
-      match_metadata("=", ["metadata", "f1"], 'abc', { "f1" => 'abc' }).should == true
-      expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => []}) }.
-          to raise_error RuleEvaluationError, /cannot evaluate Array returned from metadata f1/
-      expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => {}}) }.
-          to raise_error RuleEvaluationError, /cannot evaluate Hash returned from metadata f1/
+    context 'metadata' do
+      it "should behave" do
+        match_metadata("=", ["metadata", "f1"], true, { "f1" => true }).should == true
+        match_metadata("=", ["metadata", "f1"], false, { "f1" => false }).should == true
+        match_metadata("=", ["metadata", "f1"], 'abc', { "f1" => 'abc' }).should == true
+        expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => []}) }.
+            to raise_error RuleEvaluationError, /cannot evaluate Array returned from metadata f1/
+        expect { match_metadata("=", ["metadata", "f1"], false, { "f1" => {}}) }.
+            to raise_error RuleEvaluationError, /cannot evaluate Hash returned from metadata f1/
+      end
+
+      context 'structured metadata' do
+        it "should search hashes" do
+          # Hashes
+          match_metadata("=", ["metadata", "f1.f2.f3"], true, { "f1" => { "f2" => { "f3" => true } } }).should == true
+          match_metadata("=", ["metadata", "f1.f2"], true, { "f1" => { "f2" => false }, "f1.f2" => true }).should == true
+          expect { match_metadata("=", ["metadata", "f1.f2.f3"], true, { "f1" => false }) }.
+              to raise_error RuleEvaluationError, /Couldn't find metadata 'f1.f2.f3' and no default supplied/
+        end
+        it "should search arrays" do
+          # Arrays
+          match_metadata("=", ["metadata", "f1.0"], true, { "f1" => [true]}).should == true
+          expect { match_metadata("=", ["metadata", "f1.1"], true, { "f1" => [true]}) }.
+              to raise_error RuleEvaluationError, /Couldn't find metadata 'f1.1' and no default supplied/
+          match_metadata("=", ["metadata", "f1.abc", 'default'], 'default', { "f1" => [true]}).should == true
+          match_metadata("=", ["metadata", "f1.length", 'default'], 4, { "f1" => [1, 2, 3, 4]}).should == true
+          match_metadata("=", ["metadata", "f1.length.wrong", 'default'], 'default', { "f1" => [1, 2, 3, 4]}).should == true
+        end
+      end
     end
 
-    it "fact should behave" do
-      matches("fact", "f1", { "f1" => "true" }).should == true
-      matches("fact", "f1", { "f1" => false  }).should == false
-    end
+    context "facts" do
+      it "should behave" do
+        matches("fact", "f1", { "f1" => "true" }).should == true
+        matches("fact", "f1", { "f1" => false  }).should == false
+        expect { matches("fact", "f1", { "f1" => []}) }.
+            to raise_error RuleEvaluationError, /cannot evaluate Array returned from fact f1/
+        expect { matches("fact", "f1", { "f1" => {}}) }.
+            to raise_error RuleEvaluationError, /cannot evaluate Hash returned from fact f1/
+      end
 
-    it "fact should raise if fact not found and one argument given" do
-      expect do
-        matches("fact", "f2", { "f1" => "true" })
-      end.to raise_error RuleEvaluationError
-    end
+      context "structured" do
+        it "should search hashes" do
+          matches("fact", "f1.f2.f3", { "f1" => { "f2" => { "f3" => true } } }).should == true
+          matches("fact", "f1.f2", { "f1" => { "f2" => true }, "f1.f2" => false }).should == false
+          matches("fact", "f1.f2", { "f1" => { "f2" => false }, "f1.f2" => true }).should == true
+        end
+        it "should search arrays" do
+          matches("fact", "f1.0", { "f1" => [true] }).should == true
+          expect { matches("fact", "f1.1", { "f1" => [true] }) }.to raise_error RuleEvaluationError, /Couldn't find fact 'f1.1' and no default supplied/
+          expect { matches("fact", "f1.abc", { "f1" => [true] }) }.to raise_error RuleEvaluationError, /Couldn't find fact 'f1.abc' and no default supplied/
+          matches("=", ["fact", "f1.length"], 4, { "f1" => [1, 2, 3, 4] }).should == true
+          matches("=", ["fact", "f1.length.wrong", "default"], "default", { "f1" => [1, 2, 3, 4] }).should == true
+        end
+      end
 
-    it "fact should return the default if fact not found" do
-      matches("fact", "f1", false, { "f1" => true }).should == true
-      matches("fact", "f2", false, { "f1" => true }).should == false
+      it "should raise if fact not found and one argument given" do
+        expect do
+          matches("fact", "f2", { "f1" => "true" })
+        end.to raise_error RuleEvaluationError
+      end
+
+      it "should return the default if fact not found" do
+        matches("fact", "f1", false, { "f1" => true }).should == true
+        matches("fact", "f2", false, { "f1" => true }).should == false
+      end
     end
 
     ["fact", "metadata", "state"].each do |func|
