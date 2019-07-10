@@ -12,7 +12,7 @@ env:
 services:
   - postgresql
 before_install:
-  - gem install bundler -v 1.10
+  - gem install bundler -v 2.0.1
 before_script:
   - mkdir -p /tmp/repo
   - cp config.yaml.travis config.yaml
