@@ -6,11 +6,11 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Razor Server 1.9.4-1-g2e38de6\n"
+"Project-Id-Version: Razor Server 1.9.5-4-g8ef90da\n"
 "\n"
 "Report-Msgid-Bugs-To: puppet-razor@googlegroups.com\n"
-"POT-Creation-Date: 2019-02-27 01:47+0000\n"
-"PO-Revision-Date: 2019-02-27 01:47+0000\n"
+"POT-Creation-Date: 2019-07-10 20:48+0000\n"
+"PO-Revision-Date: 2019-07-10 20:48+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -1057,7 +1057,7 @@ msgstr ""
 msgid "Multiple nodes match hw_info %{hw_info}. Nodes: %{nodes}"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:237 ../lib/razor/matcher.rb:292
+#: ../lib/razor/data/node.rb:237 ../lib/razor/matcher.rb:316
 msgid "must be an array"
 msgstr ""
 
@@ -1215,67 +1215,71 @@ msgstr ""
 msgid " while evaluating rule: %{rule}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:120
+#: ../lib/razor/matcher.rb:116
+msgid "cannot evaluate #{val.class} returned from fact #{args[0]}"
+msgstr ""
+
+#: ../lib/razor/matcher.rb:124
 msgid "cannot evaluate #{val.class} returned from metadata #{args[0]}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:127
+#: ../lib/razor/matcher.rb:131
 msgid "Tag '%{name}' does not exist"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:170
+#: ../lib/razor/matcher.rb:174
 msgid "can't convert %{raw} to number"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:197
+#: ../lib/razor/matcher.rb:201
 msgid "argument to 'lower' should be a string but was %{raw}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:204
+#: ../lib/razor/matcher.rb:208
 msgid "argument to 'upper' should be a string but was %{raw}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:227
+#: ../lib/razor/matcher.rb:251
 msgid "Couldn't find %{name} '%{raw}' and no default supplied"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:236
+#: ../lib/razor/matcher.rb:260
 msgid "Invalid matcher; couldn't unserialize %{rule_hash}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:253
+#: ../lib/razor/matcher.rb:277
 msgid "rule is not an array"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:294
+#: ../lib/razor/matcher.rb:318
 msgid "must have at least one argument"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:302
+#: ../lib/razor/matcher.rb:326
 msgid "cannot process objects of type %{class}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:311
+#: ../lib/razor/matcher.rb:335
 msgid "uses unrecognized operator '%{name}'; recognized operators are %{operators}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:322
+#: ../lib/razor/matcher.rb:346
 msgid "could return incompatible datatype(s) from function '%{name}' (%{outliers}). Rule expects (%{required_returns})"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:325
+#: ../lib/razor/matcher.rb:349
 msgid "could return incompatible datatype(s) from function '%{name}' (%{outliers}) for argument %{position}. Function '%{caller_name}' expects (%{required_returns})"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:337
+#: ../lib/razor/matcher.rb:361
 msgid "attempts to pass %{arg} of type %{type} to '%{name}' for argument %{position}, but only %{expected} are accepted"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:349
+#: ../lib/razor/matcher.rb:373
 msgid "invalid regular expression supplied to `like` for argument %{position}: %{message}"
 msgstr ""
 
-#: ../lib/razor/matcher.rb:359
+#: ../lib/razor/matcher.rb:383
 msgid "invalid regular expression supplied to `has_macaddress_like` for argument %{position}: %{message}"
 msgstr ""
 
