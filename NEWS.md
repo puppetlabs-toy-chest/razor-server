@@ -1,10 +1,22 @@
 # Razor Server Release Notes
 
-## 1.9.5 - ??
+## 1.9.6 - 2019-08-15
+
+### Task changes
+
++ NEW: Added Ubuntu task for Bionic (18.04)
+
+### Other
+
++ NEW: Added access for structured facts and structured metadata using
+  dot-syntax.
++ IMPROVEMENT: Updated various gem versions.
+
+## 1.9.5 - 2019-04-16
 
 ### Broker changes
 
-+ IMPROVEMENT: Fix puppet-pe broker's ntpdate in template.
++ BUGFIX: Fix puppet-pe broker's ntpdate in template.
 
 ### Task changes
 
