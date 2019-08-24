@@ -1,10 +1,11 @@
 # Razor Server Release Notes
 
-## 1.9.6 - 2019-08-15
+## 1.9.6 - 2019-08-26
 
 ### Task changes
 
-+ NEW: Added Ubuntu task for Bionic (18.04)
++ NEW: Added Ubuntu task for Bionic (18.04).
++ IMPROVEMENT: Added support for EFI in `vmware_esxi` task.
 
 ### Other
 
