@@ -9,10 +9,10 @@ env:
     - JDBCUTIL_DBNAME=//127.0.0.1:5432/razor
     - JDBCUTIL_DBUSER=postgres
     - JDBCUTIL_DBPASS=
+jdk:
+  - openjdk8
 services:
   - postgresql
-before_install:
-  - gem install bundler -v 1.10
 before_script:
   - mkdir -p /tmp/repo
   - cp config.yaml.travis config.yaml
@@ -25,7 +25,7 @@ notifications:
 rvm:
   - jruby-9.1.5.0
 addons:
-  postgresql: "9.3"
+  postgresql: "9.6"
   apt:
     packages:
       - libarchive-dev
