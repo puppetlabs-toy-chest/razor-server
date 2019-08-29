@@ -336,6 +336,9 @@ module Razor::Data
       bind_policy unless (installed or policy)
       if policy
         log_append(:action => :reboot, :policy => policy.name)
+      elsif installed == '+protected'
+        log_append(:action => :reboot, :task => 'noop',
+          :msg => _("Node is assumed to be installed already due to the `protect_new_nodes` config. Run `reinstall_node` to force installation, and change `protect_new_nodes` to `false` to prevent this in the future."))
       elsif installed
         log_append(:action => :reboot, :task => 'noop',
           :msg => _("Node has no policy but is installed. Booting locally"))

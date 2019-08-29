@@ -387,6 +387,13 @@ describe Razor::Data::Node do
       node.installed.should == 'test'
     end
 
+    it "should alert the user in the logs if the node is protected" do
+      node.installed = '+protected'
+      node.save
+      node.checkin('facts' => { 'f1' => 'a' })
+      node.log.first['msg'].should match(/due to the `protect_new_nodes` config/)
+    end
+
     describe "of a bound node" do
       let (:repo) { Fabricate(:repo) }
 
