@@ -6,11 +6,11 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Razor Server 1.9.5-4-g8ef90da\n"
+"Project-Id-Version: Razor Server 1.9.5-14-gd3aa020\n"
 "\n"
 "Report-Msgid-Bugs-To: puppet-razor@googlegroups.com\n"
-"POT-Creation-Date: 2019-07-10 20:48+0000\n"
-"PO-Revision-Date: 2019-07-10 20:48+0000\n"
+"POT-Creation-Date: 2019-08-29 02:46+0000\n"
+"PO-Revision-Date: 2019-08-29 02:46+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -1086,14 +1086,18 @@ msgid "remove must be an array"
 msgstr ""
 
 #: ../lib/razor/data/node.rb:341
+msgid "Node is assumed to be installed already due to the `protect_new_nodes` config. Run `reinstall_node` to force installation, and change `protect_new_nodes` to `false` to prevent this in the future."
+msgstr ""
+
+#: ../lib/razor/data/node.rb:344
 msgid "Node has no policy but is installed. Booting locally"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:398
+#: ../lib/razor/data/node.rb:401
 msgid "Lookup was given %{keys}, none of which are configured as match criteria in match_nodes_on (%{match_nodes_on})"
 msgstr ""
 
-#: ../lib/razor/data/node.rb:416
+#: ../lib/razor/data/node.rb:419
 msgid "dhcp_mac %{dhcp_mac} already exists but hw_info does not match that node"
 msgstr ""
 
