@@ -1,6 +1,6 @@
 # Razor Server Release Notes
 
-## 1.9.6 - 2019-08-26
+## 1.9.6 - 2019-08-29
 
 ### Task changes
 
@@ -9,8 +9,10 @@
 
 ### Other
 
-+ NEW: Added access for structured facts and structured metadata using
-  dot-syntax.
++ NEW: Added access for tags to reference structured facts and structured
+  metadata using dot-syntax.
++ IMPROVEMENT: When a node is not bound to a policy due to the
+  `protect_new_nodes` config, the node's log entry will now reflect this.
 + IMPROVEMENT: Updated various gem versions.
 
 ## 1.9.5 - 2019-04-16
