@@ -15,7 +15,8 @@ require 'timecop'
 
 # This is provided inside TorqueBox, but is not available by default in our
 # spec runner.  Without it some of our dependencies fail to load. :(
-require_relative '../jars/slf4j-api-1.6.4.jar'
+require_relative '../jars/slf4j-simple-1.7.28.jar'
+require_relative '../jars/slf4j-api-1.7.28.jar'
 
 
 ENV["RACK_ENV"] ||= "test"
