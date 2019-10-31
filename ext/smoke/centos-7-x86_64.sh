@@ -12,9 +12,9 @@ set -x # Verbose output
 server_version=${1}
 [ -n "$server_version" ] || (echo "Server version (1st parameter) required" && exit 1)
 microkernel_version=007
-[  -n "${3}" ] && repo_conf=${3} || repo_conf="http://builds.puppetlabs.lan/razor-server/${server_version}/repo_configs/rpm/pl-razor-server-${server_version}-el-6-x86_64.repo"
+[  -n "${3}" ] && repo_conf=${3} || repo_conf="http://builds.puppetlabs.lan/razor-server/${server_version}/repo_configs/rpm/pl-razor-server-${server_version}-el-7-x86_64.repo"
 
-export razor_client_gem="http://builds.puppetlabs.lan/razor-client/${client_version}/artifacts/razor-client-${client_version}.gem"
+export razor_client_gem="https://artifactory.delivery.puppetlabs.net/artifactory/rubygems/gems/razor-client-${client_version}.gem"
 export microkernel_url="http://links.puppetlabs.com/razor-microkernel-${microkernel_version}.tar"
 
 echo " === Install repository === "
@@ -26,12 +26,12 @@ yum install -y razor-server
 
 echo " === Install Postgresql ==="
 yum install -y postgresql postgresql-server
-postgresql-setup initdb
+postgresql-setup initdb || true
 sed -i -r "s/  (peer|ident)/  trust/g" /var/lib/pgsql/data/pg_hba.conf
 service postgresql start
 sudo su - postgres <<HERE
-psql -d postgres -c "create user razor with password 'razor';"
-createdb -O razor razor_prd
+psql -d postgres -c "create user razor with password 'razor';" || true
+createdb -O razor razor_prd || true
 HERE
 service postgresql restart
 psql -l -U razor razor_prd # Test that this connects.

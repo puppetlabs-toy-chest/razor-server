@@ -16,9 +16,9 @@ group :ci, :system_tests do
   if beaker_version
     gem 'beaker', *location_for(beaker_version)
   else
-    gem 'beaker', '~> 3.30'
+    gem 'beaker', '~> 4.12'
   end
-  gem 'beaker-pe', '~> 1.40.7'
+  gem 'beaker-pe', '~> 2.1.9'
   gem "beaker-hostgenerator", *location_for(ENV['BEAKER_HOSTGENERATOR_VERSION'] || "~> 0.2")
   gem "beaker-abs", *location_for(ENV['BEAKER_ABS_VERSION'] || "~> 0.2")
   gem 'public_suffix', '1.4.6'
