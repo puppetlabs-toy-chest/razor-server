@@ -22,7 +22,11 @@ write-host "mapping SMB share ${drive_path} for installer access"
 # and that means we can't actually run stuff off it.
 $pass = "password" | ConvertTo-SecureString -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential('user', $pass)
-new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist -credential $cred
+try { new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist -credential $cred -ErrorAction Stop }
+catch {
+        Write-Host "Connecting with a dummy credential failed, retrying without credentials..."
+        new-psdrive -name 'i' -psprovider filesystem -root "$($drive_path)" -persist
+}
 If (!(Test-Path i:))
 {
         Invoke-WebRequest -Uri "<%= log_url("samba share not accessible ${drive_path}", :error) %>" -UseBasicParsing
