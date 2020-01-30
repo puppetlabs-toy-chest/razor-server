@@ -1,5 +1,17 @@
 # Razor Server Release Notes
 
+## 1.9.7 - 2020-01-30
+
+### Task changes
+
++ IMPROVEMENT: Changed the Windows tasks (except 2008 R2) to be more robust in
+  how the WinPE instance connects to Razor's repo.
+
+### Other
+
++ IMPROVEMENT: Bumped jdbc-postgres version.
++ IMPROVEMENT: Bumped some dependencies (shiro, slf4j, etc.).
+
 ## 1.9.6 - 2019-08-29
 
 ### Task changes
