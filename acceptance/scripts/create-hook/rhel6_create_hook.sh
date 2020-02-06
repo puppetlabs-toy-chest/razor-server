@@ -4,7 +4,7 @@ acceptance_dir=$script_dir/../../
 
 cd $acceptance_dir
 
-export pe_dist_dir=http://pe-releases.puppetlabs.lan/3.7.1/
+export pe_dist_dir=https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/archives/releases/3.7.1/
 
 export BEAKER_TESTSUITE="suites/tests/20_client_commands/create-hook"
 export BEAKER_PRESUITE="suites/pre_suite/old-norestarts"

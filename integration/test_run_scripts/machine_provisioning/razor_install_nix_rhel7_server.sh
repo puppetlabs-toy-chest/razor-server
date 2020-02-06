@@ -9,7 +9,7 @@ if [ $SCRIPT_BASE_PATH = "machine_provisioning" ]; then
 fi
 
 # PE build:
-export pe_dist_dir=http://neptune.puppetlabs.lan/3.8/ci-ready/
+export pe_dist_dir=https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/2018.1/ci-ready/
 
 #Getting provisioned OS:
 supported_provisioning_OS=('CENTOS6' 'CENTOS7' 'RHEL6' 'RHEL7' 'UBUNTU14' 'ESXI55' 'WINDOW2012R2')

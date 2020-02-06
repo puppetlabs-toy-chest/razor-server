@@ -20,8 +20,8 @@ init_file = on(master, "cat #{init_path}/init.pp").output
 
 # Replace the line: $pe_tarball_base_url = "https://pm.puppetlabs.com/puppet-enterprise",
 # by:
-# $pe_tarball_base_url = "http://neptune.puppetlabs.lan/3.8/ci-ready",
-init_file = init_file.gsub(/pe_tarball_base_url = \"https\:\/\/pm\.puppetlabs\.com\/puppet-enterprise\"/, "pe_tarball_base_url = \"http://neptune.puppetlabs.lan/3.8/ci-ready\"")
+# $pe_tarball_base_url = "https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/2018.1/ci-ready",
+init_file = init_file.gsub(/pe_tarball_base_url = \"https\:\/\/pm\.puppetlabs\.com\/puppet-enterprise\"/, "pe_tarball_base_url = \"https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/2018.1/ci-ready\"")
 
 # Replace file_extenstion {...} by file_extension = "tar"
 # and add the $pe_build = 3.8 ci ready latest build
