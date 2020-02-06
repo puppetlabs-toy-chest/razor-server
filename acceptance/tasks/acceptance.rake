@@ -10,7 +10,7 @@ export BUNDLE_BIN=.bundle/bin
 
 bundle install
 
-beaker-hostgenerator --pe_dir=http://enterprise.delivery.puppetlabs.net/#{pe_version}/ci-ready \
+beaker-hostgenerator --pe_dir=https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/#{pe_version}/ci-ready \
 --disable-default-role --hypervisor vmpooler #{test_target} > #{hosts_file}
 HEREDOC
 
