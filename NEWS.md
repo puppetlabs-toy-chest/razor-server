@@ -1,5 +1,15 @@
 # Razor Server Release Notes
 
+## 1.9.8 - 2020-04-24
+
+### Task changes
+
++ IMPROVEMENT: Fixed the issue with the ubuntu bionic (18.04)
+
+### Other
+
++ IMPROVEMENT: Bumped rake to 12.3.3
+
 ## 1.9.7 - 2020-01-30
 
 ### Task changes
@@ -165,7 +175,7 @@
 
 ### API changes
 
-+ BUGFIX: The `set-node-hw-info` command now works if the 
++ BUGFIX: The `set-node-hw-info` command now works if the
   `match_nodes_on` Razor config includes `mac` (default).`
 + BUGFIX: The `update-node-metadata` and `modify-node-metadata` commands
   now throw the intended errors if `no_replace` is supplied and the key
@@ -182,7 +192,7 @@
   migrating the broker that a policy uses.
 + IMPROVEMENT: The `set-node-hw-info` command can now accept `mac` as an
   argument.
-  
+
 ### Task changes
 
 + NEW: Added Fedora 23 task.
@@ -220,7 +230,7 @@
   - `/etc/razor/config.yaml` to `/etc/puppetlabs/razor-server/config.yaml`
   - `/etc/razor/shiro.ini` to `/etc/puppetlabs/razor-server/shiro.ini`
   - `/var/log/razor-server/server.log` to `/var/log/puppetlabs/razor-server/server.log`
-  - `hooks`, `brokers`, and `tasks` from `/opt/razor` are now in 
+  - `hooks`, `brokers`, and `tasks` from `/opt/razor` are now in
     `/opt/puppetlabs/server/apps/razor-server/share/razor-server`
 + IMPROVEMENT: Updating Torquebox to 3.1.2 and JRuby to 1.7.19.
 
@@ -284,7 +294,7 @@
   previously used the same queue as the database messages.
 + BUGFIX: The unused `windows_download_url` property of the `puppet-pe` broker
   has been removed in favor of `windows_agent_download_url`, an optional URL
-  indicating where to download the Windows PE agent. 
+  indicating where to download the Windows PE agent.
 + NEW: Added stock hook for dynamic assignment of hostnames. More details on
   this new hook can be found in the hostname.hook directory's README.md.
 + NEW: Task added for Windows 2008 R2. Details are on the [Wiki](https://github.com/puppetlabs/razor-server/wiki/Installing-windows).
@@ -295,7 +305,7 @@
   and just proceed with a reinstall of the current policy.
 + NEW: The `like` tag matcher can be used to match expressions to a regular
   expression. This can be used, for example, to match on a range of MAC
-  addresses. 
+  addresses.
 + NEW: The `str` tag matcher can be used to convert input (likely numeric)
   into a string.
 + NEW: The `update-broker-configuration` command can be used to update the
@@ -324,7 +334,7 @@
   tell the razor service which port to use for HTTP traffic.
 + IMPROVEMENT: The `bootstrap` URL will now guess what the correct http_port
   value should be, typically falling back to the URL used for the `/bootstrap`
-  request. 
+  request.
 
 ## 1.0.1 - 2015-06-11
 
@@ -419,10 +429,10 @@
   release will rename conflicting tags, appending a digit to the end,
   e.g. 'mytag' and 'MyTag1'.
 + The `update-node-metadata` command no longer accepts the `all`
-  argument. This argument should have never been accepted by the 
-  command, and had no effect. Instead, `modify-node-metadata` can be 
-  called with either the `clear` argument to remove all keys, or the 
-  `update` argument to set all keys to certain values, which achieves 
+  argument. This argument should have never been accepted by the
+  command, and had no effect. Instead, `modify-node-metadata` can be
+  called with either the `clear` argument to remove all keys, or the
+  `update` argument to set all keys to certain values, which achieves
   the same function.
 
 ### API changes
