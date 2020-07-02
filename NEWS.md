@@ -1,5 +1,10 @@
 # Razor Server Release Notes
 
+## 1.9.9 - 2020-07-02
+
++ SECURITY: update rack to v2.1.4 to address CVE-2020-8184
++ SECURITY: update jdbc-postgres to 42.2.14 to address CVE-2020-13692
+
 ## 1.9.8 - 2020-04-24
 
 ### Task changes
