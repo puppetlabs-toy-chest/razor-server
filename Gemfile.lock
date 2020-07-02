@@ -36,7 +36,7 @@ GEM
     parslet (1.4.0)
       blankslate (~> 2.0)
     public_suffix (3.1.1)
-    rack (2.1.2)
+    rack (2.1.4)
     rack-protection (2.0.5)
       rack
     rack-test (0.7.0)
@@ -117,7 +117,7 @@ DEPENDENCIES
   jdbc-postgres (= 42.2.14)
   json-schema
   kramdown (~> 1.14.0)
-  rack (>= 2.0.8)
+  rack (>= 2.1.4)
   rack-test (~> 0.7.0)
   rake
   rspec (~> 2.13.0)
