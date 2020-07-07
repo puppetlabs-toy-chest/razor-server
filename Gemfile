@@ -21,12 +21,12 @@ ruby '2.3.1', :engine => 'jruby', :engine_version => '9.1.5.0'
 gem 'torquebox', '~> 3.2.0'
 gem 'sinatra'
 gem 'sequel'
-gem 'jdbc-postgres', '= 42.2.6'
+gem 'jdbc-postgres', '= 42.2.14'
 gem 'archive'
 gem 'hashie', '~> 2.0.5'
 gem 'gettext-setup'
 gem 'rake'
-gem 'rack', '>= 2.0.8'
+gem 'rack', '>= 2.1.4'
 
 ## support for various tasks and utility
 # This allows us to encrypt plain-text-in-the-DB passwords when they travel,
