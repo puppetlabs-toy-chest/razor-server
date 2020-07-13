@@ -1,0 +1,10 @@
+<%# -*- shell-script -*- %>
+# Get current IP
+node_ip=$(ip addr show | grep -A 2 BROADCAST | grep inet | awk '{ print $2 }' | awk -F'/' '{print $1}')
+echo IP is $node_ip
+
+# Send IP up
+curl -s <%= store_url("ip" => "$node_ip") %>
+
+# Send final state
+curl -s <%= stage_done_url("store_ip") %>
